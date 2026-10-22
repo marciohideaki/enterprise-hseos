@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-22T14:28:21.145Z",
+  "gerado_em": "2026-10-22T17:21:11.759Z",
   "modo": "modern",
   "veredito": "PASS",
   "motivos_falha": [],
@@ -17,7 +17,7 @@
   },
   "pacote": {
     "arquivo": "<scratch>/pack/hseos-4.0.0-rc.0.tgz",
-    "sha256": "bff9f2e37b42c9c941c04e84c96870eb46b9bf4ecc637ac8b7d9b488c56faec3"
+    "sha256": "515ed24acc45ffb5346805a6e13b50982b0b919c4d080d09be9cb5714ab8afdd"
   },
   "node": "v24.15.0",
   "consumidor": {
@@ -34,9 +34,9 @@
     "hseosVersion": "4.0.0-rc.0"
   },
   "axon_no_path": null,
-  "load1_inicio": 1.52,
+  "load1_inicio": 1.6,
   "totais": {
-    "PASS": 478,
+    "PASS": 503,
     "FAIL": 0,
     "BLOCKED": 0,
     "NOT_EXERCISED": 4
@@ -91,13 +91,13 @@
           "tool": "query_constitution",
           "args": "{\"article\":\"constitution\"}",
           "status": "PASS",
-          "evidence": "result {\"article\":\"constitution\",\"text\":\"# Enterprise Constitution\\n\\n**Version:** 2.2\\n**Status:** Active\\n**Scope:** All repositories and projects under this organization\\n**Source of Truth:** GitHub (repository content)\\n**Audience:** Engineering Team + AI Agents (any framework)\\n\\n> **v2.0 change:** Me...(+15617) path=<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution/Enterprise-Constitution.md len=15319"
+          "evidence": "result {\"article\":\"constitution\",\"text\":\"# Enterprise Constitution\\n\\n**Version:** 2.2\\n**Status:** Active\\n**Scope:** All repositories and projects under this organization\\n**Source of Truth:** GitHub (repository content)\\n**Audience:** Engineering Team + AI Agents (any framework)\\n\\n> **v2.0 change:** Me...(+15618) path=<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution/Enterprise-Constitution.md len=15319"
         },
         {
           "tool": "check_authority",
           "args": "{\"agent_code\":\"SWARM\"}",
           "status": "PASS",
-          "evidence": "result {\"agent_code\":\"SWARM\",\"authority\":\"# SWARM — Parallel Execution Commander — Authority (Enterprise Overlay)\\n**Agent:** SWARM — Parallel Execution Commander\\n**Scope:** Heterogeneous Batch Decomposition, Parallel Execution, Worktree Isolation\\n**Status:** Active\\n\\n## 1. Role Definition\\nSWARM decomp...(+4800) authority_len=2791"
+          "evidence": "result {\"agent_code\":\"SWARM\",\"authority\":\"# SWARM — Parallel Execution Commander — Authority (Enterprise Overlay)\\n**Agent:** SWARM — Parallel Execution Commander\\n**Scope:** Heterogeneous Batch Decomposition, Parallel Execution, Worktree Isolation\\n**Status:** Active\\n\\n## 1. Role Definition\\nSWARM decomp...(+4801) authority_len=2791"
         },
         {
           "tool": "validate_adr",
@@ -214,7 +214,7 @@
           "args": "{\"article\":\"../../../../etc/passwd\"}",
           "kind": "out-of-scope-path",
           "status": "PASS",
-          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../et...(+10)"
         },
         {
           "tool": "check_authority",
@@ -235,7 +235,7 @@
           "args": "{\"article\":\"/etc/passwd\"}",
           "kind": "out-of-scope-path:absolute-path",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution f...(+27)"
+          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution ...(+28)"
         },
         {
           "tool": "query_constitution",
@@ -319,19 +319,19 @@
         },
         {
           "tool": "plan_squad",
-          "args": "{\"batch_description\":\"a4 journey probe\",\"run_id\":\"a4-journey-1792679220359\"}",
+          "args": "{\"batch_description\":\"a4 journey probe\",\"run_id\":\"a4-journey-1792689590160\"}",
           "status": "PASS",
-          "evidence": "result {\"run_id\":\"a4-journey-1792679220359\",\"run_dir\":\"<scratch>/cmr/.hseos/runs/dev-squad/a4-journey-1792679220359\",\"plan_md\":\"# SWARM Squad Plan — a4-journey-1792679220359\\n\\n**Description:** a4 journey probe\\n**Created:** 2026-10-22T14:27:00.510Z\\n\\n## Tier Hints\\n\\n_none provided...(+128) run_dir=<scratch>/cmr/.hseos/runs/dev-squad/a4-journey-1792679220359 expected=<scratch>/cmr/.hseos/runs/dev-squad/a4-journey-1792679220359"
+          "evidence": "result {\"run_id\":\"a4-journey-1792689590160\",\"run_dir\":\"<scratch>/cmr/.hseos/runs/dev-squad/a4-journey-1792689590160\",\"plan_md\":\"# SWARM Squad Plan — a4-journey-1792689590160\\n\\n**Description:** a4 journey probe\\n**Created:** 2026-10-22T17:19:50.312Z\\n\\n## Tier Hints\\n\\n_none provide...(+129) run_dir=<scratch>/cmr/.hseos/runs/dev-squad/a4-journey-1792689590160 expected=<scratch>/cmr/.hseos/runs/dev-squad/a4-journey-1792689590160"
         },
         {
           "tool": "get_run_state",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\"}",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\"}",
           "status": "PASS",
-          "evidence": "result {\"run_id\":\"a4-journey-1792679220359\",\"run_dir\":\"<scratch>/cmr/.hseos/runs/dev-squad/a4-journey-1792679220359\",\"status\":\"# STATUS — a4-journey-1792679220359\\n\\n**Phase:** INTAKE\\n**Created:** 2026-10-22T14:27:00.511Z\\n\",\"wave_reports\":[]} status_len=93"
+          "evidence": "result {\"run_id\":\"a4-journey-1792689590160\",\"run_dir\":\"<scratch>/cmr/.hseos/runs/dev-squad/a4-journey-1792689590160\",\"status\":\"# STATUS — a4-journey-1792689590160\\n\\n**Phase:** INTAKE\\n**Created:** 2026-10-22T17:19:50.312Z\\n\",\"wave_reports\":[]} status_len=93"
         },
         {
           "tool": "dispatch_wave",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\"}",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\"}",
           "status": "PASS",
           "evidence": "result {\"wave_index\":0,\"worktree_paths\":[],\"subagent_prompts\":[],\"note\":\"no waves defined in PLAN.md\"} {\"wave_index\":0,\"worktree_paths\":[],\"subagent_prompts\":[],\"note\":\"no waves defined in PLAN.md\"}"
         },
@@ -340,6 +340,12 @@
           "status": "PASS",
           "evidence": "node_modules/hseos/.hseos/runs absent",
           "kind": "out-of-scope-write"
+        },
+        {
+          "tool": "(ledger: no ExecutionOutcomeUncertain event)",
+          "status": "PASS",
+          "evidence": "ExecutionOutcomeUncertain events in the activated db: 0 (out-of-scope writes are refused before the approval, so none is expected)",
+          "kind": "ledger"
         }
       ],
       "negacoes": [
@@ -373,7 +379,7 @@
         },
         {
           "tool": "plan_squad",
-          "args": "{\"batch_description\":{\"a\":1},\"run_id\":\"a4-badtype-1792679220659\"}",
+          "args": "{\"batch_description\":{\"a\":1},\"run_id\":\"a4-badtype-1792689590460\"}",
           "status": "PASS",
           "evidence": "denied with JSON-RPC error code=-32602 message=Tool arguments do not match inputSchema",
           "kind": "wrong-type"
@@ -434,21 +440,21 @@
         },
         {
           "tool": "plan_squad",
-          "args": "{\"run_id\":\"a4-norequired-1792679223716\"}",
+          "args": "{\"run_id\":\"a4-norequired-1792689593521\"}",
           "status": "PASS",
           "evidence": "denied with JSON-RPC error code=-32602 message=Tool arguments do not match inputSchemanothing created on disk",
           "kind": "schema-required-missing"
         },
         {
           "tool": "get_run_state",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679223821\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689593639\"}",
           "kind": "out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "get_run_state",
-          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-3608572-1792679223821\"}",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-221651-1792689593639\"}",
           "kind": "out-of-scope-read:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -462,24 +468,24 @@
         },
         {
           "tool": "dispatch_wave",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679223821\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689593639\"}",
           "kind": "out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "consolidate_handoff",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679223821\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689593639\",\"source_task\":\"a\",\"target_task\":\"b\"}",
           "kind": "out-of-scope-read:relative-traversal",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "consolidate_handoff",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
           "kind": "out-of-scope-read:source_task-traversal",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid source_task: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid source_task: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "get_run_state",
@@ -504,28 +510,28 @@
         },
         {
           "tool": "plan_squad",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-3608572-1792679223821\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689593639\"}",
           "kind": "out-of-scope-write:relative-traversal",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "plan_squad",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-3608572-1792679223821\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-221651-1792689593639\"}",
           "kind": "out-of-scope-write:absolute-path",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "plan_squad",
           "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-link-w\"}",
           "kind": "out-of-scope-write:symlinked-run-dir",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: resolves outside the runs directory (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: resolves outside the runs directory (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "get_run_state",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\\u0000/../../..\"}",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\\u0000/../../..\"}",
           "kind": "out-of-scope-read:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -539,21 +545,21 @@
         },
         {
           "tool": "plan_squad",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-3608572-1792679223821\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689593639\"}",
           "kind": "out-of-scope-write:nul-byte",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "plan_squad (MRTR decline)",
-          "args": "{\"batch_description\":\"declined\",\"run_id\":\"a4-declined-1792679225406\"}",
+          "args": "{\"batch_description\":\"declined\",\"run_id\":\"a4-declined-1792689594731\"}",
           "kind": "mrtr-decline",
           "status": "PASS",
           "evidence": "prompted=true; after decline: refused -32603 Governed execution was not explicitly approved; nothing created on disk"
         },
         {
           "tool": "plan_squad (no elicitation capability)",
-          "args": "{\"batch_description\":\"declined\",\"run_id\":\"a4-declined-1792679225406\"}",
+          "args": "{\"batch_description\":\"declined\",\"run_id\":\"a4-declined-1792689594731\"}",
           "kind": "mrtr-no-capability",
           "status": "PASS",
           "evidence": "error -32021 Client lacks the elicitation capability required for approval; nothing created on disk"
@@ -581,7 +587,7 @@
       "stderr": "[swarm] governed mode=activated user_version=17\n[swarm] governed MCP stdio ready; tools=5\n",
       "stdoutNonJson": 0,
       "resumo": {
-        "PASS": 43,
+        "PASS": 44,
         "FAIL": 0,
         "BLOCKED": 0,
         "NOT_EXERCISED": 0
@@ -634,33 +640,33 @@
         },
         {
           "tool": "state_write",
-          "args": "{\"fields\":{\"a4_marker\":\"a4-1792679227663\"},\"agent\":\"a4\"}",
+          "args": "{\"fields\":{\"a4_marker\":\"a4-1792689596994\"},\"agent\":\"a4\"}",
           "status": "PASS",
-          "evidence": "result {\"written\":1,\"updated_at\":\"2026-10-22T14:27:07.874Z\"} written=1"
+          "evidence": "result {\"written\":1,\"updated_at\":\"2026-10-22T17:19:57.174Z\"} written=1"
         },
         {
           "tool": "state_read",
           "args": "{}",
           "status": "PASS",
-          "evidence": "result {\"state\":{\"a4_marker\":\"a4-1792679227663\"},\"updated_at\":\"2026-10-22T14:27:07.874Z\"} read-after-write marker match=true"
+          "evidence": "result {\"state\":{\"a4_marker\":\"a4-1792689596994\"},\"updated_at\":\"2026-10-22T17:19:57.174Z\"} read-after-write marker match=true"
         },
         {
           "tool": "tasks_add",
-          "args": "{\"id\":\"a4-task-1792679227949\"}",
+          "args": "{\"id\":\"a4-task-1792689597256\"}",
           "status": "PASS",
-          "evidence": "result {\"added\":\"a4-task-1792679227949\"}"
+          "evidence": "result {\"added\":\"a4-task-1792689597256\"}"
         },
         {
           "tool": "tasks_list",
           "args": "{\"status\":\"pending\"}",
           "status": "PASS",
-          "evidence": "result {\"tasks\":[{\"id\":\"a4-task-1792679227949\",\"owner\":\"a4\",\"description\":\"journey probe\",\"status\":\"pending\",\"depends_on\":null,\"note\":null,\"created_at\":\"2026-10-22 14:27:08\",\"updated_at\":\"2026-10-22 14:27:08\"}],\"count\":1} count=1"
+          "evidence": "result {\"tasks\":[{\"id\":\"a4-task-1792689597256\",\"owner\":\"a4\",\"description\":\"journey probe\",\"status\":\"pending\",\"depends_on\":null,\"note\":null,\"created_at\":\"2026-10-22 17:19:57\",\"updated_at\":\"2026-10-22 17:19:57\"}],\"count\":1} count=1"
         },
         {
           "tool": "tasks_update",
-          "args": "{\"id\":\"a4-task-1792679227949\",\"status\":\"done\"}",
+          "args": "{\"id\":\"a4-task-1792689597256\",\"status\":\"done\"}",
           "status": "PASS",
-          "evidence": "result {\"updated\":\"a4-task-1792679227949\",\"status\":\"done\",\"updated_at\":\"2026-10-22T14:27:08.243Z\"}"
+          "evidence": "result {\"updated\":\"a4-task-1792689597256\",\"status\":\"done\",\"updated_at\":\"2026-10-22T17:19:57.542Z\"}"
         },
         {
           "tool": "state_write (MRTR accept)",
@@ -676,9 +682,9 @@
         },
         {
           "tool": "tasks_add (for decline)",
-          "args": "{\"id\":\"a4-task-1792679227949-declined\"}",
+          "args": "{\"id\":\"a4-task-1792689597256-declined\"}",
           "status": "PASS",
-          "evidence": "result {\"added\":\"a4-task-1792679227949-declined\"}"
+          "evidence": "result {\"added\":\"a4-task-1792689597256-declined\"}"
         },
         {
           "tool": "runs_list",
@@ -690,7 +696,7 @@
           "tool": "state_history",
           "args": "{\"n\":3}",
           "status": "PASS",
-          "evidence": "result {\"history\":[{\"id\":1,\"key\":\"a4_marker\",\"old_value\":null,\"new_value\":\"a4-1792679227663\",\"changed_by\":\"a4\",\"changed_at\":\"2026-10-22T14:27:07.874Z\"}],\"count\":1} count=1"
+          "evidence": "result {\"history\":[{\"id\":1,\"key\":\"a4_marker\",\"old_value\":null,\"new_value\":\"a4-1792689596994\",\"changed_by\":\"a4\",\"changed_at\":\"2026-10-22T17:19:57.174Z\"}],\"count\":1} count=1"
         },
         {
           "tool": "(state db location)",
@@ -701,28 +707,28 @@
       "negacoes": [
         {
           "tool": "state_write (MRTR decline)",
-          "args": "{\"fields\":{\"a4_declined\":\"a4-declined-1792679228244\"},\"agent\":\"a4\"}",
+          "args": "{\"fields\":{\"a4_declined\":\"a4-declined-1792689597543\"},\"agent\":\"a4\"}",
           "kind": "mrtr-decline",
           "status": "PASS",
           "evidence": "prompted=true; after decline: refused -32603 Governed execution was not explicitly approved; state unchanged"
         },
         {
           "tool": "state_write (no elicitation capability)",
-          "args": "{\"fields\":{\"a4_declined\":\"a4-declined-1792679228244\"},\"agent\":\"a4\"}",
+          "args": "{\"fields\":{\"a4_declined\":\"a4-declined-1792689597543\"},\"agent\":\"a4\"}",
           "kind": "mrtr-no-capability",
           "status": "PASS",
           "evidence": "error -32021 Client lacks the elicitation capability required for approval; state unchanged"
         },
         {
           "tool": "tasks_update (MRTR decline)",
-          "args": "{\"id\":\"a4-task-1792679227949-declined\",\"status\":\"done\"}",
+          "args": "{\"id\":\"a4-task-1792689597256-declined\",\"status\":\"done\"}",
           "kind": "mrtr-decline",
           "status": "PASS",
           "evidence": "prompted=true; after decline: refused -32603 Governed execution was not explicitly approved; task still pending"
         },
         {
           "tool": "tasks_update (no elicitation capability)",
-          "args": "{\"id\":\"a4-task-1792679227949-declined\",\"status\":\"done\"}",
+          "args": "{\"id\":\"a4-task-1792689597256-declined\",\"status\":\"done\"}",
           "kind": "mrtr-no-capability",
           "status": "PASS",
           "evidence": "error -32021 Client lacks the elicitation capability required for approval; task still pending"
@@ -834,7 +840,7 @@
           "tool": "tasks_update",
           "args": "{\"id\":\"no-such-task-a4\",\"status\":\"done\"}",
           "status": "PASS",
-          "evidence": "denied with JSON-RPC error code=EXECUTION_OUTCOME_IN_DOUBT message=Task not found: no-such-task-a4",
+          "evidence": "denied with JSON-RPC error code=TASK_NOT_FOUND message=Task not found: no-such-task-a4",
           "kind": "nonexistent-entity"
         },
         {
@@ -1330,7 +1336,7 @@
         "code": 0,
         "sig": null
       },
-      "stderr": "[axon_bridge] governed mode=activated user_version=17\n[axon-bridge] Axon binary: (unavailable: tools return AXON_UNAVAILABLE)\n[axon_bridge] governed MCP listening on http://127.0.0.1:36663/mcp\n",
+      "stderr": "[axon_bridge] governed mode=activated user_version=17\n[axon-bridge] Axon binary: (unavailable: tools return AXON_UNAVAILABLE)\n[axon_bridge] governed MCP listening on http://127.0.0.1:44045/mcp\n",
       "resumo": {
         "PASS": 27,
         "FAIL": 0,
@@ -1392,7 +1398,7 @@
           "tool": "check_authority",
           "args": "{\"agent_code\":\"SWARM\"}",
           "status": "PASS",
-          "evidence": "result {\"agent_code\":\"SWARM\",\"authority\":\"# SWARM — Parallel Execution Commander — Authority (Enterprise Overlay)\\n**Agent:** SWARM — Parallel Execution Commander\\n**Scope:** Heterogeneous Batch Decomposition, Parallel Execution, Worktree Isolation\\n**Status:** Active\\n\\n## 1. Role Definition\\nSWARM decomp...(+4800) authority_len=2791"
+          "evidence": "result {\"agent_code\":\"SWARM\",\"authority\":\"# SWARM — Parallel Execution Commander — Authority (Enterprise Overlay)\\n**Agent:** SWARM — Parallel Execution Commander\\n**Scope:** Heterogeneous Batch Decomposition, Parallel Execution, Worktree Isolation\\n**Status:** Active\\n\\n## 1. Role Definition\\nSWARM decomp...(+4801) authority_len=2791"
         },
         {
           "tool": "initialize@2024-11-05",
@@ -1524,7 +1530,7 @@
           "args": "{\"article\":\"../../../../etc/passwd\"}",
           "kind": "out-of-scope-path",
           "status": "PASS",
-          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../et...(+10)"
         },
         {
           "tool": "check_authority",
@@ -1545,7 +1551,7 @@
           "args": "{\"article\":\"/etc/passwd\"}",
           "kind": "out-of-scope-path:absolute-path",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution f...(+27)"
+          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution ...(+28)"
         },
         {
           "tool": "query_constitution",
@@ -1572,7 +1578,7 @@
           "args": "{\"article\":\"../../../../etc/passwd\"}",
           "kind": "compat:out-of-scope-path",
           "status": "PASS",
-          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../et...(+10)"
         },
         {
           "tool": "check_authority [compat 2024-11-05]",
@@ -1593,14 +1599,14 @@
           "args": "{\"article\":\"/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:absolute-path",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution f...(+27)"
+          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution ...(+28)"
         },
         {
           "tool": "query_constitution [compat 2024-11-05]",
           "args": "{\"article\":\"a\\u0000/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:nul-byte",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constit...(+41)"
+          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no consti...(+42)"
         },
         {
           "tool": "check_authority [compat 2025-06-18]",
@@ -1614,7 +1620,7 @@
           "args": "{\"article\":\"../../../../etc/passwd\"}",
           "kind": "compat:out-of-scope-path",
           "status": "PASS",
-          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../et...(+10)"
         },
         {
           "tool": "check_authority [compat 2025-06-18]",
@@ -1635,14 +1641,14 @@
           "args": "{\"article\":\"/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:absolute-path",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution f...(+27)"
+          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution ...(+28)"
         },
         {
           "tool": "query_constitution [compat 2025-06-18]",
           "args": "{\"article\":\"a\\u0000/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:nul-byte",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constit...(+41)"
+          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no consti...(+42)"
         },
         {
           "tool": "check_authority [compat 2025-11-25]",
@@ -1656,7 +1662,7 @@
           "args": "{\"article\":\"../../../../etc/passwd\"}",
           "kind": "compat:out-of-scope-path",
           "status": "PASS",
-          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../et...(+10)"
         },
         {
           "tool": "check_authority [compat 2025-11-25]",
@@ -1677,14 +1683,14 @@
           "args": "{\"article\":\"/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:absolute-path",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution f...(+27)"
+          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution ...(+28)"
         },
         {
           "tool": "query_constitution [compat 2025-11-25]",
           "args": "{\"article\":\"a\\u0000/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:nul-byte",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constit...(+41)"
+          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no consti...(+42)"
         }
       ],
       "notas": [],
@@ -1700,7 +1706,7 @@
         "code": 0,
         "sig": null
       },
-      "stderr": "[governance] governed mode=activated user_version=17\n[governance] governed MCP listening on http://127.0.0.1:46101/mcp\n",
+      "stderr": "[governance] governed mode=activated user_version=17\n[governance] governed MCP listening on http://127.0.0.1:38401/mcp\n",
       "resumo": {
         "PASS": 50,
         "FAIL": 0,
@@ -1744,15 +1750,15 @@
         },
         {
           "tool": "plan_squad",
-          "args": "{\"run_id\":\"a4-http-1792679253042\"}",
+          "args": "{\"run_id\":\"a4-http-1792689622287\"}",
           "status": "PASS",
-          "evidence": "result {\"run_id\":\"a4-http-1792679253042\",\"run_dir\":\"<scratch>/cmr/.hseos/runs/dev-squad/a4-http-1792679253042\",\"plan_md\":\"# SWARM Squad Plan — a4-http-1792679253042\\n\\n**Description:** a4 http probe\\n**Created:** 2026-10-22T14:27:33.219Z\\n\\n## Tier Hints\\n\\n_none provided_\\n\\n## Wave...(+116) prompted=true run_dir=<scratch>/cmr/.hseos/runs/dev-squad/a4-http-1792679253042"
+          "evidence": "result {\"run_id\":\"a4-http-1792689622287\",\"run_dir\":\"<scratch>/cmr/.hseos/runs/dev-squad/a4-http-1792689622287\",\"plan_md\":\"# SWARM Squad Plan — a4-http-1792689622287\\n\\n**Description:** a4 http probe\\n**Created:** 2026-10-22T17:20:22.480Z\\n\\n## Tier Hints\\n\\n_none provided_\\n\\n## Wav...(+117) prompted=true run_dir=<scratch>/cmr/.hseos/runs/dev-squad/a4-http-1792689622287"
         },
         {
           "tool": "get_run_state",
-          "args": "{\"run_id\":\"a4-http-1792679253042\"}",
+          "args": "{\"run_id\":\"a4-http-1792689622287\"}",
           "status": "PASS",
-          "evidence": "result {\"run_id\":\"a4-http-1792679253042\",\"run_dir\":\"<scratch>/cmr/.hseos/runs/dev-squad/a4-http-1792679253042\",\"status\":\"# STATUS — a4-http-1792679253042\\n\\n**Phase:** INTAKE\\n**Created:** 2026-10-22T14:27:33.220Z\\n\",\"wave_reports\":[]}"
+          "evidence": "result {\"run_id\":\"a4-http-1792689622287\",\"run_dir\":\"<scratch>/cmr/.hseos/runs/dev-squad/a4-http-1792689622287\",\"status\":\"# STATUS — a4-http-1792689622287\\n\\n**Phase:** INTAKE\\n**Created:** 2026-10-22T17:20:22.480Z\\n\",\"wave_reports\":[]}"
         },
         {
           "tool": "initialize@2024-11-05",
@@ -1874,14 +1880,14 @@
         },
         {
           "tool": "get_run_state",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679253305\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689622561\"}",
           "kind": "out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "get_run_state",
-          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-3608572-1792679253305\"}",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-221651-1792689622561\"}",
           "kind": "out-of-scope-read:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -1895,24 +1901,24 @@
         },
         {
           "tool": "dispatch_wave",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679253305\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689622561\"}",
           "kind": "out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "consolidate_handoff",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679253305\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689622561\",\"source_task\":\"a\",\"target_task\":\"b\"}",
           "kind": "out-of-scope-read:relative-traversal",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "consolidate_handoff",
-          "args": "{\"run_id\":\"a4-http-1792679253042\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"a4-http-1792689622287\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
           "kind": "out-of-scope-read:source_task-traversal",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid source_task: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid source_task: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "get_run_state",
@@ -1937,28 +1943,28 @@
         },
         {
           "tool": "plan_squad",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-3608572-1792679253305\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689622561\"}",
           "kind": "out-of-scope-write:relative-traversal",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "plan_squad",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-3608572-1792679253305\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-221651-1792689622561\"}",
           "kind": "out-of-scope-write:absolute-path",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "plan_squad",
           "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-link-w-2\"}",
           "kind": "out-of-scope-write:symlinked-run-dir",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: resolves outside the runs directory (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: resolves outside the runs directory (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "get_run_state",
-          "args": "{\"run_id\":\"a4-http-1792679253042\\u0000/../../..\"}",
+          "args": "{\"run_id\":\"a4-http-1792689622287\\u0000/../../..\"}",
           "kind": "out-of-scope-read:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -1972,21 +1978,21 @@
         },
         {
           "tool": "plan_squad",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-3608572-1792679253305\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689622561\"}",
           "kind": "out-of-scope-write:nul-byte",
           "status": "PASS",
-          "evidence": "denied code=EXECUTION_OUTCOME_IN_DOUBT Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code EXECUTION_OUTCOME_IN_DOUBT, refused after the approval prompt)"
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/ (domain code MCP_SCOPE_DENIED, refused before any prompt)"
         },
         {
           "tool": "plan_squad (MRTR decline)",
-          "args": "{\"batch_description\":\"declined\",\"run_id\":\"a4-http-declined-1792679254827\"}",
+          "args": "{\"batch_description\":\"declined\",\"run_id\":\"a4-http-declined-1792689623710\"}",
           "kind": "mrtr-decline",
           "status": "PASS",
           "evidence": "prompted=true; after decline: refused -32603 Governed execution was not explicitly approved; nothing created on disk"
         },
         {
           "tool": "plan_squad (no elicitation capability)",
-          "args": "{\"batch_description\":\"declined\",\"run_id\":\"a4-http-declined-1792679254827\"}",
+          "args": "{\"batch_description\":\"declined\",\"run_id\":\"a4-http-declined-1792689623710\"}",
           "kind": "mrtr-no-capability",
           "status": "PASS",
           "evidence": "error -32021 Client lacks the elicitation capability required for approval; nothing created on disk"
@@ -1999,14 +2005,14 @@
         },
         {
           "tool": "get_run_state [compat 2024-11-05]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679255044\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689623933\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "get_run_state [compat 2024-11-05]",
-          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-3608572-1792679255044\"}",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-221651-1792689623933\"}",
           "kind": "compat:out-of-scope-read:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -2020,21 +2026,21 @@
         },
         {
           "tool": "dispatch_wave [compat 2024-11-05]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679255044\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689623933\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "consolidate_handoff [compat 2024-11-05]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679255044\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689623933\",\"source_task\":\"a\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "consolidate_handoff [compat 2024-11-05]",
-          "args": "{\"run_id\":\"a4-http-1792679253042\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"a4-http-1792689622287\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:source_task-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -2062,14 +2068,14 @@
         },
         {
           "tool": "plan_squad [compat 2024-11-05]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-3608572-1792679255044\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689623933\"}",
           "kind": "compat:out-of-scope-write:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "plan_squad [compat 2024-11-05]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-3608572-1792679255044\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-221651-1792689623933\"}",
           "kind": "compat:out-of-scope-write:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -2083,7 +2089,35 @@
         },
         {
           "tool": "get_run_state [compat 2024-11-05]",
-          "args": "{\"run_id\":\"a4-http-1792679253042\\u0000/../../..\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689623933\"}",
+          "kind": "compat:out-of-scope-read:write-id:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2024-11-05]",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-write-221651-1792689623933\"}",
+          "kind": "compat:out-of-scope-read:write-id:absolute-path",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2024-11-05]",
+          "args": "{\"run_id\":\"a4-link-w-3\"}",
+          "kind": "compat:out-of-scope-read:write-id:symlinked-run-dir",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: resolves outside the runs directory"
+        },
+        {
+          "tool": "get_run_state [compat 2024-11-05]",
+          "args": "{\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689623933\"}",
+          "kind": "compat:out-of-scope-read:write-id:nul-byte",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2024-11-05]",
+          "args": "{\"run_id\":\"a4-http-1792689622287\\u0000/../../..\"}",
           "kind": "compat:out-of-scope-read:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -2097,21 +2131,21 @@
         },
         {
           "tool": "plan_squad [compat 2024-11-05]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-3608572-1792679255044\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689623933\"}",
           "kind": "compat:out-of-scope-write:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "get_run_state [compat 2025-06-18]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679256150\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689625308\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "get_run_state [compat 2025-06-18]",
-          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-3608572-1792679256150\"}",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-221651-1792689625308\"}",
           "kind": "compat:out-of-scope-read:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -2125,21 +2159,21 @@
         },
         {
           "tool": "dispatch_wave [compat 2025-06-18]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679256150\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689625308\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "consolidate_handoff [compat 2025-06-18]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679256150\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689625308\",\"source_task\":\"a\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "consolidate_handoff [compat 2025-06-18]",
-          "args": "{\"run_id\":\"a4-http-1792679253042\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"a4-http-1792689622287\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:source_task-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -2167,14 +2201,14 @@
         },
         {
           "tool": "plan_squad [compat 2025-06-18]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-3608572-1792679256150\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689625308\"}",
           "kind": "compat:out-of-scope-write:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "plan_squad [compat 2025-06-18]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-3608572-1792679256150\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-221651-1792689625308\"}",
           "kind": "compat:out-of-scope-write:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -2188,7 +2222,35 @@
         },
         {
           "tool": "get_run_state [compat 2025-06-18]",
-          "args": "{\"run_id\":\"a4-http-1792679253042\\u0000/../../..\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689625308\"}",
+          "kind": "compat:out-of-scope-read:write-id:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-06-18]",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-write-221651-1792689625308\"}",
+          "kind": "compat:out-of-scope-read:write-id:absolute-path",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-06-18]",
+          "args": "{\"run_id\":\"a4-link-w-4\"}",
+          "kind": "compat:out-of-scope-read:write-id:symlinked-run-dir",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: resolves outside the runs directory"
+        },
+        {
+          "tool": "get_run_state [compat 2025-06-18]",
+          "args": "{\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689625308\"}",
+          "kind": "compat:out-of-scope-read:write-id:nul-byte",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-06-18]",
+          "args": "{\"run_id\":\"a4-http-1792689622287\\u0000/../../..\"}",
           "kind": "compat:out-of-scope-read:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -2202,21 +2264,21 @@
         },
         {
           "tool": "plan_squad [compat 2025-06-18]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-3608572-1792679256150\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689625308\"}",
           "kind": "compat:out-of-scope-write:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "get_run_state [compat 2025-11-25]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679257254\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689626706\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "get_run_state [compat 2025-11-25]",
-          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-3608572-1792679257254\"}",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-221651-1792689626706\"}",
           "kind": "compat:out-of-scope-read:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -2230,21 +2292,21 @@
         },
         {
           "tool": "dispatch_wave [compat 2025-11-25]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679257254\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689626706\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "consolidate_handoff [compat 2025-11-25]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679257254\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689626706\",\"source_task\":\"a\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "consolidate_handoff [compat 2025-11-25]",
-          "args": "{\"run_id\":\"a4-http-1792679253042\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"a4-http-1792689622287\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:source_task-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -2272,14 +2334,14 @@
         },
         {
           "tool": "plan_squad [compat 2025-11-25]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-3608572-1792679257254\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689626706\"}",
           "kind": "compat:out-of-scope-write:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "plan_squad [compat 2025-11-25]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-3608572-1792679257254\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-221651-1792689626706\"}",
           "kind": "compat:out-of-scope-write:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -2293,7 +2355,35 @@
         },
         {
           "tool": "get_run_state [compat 2025-11-25]",
-          "args": "{\"run_id\":\"a4-http-1792679253042\\u0000/../../..\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689626706\"}",
+          "kind": "compat:out-of-scope-read:write-id:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-11-25]",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-write-221651-1792689626706\"}",
+          "kind": "compat:out-of-scope-read:write-id:absolute-path",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-11-25]",
+          "args": "{\"run_id\":\"a4-link-w-5\"}",
+          "kind": "compat:out-of-scope-read:write-id:symlinked-run-dir",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: resolves outside the runs directory"
+        },
+        {
+          "tool": "get_run_state [compat 2025-11-25]",
+          "args": "{\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689626706\"}",
+          "kind": "compat:out-of-scope-read:write-id:nul-byte",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-11-25]",
+          "args": "{\"run_id\":\"a4-http-1792689622287\\u0000/../../..\"}",
           "kind": "compat:out-of-scope-read:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -2307,7 +2397,7 @@
         },
         {
           "tool": "plan_squad [compat 2025-11-25]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-3608572-1792679257254\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689626706\"}",
           "kind": "compat:out-of-scope-write:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -2326,9 +2416,9 @@
         "code": 0,
         "sig": null
       },
-      "stderr": "[swarm] governed mode=activated user_version=17\n[swarm] governed MCP listening on http://127.0.0.1:42331/mcp\n",
+      "stderr": "[swarm] governed mode=activated user_version=17\n[swarm] governed MCP listening on http://127.0.0.1:34685/mcp\n",
       "resumo": {
-        "PASS": 89,
+        "PASS": 101,
         "FAIL": 0,
         "BLOCKED": 0,
         "NOT_EXERCISED": 0
@@ -2386,27 +2476,27 @@
         },
         {
           "tool": "state_write",
-          "args": "{\"fields\":{\"a4_marker\":\"a4-http-1792679263625\"}}",
+          "args": "{\"fields\":{\"a4_marker\":\"a4-http-1792689633404\"}}",
           "status": "PASS",
-          "evidence": "result {\"written\":1,\"updated_at\":\"2026-10-22T14:27:43.804Z\"} written=1"
+          "evidence": "result {\"written\":1,\"updated_at\":\"2026-10-22T17:20:33.615Z\"} written=1"
         },
         {
           "tool": "state_read",
           "args": "{}",
           "status": "PASS",
-          "evidence": "result {\"state\":{\"a4_marker\":\"a4-http-1792679263625\"},\"updated_at\":\"2026-10-22T14:27:43.804Z\"}"
+          "evidence": "result {\"state\":{\"a4_marker\":\"a4-http-1792689633404\"},\"updated_at\":\"2026-10-22T17:20:33.615Z\"}"
         },
         {
           "tool": "tasks_add",
-          "args": "{\"id\":\"a4-http-task-1792679263880\"}",
+          "args": "{\"id\":\"a4-http-task-1792689633689\"}",
           "status": "PASS",
-          "evidence": "result {\"added\":\"a4-http-task-1792679263880\"}"
+          "evidence": "result {\"added\":\"a4-http-task-1792689633689\"}"
         },
         {
           "tool": "tasks_update",
-          "args": "{\"id\":\"a4-http-task-1792679263880\",\"status\":\"done\"}",
+          "args": "{\"id\":\"a4-http-task-1792689633689\",\"status\":\"done\"}",
           "status": "PASS",
-          "evidence": "result {\"updated\":\"a4-http-task-1792679263880\",\"status\":\"done\",\"updated_at\":\"2026-10-22T14:27:44.103Z\"}"
+          "evidence": "result {\"updated\":\"a4-http-task-1792689633689\",\"status\":\"done\",\"updated_at\":\"2026-10-22T17:20:33.909Z\"}"
         },
         {
           "tool": "state_write (MRTR accept)",
@@ -2422,9 +2512,9 @@
         },
         {
           "tool": "tasks_add (for decline)",
-          "args": "{\"id\":\"a4-http-task-1792679263880-declined\"}",
+          "args": "{\"id\":\"a4-http-task-1792689633689-declined\"}",
           "status": "PASS",
-          "evidence": "result {\"added\":\"a4-http-task-1792679263880-declined\"}"
+          "evidence": "result {\"added\":\"a4-http-task-1792689633689-declined\"}"
         },
         {
           "tool": "initialize@2024-11-05",
@@ -2567,28 +2657,28 @@
         },
         {
           "tool": "state_write (MRTR decline)",
-          "args": "{\"fields\":{\"a4_declined\":\"a4-declined-1792679264327\"},\"agent\":\"a4\"}",
+          "args": "{\"fields\":{\"a4_declined\":\"a4-declined-1792689634137\"},\"agent\":\"a4\"}",
           "kind": "mrtr-decline",
           "status": "PASS",
           "evidence": "prompted=true; after decline: refused -32603 Governed execution was not explicitly approved; state unchanged"
         },
         {
           "tool": "state_write (no elicitation capability)",
-          "args": "{\"fields\":{\"a4_declined\":\"a4-declined-1792679264327\"},\"agent\":\"a4\"}",
+          "args": "{\"fields\":{\"a4_declined\":\"a4-declined-1792689634137\"},\"agent\":\"a4\"}",
           "kind": "mrtr-no-capability",
           "status": "PASS",
           "evidence": "error -32021 Client lacks the elicitation capability required for approval; state unchanged"
         },
         {
           "tool": "tasks_update (MRTR decline)",
-          "args": "{\"id\":\"a4-http-task-1792679263880-declined\",\"status\":\"done\"}",
+          "args": "{\"id\":\"a4-http-task-1792689633689-declined\",\"status\":\"done\"}",
           "kind": "mrtr-decline",
           "status": "PASS",
           "evidence": "prompted=true; after decline: refused -32603 Governed execution was not explicitly approved; task still pending"
         },
         {
           "tool": "tasks_update (no elicitation capability)",
-          "args": "{\"id\":\"a4-http-task-1792679263880-declined\",\"status\":\"done\"}",
+          "args": "{\"id\":\"a4-http-task-1792689633689-declined\",\"status\":\"done\"}",
           "kind": "mrtr-no-capability",
           "status": "PASS",
           "evidence": "error -32021 Client lacks the elicitation capability required for approval; task still pending"
@@ -2676,7 +2766,7 @@
         "code": 0,
         "sig": null
       },
-      "stderr": "[project-state:info] [project_state] governed mode=activated user_version=17\n[project-state:info] started; sweeping every 300s, threshold 10min\n[project-state:info] [project_state] governed MCP listening on http://127.0.0.1:34541/mcp\n[project-state:info] stopped\n",
+      "stderr": "[project-state:info] [project_state] governed mode=activated user_version=17\n[project-state:info] started; sweeping every 300s, threshold 10min\n[project-state:info] [project_state] governed MCP listening on http://127.0.0.1:46135/mcp\n[project-state:info] stopped\n",
       "resumo": {
         "PASS": 48,
         "FAIL": 0,
@@ -2764,7 +2854,7 @@
           "args": "{\"article\":\"../../../../etc/passwd\"}",
           "kind": "compat:out-of-scope-path",
           "status": "PASS",
-          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../et...(+10)"
         },
         {
           "tool": "check_authority [compat 2024-11-05]",
@@ -2785,14 +2875,14 @@
           "args": "{\"article\":\"/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:absolute-path",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution f...(+27)"
+          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution ...(+28)"
         },
         {
           "tool": "query_constitution [compat 2024-11-05]",
           "args": "{\"article\":\"a\\u0000/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:nul-byte",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constit...(+41)"
+          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no consti...(+42)"
         },
         {
           "tool": "(stdout framing)",
@@ -2812,7 +2902,7 @@
           "args": "{\"article\":\"../../../../etc/passwd\"}",
           "kind": "compat:out-of-scope-path",
           "status": "PASS",
-          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../et...(+10)"
         },
         {
           "tool": "check_authority [compat 2025-06-18]",
@@ -2833,14 +2923,14 @@
           "args": "{\"article\":\"/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:absolute-path",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution f...(+27)"
+          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution ...(+28)"
         },
         {
           "tool": "query_constitution [compat 2025-06-18]",
           "args": "{\"article\":\"a\\u0000/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:nul-byte",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constit...(+41)"
+          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no consti...(+42)"
         },
         {
           "tool": "(stdout framing)",
@@ -2860,7 +2950,7 @@
           "args": "{\"article\":\"../../../../etc/passwd\"}",
           "kind": "compat:out-of-scope-path",
           "status": "PASS",
-          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../et...(+10)"
         },
         {
           "tool": "check_authority [compat 2025-11-25]",
@@ -2881,14 +2971,14 @@
           "args": "{\"article\":\"/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:absolute-path",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution f...(+27)"
+          "evidence": "no file content returned: {\"article\":\"/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution ...(+28)"
         },
         {
           "tool": "query_constitution [compat 2025-11-25]",
           "args": "{\"article\":\"a\\u0000/etc/passwd\"}",
           "kind": "compat:out-of-scope-path:nul-byte",
           "status": "PASS",
-          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constit...(+41)"
+          "evidence": "no file content returned: {\"article\":\"a\\u0000/etc/passwd\",\"text\":null,\"path\":\"<scratch>/cmr/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no consti...(+42)"
         },
         {
           "tool": "(stdout framing)",
@@ -2965,14 +3055,14 @@
       "negacoes": [
         {
           "tool": "get_run_state [compat 2024-11-05]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679276520\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689646314\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "get_run_state [compat 2024-11-05]",
-          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-3608572-1792679276520\"}",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-221651-1792689646314\"}",
           "kind": "compat:out-of-scope-read:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -2986,21 +3076,21 @@
         },
         {
           "tool": "dispatch_wave [compat 2024-11-05]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679276520\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689646314\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "consolidate_handoff [compat 2024-11-05]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679276520\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689646314\",\"source_task\":\"a\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "consolidate_handoff [compat 2024-11-05]",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:source_task-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3028,14 +3118,14 @@
         },
         {
           "tool": "plan_squad [compat 2024-11-05]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-3608572-1792679276520\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689646314\"}",
           "kind": "compat:out-of-scope-write:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "plan_squad [compat 2024-11-05]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-3608572-1792679276520\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-221651-1792689646314\"}",
           "kind": "compat:out-of-scope-write:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3049,7 +3139,35 @@
         },
         {
           "tool": "get_run_state [compat 2024-11-05]",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\\u0000/../../..\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689646314\"}",
+          "kind": "compat:out-of-scope-read:write-id:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2024-11-05]",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-write-221651-1792689646314\"}",
+          "kind": "compat:out-of-scope-read:write-id:absolute-path",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2024-11-05]",
+          "args": "{\"run_id\":\"a4-link-w-6\"}",
+          "kind": "compat:out-of-scope-read:write-id:symlinked-run-dir",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: resolves outside the runs directory"
+        },
+        {
+          "tool": "get_run_state [compat 2024-11-05]",
+          "args": "{\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689646314\"}",
+          "kind": "compat:out-of-scope-read:write-id:nul-byte",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2024-11-05]",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\\u0000/../../..\"}",
           "kind": "compat:out-of-scope-read:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -3063,7 +3181,7 @@
         },
         {
           "tool": "plan_squad [compat 2024-11-05]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-3608572-1792679276520\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689646314\"}",
           "kind": "compat:out-of-scope-write:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3076,14 +3194,14 @@
         },
         {
           "tool": "get_run_state [compat 2025-06-18]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679279228\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689649283\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "get_run_state [compat 2025-06-18]",
-          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-3608572-1792679279228\"}",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-221651-1792689649283\"}",
           "kind": "compat:out-of-scope-read:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -3097,21 +3215,21 @@
         },
         {
           "tool": "dispatch_wave [compat 2025-06-18]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679279228\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689649283\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "consolidate_handoff [compat 2025-06-18]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679279228\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689649283\",\"source_task\":\"a\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "consolidate_handoff [compat 2025-06-18]",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:source_task-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3139,14 +3257,14 @@
         },
         {
           "tool": "plan_squad [compat 2025-06-18]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-3608572-1792679279228\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689649283\"}",
           "kind": "compat:out-of-scope-write:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "plan_squad [compat 2025-06-18]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-3608572-1792679279228\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-221651-1792689649283\"}",
           "kind": "compat:out-of-scope-write:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3160,7 +3278,35 @@
         },
         {
           "tool": "get_run_state [compat 2025-06-18]",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\\u0000/../../..\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689649283\"}",
+          "kind": "compat:out-of-scope-read:write-id:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-06-18]",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-write-221651-1792689649283\"}",
+          "kind": "compat:out-of-scope-read:write-id:absolute-path",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-06-18]",
+          "args": "{\"run_id\":\"a4-link-w-7\"}",
+          "kind": "compat:out-of-scope-read:write-id:symlinked-run-dir",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: resolves outside the runs directory"
+        },
+        {
+          "tool": "get_run_state [compat 2025-06-18]",
+          "args": "{\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689649283\"}",
+          "kind": "compat:out-of-scope-read:write-id:nul-byte",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-06-18]",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\\u0000/../../..\"}",
           "kind": "compat:out-of-scope-read:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -3174,7 +3320,7 @@
         },
         {
           "tool": "plan_squad [compat 2025-06-18]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-3608572-1792679279228\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689649283\"}",
           "kind": "compat:out-of-scope-write:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3187,14 +3333,14 @@
         },
         {
           "tool": "get_run_state [compat 2025-11-25]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679281915\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689652270\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "get_run_state [compat 2025-11-25]",
-          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-3608572-1792679281915\"}",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-canary-221651-1792689652270\"}",
           "kind": "compat:out-of-scope-read:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -3208,21 +3354,21 @@
         },
         {
           "tool": "dispatch_wave [compat 2025-11-25]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679281915\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689652270\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
         },
         {
           "tool": "consolidate_handoff [compat 2025-11-25]",
-          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-3608572-1792679281915\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-canary-221651-1792689652270\",\"source_task\":\"a\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "consolidate_handoff [compat 2025-11-25]",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
           "kind": "compat:out-of-scope-read:source_task-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3250,14 +3396,14 @@
         },
         {
           "tool": "plan_squad [compat 2025-11-25]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-3608572-1792679281915\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689652270\"}",
           "kind": "compat:out-of-scope-write:relative-traversal",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
         },
         {
           "tool": "plan_squad [compat 2025-11-25]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-3608572-1792679281915\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"<tmp>/a4-outside-write-221651-1792689652270\"}",
           "kind": "compat:out-of-scope-write:absolute-path",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3271,7 +3417,35 @@
         },
         {
           "tool": "get_run_state [compat 2025-11-25]",
-          "args": "{\"run_id\":\"a4-journey-1792679220359\\u0000/../../..\"}",
+          "args": "{\"run_id\":\"../../../../../../../a4-outside-write-221651-1792689652270\"}",
+          "kind": "compat:out-of-scope-read:write-id:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-11-25]",
+          "args": "{\"run_id\":\"<tmp>/a4-outside-write-221651-1792689652270\"}",
+          "kind": "compat:out-of-scope-read:write-id:absolute-path",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-11-25]",
+          "args": "{\"run_id\":\"a4-link-w-8\"}",
+          "kind": "compat:out-of-scope-read:write-id:symlinked-run-dir",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: resolves outside the runs directory"
+        },
+        {
+          "tool": "get_run_state [compat 2025-11-25]",
+          "args": "{\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689652270\"}",
+          "kind": "compat:out-of-scope-read:write-id:nul-byte",
+          "status": "PASS",
+          "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state [compat 2025-11-25]",
+          "args": "{\"run_id\":\"a4-journey-1792689590160\\u0000/../../..\"}",
           "kind": "compat:out-of-scope-read:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_SCOPE_DENIED Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
@@ -3285,7 +3459,7 @@
         },
         {
           "tool": "plan_squad [compat 2025-11-25]",
-          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-3608572-1792679281915\"}",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-nul\\u0000../../../../../../../a4-outside-write-221651-1792689652270\"}",
           "kind": "compat:out-of-scope-write:nul-byte",
           "status": "PASS",
           "evidence": "denied code=MCP_LEGACY_APPROVAL_UNSUPPORTED Approval-required execution is unavailable on the legacy MCP protocol (domain code MCP_LEGACY_APPROVAL_UNSUPPORTED)"
@@ -3305,7 +3479,7 @@
       "stderr": "[swarm] governed mode=activated user_version=17\n[swarm] governed MCP stdio ready; tools=5\n",
       "stdoutNonJson": 0,
       "resumo": {
-        "PASS": 55,
+        "PASS": 67,
         "FAIL": 0,
         "BLOCKED": 0,
         "NOT_EXERCISED": 0
@@ -3660,7 +3834,7 @@
         "code": 0,
         "sig": null
       },
-      "stderr": "[axon_bridge] governed mode=activated user_version=17\n[axon-bridge] Axon binary: (unavailable: tools return AXON_UNAVAILABLE)\n[axon_bridge] governed MCP listening on http://127.0.0.1:45271/mcp\n",
+      "stderr": "[axon_bridge] governed mode=activated user_version=17\n[axon-bridge] Axon binary: (unavailable: tools return AXON_UNAVAILABLE)\n[axon_bridge] governed MCP listening on http://127.0.0.1:39053/mcp\n",
       "resumo": {
         "PASS": 10,
         "FAIL": 0,
@@ -3669,23 +3843,12 @@
       }
     }
   ],
-  "achados": [
-    {
-      "severity": "medium",
-      "title": "out-of-scope writes are validated only AFTER the approval prompt and are recorded as an uncertain outcome",
-      "detail": "12 out-of-scope write probes (traversal, absolute path, symlink, NUL byte; plan_squad / consolidate_handoff) were refused with EXECUTION_OUTCOME_IN_DOUBT and the scope reason, after an MRTR input_required was issued to the client (a human would be asked to approve a request that cannot succeed). Nothing was written outside the runs dir. Reads of the same shape are refused with MCP_SCOPE_DENIED before any prompt. The ledger records ExecutionOutcomeUncertain for these (see ledger_eventos).",
-      "exemplos": [
-        "hseos-swarm consolidate_handoff out-of-scope-read:relative-traversal",
-        "hseos-swarm consolidate_handoff out-of-scope-read:source_task-traversal",
-        "hseos-swarm plan_squad out-of-scope-write:relative-traversal"
-      ]
-    }
-  ],
+  "achados": [],
   "abortos": [],
   "processos": {
     "spawned": [
-      3608583, 3608828, 3609235, 3609630, 3609862, 3609985, 3610272, 3610594, 3611131, 3611440, 3611587, 3611684, 3611743, 3611921, 3612037,
-      3612193, 3612342, 3612411, 3612547, 3612636, 3612700, 3612832
+      221669, 222059, 222410, 222799, 223075, 223167, 223421, 223795, 224288, 224698, 224768, 224903, 224976, 225183, 225342, 225457,
+      225628, 225689, 225833, 225900, 225941, 226073
     ],
     "orfaos_apos_encerrar": [],
     "axon_orfaos": [],
@@ -3701,12 +3864,11 @@
   },
   "protocolo": "2026-07-28",
   "ledger_eventos": {
-    "execution:ExecutionAuthorized": 196,
-    "execution:ExecutionFailed": 107,
-    "execution:ExecutionOutcomeUncertain": 13,
-    "execution:ExecutionStarted": 196,
+    "execution:ExecutionAuthorized": 207,
+    "execution:ExecutionFailed": 131,
+    "execution:ExecutionStarted": 207,
     "execution:ExecutionSucceeded": 76,
-    "mcp_gateway:ExecutionFailed": 100
+    "mcp_gateway:ExecutionFailed": 124
   },
   "contagens_de_ferramentas": {
     "hseos-governance": 15,
@@ -3727,6 +3889,7 @@
   "limitacoes": [
     "Modern mode: the state db is activated in a scratch consumer with a FIXTURE ADR-0048 (Accepted) via the internal decisionsDirectory option; the real ADR-0048 stays Proposed and no real project.db is touched.",
     "Modern replies come in the governed envelope {schema_version, ok, data|error}; the journey unwraps data.result and maps ok:false to a domain error before judging, so the assertions compare the same data and the same errors as the legacy journey (no assertion was loosened). Only legacy-protocol-specific steps (the notifications/initialized silence, the initialize handshake) are replaced by their modern equivalents (server/discover).",
+    "In the compat block the swarm WRITE probes only prove MCP_LEGACY_APPROVAL_UNSUPPORTED (the legacy client cannot approve, so the request never reaches the scope check); the scope is proven there by READ probes of the same hostile run ids (write-id:* kinds). A containment-only mutation of the scope check is therefore caught by the compat reads, not by the compat writes.",
     "Approval-required tools (swarm plan_squad, project-state state_write/tasks_update) are driven over MRTR: the accept path by the functional steps and decline / no-elicitation by dedicated negatives. memory.* and environment.* tools exist only in project-state with an `environment:` config section, which this journey does not provide, so MRTR with memory.delete is covered by docs/evolution/w10/evidence/k7 (h05-h07), not here.",
     "The compat block speaks initialize 2024-11-05, 2025-06-18 and 2025-11-25 (stdio: one connection per revision, the era is pinned per connection; HTTP: one server, three clients) and repeats the scope negatives; 2025-03-26 is covered by the K7 harness.",
     "No real MCP client (Codex, Claude Code) takes part: the client is this script; real-client proof is K7 section 4.",

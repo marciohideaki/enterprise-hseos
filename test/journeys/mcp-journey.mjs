@@ -644,7 +644,6 @@ async function swarmScopeNegatives(s, call, { runsRoot, runId, proto }) {
   const READ_CODES = new Set(['MCP_SCOPE_DENIED']);
   // consolidate_handoff writes a handoff file, so it is approval-gated and follows the write rules even though the journey probes it as a read
   const APPROVAL_GATED = new Set(['consolidate_handoff']);
-  const WRITE_REASON = /Invalid (run_id|source_task|target_task)|outside the runs directory/;
   const domainOk = (resp, kind, tool) => {
     if (proto === 'legacy') return [true, ''];
     const code = resp?.error?.code;
@@ -652,8 +651,9 @@ async function swarmScopeNegatives(s, call, { runsRoot, runId, proto }) {
     if (kind === 'read' && !APPROVAL_GATED.has(tool))
       return [READ_CODES.has(code), READ_CODES.has(code) ? '' : ` (domain code ${code}, expected MCP_SCOPE_DENIED)`];
     if (proto === 'compat') return [code === 'MCP_LEGACY_APPROVAL_UNSUPPORTED', ` (domain code ${code})`];
-    const ok = (code === 'MCP_SCOPE_DENIED' || code === 'EXECUTION_OUTCOME_IN_DOUBT') && WRITE_REASON.test(String(resp?.error?.message));
-    return [ok, ` (domain code ${code}${resp.prompted ? ', refused after the approval prompt' : ', refused before any prompt'})`];
+    // modern writes: exactly MCP_SCOPE_DENIED and before any approval prompt (K11 moved the scope check ahead of the approval)
+    const ok = code === 'MCP_SCOPE_DENIED' && !resp.prompted;
+    return [ok, ` (domain code ${code}${resp.prompted ? ', refused AFTER the approval prompt' : ', refused before any prompt'})`];
   };
   // ---- out-of-scope: every escape must be an explicit error AND leak/write nothing
   const tag = `${process.pid}-${Date.now()}`;
@@ -736,6 +736,14 @@ async function swarmScopeNegatives(s, call, { runsRoot, runId, proto }) {
     { batch_description: 'x', run_id: `a4-link-w${sfx}` },
     path.join(writeTarget, 'PLAN.md'),
   );
+  if (proto === 'compat') {
+    // compat writes stop at MCP_LEGACY_APPROVAL_UNSUPPORTED before reaching the scope check, so the scope is also proven by READS of the
+    // same hostile run ids (reads are not approval-gated)
+    await escapeRead('write-id:relative-traversal', 'get_run_state', { run_id: rel(writeTarget) });
+    await escapeRead('write-id:absolute-path', 'get_run_state', { run_id: writeTarget });
+    await escapeRead('write-id:symlinked-run-dir', 'get_run_state', { run_id: `a4-link-w${sfx}` });
+    await escapeRead('write-id:nul-byte', 'get_run_state', { run_id: `a4-nul\u0000${rel(writeTarget)}` });
+  }
   if (proto !== 'legacy') {
     // modern/compat extras: NUL byte and percent-encoded traversal in the run id (read and write)
     await escapeRead('nul-byte', 'get_run_state', { run_id: `${runId}\u0000/../../..` });
@@ -1724,7 +1732,7 @@ for (const [name, fn] of STAGES) {
 }
 const EXPECTED_STAGES = STAGES.length;
 
-// Modern: ledger evidence and derived findings (reported, never fixed by the journey).
+// Modern: ledger evidence (refused out-of-scope writes must leave no uncertain outcome).
 let ledgerEvents = null;
 if (MODERN) {
   const Database = createRequire(path.join(pkgRoot, 'package.json'))('better-sqlite3');
@@ -1739,18 +1747,13 @@ if (MODERN) {
   } finally {
     db.close();
   }
-  const afterPrompt = servers.flatMap((x) =>
-    x.negacoes
-      .filter((e) => /EXECUTION_OUTCOME_IN_DOUBT/.test(e.evidence) && /refused after the approval prompt/.test(e.evidence))
-      .map((e) => `${x.nome} ${e.tool} ${e.kind}`),
-  );
-  if (afterPrompt.length > 0)
-    findings.push({
-      severity: 'medium',
-      title: 'out-of-scope writes are validated only AFTER the approval prompt and are recorded as an uncertain outcome',
-      detail: `${afterPrompt.length} out-of-scope write probes (traversal, absolute path, symlink, NUL byte; plan_squad / consolidate_handoff) were refused with EXECUTION_OUTCOME_IN_DOUBT and the scope reason, after an MRTR input_required was issued to the client (a human would be asked to approve a request that cannot succeed). Nothing was written outside the runs dir. Reads of the same shape are refused with MCP_SCOPE_DENIED before any prompt. The ledger records ExecutionOutcomeUncertain for these (see ledger_eventos).`,
-      exemplos: afterPrompt.slice(0, 3),
-    });
+  const uncertain = ledgerEvents['execution:ExecutionOutcomeUncertain'] ?? 0;
+  push(servers.find((x) => x.nome === 'hseos-swarm').chamadas, {
+    tool: '(ledger: no ExecutionOutcomeUncertain event)',
+    status: uncertain === 0 ? 'PASS' : 'FAIL',
+    evidence: `ExecutionOutcomeUncertain events in the activated db: ${uncertain} (out-of-scope writes are refused before the approval, so none is expected)`,
+    kind: 'ledger',
+  });
 }
 
 // cleanup + orphan check (an orphan is a failure, not a warning)
@@ -1843,6 +1846,7 @@ const result = {
       ? [
           'Modern mode: the state db is activated in a scratch consumer with a FIXTURE ADR-0048 (Accepted) via the internal decisionsDirectory option; the real ADR-0048 stays Proposed and no real project.db is touched.',
           'Modern replies come in the governed envelope {schema_version, ok, data|error}; the journey unwraps data.result and maps ok:false to a domain error before judging, so the assertions compare the same data and the same errors as the legacy journey (no assertion was loosened). Only legacy-protocol-specific steps (the notifications/initialized silence, the initialize handshake) are replaced by their modern equivalents (server/discover).',
+          'In the compat block the swarm WRITE probes only prove MCP_LEGACY_APPROVAL_UNSUPPORTED (the legacy client cannot approve, so the request never reaches the scope check); the scope is proven there by READ probes of the same hostile run ids (write-id:* kinds). Mutation controls: loosening the run-id pattern together with the containment check is caught in compat; reverting the pre-approval scope check (K11) alone, or disabling only the realpath containment (isInside) alone, is NOT caught in compat (reads are also guarded by a second file-level check, and compat writes stop at the approval), only by the modern write probes and the ledger step.',
           'Approval-required tools (swarm plan_squad, project-state state_write/tasks_update) are driven over MRTR: the accept path by the functional steps and decline / no-elicitation by dedicated negatives. memory.* and environment.* tools exist only in project-state with an `environment:` config section, which this journey does not provide, so MRTR with memory.delete is covered by docs/evolution/w10/evidence/k7 (h05-h07), not here.',
           'The compat block speaks initialize 2024-11-05, 2025-06-18 and 2025-11-25 (stdio: one connection per revision, the era is pinned per connection; HTTP: one server, three clients) and repeats the scope negatives; 2025-03-26 is covered by the K7 harness.',
           'No real MCP client (Codex, Claude Code) takes part: the client is this script; real-client proof is K7 section 4.',
