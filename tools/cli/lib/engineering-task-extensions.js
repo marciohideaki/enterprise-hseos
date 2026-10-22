@@ -1003,6 +1003,10 @@ function defaultIsolationProbe(inputs = {}) {
  * governance server down": if the start throws while a host was provided, the cause is logged (code and a short message,
  * no stack), what the host opened is disposed, and the server is started ONCE more without the host. A second failure is
  * a real server failure and propagates. `start(host)` receives the factory or `null`.
+ *
+ * Known imprecision, kept on purpose: the "capability host is off" line is printed whenever the first start fails, even if
+ * the cause was unrelated to the host (a busy port, say). The retry then fails the same way and that error propagates, so
+ * the line can read as misleading; it never changes what the server does.
  */
 function startWithCapabilityFallback(start, factory, options = {}) {
   const log = options.log ?? stderrLog;

@@ -1083,9 +1083,16 @@ test('K9: a host that fails only when built starts the server once more without 
   const logs = [];
   const factory = lateFailingFactory(box, logs);
   assert.ok(factory, 'the pre-check passes, so the factory exists');
+  const realDispose = factory.dispose;
+  let disposed = 0;
+  factory.dispose = () => {
+    disposed += 1;
+    realDispose();
+  };
   const attempts = [];
   const handle = startWithCapabilityFallback(nativeStarter(box, attempts), factory, { log: (m) => logs.push(m) });
   t.after(() => handle.close());
+  assert.equal(disposed, 1, 'the factory is disposed exactly once, after the first start failed');
   assert.deepEqual(
     attempts.map((attempt) => attempt.host),
     ['factory', 'none'],
@@ -1128,10 +1135,15 @@ test('K9: when the second start fails too the error propagates after exactly two
     attempts.push(host === null ? 'none' : 'factory');
     throw Object.assign(new Error('the server itself is broken'), { code: 'ENV_REAL_FAILURE' });
   };
-  assert.throws(
-    () => startWithCapabilityFallback(failing, lateFailingFactory(box, logs), { log: (m) => logs.push(m) }),
-    /the server itself is broken/,
-  );
+  const failingFactory = lateFailingFactory(box, logs);
+  let disposed = 0;
+  const realDispose = failingFactory.dispose;
+  failingFactory.dispose = () => {
+    disposed += 1;
+    realDispose();
+  };
+  assert.throws(() => startWithCapabilityFallback(failing, failingFactory, { log: (m) => logs.push(m) }), /the server itself is broken/);
+  assert.equal(disposed, 1, 'disposed once even when the retry fails too');
   assert.deepEqual(attempts, ['factory', 'none']);
   assert.equal(openDescriptorsOf(box.databasePath), 0);
 });
@@ -1142,8 +1154,15 @@ test('K9: a valid host (or none) starts once, without retry or warning', async (
   const logs = [];
   const attempts = [];
   const factory = createMcpEnvironmentHostFactory(environmentSection(), { isolationProbe: AVAILABLE, log: (m) => logs.push(m) });
+  let disposed = 0;
+  const realDispose = factory.dispose;
+  factory.dispose = () => {
+    disposed += 1;
+    realDispose();
+  };
   const handle = startWithCapabilityFallback(nativeStarter(box, attempts), factory, { log: (m) => logs.push(m) });
   t.after(() => handle.close());
+  assert.equal(disposed, 0, 'a start that succeeds never disposes the host');
   assert.deepEqual(
     attempts.map((attempt) => attempt.host),
     ['factory'],
