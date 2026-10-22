@@ -1,6 +1,6 @@
 # Runbook F3 — ativação pós-G6 (W8)
 
-Status: **preparação (W7). Nada deste documento foi executado.** Cada passo da seção 3 em diante **exige autorização própria do owner**, dada com o commit final identificado; autorização de um passo não vale para o seguinte. Valem só sobre a `master` final já mergeada (G6).
+Status: **preparação (W7, atualizada na W6-E7b). Nada deste documento foi executado.** Cada passo da seção 3 em diante **exige autorização do owner**, dada com o commit final identificado. Desde a decisão de 2026-10-22 a autorização pode ser dada **em lote com gates**: os passos rodam na ordem da seção 8, cada um com backup, verificação e receipt próprios, e a execução **para no primeiro BLOCKED** (falha vira BLOCKED, nunca PASS). Autorização de um passo fora do lote não vale para o seguinte. Valem só sobre a `master` final já mergeada (G6).
 
 Fontes da decisão: ativação autorizada pelo owner em 2026-10-13 (vault `_knowledge/projects/enterprise-hseos/decisions/2026-10-13-ativacao-da-w5-liveness-coordenacao-hooks-codex-store-pnpm-au.md`: "Hooks, timer e contratos rodam depois do merge da W5 (G6) e da atualização da distribuição global, já que o runtime global (2b4d6f37) não tem `hseos liveness` nem `hseos activity`"), `docs/evolution/w5/STATUS.md:119` (ativação fora de escopo da W5) e `:321` (plugins `scaffolded`, migration 017 pendente, merge/publicação/instalação/ativação como decisões separadas).
 
@@ -78,6 +78,62 @@ Receipt: `$DIST/verification.json` com os campos do anterior (`source_commit`, `
 Rollback (testável): reinstalar o tarball de `2b4d6f37…` com o prefixo do Node 24.15, restaurar `host-backup/` (comparar hashes e restaurar **somente** o que este passo mudou, preservando edições posteriores), repetir a verificação da distribuição anterior (`hseos --version`, `governance-context`, `codex mcp list`, trust dos hooks). Testar em prefixo descartável (`npm install --prefix "$TMPDIR/rb" <tarball anterior>`) **antes** de declarar o passo concluído. Não restaurar bancos SQLite automaticamente (ROLLBACK.md).
 
 Riscos: sessões Claude/Codex já abertas mantêm as conexões MCP anteriores (`session_reload_note`); reabrir sessões após o passo. O release imutável é referenciado pelos hooks e MCPs: não apagar `$REL` nem os releases anteriores até a W9 e só com autorização.
+
+## 3b. Passo 1b — ativação do banco e servidor MCP moderno
+
+**Entregue pela W10 e ainda NÃO existe.** O comando `hseos execution-activation plan|apply|rollback` e a ativação do `project.db` são construídos na W10 (G0, K2, K3, K4, K7); até lá este passo é só o contrato do que a W8 vai executar, e nada nele foi executado. **Exige autorização própria do owner** (ou o lote com gates descrito no cabeçalho e nas seções 8 e 10) e depende do passo 1 verificado.
+
+Pré-condições:
+
+- O **ADR-0048** (critério de ativação, W10/G0, hoje **Proposed** em `task/w10-g0`) está **Accepted** pelo owner. Ele substitui o critério de 30 dias de zero legado do ADR-0022 e do ADR-0023 por um critério por banco e torna o sunset do legado condicional à evidência de que os clientes registrados falam `2026-07-28`. O comando recusa `--adr` que não aponte para um ADR Accepted.
+- O owner aceitou **expressamente a exceção de rollback** do ADR-0048 (item 5) e foi **avisado da perda das escritas pós-ativação antes** deste passo (ver Rollback abaixo).
+- **Critério do ADR-0048, todos com evidência arquivada:** (a) suíte de contrato do servidor moderno verde sobre banco existente já ativado; (b) ensaio de ativação e rollback em cópia (`agentic-activation-rehearsal.js`) concluído, com backup do banco real com `integrity_check` = `ok` e sha256 do original e do backup; (c) journey MCP moderna com contagens de ferramentas conferidas (inclusive `environment.*` e `memory.*`); (d) prova com cliente real (Codex instalado) por `tools/list` e `tools/call`, com a versão de protocolo registrada; (e) compat legado-dentro-do-moderno (`2024-11-05`) mantida.
+- **Critério (f), novo (achado do K1, `b64ffa2c`):** o servidor moderno atende `initialize` das revisões legadas conhecidas `2024-11-05`, `2025-06-18` e `2025-11-25` no modo de compatibilidade, sem executar ferramentas que exigem aprovação a esses clientes (a ferramenta continua listada; o adaptador devolve `MCP_LEGACY_APPROVAL_UNSUPPORTED` na chamada). Hoje o Codex 0.163.0 envia `2025-06-18` e o adaptador moderno só aceita `2024-11-05` exato (`tools/lib/mcp-2026-adapter.js:978`), recusando com `-32022`; o Claude Code 2.1.305 já fala `2026-07-28`. Entrega do K4. Sem (f), a troca do `~/.codex/config.toml` para o moderno quebra o Codex, e o passo não pode ser executado.
+- Escopo: **um banco por vez**; o piloto é o `project.db` do enterprise-hseos. Os outros `project.db` ficam fora até ADR ou autorização própria.
+- Passo 1 verificado: o CLI global contém `execution-activation`.
+- Nenhuma sessão (Claude Code, Codex, CLI) com o banco aberto: o comando recusa se houver servidor ou CLI com o banco aberto (lock exclusivo).
+
+Procedimento (a W8 confirma contra o comando entregue):
+
+0. **1b.0 — seção `environment:` do `~/.config/hseos/config.yaml`** (ver seção 3c). Backup antes (`cp -a ~/.config/hseos/config.yaml "$DIST/host-backup/.config-hseos/pre-step1b/"`), escrita da seção `environment:` (cache de toolchain, `memory.rules`, `memory.operator`, perfis de isolamento) e hash do arquivo antes e depois no receipt. Sem a seção, a verificação de `tools/call` de `environment.*` e `memory.*` falha com `ENV_CAPABILITY_UNAVAILABLE`.
+1. **Parar as sessões que usam os MCPs hseos** (`hseos-governance`, `hseos-state-tracking`, `hseos-swarm`, `mcp-axon-bridge`, quando registrado) e informar o owner.
+2. `hseos execution-activation plan --db <path> --adr <id>`: só relata (dry-run), sem alterar o banco.
+3. `hseos execution-activation apply --db <path> --adr <id>`. Em ordem: checkpoint do WAL; **backup** com `db.backup` num diretório datado, com `integrity_check` e sha256 do backup e do original; migrations 005 a 017 numa transação; receipt de ativação (commit, ADR, hashes, `user_version`).
+4. **Trocar o `~/.codex/config.toml`** (os 3 MCPs do Codex) para apontar para o release novo `$REL`. Backup antes (`cp -a … "$DIST/host-backup/.codex/pre-step1b/"`); o hash do arquivo muda e vai para o receipt.
+
+Verificação (cada falha é BLOCKED):
+
+```bash
+env $P hseos execution-activation plan --db <path> --adr <id>   # banco ativado: nada a aplicar
+# Codex real (config.toml novo, CODEX_HOME de produção só depois do ensaio em CODEX_HOME descartável):
+#   tools/list mostra as ferramentas modernas, incluindo environment.* e memory.*, com contagens conferidas
+#   e uma tools/call de cada família (governance, state, swarm, environment, memory)
+env $P hseos liveness check --json
+```
+
+Receipt: `$DIST/step1b-activation.json` com hashes do banco antes e depois, caminho e sha256 do backup, `user_version`, ADR, hashes de `config.toml` e de `~/.config/hseos/config.yaml` antes e depois, a evidência de cada critério (a) a (f) e a saída da verificação.
+
+Rollback: `hseos execution-activation rollback`, que confere o hash do backup e restaura atomicamente com os servidores parados; re-registrar o servidor legado no `~/.codex/config.toml` a partir do backup `pre-step1b`; restaurar o `~/.config/hseos/config.yaml` do backup `pre-step1b`. **Isto não é a reconciliação com o ADR-0022:** restaurar o backup pré-migração contraria a letra do §Rollback do ADR-0022, e o **ADR-0048 (Proposed) propõe uma exceção delimitada ao banco piloto**, que o owner precisa **aceitar expressamente**. Sem essa aceitação, o rollback fica restrito ao procedimento original do ADR-0022 e o passo 1b não pode ser executado. Em qualquer caso o banco ativado é **preservado ao lado como evidência** (ADR-0022: nunca apagar o ledger durante o rollback). A **perda das escritas feitas depois da ativação** é declarada ao owner **antes** do passo 1b. O rollback é testado numa cópia do banco e num prefixo descartável antes de declarar o passo concluído; o rollback real fica documentado, não exercitado.
+
+Riscos: a troca para o moderno sem o critério (f) quebra o Codex (`initialize` `2025-06-18` recusado com `-32022`); sessões abertas mantêm o MCP anterior (reabrir após o passo); depois do sunset definido pelo ADR, o servidor moderno recusa o cliente que pedir o legado, com mensagem acionável; o legado só sai quando o ADR o permitir.
+
+## 3c. Composição de host de referência (entregue pela W10, K5)
+
+**Entregue pela W10 (K5) e ainda NÃO existe.** Hoje nenhum código de produção monta o store de memória governado nem o `environmentHost`: ambos chegam por injeção do embedder e só testes os injetam (dívida registrada em `docs/evolution/w5/STATUS.md`, seção "Fecho da não conformidade central"). A W10 entrega `createProductionEnvironmentHost(config)` em `tools/cli/lib/engineering-task-extensions.js`, que compõe:
+
+- o ambiente da tarefa e os bundles (`createTaskEnvironment`, `createEnvironmentBundles`);
+- a memória governada (`createGovernedMemory`, `MemoryStore` sobre o ledger de execução);
+- o gate de aprovação do computer-use (`createApprovalGate`) e as aprovações de exclusão de memória (`createMemoryDeleteApprovals`);
+- o sink do ledger (`createEnvironmentLedgerSink`) e o `ExecutionApprovalStore`.
+
+A configuração vive em uma seção nova `environment:` de `~/.config/hseos/config.yaml`:
+
+- raiz do **cache de toolchain** (provisionado pelos pins);
+- **`memory.rules`**: regras de escrita por projeto, com **deny por padrão**;
+- **`memory.operator`**: ator com `kind: operator`, exigido para `memory.delete`;
+- **perfis de isolamento** (bwrap).
+
+**Sem a seção `environment:` o host fica ausente** e o comportamento atual se mantém: `ENV_CAPABILITY_UNAVAILABLE` no servidor MCP e `ENGINEERING_ENVIRONMENT_HOST_REQUIRED` na CLI. A seção é escrita no passo 1b.0, com backup e rollback: ela só vale com o banco ativado (memória durável no `project.db`); na CLI sem banco ativado a memória usa o ledger da tarefa, com aviso. Pré-condição de segurança: o `agent run` admite o contrato (K6) antes de montar o host. A seção não carrega segredo, e este runbook não os manuseia.
 
 ## 4. Passo 2 — hooks Codex com `trusted_hash`
 
@@ -172,16 +228,16 @@ Rollback: não aplicável (mensagem); se estiver desatualizada, enviar errata.
 
 ## 8. Ordem, dependências e o que fica de fora
 
-Ordem obrigatória: 1 → 2 → 3 → 4; o passo 5 é independente e pode ocorrer a qualquer momento (decisão do owner). Passos 2 e 3 só têm efeito real com o passo 4; ligar contrato antes dos hooks/timer é permitido, mas deixa o watchdog sem backstop.
+Ordem obrigatória: 1 → 1b → 2 → 3 → 4, seguida do push das tags e da W9 (higiene); o passo 5 é independente e pode ocorrer a qualquer momento (decisão do owner). O passo 1b depende do 1 e do ADR Accepted. Passos 2 e 3 só têm efeito real com o passo 4; ligar contrato antes dos hooks/timer é permitido, mas deixa o watchdog sem backstop.
 
 Fora desta ativação (decisões separadas):
 
 - **Publicação no npm**: não há; `public_registry_publication: "not_performed"`.
-- **Servidor MCP moderno / sunset de 2026-11-30**: não é ativado por este runbook (ver dívida em riscos transversais).
+- **Servidor MCP moderno / sunset**: a ativação do banco e a troca dos MCPs são o passo 1b, condicionadas ao ADR-0048 (Proposed; critério de ativação, entregue na W10/G0 e ainda não está na master) em Accepted. Este runbook não afirma que nada disso foi executado.
 - **Migration 017** (`tools/mcp-project-state/migrations-pending-activation/017-agent-memory-events.sql`): continua pendente; **renumerar se outra migration for criada antes da ativação** (`docs/evolution/w5/STATUS.md:264`, padrão do schema em `tools/mcp-project-state/lib/execution-ledger-schema.js:9`). A ativação em banco real depende da janela de compatibilidade do ADR.
 - **Plugins** seguem `scaffolded` (`docs/evolution/w5/STATUS.md:321`); consumidores F14/F15/F20 `real_consumers: not_verified`.
-- **Push das tags** `hseos-w5-g6` e `hseos-w5-closeout-wN`: só com autorização (PLAN da W5-closeout, W8).
-- **Limpeza W9** (worktrees, branches, `/tmp/hseos-executor-filter-*`).
+- **Push das tags** `hseos-w5-g6` e `hseos-w5-closeout-wN`: depois dos passos, com a autorização do lote ou própria (PLAN-CONCLUSAO, W8).
+- **Limpeza W9** (worktrees, branches, `/tmp/hseos-executor-filter-*`): autorizada, depois das tags.
 
 ## 9. Riscos transversais
 
@@ -192,13 +248,15 @@ Fora desta ativação (decisões separadas):
 - **Renumeração de migration** e **atualização da master com `executor.js`**: a PR #216 já está na master; esperar conflito manual se a W5 ainda não absorveu (`docs/evolution/w5/STATUS.md:120`).
 - **`notify-send`/systemd reais não verificados**: aceitar como primeira verificação, com escalonamento persistido em `escalations.jsonl`.
 - **Concorrência de agentes** escrevendo em `~/.codex`/`~/.claude` durante os passos 1 e 2: serializar.
-- **Dívida do sunset MCP (decisão do owner):** os 4 servidores MCP instalados (`mcp-project-state`, `mcp-hseos-governance`, `mcp-hseos-swarm`, `mcp-axon-bridge`) sobem o servidor legado (`tools/lib/legacy-mcp-server.js`) e **não aplicam** o sunset de 2026-11-30 (só metadado de telemetria). O servidor moderno, o único que recusa o legado depois do sunset (`tools/lib/mcp-2026-adapter.js:695`), está bloqueado por `EXECUTION_ACTIVATION_PENDING` (`tools/lib/governed-execution/native-mcp-server.js:101`) até a ativação ADR-0022/0023, que exige 30 dias completos de zero requests legados e por isso não cabe antes de 30/11. O sunset só vale ao ativar o servidor moderno; a data de 2026-11-30 precisa ser revista por ADR antes de vencer. O passo 1 não resolve isto: os MCPs registrados continuam legados.
+- **Dívida do sunset MCP (decisão do owner de 2026-10-20, a resolver pelo ADR-0048 na W10):** os 4 servidores MCP instalados sobem o servidor legado e só gravam o sunset de 2026-11-30 como metadado de telemetria; o moderno, o único que recusa o legado depois do sunset, está bloqueado por `EXECUTION_ACTIVATION_PENDING` até a ativação. O ADR-0048 (Proposed; W10/G0, passo 1b) substitui a data fixa por um sunset condicional à evidência dos clientes; até ele estar Accepted e o passo 1b executado, os MCPs registrados continuam legados. Passo 1 não resolve isto.
 
 ## 10. Decisões que cabem ao owner
 
-1. Autorização de cada passo (1 a 5), com o `SHA` final.
+1. Autorização de cada passo (1, 1b, 2 a 5), com o `SHA` final, ou o lote com gates (para no primeiro BLOCKED).
 2. Projeto(s) do passo 4 e a ordem; se `activity-coordination` liga junto com `agent-liveness`.
 3. Projeto vigiado pelo timer e _linger_ do usuário.
 4. Quem e quando entrega o repasse ao Codex, e onde guardar a cópia durável do texto.
 5. Confirmar o método de extração/instalação do release imutável (os recibos anteriores não o registram).
-6. Rever por ADR a data de sunset MCP de 2026-11-30 antes de vencer (o sunset só vale ao ativar o servidor moderno; ver riscos transversais).
+6. Aceitar o ADR-0048 (W10/G0), que fixa o critério de ativação e o sunset do legado; é pré-condição do passo 1b.
+   Aceitar **expressamente a exceção de rollback** do ADR-0048 (item 5) e tomar ciência, antes do passo 1b, da perda das escritas pós-ativação do banco piloto.
+7. Autorizar o passo 1b no `project.db` do enterprise-hseos, único banco do piloto, e a troca do `~/.codex/config.toml`.
