@@ -681,7 +681,9 @@ const environmentConfigSchema = z
       .strict()
       .optional(),
     isolation: z.array(z.enum(ENVIRONMENT_ISOLATION_BACKENDS)).min(1).max(ENVIRONMENT_ISOLATION_BACKENDS.length).optional(),
-    // Read by the MCP host only (the CLI isolates each task in the task's own workspace): the sandbox of its LSP and DAP services.
+    // Read by the MCP host only (the CLI isolates each task in the task's own workspace): the sandbox of its LSP and DAP
+    // services. `host_workspace` is the user's real directory, mounted read-only in the sandbox; DAP runs the programs of
+    // that workspace by design.
     workspace: z
       .object({
         host_workspace: z.string().min(1).max(4096).superRefine(pinnedDirectory),

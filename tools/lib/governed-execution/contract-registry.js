@@ -318,8 +318,10 @@ const exactFields = (memory, value, allowed, label) => {
 };
 const scanCredential = (text) => require('../../cli/lib/campaign-evidence-store').containsCredential(text);
 
-const memoryWriteInput = memorySchema((value, memory) => {
-  memory.assertEntryInputFields(value);
+const memoryWriteInput = memorySchema((input, memory) => {
+  memory.assertEntryInputFields(input);
+  // An omitted origin/trust is the least-privileged pair: an agent's note, untrusted.
+  const value = { ...input, origin: input.origin ?? 'agent', trust: input.trust ?? 'untrusted' };
   // `created_at` is host-owned: only the shape and the policy ceilings are checked here, with a throwaway timestamp.
   const entry = memory.normalizeEntry({ ...value, created_at: new Date(0).toISOString() });
   if (entry.source_digest !== memory.sha256Text(entry.content))
