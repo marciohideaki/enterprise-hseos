@@ -68,6 +68,10 @@ Nenhum negativo de escopo falhou no modo moderno nem no compat: **sem achado de 
 - Nenhum cliente real (Codex, Claude Code): a prova com cliente real é a K7, seção 4.
 - O `initialize` `2025-03-26` não está no compat do journey (K7 cobre).
 
+## Observação de CI
+
+Na primeira execução do CI do commit `9e70cb05` os 12 shards de teste passaram (Node 22 e 24), mas o job agregador `test (24.x)` leu um shard como `pending` durante toda a sua janela de tentativas e falhou. Rerodar o run não resolve: o gate (`shards seen: N of 6`) soma os jobs de tentativas anteriores como shards extras (7 de 6, 10 de 6). Por isso o SHA seguinte só repete a pipeline; nenhum arquivo de teste ou de produção mudou entre os dois.
+
 ## Reproduzir
 
 ```bash
