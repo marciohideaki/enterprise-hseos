@@ -842,7 +842,8 @@ const stderrLog = (message) => process.stderr.write(`${message}\n`);
  *   cannot provide stays off, with a log line.
  * - computer and browser stay off by construction: they need a media store and an egress broker no server provides yet.
  *
- * `options.prepare` and `options.factories` replace the preparers and services (tests); `options.log` receives the
+ * Without isolation at start-up (no delegated cgroup, or no bwrap) lsp and dap are omitted with a logged cause, memory stays.
+ * `options.prepare`, `options.factories` and `options.isolationProbe` replace the preparers, services and probe (tests); `options.log` receives the
  * reasons. `factory.dispose()` removes the prepared toolchains.
  */
 function createMcpEnvironmentHostFactory(section, options = {}) {
@@ -855,7 +856,14 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
   const dispose = () => {
     for (const directory of scratch.splice(0)) rmSync(directory, { recursive: true, force: true });
   };
-  if (config.toolchain_cache) {
+  const isolation = (options.isolationProbe ?? defaultIsolationProbe)();
+  if (!isolation.available) {
+    log(
+      `hseos mcp: environment.lsp and environment.dap are off: ${isolation.reason}. Launch the server in a delegated cgroup, ` +
+        'for example `systemd-run --user -p Delegate=yes --wait --collect --pipe -- <server command>`; memory is unaffected',
+    );
+  }
+  if (isolation.available && config.toolchain_cache) {
     const preparers = options.prepare ?? defaultToolchainPreparers();
     for (const family of MCP_SERVICE_FAMILIES) {
       if (typeof preparers[family] !== 'function') continue;
@@ -869,6 +877,7 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
     }
   }
   const services = MCP_SERVICE_FAMILIES.filter((family) => {
+    if (!isolation.available) return false;
     const available = Boolean(options.factories?.[family]) || Boolean(toolchains[family] && config.workspace);
     if (!available)
       log(`hseos mcp: ${family} is off (it needs environment.toolchain_cache with that toolchain, and environment.workspace)`);
@@ -930,6 +939,25 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
   };
   factory.dispose = dispose;
   return factory;
+}
+
+/**
+ * Whether the isolation the services need exists at start-up: the same delegated-cgroup verification the executor applies
+ * on every call (`executorOwner`), and the bwrap binary the policy binds. Cheap and side-effect free; `options.isolationProbe`
+ * replaces it in tests and returns `{ available, reason }`.
+ */
+function defaultIsolationProbe() {
+  try {
+    require('../../../packages/agent-isolation-attestation/executor').executorOwner();
+  } catch (error) {
+    return { available: false, reason: `delegated cgroup unavailable (${error.message})` };
+  }
+  try {
+    require('node:fs').accessSync('/usr/bin/bwrap', require('node:fs').constants.X_OK);
+  } catch {
+    return { available: false, reason: 'the bwrap binary (/usr/bin/bwrap) is unavailable' };
+  }
+  return { available: true, reason: '' };
 }
 
 /**

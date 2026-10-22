@@ -649,3 +649,152 @@ test(
     assert.ok(ledgerEvents(box.databasePath, 'environment_session').some((event) => event.type === 'environment.lsp.completed'));
   },
 );
+
+// ---------------------------------------------------------------------------------------------------------------
+// W10/K9: lsp and dap are advertised only when the isolation they need exists at start-up (fail-closed and visible).
+// ---------------------------------------------------------------------------------------------------------------
+
+const AVAILABLE = () => ({ available: true, reason: '' });
+const NO_CGROUP = () => ({ available: false, reason: 'delegated cgroup unavailable (A delegated parent cgroup is required)' });
+const NO_BWRAP = () => ({ available: false, reason: 'the bwrap binary (/usr/bin/bwrap) is unavailable' });
+
+/** Tool names of a modern native server built on the factory, plus the log lines and the prepared families. */
+async function advertisedWith(t, isolationProbe) {
+  const box = sandbox(t);
+  await activated(box);
+  const toolchainRoot = path.join(box.root, 'toolchain');
+  fs.mkdirSync(toolchainRoot);
+  const main = path.join(box.root, 'main');
+  fs.mkdirSync(path.join(main, 'ws'), { recursive: true });
+  fs.writeFileSync(path.join(main, 'manifest.json'), '{}');
+  const logs = [];
+  const prepared = [];
+  const factory = createMcpEnvironmentHostFactory(
+    environmentSection({
+      toolchain_cache: box.root,
+      workspace: { host_workspace: path.join(main, 'ws'), main_checkout: main, protected_paths: [path.join(main, 'manifest.json')] },
+    }),
+    {
+      isolationProbe,
+      prepare: {
+        lsp: () => (prepared.push('lsp'), { root: toolchainRoot }),
+        dap: () => (prepared.push('dap'), { root: toolchainRoot }),
+      },
+      factories: { lsp: () => ({ run: async () => LSP_OK }), dap: () => ({ run: async () => ({ status: 'ok' }) }) },
+      log: (message) => logs.push(message),
+    },
+  );
+  t.after(() => factory?.dispose());
+  const handle = startNativeMcpServer({
+    serverId: 'swarm',
+    tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+    invokeTool: async () => ({ runs: [] }),
+    mode: 'http',
+    port: 0,
+    dbPath: box.databasePath,
+    environmentHost: factory,
+    log: () => {},
+  });
+  t.after(() => handle.close());
+  const listed = await handle.adapter.handle({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/list',
+    params: {
+      _meta: {
+        [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+        [CLIENT_INFO_META_KEY]: { name: 'k9', version: '1' },
+        [CLIENT_CAPABILITIES_META_KEY]: {},
+      },
+    },
+  });
+  return { names: new Set(listed.result.tools.map((tool) => tool.name)), logs, prepared };
+}
+
+const MEMORY_TOOLS = ['memory.write', 'memory.retrieve', 'memory.delete'];
+
+test('K9: without a delegated cgroup lsp and dap are omitted from tools/list, memory stays, and the log says how to launch', async (t) => {
+  const { names, logs, prepared } = await advertisedWith(t, NO_CGROUP);
+  for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), `${absent} must be omitted`);
+  for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), `${kept} needs no isolation and must stay`);
+  assert.deepEqual(prepared, [], 'no toolchain is prepared for a family that cannot run');
+  const line = logs.find((message) => /environment\.lsp and environment\.dap are off/.test(message));
+  assert.ok(line, logs.join('\n'));
+  assert.match(line, /delegated cgroup/);
+  assert.match(line, /systemd-run --user -p Delegate=yes/);
+});
+
+test('K9: without bwrap lsp and dap are omitted with the bwrap cause, memory stays', async (t) => {
+  const { names, logs } = await advertisedWith(t, NO_BWRAP);
+  for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+  for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), kept);
+  assert.ok(
+    logs.some((message) => /are off/.test(message) && /bwrap/.test(message)),
+    logs.join('\n'),
+  );
+});
+
+test('K9: with isolation available the K5b behaviour is intact', async (t) => {
+  const { names, logs, prepared } = await advertisedWith(t, AVAILABLE);
+  for (const expected of ['environment.lsp.hover', 'environment.dap.run', ...MEMORY_TOOLS]) assert.ok(names.has(expected), expected);
+  assert.deepEqual(prepared.sort(), ['dap', 'lsp']);
+  assert.ok(!logs.some((message) => /environment\.lsp and environment\.dap are off/.test(message)), logs.join('\n'));
+});
+
+test('K9: no isolation and no memory operator means no host at all', () => {
+  const logs = [];
+  const factory = createMcpEnvironmentHostFactory({ project_id: 'alpha' }, { isolationProbe: NO_CGROUP, log: (m) => logs.push(m) });
+  assert.equal(factory, null);
+  assert.ok(logs.some((message) => /are off/.test(message)));
+});
+
+const inDelegatedCgroup = (() => {
+  try {
+    require('../packages/agent-isolation-attestation/executor').executorOwner();
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+test('K9: the real probe agrees with the executor check (available only inside a delegated cgroup, with bwrap)', () => {
+  const logs = [];
+  // No injected probe: the default one decides. Services come only from the injected factories, so the outcome is observable.
+  const factory = createMcpEnvironmentHostFactory(environmentSection(), {
+    factories: { lsp: () => ({}), dap: () => ({}) },
+    log: (message) => logs.push(message),
+  });
+  const off = logs.some((message) => /environment\.lsp and environment\.dap are off/.test(message));
+  const hasBwrap = fs.existsSync('/usr/bin/bwrap');
+  assert.equal(off, !(inDelegatedCgroup && hasBwrap), `cgroup=${inDelegatedCgroup} bwrap=${hasBwrap}\n${logs.join('\n')}`);
+  if (off && !inDelegatedCgroup) assert.ok(logs.some((message) => /delegated/.test(message)));
+  factory.dispose();
+});
+
+test(
+  'K9: outside a delegated cgroup the real probe reports it unavailable',
+  { skip: inDelegatedCgroup ? 'running inside a delegated cgroup (run-in-cgroup.sh); the unavailable case is covered outside it' : false },
+  () => {
+    const logs = [];
+    createMcpEnvironmentHostFactory(environmentSection(), { factories: { lsp: () => ({}) }, log: (m) => logs.push(m) })?.dispose();
+    assert.ok(
+      logs.some((message) => /delegated cgroup unavailable/.test(message)),
+      logs.join('\n'),
+    );
+  },
+);
+
+test(
+  'K9: inside a delegated cgroup the real probe reports it available',
+  {
+    skip:
+      inDelegatedCgroup && fs.existsSync('/usr/bin/bwrap')
+        ? false
+        : 'not inside a delegated cgroup with bwrap (run-in-cgroup.sh provides one)',
+  },
+  () => {
+    const logs = [];
+    createMcpEnvironmentHostFactory(environmentSection(), { factories: { lsp: () => ({}) }, log: (m) => logs.push(m) })?.dispose();
+    assert.ok(!logs.some((message) => /environment\.lsp and environment\.dap are off/.test(message)), logs.join('\n'));
+  },
+);
