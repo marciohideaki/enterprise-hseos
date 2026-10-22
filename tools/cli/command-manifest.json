@@ -266,12 +266,16 @@
           "Explicit answers bound to the current reconciliation report"
         ],
         [
+          "--config <path>",
+          "Global configuration with the environment: section (default: ~/.config/hseos/config.yaml)"
+        ],
+        [
           "--json",
           "Emit one JSON object"
         ]
       ],
       "governed": false,
-      "source_sha256": "e18109e4bbe564d5605971057b6115649009bbe7172988204309a19bd4b05e5b"
+      "source_sha256": "8adf8a98d59a1829db83395f5d801c87c900553930c6b0d535705c575bbb0b70"
     },
     {
       "filename": "brain.js",

@@ -131,7 +131,8 @@ A configuração vive em uma seção nova `environment:` de `~/.config/hseos/con
 - raiz do **cache de toolchain** (provisionado pelos pins);
 - **`memory.rules`**: regras de escrita por projeto, com **deny por padrão**;
 - **`memory.operator`**: ator com `kind: operator`, exigido para `memory.delete`;
-- **perfis de isolamento** (bwrap).
+- **`isolation`**: informativo, uma restrição de valor único. O ambiente da tarefa sempre isola com bwrap (único backend implementado); a chave não escolhe backend, apenas recusa qualquer outro valor;
+- **`toolchain_cache`** deve ser um caminho absoluto, normalizado, sem `..`, de um diretório existente e que não seja symlink (só o componente final é verificado); caso contrário a seção é recusada com `ENGINEERING_ENVIRONMENT_CONFIG_INVALID`. Seção vazia ou chave parecida com `environment` (ex.: `enviroment`) emite aviso no stderr e o host continua ausente.
 
 **Sem a seção `environment:` o host fica ausente** e o comportamento atual se mantém: `ENV_CAPABILITY_UNAVAILABLE` no servidor MCP e `ENGINEERING_ENVIRONMENT_HOST_REQUIRED` na CLI. A seção é escrita no passo 1b.0, com backup e rollback: ela só vale com o banco ativado (memória durável no `project.db`); na CLI sem banco ativado a memória usa o ledger da tarefa, com aviso. Pré-condição de segurança: o `agent run` admite o contrato (K6) antes de montar o host. A seção não carrega segredo, e este runbook não os manuseia.
 
