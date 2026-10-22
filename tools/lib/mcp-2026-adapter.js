@@ -32,6 +32,17 @@ const HSEOS_CATALOG_REVISION_META_KEY = 'io.hseos/toolCatalogRevision';
 const HSEOS_IDEMPOTENCY_META_KEY = 'io.hseos/idempotencyKey';
 const LEGACY_SUNSET = '2026-11-30';
 const LEGACY_SUNSET_INSTANT = Date.parse(`${LEGACY_SUNSET}T00:00:00.000Z`);
+// Reported as the sunset when no expiry is configured (ADR-0048 item 3: without a configured date the compat never expires).
+const LEGACY_SUNSET_NONE = 'none-configured';
+
+/** `undefined` keeps the default date, `null` means the compat never expires, a string is an ISO date or instant. */
+function resolveLegacySunset(value) {
+  if (value === undefined) return { label: LEGACY_SUNSET, instant: LEGACY_SUNSET_INSTANT };
+  if (value === null) return { label: LEGACY_SUNSET_NONE, instant: null };
+  const instant = typeof value === 'string' ? Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00.000Z` : value) : Number.NaN;
+  if (!Number.isFinite(instant)) throw new McpAdapterError('legacySunset must be an ISO-8601 date, an instant or null');
+  return { label: value, instant };
+}
 const UTF8_DECODER = new TextDecoder('utf-8', { fatal: true });
 
 class McpAdapterError extends Error {
@@ -605,6 +616,8 @@ class Mcp2026Adapter {
     validationWorkerPath = path.join(__dirname, 'json-schema-validation-worker.js'),
     legacyEnabled = true,
     legacyUsage = null,
+    legacySunset,
+    legacyProtocolVersions = [MCP_LEGACY_PROTOCOL_VERSION],
     onDenied = null,
     maxLegacyIdentities = 1024,
     allowedOrigins = [],
@@ -658,6 +671,13 @@ class Mcp2026Adapter {
     this.activeValidationWorkers = 0;
     this.legacyEnabled = legacyEnabled;
     this.legacyUsage = legacyUsage;
+    const sunset = resolveLegacySunset(legacySunset);
+    this.legacySunset = sunset.label;
+    this.legacySunsetInstant = sunset.instant;
+    if (!Array.isArray(legacyProtocolVersions) || !legacyProtocolVersions.includes(MCP_LEGACY_PROTOCOL_VERSION)) {
+      throw new McpAdapterError(`legacyProtocolVersions must be an array that includes ${MCP_LEGACY_PROTOCOL_VERSION}`);
+    }
+    this.legacyProtocolVersions = new Set(legacyProtocolVersions);
     if (onDenied !== null && typeof onDenied !== 'function') throw new McpAdapterError('onDenied must be a function');
     this.onDenied = onDenied;
     this.maxLegacyIdentities = maxLegacyIdentities;
@@ -685,14 +705,20 @@ class Mcp2026Adapter {
       this.legacyCounters.has(identity) || this.legacyCounters.size < this.maxLegacyIdentities ? identity : '__overflow__';
     this.legacyCounters.set(counterIdentity, (this.legacyCounters.get(counterIdentity) || 0) + 1);
     if (typeof this.legacyUsage === 'function') {
-      this.legacyUsage({ client_identity: identity, protocol_version: MCP_LEGACY_PROTOCOL_VERSION, sunset: LEGACY_SUNSET });
+      this.legacyUsage({ client_identity: identity, protocol_version: MCP_LEGACY_PROTOCOL_VERSION, sunset: this.legacySunset });
     }
-    return `MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility is deprecated and will be removed by ${LEGACY_SUNSET}`;
+    return this.legacySunsetInstant === null
+      ? `MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility is deprecated; migrate to MCP ${MCP_MODERN_PROTOCOL_VERSION}`
+      : `MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility is deprecated and will be removed by ${this.legacySunset}`;
+  }
+
+  _legacyDeprecation(subject) {
+    return this.legacySunsetInstant === null ? `${subject} is deprecated` : `${subject} ends ${this.legacySunset}`;
   }
 
   _assertLegacyAvailable() {
     const now = new Date(this.clock.now()).getTime();
-    if (!this.legacyEnabled || !Number.isFinite(now) || now >= LEGACY_SUNSET_INSTANT) {
+    if (!this.legacyEnabled || !Number.isFinite(now) || (this.legacySunsetInstant !== null && now >= this.legacySunsetInstant)) {
       throw new McpAdapterError('Legacy MCP compatibility is unavailable', JSON_RPC.UNSUPPORTED_PROTOCOL_VERSION, {
         requested: MCP_LEGACY_PROTOCOL_VERSION,
         supported: [MCP_MODERN_PROTOCOL_VERSION],
@@ -927,10 +953,7 @@ class Mcp2026Adapter {
       ? modernResult(this.serverInfo, result)
       : {
           ...result,
-          _meta: {
-            deprecation: `MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility ends ${LEGACY_SUNSET}`,
-            sunset: LEGACY_SUNSET,
-          },
+          _meta: { deprecation: this._legacyDeprecation(`MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility`), sunset: this.legacySunset },
         };
   }
 
@@ -975,7 +998,7 @@ class Mcp2026Adapter {
       if (!message.params || typeof message.params !== 'object' || Array.isArray(message.params)) {
         throw new McpAdapterError('Legacy initialize params are required', JSON_RPC.INVALID_PARAMS);
       }
-      if (message.params.protocolVersion !== MCP_LEGACY_PROTOCOL_VERSION) {
+      if (!this.legacyProtocolVersions.has(message.params.protocolVersion)) {
         throw new McpAdapterError('Unsupported legacy protocol version', JSON_RPC.UNSUPPORTED_PROTOCOL_VERSION);
       }
       requestContext.legacyNegotiated = true;
@@ -986,7 +1009,7 @@ class Mcp2026Adapter {
         protocolVersion: MCP_LEGACY_PROTOCOL_VERSION,
         serverInfo: this.serverInfo,
         capabilities: { tools: {} },
-        _meta: { deprecation: warning, sunset: LEGACY_SUNSET },
+        _meta: { deprecation: warning, sunset: this.legacySunset },
       });
     }
     if (!requestContext.legacyNegotiated && !requestContext.legacyStateless) {
@@ -997,7 +1020,7 @@ class Mcp2026Adapter {
     if (message.method === 'tools/list') {
       return rpcResult(message.id, {
         tools: this.catalog.map((entry) => entry.descriptor),
-        _meta: { deprecation: `Legacy compatibility ends ${LEGACY_SUNSET}`, sunset: LEGACY_SUNSET },
+        _meta: { deprecation: this._legacyDeprecation('Legacy compatibility'), sunset: this.legacySunset },
       });
     }
     if (message.method === 'tools/call') return rpcResult(message.id, await this._executeTool(message, requestContext, 'legacy'));
@@ -1027,7 +1050,9 @@ class Mcp2026Adapter {
       const modernMeta = message.params && message.params._meta && message.params._meta[PROTOCOL_VERSION_META_KEY];
       const headerProtocol = requestContext.headers && requestContext.headers['mcp-protocol-version'];
       const requestedEra =
-        modernMeta !== undefined || (headerProtocol !== undefined && headerProtocol !== MCP_LEGACY_PROTOCOL_VERSION) ? 'modern' : 'legacy';
+        modernMeta !== undefined || (headerProtocol !== undefined && !this.legacyProtocolVersions.has(headerProtocol))
+          ? 'modern'
+          : 'legacy';
       if (requestContext.transport === 'stdio' && context.era && context.era !== requestedEra) {
         throw new McpAdapterError('MCP protocol era is pinned for this stdio connection', JSON_RPC.UNSUPPORTED_PROTOCOL_VERSION);
       }

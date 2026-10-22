@@ -13,6 +13,9 @@ const { PENDING_MIGRATIONS_DIR } = require('./execution-ledger-schema');
 const DEFAULT_STATE_DB = path.join(process.cwd(), '.hseos', 'state', 'project.db');
 const MIGRATIONS_DIRECTORY = path.join(__dirname, '..', 'migrations');
 const OPERATIONAL_SCHEMA_VERSION = 4;
+// Written (inside the activation transaction) by activateExecutionLedger and checked before a server or CLI opens the
+// database as activated: a schema migrated by hand reaches the same user_version and tables but carries no marker.
+const ACTIVATION_APPLICATION_ID = 0x48_53_4f_53;
 const JOURNAL_MODE_RETRY_MS = 5000;
 const JOURNAL_MODE_RETRY_WAIT = new Int32Array(new SharedArrayBuffer(4));
 const PENDING_TABLES = Object.freeze([
@@ -32,7 +35,10 @@ function assertOperationalSchemaBoundary(db) {
     .all(...PENDING_TABLES)
     .map(({ name }) => name);
   if (version > OPERATIONAL_SCHEMA_VERSION || pendingTables.length > 0) {
-    const error = new Error(`Operational state requires schema v${OPERATIONAL_SCHEMA_VERSION}; pending execution schema is not activated`);
+    const error = new Error(
+      `Operational state requires schema v${OPERATIONAL_SCHEMA_VERSION}; pending execution schema is not activated. ` +
+        'If this database was activated, this legacy server cannot open it: re-register the MCP server on the governed (modern) release.',
+    );
     error.code = 'EXECUTION_ACTIVATION_PENDING';
     throw error;
   }
@@ -74,14 +80,16 @@ function enableWalJournalMode(db) {
 
 function openOperationalStateDatabase(
   databasePath = process.env.HSEOS_STATE_DB || DEFAULT_STATE_DB,
-  { activatePendingFixture = false, log = () => {} } = {},
+  { activatePendingFixture = false, openActivated = false, log = () => {} } = {},
 ) {
+  if (activatePendingFixture && openActivated) throw new TypeError('activatePendingFixture and openActivated are mutually exclusive');
   if (activatePendingFixture) databasePath = assertPendingFixturePath(databasePath);
   fs.mkdirSync(path.dirname(databasePath), { recursive: true });
   const db = new Database(databasePath);
   try {
     db.pragma('busy_timeout = 5000');
-    if (!activatePendingFixture) assertOperationalSchemaBoundary(db);
+    if (openActivated) assertActivatedExecutionLedger(db);
+    else if (!activatePendingFixture) assertOperationalSchemaBoundary(db);
     enableWalJournalMode(db);
     db.pragma('foreign_keys = ON');
     db.exec(`
@@ -265,6 +273,69 @@ function executionTableNames(db) {
     .prepare(String.raw`SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'execution\_%' ESCAPE '\' ORDER BY name`)
     .all()
     .map(({ name }) => name);
+}
+
+function activationTargetVersion() {
+  const migrations = listMigrations(PENDING_MIGRATIONS_DIR);
+  return migrations.length > 0 ? migrations.at(-1).version : OPERATIONAL_SCHEMA_VERSION;
+}
+
+function activationInconsistent(detail, userVersion) {
+  const error = new Error(
+    `Governed execution ledger is inconsistent (${detail}); refusing to start in either mode. ` +
+      'Restore the activation backup (restoreExecutionLedgerBackup) or finish the activation before starting the server.',
+  );
+  error.code = 'EXECUTION_ACTIVATION_PENDING';
+  error.user_version = userVersion;
+  return error;
+}
+
+/**
+ * Classifies an open database: `legacy` (v4 without execution tables) or `activated` (target user_version, every
+ * execution table and a clean integrity_check). Anything in between, or a newer version, throws and never degrades.
+ */
+function classifyExecutionActivation(db) {
+  const version = db.pragma('user_version', { simple: true });
+  const present = new Set(executionTableNames(db));
+  if (version <= OPERATIONAL_SCHEMA_VERSION && present.size === 0) return { state: 'legacy', user_version: version };
+  const target = activationTargetVersion();
+  if (version !== target)
+    throw activationInconsistent(`user_version ${version}, expected ${OPERATIONAL_SCHEMA_VERSION} or ${target}`, version);
+  const missing = PENDING_TABLES.filter((table) => !present.has(table));
+  if (missing.length > 0) throw activationInconsistent(`missing tables: ${missing.join(', ')}`, version);
+  if (db.pragma('application_id', { simple: true }) !== ACTIVATION_APPLICATION_ID) {
+    throw activationInconsistent('schema present but not activated through activateExecutionLedger (no activation marker)', version);
+  }
+  const integrity = integrityCheck(db);
+  if (integrity !== 'ok') throw activationInconsistent(`integrity_check: ${integrity}`, version);
+  return { state: 'activated', user_version: version };
+}
+
+function assertActivatedExecutionLedger(db) {
+  if (classifyExecutionActivation(db).state !== 'activated') {
+    const error = new Error('Governed execution ledger is not activated on this database');
+    error.code = 'EXECUTION_ACTIVATION_PENDING';
+    throw error;
+  }
+}
+
+/**
+ * Picks the MCP/CLI mode for a state database. The fixture gate keeps its own path; otherwise an absent or v4 database
+ * is `legacy`, an activated one is `modern`, and an inconsistent one throws EXECUTION_ACTIVATION_PENDING.
+ */
+function resolveGovernedExecutionMode(databasePath = process.env.HSEOS_STATE_DB || DEFAULT_STATE_DB) {
+  if (process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1') {
+    return { mode: 'fixture', fixture: true, modern: true, user_version: null };
+  }
+  const resolved = path.resolve(databasePath);
+  if (!fs.existsSync(resolved)) return { mode: 'legacy', fixture: false, modern: false, user_version: null };
+  const db = new Database(resolved, { readonly: true, fileMustExist: true });
+  try {
+    const { state, user_version: version } = classifyExecutionActivation(db);
+    return { mode: state === 'activated' ? 'modern' : 'legacy', fixture: false, modern: state === 'activated', user_version: version };
+  } finally {
+    db.close();
+  }
 }
 
 function activationInternals(internal = {}) {
@@ -587,6 +658,7 @@ async function activateExecutionLedger(databasePath, opts = {}) {
     };
     fs.writeFileSync(plan.receipt_path, `${JSON.stringify(receipt, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
     try {
+      db.pragma(`application_id = ${ACTIVATION_APPLICATION_ID}`);
       db.exec('COMMIT');
     } catch (error) {
       fs.rmSync(plan.receipt_path, { force: true });
@@ -751,5 +823,6 @@ module.exports = {
   OPERATIONAL_SCHEMA_VERSION,
   openOperationalStateDatabase,
   planExecutionLedgerActivation,
+  resolveGovernedExecutionMode,
   restoreExecutionLedgerBackup,
 };

@@ -7,7 +7,8 @@ const { buildMcpError, createHttpServer, createMessageHandler, startStdioServer 
 const { MCP_PROTOCOL_VERSION } = require('./mcp-protocol');
 const { McpLegacyUsageStore } = require('../mcp-project-state/lib/mcp-legacy-usage-store');
 
-const LEGACY_SUNSET = 'after-30-complete-zero-use-days-and-explicit-ADR-0022-activation';
+// ADR-0048 item 3: the 30-day zero-use criterion is replaced; the legacy compat expires only on an owner-fixed date.
+const LEGACY_SUNSET = 'no-fixed-date-pending-ADR-0048-owner-decision';
 const OBSERVATION_INTERVAL_MS = 15 * 60 * 1000;
 
 function resolveLegacyTelemetryPath({
