@@ -181,6 +181,16 @@ if (governedExecution) {
   // legacy server never get one. A missing or invalid `environment:` section only means no capability.
   environmentHostFactory =
     governedMode.mode === 'modern' ? composeMcpEnvironmentHost(configPath, { log: (m) => logToStderr('info', m) }) : null;
+  // A task that does not exist cannot be updated: the read-only existence check runs before a person is asked to approve.
+  toolMap.set('tasks_update', {
+    ...toolMap.get('tasks_update'),
+    preflight(args) {
+      if (!args || typeof args.id !== 'string' || !args.id) return;
+      if (!runtimeHandle.db.prepare('SELECT 1 FROM tasks WHERE id = ?').get(args.id)) {
+        throw Object.assign(new Error(`Task not found: ${args.id}`), { code: 'TASK_NOT_FOUND', retryable: false });
+      }
+    },
+  });
   const startGoverned = (environmentHost) =>
     startNativeMcpServer({
       serverId: 'project_state',

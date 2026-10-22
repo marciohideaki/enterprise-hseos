@@ -8,7 +8,7 @@ const { TextDecoder } = require('node:util');
 const { Worker } = require('node:worker_threads');
 const Ajv2020 = require('ajv/dist/2020');
 
-const { assertCanonicalEnvelope } = require('./governed-execution/canonical-envelope');
+const { assertCanonicalEnvelope, failureEnvelope } = require('./governed-execution/canonical-envelope');
 const { deterministicOperationId } = require('./governed-execution/runtime');
 const { MCP_LEGACY_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION } = require('./mcp-protocol');
 
@@ -930,7 +930,15 @@ class Mcp2026Adapter {
         });
       }
       requireElicitationCapability(requestContext.clientCapabilities, outcome.error.operation_id);
-      const pending = await this.approvalFlow.begin({ outcome, executionRequest, requestContext });
+      let pending;
+      try {
+        pending = await this.approvalFlow.begin({ outcome, executionRequest, requestContext });
+      } catch (error) {
+        // A request that can never succeed (scope, input) is refused as a domain error before anyone is asked to approve it.
+        if (!error || error.preApprovalRefusal !== true) throw error;
+        if (error.code === 'MCP_SCOPE_DENIED') this._reportDenied({ tool: params.name, code: error.code, rpc_code: -32_000 });
+        return this._toolResult(failureEnvelope(error, outcome.error.operation_id), era);
+      }
       if (
         !pending ||
         !pending.state ||

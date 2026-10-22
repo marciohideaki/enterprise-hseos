@@ -7,6 +7,13 @@ const { resolveRunDir, assertIdentifier, readContained, writeContained, projectR
 
 const MAX_LINES = 40;
 
+function validateScope(args) {
+  const runDir = resolveRunDir(args.run_id);
+  assertIdentifier(args.source_task, 'source_task');
+  assertIdentifier(args.target_task, 'target_task');
+  return runDir;
+}
+
 module.exports = [
   {
     name: 'consolidate_handoff',
@@ -20,10 +27,12 @@ module.exports = [
       },
       required: ['run_id', 'source_task', 'target_task'],
     },
+    // Side-effect-free scope and input check, run before a person is asked to approve; the handler repeats it (defence in depth).
+    preflight(args) {
+      validateScope(args);
+    },
     handler(_db, args) {
-      const runDir = resolveRunDir(args.run_id);
-      assertIdentifier(args.source_task, 'source_task');
-      assertIdentifier(args.target_task, 'target_task');
+      const runDir = validateScope(args);
       const worktrees = path.join(projectRoot(), '.worktrees');
       const candidates = [
         path.join(worktrees, args.source_task, 'HANDOFF.md'),
