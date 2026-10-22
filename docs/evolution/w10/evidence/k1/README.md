@@ -73,7 +73,7 @@ Sobre o MRTR do Claude Code: o servidor de fixture (`mrtr-fixture-server.cjs`) u
 
 #### Variabilidade do Claude Code (ressalva)
 
-Em 1 de 8 execuções contra o servidor governado (`frames/claude-governed-anomaly-initialize-first.json`), o Claude Code 2.1.305 **não sondou** `server/discover`: foi direto a `initialize` `2025-11-25` e recebeu `-32022`, e a ferramenta ficou indisponível. As outras 7 (a primeira do dia mais as 6 repetições) foram modernas. A negociação do stdio é controlada por flag remota em cache (`tengu_mcp_protocol_negotiation_stdio: true` em `~/.claude.json`), então o comportamento pode variar por sessão; causa da anomalia não determinada. Implicação: com o servidor moderno, o Claude Code também pode falhar de forma intermitente enquanto a compat legada não aceitar `2025-11-25`.
+Em 1 de 8 execuções contra o servidor governado (`frames/claude-governed-anomaly-initialize-first.json`), o Claude Code 2.1.305 **não sondou** `server/discover`: foi direto a `initialize` `2025-11-25` e recebeu `-32022`, e a ferramenta ficou indisponível. As outras 7 (a primeira do dia mais as 6 repetições) foram modernas. Hipótese não verificada: a negociação stdio depende de flag remota em cache (`tengu_mcp_protocol_negotiation_stdio: true` em `~/.claude.json`); 8 execuções não separam essa causa de outras. Causa da anomalia não determinada. Implicação: com o servidor moderno, o Claude Code também pode falhar de forma intermitente enquanto a compat legada não aceitar `2025-11-25`.
 
 #### Achado de ambiente: o PATH muda a versão do cliente
 

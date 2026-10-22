@@ -1,2 +1,2 @@
-a88469244998687e 2026-10-13 23:17:53 /home/annonymous/.codex/config.toml
-8a2b93a3a01bc135 2026-10-22 00:01:51 /home/annonymous/.claude/settings.json
+a88469244998687e 2026-10-13 23:17:53 ~/.codex/config.toml
+8a2b93a3a01bc135 2026-10-22 00:01:51 ~/.claude/settings.json
