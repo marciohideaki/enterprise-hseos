@@ -75,9 +75,12 @@
     const meta = projectsMeta && item.project_id ? projectsMeta.find((p) => p.id === item.project_id) : null;
     const color = typeof meta?.color === 'string' && HEX_COLOR.test(meta.color) ? meta.color : null;
     if (color) el.style.borderLeftColor = color;
-    const projectBadge = meta
-      ? `<span class="card-project"${color ? ` style="color:${color}"` : ''}>${escapeHtml(meta.label || meta.id)}</span>`
-      : '';
+    const projectBadge = meta ? `<span class="card-project">${escapeHtml(meta.label || meta.id)}</span>` : '';
+    // Colour through the CSSOM: an inline style attribute would need 'unsafe-inline' in the CSP.
+    const colorBadge = () => {
+      const badge = color ? el.querySelector('.card-project') : null;
+      if (badge) badge.style.color = color;
+    };
     if (kind === 'pending' || kind === 'aborted') {
       // task card
       el.innerHTML = `
@@ -88,6 +91,7 @@
         <div class="card-meta">${projectBadge}wave=${escapeHtml(item.wave ?? '?')} · ${escapeHtml(item.run_id)}</div>
         ${item.goal ? `<div class="card-goal">${escapeHtml(item.goal)}</div>` : ''}
       `;
+      colorBadge();
       return el;
     }
     // agent_run card
@@ -101,6 +105,7 @@
       <div class="card-meta">${projectBadge}${escapeHtml(item.task_id || '-')} · ${escapeHtml(item.run_id)}</div>
       ${item.exit_reason ? `<div class="card-goal">${escapeHtml(item.exit_reason)}</div>` : ''}
     `;
+    colorBadge();
     return el;
   }
 

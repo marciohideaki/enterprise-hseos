@@ -20,13 +20,13 @@ externa; `xdotool`, `pyright`, `typescript-language-server`, `debugpy` e `python
 
 ## Matriz de entrega
 
-| Etapa                                    | Determinístico                                                   | Consumidor real | Ativação       |
-| ---------------------------------------- | ---------------------------------------------------------------- | --------------- | -------------- |
-| W5-01                                    | contratos concluídos; verificação a reexecutar por quem integrar | não aplicável   | não autorizada |
-| W5-02a / W5-02b1 / W5-02b2 / W5-04       | integradas e verificadas na B1 (seção "Integração da onda B1")   | não verificado  | não autorizada |
-| W5-LV1 / W5-LV2 / W5-CO1 / W5-CO2        | integradas e verificadas na B1 (seção "Integração da onda B1")   | não verificado  | não autorizada |
-| W5-03 / W5-05 / W5-06                    | integradas e verificadas na B2 (seção "Integração da onda B2")   | não verificado  | não autorizada |
-| W5-07 / W5-08 / W5-09                    | integradas (B3, B3b); verificação final no recibo de fechamento | não verificado  | não autorizada |
+| Etapa                                    | Determinístico                                                      | Consumidor real                                         | Ativação       |
+| ---------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- | -------------- |
+| W5-01                                    | contratos concluídos; verificação a reexecutar por quem integrar    | não aplicável                                           | não autorizada |
+| W5-02a / W5-02b1 / W5-02b2 / W5-04       | integradas e verificadas na B1 (seção "Integração da onda B1")      | não verificado                                          | não autorizada |
+| W5-LV1 / W5-LV2 / W5-CO1 / W5-CO2        | integradas e verificadas na B1 (seção "Integração da onda B1")      | não verificado                                          | não autorizada |
+| W5-03 / W5-05 / W5-06                    | integradas e verificadas na B2 (seção "Integração da onda B2")      | não verificado                                          | não autorizada |
+| W5-07 / W5-08 / W5-09                    | integradas (B3, B3b); verificação final no recibo de fechamento     | não verificado                                          | não autorizada |
 | W5-10 / W5-10b / W5-11a / W5-11b / W5-12 | integradas; verificação final no recibo de fechamento (seção W5-12) | prova de integração local: A real, B sintético (W5-11b) | não autorizada |
 
 ## Gate G2 (aprovado em 2026-10-11)
@@ -210,20 +210,21 @@ Disposição dos achados: **R1** (CI sem o cache de toolchain, major) e **R2** (
 
 Branch `task/hseos-w5-cl1` a partir de `40a7e420` (B2 mergeada). Sem contrato em `tasks.md`: o escopo foi a lista de resíduos da seção anterior, um commit por item. Revisão cética isolada, duas rodadas, presa a SHA: **APPROVED_WITH_RESERVATIONS sem blocker** em `9e87412a` (relatórios `REVIEW-CL1.md` e `REVIEW-CL1-R2.md`; 25 mutações na rodada 1 e 7 mutantes do kind da filha na rodada 2). Recibo: `docs/evolution/w5/evidence/cl1/receipt.json`.
 
-| Item | Resíduo | Commit | Resultado |
-|---|---|---|---|
-| 1 | stubs `environment.lsp.*` e `environment.dap.run` | `faa457e4`, `ef1ff8e1` | contratos reais (`read_only`, `implemented`); saída LSP presa à action |
-| 2 | guarda de partição do `context-assembler.js` | `d01253cc` | removida: inalcançável, o store e o `replay.js:728-735` recusam a linhagem inválida (teste novo) |
-| 3 | `childConfiguration.name` sem tipo | `f09bbfbd` | string de até 256 |
-| 4 | filhos 50 contra 20 | `5863708a` | `MAX_CHILDREN` 20 compartilhado |
-| 5 | `openSeccompDescriptor` só com `rmdirSync` | `08762ffa` | limpeza recursiva, erro original preservado, sem vazar diretório nem fd |
-| 6 | `/usr/bin/node` fixo e decode de `%` | `b572b37b` | debuggee em `/hseos-runtime/node`; decode só nos segmentos de caminho de `file:` |
-| 7 | F-B3, F-B4, F-B5, F-B6 | `82b4ec52`, `9a3ff661` | `op` validado no host; kind `launch|attach` obrigatório, lido de `arguments.request` (o js-debug não o põe na configuração); design e teardown de teste corrigidos |
-| 8 | corrida de relógio do liveness | `85b1edca` | orçamento de 500 ms, asserção intacta; 20 execuções isoladas e 10 sob carga sem falha |
-| 9 | `loop-guard.sh` gravando em `node_modules` | `44c66f01` | raiz pelo toplevel git, recusa `/node_modules/`; teste novo |
-| 12 | deriva do `compile` | `1a3042d2` | causa: o manifest derivado ficou em `http` depois do commit `bf4239b5` mudar a fonte para `stdio`; corrigida uma linha e teste de coerência manifest e bundles. As linhas `settings:` e `mcp:` que o `compile` acrescenta com os arquivos gerados em disco são o comportamento da PR #212, não defeito |
+| Item | Resíduo                                           | Commit                 | Resultado                                                                                                                                                                                                                                                                                              |
+| ---- | ------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1    | stubs `environment.lsp.*` e `environment.dap.run` | `faa457e4`, `ef1ff8e1` | contratos reais (`read_only`, `implemented`); saída LSP presa à action                                                                                                                                                                                                                                 |
+| 2    | guarda de partição do `context-assembler.js`      | `d01253cc`             | removida: inalcançável, o store e o `replay.js:728-735` recusam a linhagem inválida (teste novo)                                                                                                                                                                                                       |
+| 3    | `childConfiguration.name` sem tipo                | `f09bbfbd`             | string de até 256                                                                                                                                                                                                                                                                                      |
+| 4    | filhos 50 contra 20                               | `5863708a`             | `MAX_CHILDREN` 20 compartilhado                                                                                                                                                                                                                                                                        |
+| 5    | `openSeccompDescriptor` só com `rmdirSync`        | `08762ffa`             | limpeza recursiva, erro original preservado, sem vazar diretório nem fd                                                                                                                                                                                                                                |
+| 6    | `/usr/bin/node` fixo e decode de `%`              | `b572b37b`             | debuggee em `/hseos-runtime/node`; decode só nos segmentos de caminho de `file:`                                                                                                                                                                                                                       |
+| 7    | F-B3, F-B4, F-B5, F-B6                            | `82b4ec52`, `9a3ff661` | `op` validado no host; kind `launch                                                                                                                                                                                                                                                                    | attach`obrigatório, lido de`arguments.request` (o js-debug não o põe na configuração); design e teardown de teste corrigidos |
+| 8    | corrida de relógio do liveness                    | `85b1edca`             | orçamento de 500 ms, asserção intacta; 20 execuções isoladas e 10 sob carga sem falha                                                                                                                                                                                                                  |
+| 9    | `loop-guard.sh` gravando em `node_modules`        | `44c66f01`             | raiz pelo toplevel git, recusa `/node_modules/`; teste novo                                                                                                                                                                                                                                            |
+| 12   | deriva do `compile`                               | `1a3042d2`             | causa: o manifest derivado ficou em `http` depois do commit `bf4239b5` mudar a fonte para `stdio`; corrigida uma linha e teste de coerência manifest e bundles. As linhas `settings:` e `mcp:` que o `compile` acrescenta com os arquivos gerados em disco são o comportamento da PR #212, não defeito |
 
 **Fora da onda, com a causa:**
+
 - **Item 10 (BLOCKED, externo):** `ecp-registry.snapshot.json` e as fixtures citam `Hideaki-Solutions-Core` porque o snapshot é cópia travada por SHA-256 da tag upstream `contracts-v0.4.0` de `HideakiSolutions/enterprise-capability-platform`, e não existe tag mais nova. Editar à mão quebra a proveniência; precisa de um novo bundle publicado no upstream.
 - **Item 11 (adiado):** o tokenizer do guard (`capability-intake-guard.js`) é uma task própria, com testes adversariais.
 - **Reformatação:** `lsp.js` e `test-environment-lsp.js` foram reformatados; `lsp-host.js`, `framing.js` e `index.js` seguem fora do estilo e ficam para a `cl2`, junto da licença por digest e do jsdoc de `installToolchain`.
@@ -242,16 +243,16 @@ Correções da integração: o teste do marketplace passa a esperar 8 plugins (`
 
 ### Resultados da verificação (Fase 3, B3)
 
-| Verificação | Resultado |
-| --- | --- |
-| primeira passada em `99c35d49`, `test:kernel` e `test:kernel-coverage` | **exit 1**: 3 testes de paridade reprovados (causa acima), corrigidos em `600a520e` |
-| verify literal da W5-07 | exit 0; 37 testes, 0 falhas, 0 skips; 99,12% linhas / 96,46% branches |
-| verify literal da W5-09 | exit 0; 23 testes, 0 falhas, 0 skips; 100% linhas / 99,53% branches |
-| `npm test`, `npm run test:kernel` e `test:kernel-coverage`, Node 24.15.0 | exit 0 nos três; 401 testes; 97,61% linhas / 92,55% branches |
-| `npm test`, `npm run test:kernel` e `test:kernel-coverage`, Node 22 (clone ABI 22) | exit 0 nos três; 97,63% linhas / 92,55% branches |
-| inventário (`npm pack --dry-run --json`) e `test-package-surface.js` | 1528 de 1556 (npm 11.12.1 do Node 24; a medição de 1530 fora feita por engano com o npm do Node 22); `.agents` 200/205, `.enterprise` 461/472, `packages` 134/137, `tools` 392/393; exit 0 |
-| `validate-capability-graph`, `agent-core compile --check` | exit 0 |
-| `VALIDATION_ENFORCED=true scripts/governance/quality-gates.sh --phase ci` | exit 0 |
+| Verificação                                                                        | Resultado                                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| primeira passada em `99c35d49`, `test:kernel` e `test:kernel-coverage`             | **exit 1**: 3 testes de paridade reprovados (causa acima), corrigidos em `600a520e`                                                                                                        |
+| verify literal da W5-07                                                            | exit 0; 37 testes, 0 falhas, 0 skips; 99,12% linhas / 96,46% branches                                                                                                                      |
+| verify literal da W5-09                                                            | exit 0; 23 testes, 0 falhas, 0 skips; 100% linhas / 99,53% branches                                                                                                                        |
+| `npm test`, `npm run test:kernel` e `test:kernel-coverage`, Node 24.15.0           | exit 0 nos três; 401 testes; 97,61% linhas / 92,55% branches                                                                                                                               |
+| `npm test`, `npm run test:kernel` e `test:kernel-coverage`, Node 22 (clone ABI 22) | exit 0 nos três; 97,63% linhas / 92,55% branches                                                                                                                                           |
+| inventário (`npm pack --dry-run --json`) e `test-package-surface.js`               | 1528 de 1556 (npm 11.12.1 do Node 24; a medição de 1530 fora feita por engano com o npm do Node 22); `.agents` 200/205, `.enterprise` 461/472, `packages` 134/137, `tools` 392/393; exit 0 |
+| `validate-capability-graph`, `agent-core compile --check`                          | exit 0                                                                                                                                                                                     |
+| `VALIDATION_ENFORCED=true scripts/governance/quality-gates.sh --phase ci`          | exit 0                                                                                                                                                                                     |
 
 O `npm test` do Node 24 foi repetido sozinho porque o primeiro log ficou intercalado com o de uma instância duplicada do meu script (a duplicata foi encerrada); o log intercalado fica guardado, e o exit 0 do rerun é o que vale no recibo.
 
@@ -259,7 +260,7 @@ O `npm test` do Node 24 foi repetido sozinho porque o primeiro log ficou interca
 
 - **Plugins:** `hseos-plugin-browser` e `hseos-plugin-memory` ficam `scaffolded`; a ativação vem depois do G6.
 - **`contract-registry.js`:** os stubs `environment.browser.*` e `memory.*` seguem intocados. `memory.delete` exige aprovação no contrato, mas `forget` não verifica nenhuma; a reconciliação cabe à troca dos stubs.
-- **W5-07:** o teste de admissão não admite o tarball real de `plugins/browser`; os testes in-process com `--no-sandbox` ficam fora do bwrap; mutantes M09, M18b e N5 sobrevivem. Bibliotecas de sistema do Chromium no `ubuntu-latest` não verificadas (o CI real dirá).
+- **W5-07:** o teste de admissão não admite o tarball real de `plugins/browser`; os testes in-process com `--no-sandbox` ficam fora do bwrap; o recibo registra M09 e M18 como mortos por testes novos (`evidence/w5-07/receipt.json:183,185`); M18b e N5 não constam em nenhum recibo, no código nem no histórico (`git log -S M18b`: só os commits que escreveram esta linha), então a afirmação anterior de que sobreviviam **não está verificada** (correção W6-E1, 2026-10-20). Bibliotecas de sistema do Chromium no `ubuntu-latest` não verificadas (o CI real dirá).
 - **W5-09:** sem quota por projeto; exclusão e expiração são lógicas (o conteúdo permanece no ledger); sem varredura de PII; formato de `search_memory` do axon presumido; nenhum consumidor de produção; Node 22 e ativação da migration 017 em banco real não verificados na task. O plugin só funciona em um host que injete `rules`, `approved`, `actor` e `execution_mode` fora do payload e que tenha `agent-policy-lattice` e `campaign-evidence-store`.
 - **Migration 017** (`memory.*`) está em `migrations-pending-activation`; renumerar se outra task criar migration antes da ativação.
 - **Orçamento G3:** a margem restante (28 entradas; 1 em `tools`, 3 em `packages`, 5 em `.agents`) é apertada para a W5-08 e a B4.
@@ -316,7 +317,7 @@ Base desta seção: `b4160d87` (feature `feature/hseos-evolution-w5` depois da P
 
 - **Contexto v2 nas tarefas reais (T3 da bateria viva)**: o runtime de engenharia declara `authority` e `provenance` das fontes constituição, projeto e critérios protegidos; fontes de extensão seguem sem declaração (autoridade derivada da camada). O `retrieved_at` dessas fontes é a constante convencional `1970-01-01T00:00:00.000Z`: o resolver não recebe `occurred_at` e a constante mantém o evento estável entre a tarefa e o resume.
 - **Node 22**: a verificação final usa um clone com ABI do Node 22 (`better-sqlite3`); onde o recibo disser "não verificado", o motivo está registrado. O worktree da feature tem ABI do Node 24.
-- **Mutantes sem detecção** declarados na W5-11a (acima); três mutantes da W5-08 (M04, M24, M22) e três da W5-07 (M09, M18b, N5) sobrevivem, conforme os recibos.
+- **Mutantes sem detecção** declarados na W5-11a (acima); três mutantes da W5-08 (M04, M24, M22) e, na W5-07, o recibo declara apenas M01, M07 e M21 como equivalentes documentados (`evidence/w5-07/receipt.json:191-195`); M09 e M18 estão mortos (linhas 183 e 185) e M18b e N5 não têm evidência em recibo algum (não verificado; a citação anterior de três sobreviventes na W5-07 estava errada).
 - **Consumidores reais**: F14, F15 e F20 ficam `real_consumers: not_verified`. A jornada exerceu LSP, DAP e navegador em consumidor real, mas isso não é consumidor real de F14: memória sem consumidor, DAP depurou um reprodutor do harness, o navegador renderizou uma página do harness e o verificador é uma regex.
 - **Ativação**: plugins permanecem `scaffolded`; migration 017 de memória em `migrations-pending-activation`; merge, publicação, instalação global e ativação seguem como decisões separadas (G6).
 - **Teste do marketplace** (`test-plugin-marketplace.js`): passou 88/0 em Node 22 e 24 na verificação final. Histórico: em waves anteriores 3 asserções falhavam sob `node --test` no wrapper de cgroup, causa não determinada e preexistente; segue como nota, sem reprodução nesta rodada.
@@ -352,3 +353,184 @@ Fecho condicionado: C9 (teste estático de "chamador de produção") e C10 (inte
 ### Plugins das capacidades continuam `scaffolded` (C12)
 
 Os plugins `plugins/lsp`, `plugins/dap`, `plugins/browser`, `plugins/computer-use` e `plugins/memory` seguem com `status: scaffolded` em `.agents/plugins/registry.yaml`. Ligar as capacidades ao runtime de tarefa e ao MCP (onda W4) não os promove: a promoção é decisão de ativação. Pelo mesmo motivo, `plugins/` fica fora de `files` do `package.json`: o pacote publicado carrega o runtime e os contratos das capacidades (`packages/**`, `tools/**`), não os plugins empacotados. Incluir `plugins/` em `files`, mudar o `status` e instalar os plugins pertencem à ativação (W8), no passo e com a autorização próprios descritos em `docs/evolution/runbooks/activation.md`. Esse runbook ainda não está na master: hoje vive na branch `feature/hseos-w5-closeout-w7` e passa a ser citável quando a onda W7 for mergeada.
+
+## Registro final de resíduos — fechamento W1–W5
+
+Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-closeout-w6`. Fontes: a seção "Desvios registrados durante a execução" de `.hseos/runs/dev-squad/20261020-w5-closeout/PLAN.md`, as revisões céticas das tasks W6 e os registros de integração acima. Este registro não executa nem ativa nada. "Dono" é quem decide se o resíduo muda de destino: o **owner** (decisão de produto ou de risco) ou o **Commander** (planejamento e revisão da run). Destino: **aceito** (fica como está, com a justificativa), **→ W10** (resolvido pela onda W10 do `PLAN-CONCLUSAO.md`) ou **→ ativação** (tratado no runbook `docs/evolution/runbooks/activation.md`).
+
+### Testes instáveis e mutantes
+
+1. **Instáveis observados no CI: causa e correção por teste.**
+   - Descrição: quatro instáveis foram investigados na W6-E8 e na W6-E3; o relato do Commander está nas últimas linhas de `.hseos/runs/dev-squad/20261020-w5-closeout/PLAN.md`.
+     - `cancellation during workflow dispatch drains before settlement` (shard 22.x 1/6 da W7, run 39505105700): a cancelação relançava a rejeição do filho e o teardown não liberava a reserva. Corrigido em `05356840`; `1b211da1` fecha a regressão do join com deadline. Frequência de ~8% antes e 0 em 110 execuções depois.
+     - `the dialog is drawn: more than the empty black root` (CI da W4-C8, run 39535516377): a janela estava mapeada mas ainda em branco. Corrigido em `6f70aaed`; 2 falhas em 60 antes, 100 de 100 depois. Pode exceder o prazo sob carga extrema, e isso é resíduo aceito.
+     - `parallel tasks share the declared aggregate budget` (Node 22 shard 1/6 da W6-E3, run 39536874211): a tarefa `addition` terminou `blocked` (`engineering-execution-blocked`) com o orçamento íntegro. **Sem causa determinada** (0 falhas em 130 execuções); `a30c97d0` só registra o motivo do bloqueio por erro sem código, para o próximo caso.
+     - Testes do host de browser sob contenção: `46953631` dimensiona o orçamento de chamada pelo custo medido no host (o commit registra que a chamada falhava em 22 de 25 execuções sob contenção de CPU; sem contagem pós-correção no commit; o executor w0-6-exec relatou 3 de 25 passando antes e 25 de 25 depois, sob 4 laços em 1 CPU, relato do executor da E8).
+     - Teto de parede do guard (`ambiguous slashes cost a constant number of passes (1 MB)`, 200 ms, e `realistic 1 MB took 203 ms` no CI da #241): tratado na W6-E8 (`abf2c7bb`, depois `2cf09f86`), que prova o custo por escala.
+   - Justificativa: os três primeiros têm causa e correção com medição antes e depois; o terceiro fica aceito sem causa.
+   - Dono: Commander (investigação na W6-E8); owner se algum reaparecer como bloqueio de merge.
+   - Destino: **aceito**, sem afrouxar asserção. Reaparecimento vira task própria de investigação.
+2. **Instabilidade de `aborting the campaign kills the client through the cgroup` (caso g).**
+   - Descrição: sob carga o cliente morria antes pelo timeout do próprio worker, e o teste não discriminava o `cgroup.kill`. A W6-E8 consertou o estado do processo (`b1ba8bff`) e, na rodada 2 (`2cf09f86`), a fixture `immortal` (ignora sinais, neto com `setsid`) passou a exigir o `cgroup.kill`.
+   - Justificativa: a defesa é em camadas (stop e drain), então o teste só fica vermelho com os **dois** kills desligados; desligar só um deles segue verde. É o desenho da defesa, e a revisão da rodada 2 aprovou.
+   - Dono: Commander.
+   - Destino: **aceito**.
+3. **Mutantes sem detecção, declarados nos recibos.**
+   - Descrição: W5-11a: `dap_survivor` sem mutante oficial, a segunda guarda de localização do LSP e o `RUN_ID_PATTERN` do MCP (defesa em profundidade). W5-08: M04, M24 e M22. W5-07: o recibo declara M01, M07 e M21 como equivalentes documentados (`evidence/w5-07/receipt.json:191-195`); M18b e N5 não têm evidência em recibo algum. cl2: T01, T06 e T07. W5-04: P01, P04, P06, M03 (equivalente). 02b2: Y12 (equivalente).
+   - Justificativa: equivalentes ou defesa em profundidade sem caminho público que os distinga; cada um foi aceito na revisão cética da respectiva task, com o motivo no recibo.
+   - Dono: Commander (revisor da task).
+   - Destino: **aceito**.
+
+### Diagnóstico e redação de segredos (W6-E9, achados 3 e 4)
+
+4. **Corpo PEM multilinha sem marcador.**
+   - Descrição: um segredo multilinha sem marcador (corpo PEM) fora da janela de 4096 bytes do stderr pode chegar ao diagnóstico.
+   - Justificativa: a redação cobre credenciais com marcador e a janela limitada; a revisão da E9 (5e30586e, PASS-WITH-NOTES) a registrou como resíduo para este registro, sem exigir correção.
+   - Dono: owner (risco de vazamento de credencial).
+   - Destino: **aceito**.
+5. **Trecho de entrada nas mensagens de `JSON.parse`.**
+   - Descrição: as mensagens de `JSON.parse` do Node 24 trazem ~10 caracteres da entrada, então um trecho de prompt ou de saída em texto livre pode chegar ao diagnóstico; a redação só barra credenciais.
+   - Justificativa: o volume é de ~10 caracteres e a redação não tem como distinguir texto livre de dado inofensivo sem descartar a mensagem de erro inteira, que é o que o diagnóstico precisa mostrar.
+   - Dono: owner.
+   - Destino: **aceito**.
+
+### Guard de captura de capacidades (W6-E8, itens f e h)
+
+6. **Lentidão linear de fator constante não detectada.**
+   - Descrição: os casos (f) e (h) provam o custo por escala e não detectam lentidão linear de fator constante (< 2,5x no (f), < 7x no (h)).
+   - Justificativa: a cobertura restante vem dos orçamentos absolutos do guard (5k linhas < 1000 ms, `export` não fechado < 1000 ms, listas de `export` < 400 ms), que continuam sensíveis a carga. Trocar um pelo outro perderia ou a garantia de complexidade ou a de tempo, e nenhuma das duas pode ser afrouxada.
+   - Dono: Commander.
+   - Destino: **aceito**.
+7. **Join com fallback após o deadline relança rejeições.**
+   - Descrição: caso (a) da W6-E8, o join em fallback depois do deadline relança as rejeições de runtime, inclusive a da própria cancelação. A regressão do join com deadline foi fechada em `1b211da1`.
+   - Justificativa: efeito aceito explicitamente na revisão da E8 (`abf2c7bb`); a alternativa de engolir a rejeição esconderia falha de runtime.
+   - Dono: Commander.
+   - Destino: **aceito**.
+
+### Fio legado do MCP e sunset
+
+8. **Fio legado sem `error.data.code`.**
+   - Descrição: `tools/lib/mcp-transport.js:205` usa `buildMcpError(id, -32000, error.message)` sem código estável, então `MCP_SCOPE_DENIED` não chega ao cliente do servidor legado e os testes casam por mensagem. A ressalva (a) da W0-5, `test/test-mcp-contract.js` casando `'required'`, foi tratada na W6-E3.
+   - Justificativa: expor `error.data = {code}` mexe numa superfície legada que tem sunset (revisão da W0-5).
+   - Dono: owner (data do sunset).
+   - Destino: **→ W10** (G0, ADR-0048, e K4: o sunset do legado deixa de ser a data fixa). Até o legado sair, o fio legado segue **aceito** como está.
+9. **O servidor legado ignora o sunset de 2026-11-30.**
+   - Descrição: os 4 servidores MCP instalados sobem o legado (`tools/lib/legacy-mcp-server.js`) e só gravam o sunset como metadado de telemetria; o moderno, o único que recusa o legado depois do sunset, está bloqueado por `EXECUTION_ACTIVATION_PENDING` até a ativação ADR-0022/0023, que exige 30 dias de zero legado e não cabe antes de 30/11. Decisão do owner de 2026-10-20: registrar como dívida da ativação, sem mexer na produção.
+   - Justificativa: o sunset só vale ao ativar o moderno.
+   - Dono: owner.
+   - Destino: **→ W10** (G0: ADR de critério de ativação em Proposed, que o owner aceita; K4: servidor moderno sobre banco ativado). A execução fica no passo 1b do runbook de ativação.
+
+### Isolamento, extração e navegador
+
+10. **`SIGKILL` do timeout do filho de extração do zip.**
+    - Descrição: o filho que descomprime entradas do zip do `chrome-headless-shell` usa `killSignal: 'SIGKILL'` (`tools/lib/environment-toolchain-pins.js:427`); nenhum teste prova `SIGKILL` em vez de `SIGTERM`.
+    - Justificativa: o timeout, o teto de memória do filho (pico do pai de 541 MB para 95 MB no chrome real) e a extração byte-idêntica estão provados (E4, aprovada); o sinal em si é detalhe de implementação.
+    - Dono: Commander.
+    - Destino: **aceito**.
+11. **CSP sem leitura de violação no console.**
+    - Descrição: o serviço de browser (`createDefaultBrowserService`) não expõe mensagens de console nem violações de CSP, então a ausência de violação na CSP do state-ui não foi observada num navegador (W6-E6, aprovada).
+    - Justificativa: a revisão da E6 aprovou com a limitação registrada; observar o console exige capacidade nova no serviço de browser.
+    - Dono: owner.
+    - Destino: **aceito**; leitura de console é candidata a capacidade futura.
+12. **Varredura de `pids_max` limitada a 5 arquivos.**
+    - Descrição: a W6-E5 (`84746de5`, `5d35b336`) derivou a faixa de `pids_max` de uma fonte única (`LIMIT_FLOOR`/`LIMIT_CEILING` em `profiles.js`), estendeu o escopo a 3 adapters de provider com o mesmo literal e fixou as fronteiras dos adapters native e antigravity; a varredura independente de formatação cobre só os arquivos listados na task.
+    - Justificativa: um literal novo em arquivo fora da varredura não seria detectado; o risco é de manutenção, não de comportamento atual.
+    - Dono: Commander.
+    - Destino: **aceito**.
+
+### Ambiente de teste e CI
+
+13. **Hook leve falhou uma vez em "Tests (touched + referencing)".**
+    - Descrição: na integração W6-INT-2 o hook leve falhou uma vez sem identificar o teste; a reexecução passou.
+    - Justificativa: não reproduziu e o log não nomeou o teste; a prova completa é o CI de cada push.
+    - Dono: Commander.
+    - Destino: **aceito**; reaparecimento exige capturar o nome do teste antes de reexecutar.
+14. **Falhas ambientais fora do cgroup (dois relatos distintos).**
+    - Descrição: (a) `worktree-manager.sh validate` reprova 5 casos de `test/test-kernel-mutations.js` (`task_cancellation`, `job_shutdown`, `job_acceptance`, `job_ledger`, `job_preparation`) fora do cgroup, também na master pura (desvio de 2026-10-20, PLAN.md). (b) **Relato do revisor da W6-E5 (`5d35b336`/`84746de5`), não reproduzido pelo Commander e com causa não verificada:** `test/test-provider-campaign-adapters.js` tem 5 falhas rodando fora do cgroup (testes de worker real, supervisor e perfil de recursos), idênticas em `84746de5` e `953949a0`. A leitura "exigem cgroup delegado" é inferência do revisor pelos nomes dos testes.
+    - Justificativa: os dois relatos são de arquivos diferentes e não se confundem; nenhum afirma causa comprovada além de rodar fora do cgroup. Commits e testes passam a rodar por `/build/tmp/hseos-w5/bin/commit-in-cgroup.sh` e `run-in-cgroup.sh`.
+    - Dono: Commander.
+    - Destino: **aceito**; confirmar a causa de (b) fica para quem reproduzir.
+15. **Falhas de infra do CI.**
+    - Descrição: `apt` com HTTP 403 em `packages.microsoft.com` e falha no fetch do `chrome-headless-shell` durante o provisionamento (CI da W6-E5), resolvidos por re-run sem mudança. O smoke em ambiente limpo sem cache de toolchain na #241 foi corrigido em `766f13ab`.
+    - Justificativa: falha externa ao código, sem mudança de teste ou de workflow.
+    - Dono: owner (workflow).
+    - Destino: **aceito**.
+16. **`test-engineering-task-runtime.js` roda 3 vezes na suíte completa.**
+    - Descrição: ~60 s, nos jobs `test:engineering-task`, `test:kernel` sob c8 no kernel-coverage e na conformance de providers.
+    - Justificativa: não é bug; reduzir exige redesenhar gates.
+    - Dono: owner.
+    - Destino: **aceito**.
+17. **O supervisor de suítes mascara vazamento de processo.**
+    - Descrição: o supervisor da conformance mata o grupo também no fim normal (W0-7); um neto com `setsid` escapa do grupo e segura o pipe até o backstop. Sugestão da revisão: emitir aviso quando o `killGroup` do fim normal encontrar processos vivos.
+    - Justificativa: a limpeza é o efeito desejado; o aviso é melhoria.
+    - Dono: Commander.
+    - Destino: **aceito**.
+
+### Dívidas de produto
+
+18. **Opacidade com `max_tokens` abaixo de ~12000.**
+    - Descrição: o contrato de engenharia termina em `session-failed:internal_error` com mensagem genérica (overflow de montagem de contexto descartado por `normalizedFailure`); candidato é validar um mínimo ou expor `context_overflow`.
+    - Justificativa: **não tratado**. Nenhum termo `context_overflow`, `MIN_MAX_TOKENS` ou mínimo de `max_tokens` aparece em `git grep` no SHA `333828f2`; o PLAN.md mandava registrar aqui se a W1 não tratasse.
+    - Dono: Commander.
+    - Destino: **aceito** como dívida aberta; tratar exige task própria.
+19. **Elicitação mostra o digest do screenshot, não a imagem.**
+    - Descrição: quem aprova o `computer.*` depende do cliente para ter visto a imagem.
+    - Justificativa: limitação registrada na W4 (C7); mostrar a imagem depende do cliente.
+    - Dono: owner.
+    - Destino: **aceito**.
+20. **Host de produção do ambiente e da memória governada.**
+    - Descrição: nenhum código de produção monta o store de memória governado nem o `environmentHost` do servidor MCP; ambos chegam por injeção do embedder (dívida de `063adf5d`). Sem o host, o comportamento é `ENV_CAPABILITY_UNAVAILABLE` ou `ENGINEERING_ENVIRONMENT_HOST_REQUIRED`.
+    - Justificativa: depende da ativação do banco; o plano de conclusão a resolve com `createProductionEnvironmentHost` (K5) e a seção `environment:` em `~/.config/hseos/config.yaml`.
+    - Dono: owner.
+    - Destino: **→ W10** (K5); a composição de referência está descrita no runbook de ativação.
+21. **Admissão do `agent run`.**
+    - Descrição: `agent run --task-contract` e o caminho de workflow da CLI não passam pela admissão (aceite da W5-10b); ao ligar um `environmentHost` à CLI ou ao worker, o caminho `readEngineeringTask` sem admissão rodaria tarefas novas com `environment` sem a admissão da W2 (pré-condição C10/C11).
+    - Justificativa: hoje não há host na CLI, então nada roda sem admissão; a pré-condição vale a partir do K5.
+    - Dono: owner.
+    - Destino: **→ W10** (K6: `readEngineeringTask` com `admission`, `runEngineeringTask` e `validate-task`; o worker segue com `admission:false` por design).
+22. **Ativação do banco existente e do servidor MCP moderno.**
+    - Descrição: nenhum comando de ativação existe; a migration 017 segue em `migrations-pending-activation`.
+    - Justificativa: depende do ADR de critério de ativação aceito pelo owner (G0) e do comando `hseos execution-activation plan|apply|rollback` (K2).
+    - Dono: owner.
+    - Destino: **→ W10** (G0, K2, K3, K4, K7) e **→ ativação** (passo 1b do runbook, só com autorização própria).
+
+### Decisões e desvios de processo
+
+23. **`memory.write` sem aprovação do runtime.**
+    - Descrição: decisão do owner de 2026-10-21; o provider é idempotente pelo `memory_id` e o controle é a política `admitWrite` do store (deny por padrão) mais a varredura de credencial. `computer.stop` é idempotente e sem aprovação (só encerra). Fonte: PLAN.md, desvio de 2026-10-21.
+    - Justificativa: decisão explícita do owner.
+    - Dono: owner.
+    - Destino: **aceito**; as regras de escrita por projeto entram no host de produção (→ W10, K5).
+24. **`packages/agent-environment/index.js` fora de `.c8-kernel.json`.**
+    - Descrição: correção de fato do planejamento: o arquivo não está no gate de cobertura 90/80 por arquivo do kernel (os demais arquivos do pacote estão, linhas 75-92). Fonte: PLAN.md, desvio de 2026-10-20.
+    - Justificativa: registrado na W3 como correção de fato; mudar o conjunto do gate de cobertura é decisão do owner.
+    - Dono: owner.
+    - Destino: **aceito**.
+25. **Merges da W6-INT-1 fora do `commit-in-cgroup`.**
+    - Descrição: desvio da integração (`97a5ac14`): os commits de merge saíram fora do `commit-in-cgroup.sh`; o hook commit-msg passou e não houve bypass (PLAN.md, W6-INT-1).
+    - Justificativa (inferência, não registrada na fonte): merge sem testes selecionados; a prova completa é o CI de cada push.
+    - Dono: Commander.
+    - Destino: **aceito**.
+26. **Wrapper global `~/.local/bin/hseos` frágil.**
+    - Descrição: o wrapper escolhe a maior versão do `nvm` (`sort -V`); um Node maior sem o pacote o quebra (incidente de 2026-10-20, runbook §1).
+    - Justificativa: corrigir o wrapper está fora do repositório; o runbook mitiga fixando o PATH do Node 24.15.
+    - Dono: owner.
+    - Destino: **→ ativação** (passo 1: PATH fixado em todos os comandos).
+27. **Worker do adapter engolia o stderr (FECHADO).**
+    - Descrição: o worker do adapter `claude/account` rodava com stdio `ignore` e convertia qualquer falha em `CONTROL_OUTCOME_UNCERTAIN` sem causa (achado do T1).
+    - Justificativa: fechado por `d83d8907`, que mantém a causa real no evento `uncertain`.
+    - Dono: Commander.
+    - Destino: **fechado**.
+
+### Resíduos anteriores que seguem como estão
+
+Nenhum dos itens abaixo é reaberto por este registro; cada um continua aceito pela revisão que o registrou, na fonte citada:
+
+- **LV/CO e integração B1** (seções "Resíduos a registrar" e "Resíduos acrescentados pela revisão da integração" acima): LV1 (status desconhecido de `background_tasks`, TeammateIdle, R5 com `WAITING_ON` de até 4 h); LV2 (tabelas sem migração numerada, retenção de eventos, itens 3 a 6 da revisão 4, systemd e `notify-send` não verificados); CO1 (F13, sidecars `-wal`/`-shm`, N1, N2.2); CO2 (A1, template do Codex não verificado no Codex real); G1 (grafias YAML exóticas).
+- **`init`, `rate_limit` e `pids_peak`:** sinais declarados desconhecidos e não expostos no recibo (W5-10 e `revalidation-2026-10/STATUS.md`).
+- **Revalidação de 2026-10** (`docs/evolution/revalidation-2026-10/STATUS.md`): `pids_max=64` insuficiente para clientes reais; critérios de aceite fracos (endurecimento na W5-10b, só para novas admissões); adapters de API, ACP e local sem retenção da saída; divergência `-32600` do adapter `mcp-2026`; transporte HTTP legado sem limite de corpo; `$ref` não resolvível só falha na chamada; riscos residuais no `swarm` (TOCTOU, hardlink, `cwd`); digest de conta sem sal; `requirements.json` sem atualização das 27 famílias.
+- **Validação de consumidor de 2026-10** (`docs/evolution/consumer-validation-2026-10/STATUS.md`, "Resíduos aceitos e pendências"): F6 parcial; F9 (`sandbox engineering-check` bloqueado sem causa exposta); dois installs simultâneos sem lock; recall menor em consultas genéricas; `react` em `devDependencies` da raiz; mensagem de escopo; `e2e`, `scripts` e `infra` fora do guard; registry sem implementação `stable`; A7, A8 e A9 reconfirmados.
+- **Limitações aceitas na entrega** (W5-12, seção acima): contexto v2 com `retrieved_at` convencional, Node 22, mutantes, consumidores reais, ativação, marketplace e inventário.
+- **Fora da W5, só registradas:** `loop-guard.sh` em `node_modules` (corrigido na cl1, item 9), evidência de saída nos adapters API/ACP/local, digest de conta sem sal, hook de commit que bloqueia nomes de fornecedor.
+
+Os plugins seguem `scaffolded` (C12), `real_consumers: not_verified` para F14, F15 e F20, e a ativação (hooks, timer, contratos, tags, distribuição) segue não executada e dependente de autorização.

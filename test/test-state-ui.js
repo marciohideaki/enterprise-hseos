@@ -49,9 +49,21 @@ function fetchResponse(port, path_, token = null) {
       let body = '';
       res.setEncoding('utf8');
       res.on('data', (chunk) => (body += chunk));
-      res.on('end', () => resolve({ statusCode: res.statusCode, body }));
+      res.on('end', () => resolve({ statusCode: res.statusCode, body, headers: res.headers }));
     });
     req.on('error', reject);
+  });
+}
+
+/** Status and headers only: an SSE stream never ends, so the request is dropped as soon as the headers arrive. */
+function fetchHeaders(port, path_, token = null) {
+  return new Promise((resolve, reject) => {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const req = http.get({ host: '127.0.0.1', port, path: path_, headers, timeout: 4000 }, (res) => {
+      resolve({ statusCode: res.statusCode, headers: res.headers });
+      req.destroy();
+    });
+    req.on('error', (error) => (error.code === 'ECONNRESET' ? undefined : reject(error)));
   });
 }
 
@@ -182,6 +194,73 @@ async function fetchJson(port, path_, token = null) {
       const response = await fetchResponse(port, '/favicon.ico');
       if (response.statusCode !== 204) throw new Error(`status ${response.statusCode}`);
       if (response.body !== '') throw new Error('favicon response unexpectedly contains a body');
+    });
+
+    await it('every response carries the security headers, with a CSP that needs no unsafe-inline or unsafe-eval', async () => {
+      const responses = [
+        await fetchResponse(port, '/', token),
+        await fetchResponse(port, '/assets/app.js', token),
+        await fetchResponse(port, '/assets/styles.css', token),
+        await fetchResponse(port, '/api/state', token),
+        await fetchResponse(port, '/api/state'),
+        await fetchResponse(port, '/missing', token),
+        await fetchResponse(port, '/assets/does-not-exist.js', token),
+        await fetchResponse(port, '/favicon.ico'),
+        await fetchResponse(port, '/health'),
+        await fetchHeaders(port, '/events', token),
+      ];
+      const sse = responses.at(-1);
+      if (sse.statusCode !== 200 || !/text\/event-stream/.test(sse.headers['content-type']))
+        throw new Error('/events is not an event stream');
+      if (responses.at(-4).statusCode !== 404) throw new Error('missing asset is not a 404');
+      for (const response of responses) {
+        const csp = response.headers['content-security-policy'];
+        if (!csp) throw new Error(`status ${response.statusCode} has no Content-Security-Policy`);
+        const directives = Object.fromEntries(
+          csp.split(';').map((part) =>
+            part
+              .trim()
+              .split(/\s+(.*)/s)
+              .slice(0, 2),
+          ),
+        );
+        const expected = {
+          'default-src': "'none'",
+          'script-src': "'self'",
+          'style-src': "'self'",
+          'connect-src': "'self'",
+          'img-src': "'self'",
+          'frame-ancestors': "'none'",
+          'base-uri': "'none'",
+          'object-src': "'none'",
+          'form-action': "'none'",
+        };
+        for (const [name, value] of Object.entries(expected)) {
+          if (directives[name] !== value) throw new Error(`${name} is ${directives[name]}, expected ${value}`);
+        }
+        if (/unsafe-eval|unsafe-inline/.test(csp)) throw new Error('CSP allows unsafe-eval or unsafe-inline');
+        if (response.headers['x-content-type-options'] !== 'nosniff') throw new Error('missing X-Content-Type-Options: nosniff');
+        if (response.headers['referrer-policy'] !== 'no-referrer') throw new Error('missing Referrer-Policy: no-referrer');
+      }
+    });
+
+    await it('the web app needs no inline script, inline style, handler attribute or eval that the CSP would block', async () => {
+      const web = path.join(REPO_ROOT, 'tools', 'state-ui-server', 'web');
+      const html = fs.readFileSync(path.join(web, 'index.html'), 'utf8');
+      const app = fs.readFileSync(path.join(web, 'app.js'), 'utf8');
+      const css = fs.readFileSync(path.join(web, 'styles.css'), 'utf8');
+      if (/<script(?![^>]*\ssrc=)/i.test(html)) throw new Error('inline <script> in index.html');
+      if (/<style/i.test(html)) throw new Error('<style> element in index.html');
+      for (const [name, text] of [
+        ['index.html', html],
+        ['app.js', app],
+      ]) {
+        if (/\sstyle\s*=/i.test(text)) throw new Error(`${name} writes an inline style attribute`);
+        if (/\son[a-z]+\s*=/i.test(text)) throw new Error(`${name} uses an inline event handler attribute`);
+      }
+      if (/\beval\s*\(|new\s+Function\b|setAttribute\(\s*['"]style['"]/.test(app))
+        throw new Error('app.js evaluates strings or sets a style attribute');
+      if (/@import|url\(\s*['"]?(?!\/assets\/)/i.test(css)) throw new Error('styles.css loads a resource outside /assets/');
     });
 
     await it('GET /api/state returns snapshot shape', async () => {

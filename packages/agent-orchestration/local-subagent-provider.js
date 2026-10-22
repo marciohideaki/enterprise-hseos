@@ -188,7 +188,7 @@ class LocalSubagentProvider {
     return ordered;
   }
 
-  async #settle(input, cancelReason = null) {
+  async #settle(input, cancelReason = null, explicitCancel = false) {
     this.#assertChildren(input.parent_session_id, input.child_session_ids);
     const settleIds = cancelReason ? this.#cancellationOrder(input.child_session_ids) : input.child_session_ids;
     const cancelChild = async (childId) => {
@@ -230,7 +230,11 @@ class LocalSubagentProvider {
     }
     for (const childId of settleIds) this.#active.delete(childId);
     const rejected = taskOutcomes.find((outcome) => outcome.status === 'rejected');
-    if (rejected) throw rejected.reason;
+    // Only an explicit cancel() is teardown; the cancel a join falls back to after its deadline still reports a failure.
+    // Cancellation is teardown: every child above is already terminal, so a runtime failure that raced with it is not
+    // rethrown here (a concurrent join still reports it); rethrowing would abort the workflow's own teardown before it
+    // releases its reservation and leave the root unable to settle.
+    if (rejected && !explicitCancel) throw rejected.reason;
     const children = input.child_session_ids.map((childId) => this.#resolveChild(childId));
     return {
       schema_version: CONTRACT_SCHEMA_VERSION,
@@ -253,7 +257,7 @@ class LocalSubagentProvider {
   async cancel(value) {
     const input = validatePortInput('SubagentProvider', 'cancel', value);
     if (input.provider_id !== this.#manifest.provider_id) throw new SubagentProviderError('provider identity mismatch');
-    const result = await this.#settle(input, input.reason);
+    const result = await this.#settle(input, input.reason, true);
     return validatePortResult('SubagentProvider', 'cancel', result, input);
   }
 

@@ -5,7 +5,7 @@ const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { z, IdentifierSchema, deepFreeze } = require('../../packages/agent-runtime-contracts/common');
 const semver = require('semver');
-const { profileRank } = require('../../packages/agent-isolation-attestation/profiles');
+const { LIMIT_CEILING, LIMIT_FLOOR, profileRank } = require('../../packages/agent-isolation-attestation/profiles');
 const { canonicalize } = require('../../packages/managed-governance-contracts/canonical-json');
 
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,79}$/);
@@ -24,7 +24,7 @@ const limits = z
     timeout_ms: z.number().int().min(1).max(300_000),
     max_output_bytes: z.number().int().min(1).max(65_536),
     memory_max_bytes: z.number().int().min(268_435_456).max(2_147_483_648),
-    pids_max: z.number().int().min(32).max(256),
+    pids_max: z.number().int().min(LIMIT_FLOOR.pids_max).max(LIMIT_CEILING.pids_max),
   })
   .strict();
 const profileName = z.enum(['P0', 'P1', 'P2']);

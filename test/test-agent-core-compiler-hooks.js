@@ -402,17 +402,18 @@ async function testAgentCoreCompileRejectsFailingPluginConformance() {
       yaml.stringify({ plugins: [{ id: 'broken-plugin', version: '1.0.0', status: 'active' }] }),
     );
 
+    // A parent that is itself a test runner exports NODE_TEST_CONTEXT; a nested `node --test` that inherits it exits 0
+    // even when a test fails. The gate must hold either way, so run it with that variable present.
+    const inheritedContext = process.env.NODE_TEST_CONTEXT;
+    process.env.NODE_TEST_CONTEXT = 'child-v8';
     let error;
-    // The conformance run spawns `node --test`; under an outer `node --test` (the light pre-commit hook) the inherited
-    // NODE_TEST_CONTEXT makes the child skip its tests and pass, so the fixture failure would go unseen.
-    const outerContext = process.env.NODE_TEST_CONTEXT;
-    delete process.env.NODE_TEST_CONTEXT;
     try {
       await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
     } catch (error_) {
       error = error_;
     } finally {
-      if (outerContext !== undefined) process.env.NODE_TEST_CONTEXT = outerContext;
+      if (inheritedContext === undefined) delete process.env.NODE_TEST_CONTEXT;
+      else process.env.NODE_TEST_CONTEXT = inheritedContext;
     }
     assertPass('compile rejects an active plugin with failing behavior tests', Boolean(error));
     assertPass('failed conformance writes no manifest', !fs.existsSync(path.join(tempDir, '.agents', 'manifest.yaml')));

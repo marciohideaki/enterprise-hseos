@@ -5,7 +5,8 @@ const { createHash } = require('node:crypto');
 const yaml = require('yaml');
 const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
-const { runCampaignProcess } = require('./provider-campaign-process');
+const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolation-attestation/profiles');
+const { runCampaignProcess, sanitizeDiagnostic } = require('./provider-campaign-process');
 
 const PROFILE_ID = 'agent-claude-cli-account-candidate';
 const PROVIDER_ID = 'runtime:claude-cli';
@@ -14,7 +15,7 @@ const integer = z.number().int().nonnegative().safe();
 // The environment is an allowlist: API keys, auth tokens, helpers and cloud switches would outrank the login.
 const strictSettingsSchema = z
   .object({
-    pids_max: integer.min(32).max(256),
+    pids_max: integer.min(LIMIT_FLOOR.pids_max).max(LIMIT_CEILING.pids_max),
     model: z.string().min(1).max(256),
     memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
     persist_sessions: z.boolean().optional(),
@@ -33,10 +34,11 @@ const settingsSchema = {
     }
   },
 };
-const refusals = new Set(['CONTROL_PROVIDER_IDENTITY_UNVERIFIED', 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE']);
+const refusals = new Set(['CONTROL_PROVIDER_IDENTITY_UNVERIFIED', 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE', 'CONTROL_PROVIDER_OUTPUT_LIMIT']);
 
-function fail(code) {
-  throw Object.assign(new Error(code), { code });
+/** A stable code, with an optional bounded diagnostic that names the numbers behind it. */
+function fail(code, diagnostic) {
+  throw Object.assign(new Error(code), { code, ...(diagnostic ? { diagnostic } : {}) });
 }
 
 const hashes = new Map();
@@ -201,7 +203,7 @@ function createClaudeAccountCampaignAdapter(
           timeout_ms: manifest.limits.max_duration_ms,
           ...profile(),
         });
-        if (refusals.has(result.refusal)) fail(result.refusal);
+        if (refusals.has(result.refusal)) fail(result.refusal, sanitizeDiagnostic(result.diagnostic));
         const { attested, fields } = retainOutput(result, []);
         const usage = result.usage?.usage;
         const input =
@@ -209,7 +211,17 @@ function createClaudeAccountCampaignAdapter(
           integer.parse(usage?.cache_read_input_tokens ?? 0) +
           integer.parse(usage?.cache_creation_input_tokens ?? 0);
         const output = integer.parse(usage?.output_tokens);
-        if (output > manifest.limits.max_output_tokens) fail('CONTROL_CAMPAIGN_BUDGET_EXHAUSTED');
+        // Same criterion as the client's own cap (CLAUDE_CODE_MAX_OUTPUT_TOKENS = manifest max_output_tokens): usage.output_tokens
+        // is the whole answer, reasoning included, so a breach is reported with the numbers and how much of it was reasoning.
+        if (output > manifest.limits.max_output_tokens) {
+          const reasoning = integer.safeParse(usage?.output_tokens_details?.thinking_tokens);
+          fail('CONTROL_CAMPAIGN_BUDGET_EXHAUSTED', {
+            limit: 'output_tokens',
+            output_tokens: output,
+            max_output_tokens: manifest.limits.max_output_tokens,
+            reasoning_tokens: reasoning.success ? reasoning.data : null,
+          });
+        }
         return {
           status: 'completed',
           binding_sha256: digest,

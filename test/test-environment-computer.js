@@ -139,6 +139,7 @@ function fakeSystem(overrides = {}) {
     failAction: null,
     xwd: FLAT,
     xwdStatus: 0,
+    paintAfter: 0,
     xvfbExits: false,
     sockets: null,
     spawned: [],
@@ -168,7 +169,13 @@ function fakeSystem(overrides = {}) {
       }
       return state.window ? { status: 0, stdout: Buffer.from('1\n') } : { status: 1, stdout: Buffer.alloc(0) };
     }
-    if (binary === host.XWD) return { status: state.xwdStatus, stdout: state.xwd };
+    if (binary === host.XWD) {
+      if (state.paintAfter > 0) {
+        state.paintAfter -= 1;
+        return { status: state.xwdStatus, stdout: FLAT };
+      }
+      return { status: state.xwdStatus, stdout: state.xwd };
+    }
     return { status: state.failAction && args.includes(state.failAction) ? 1 : 0, stdout: Buffer.alloc(0) };
   };
   const connect = (name) => Promise.resolve(state.socketReachable.has(name));
@@ -914,6 +921,38 @@ test('host start: private display, no operator DISPLAY in any child, target afte
     'stop kills both children',
   );
   assert.ok(session.written() > 0);
+});
+
+test('host start waits, bounded, for the target to draw before it reports ready', async () => {
+  const slow = fakeHost({ paintAfter: 3, xwd: xwd({ pixel: noisy }) });
+  await slow.session.start(START);
+  const captures = (system) => system.state.calls.filter((call) => call.binary === host.XWD).length;
+  assert.equal(captures(slow.system), 4, 'three blank captures, then the drawn one');
+  assert.equal(slow.lines[0].target_window, true);
+  slow.session.stop();
+  const never = fakeHost({});
+  await never.session.start(START);
+  assert.equal(captures(never.system), host.PAINT_ATTEMPTS, 'a target that never draws is waited for only up to the bound');
+  assert.equal(never.lines[0].event, 'ready');
+  never.session.stop();
+  const failing = fakeHost({ xwdStatus: 1 });
+  await failing.session.start(START);
+  assert.equal(failing.lines[0].event, 'ready', 'a failing capture does not block the start');
+  failing.session.stop();
+  const noWindow = fakeHost({ window: false });
+  await noWindow.session.start(START);
+  assert.equal(captures(noWindow.system), 0, 'no window, no paint wait');
+  noWindow.session.stop();
+});
+
+test('xwdDrawn tells a blank root from a drawn one and refuses malformed captures', () => {
+  assert.equal(host.xwdDrawn(xwd()), false);
+  assert.equal(host.xwdDrawn(xwd({ pixel: noisy })), true);
+  assert.equal(host.xwdDrawn(xwd({ pixel: (x, y) => (x === 639 && y === 399 ? [1, 2, 3] : [0, 0, 0]) })), true, 'the last pixel counts');
+  assert.equal(host.xwdDrawn(xwd({ order: 1, pixel: noisy })), true);
+  assert.equal(host.xwdDrawn(xwd({ drop: 100, pixel: noisy })), false, 'a truncated payload is not drawn');
+  assert.equal(host.xwdDrawn(Buffer.alloc(8)), false);
+  assert.equal(host.xwdDrawn('not a buffer'), false);
 });
 
 test('host start refuses a reachable operator display, a filesystem socket, an Xvfb that dies and a display that never comes up', async () => {

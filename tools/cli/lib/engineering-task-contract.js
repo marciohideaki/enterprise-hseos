@@ -5,6 +5,7 @@ const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { AgentLimitsSchema, IdentifierSchema, strictObject, deepFreeze, z } = require('../../../packages/agent-runtime-contracts');
 const { canonicalJson } = require('../../../packages/agent-session-store');
+const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolation-attestation/profiles');
 
 const MAX_BYTES = 1_048_576;
 
@@ -130,7 +131,7 @@ const projectPaths = z
   .max(PROJECT_LIMITS.total_paths)
   .refine((list) => ordinaryCount(list) <= PROJECT_LIMITS.ordinary_paths);
 const commandLimits = strictObject({
-  pids_max: z.number().int().min(32).max(256).optional(),
+  pids_max: z.number().int().min(LIMIT_FLOOR.pids_max).max(LIMIT_CEILING.pids_max).optional(),
   memory_max_bytes: z.number().int().min(268_435_456).max(2_147_483_648).optional(),
   nofile: z.number().int().min(64).max(4096).optional(),
 });
