@@ -211,6 +211,28 @@ function rpcResult(id, result) {
   return { jsonrpc: '2.0', id, result };
 }
 
+// A decoded JSON value is only a usable JSON-RPC message when it is a non-null, non-array object. Every field read on
+// a message goes through this check first: null, arrays and scalars are valid JSON and must never reach a property read.
+function isMessageObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function hasMessageId(message) {
+  return isMessageObject(message) && Object.hasOwn(message, 'id');
+}
+
+// The only ids the server tracks, echoes or interpolates: a non-empty string or an integer. Anything else (object,
+// array, boolean, null, fraction) is invalid and is never read as text, since an object can carry its own toString.
+function isUsableId(id) {
+  return (typeof id === 'string' && id.length > 0) || (typeof id === 'number' && Number.isInteger(id));
+}
+
+// Unexpected failures are logged for the operator and reported to the client without internal detail.
+function internalErrorResponse(id, error) {
+  process.stderr.write(`[mcp] internal error: ${error && error.stack ? error.stack : String(error)}\n`);
+  return rpcError(id, JSON_RPC.INTERNAL_ERROR, 'Internal error');
+}
+
 function rpcError(id, code, message, data) {
   return { jsonrpc: '2.0', id, error: { code, message, ...(data === undefined ? {} : { data }) } };
 }
@@ -727,8 +749,9 @@ class Mcp2026Adapter {
   }
 
   _bounded(message) {
-    if (byteLength(message) > this.maxBodyBytes) throw new McpAdapterError('Request body exceeds limit', JSON_RPC.REQUEST_TOO_LARGE);
+    // Depth first: it is iterative, whereas serialising a pathologically nested value to measure it overflows the stack.
     if (jsonDepth(message) > this.maxJsonDepth) throw new McpAdapterError('Request JSON depth exceeds limit', JSON_RPC.INVALID_REQUEST);
+    if (byteLength(message) > this.maxBodyBytes) throw new McpAdapterError('Request body exceeds limit', JSON_RPC.REQUEST_TOO_LARGE);
   }
 
   _modernResponse(id, result) {
@@ -1027,15 +1050,20 @@ class Mcp2026Adapter {
     throw new McpAdapterError(`Method not found: ${message.method}`, JSON_RPC.METHOD_NOT_FOUND);
   }
 
+  /**
+   * Answers one decoded JSON-RPC message; never throws.
+   *
+   * Error policy: a failure raised by this adapter (McpAdapterError) carries a controlled domain message and code.
+   * Any other failure keeps its own message under -32603 (a contract the canonical-envelope tests rely on); the stack
+   * is never sent. Failures that escape handle() altogether are caught by the transports' last resort, which answers a
+   * fixed "Internal error" with a null id and logs the cause on stderr.
+   */
   async handle(message, requestContext = {}) {
-    const id = message && Object.hasOwn(message, 'id') ? message.id : null;
+    const id = hasMessageId(message) && isUsableId(message.id) ? message.id : null;
     try {
       this._bounded(message);
       validateRpcRequest(message);
-      if (
-        Object.hasOwn(message, 'id') &&
-        !((typeof message.id === 'string' && message.id.length > 0) || (typeof message.id === 'number' && Number.isInteger(message.id)))
-      ) {
+      if (Object.hasOwn(message, 'id') && !isUsableId(message.id)) {
         throw new McpAdapterError('JSON-RPC request id must be a non-empty string or integer', JSON_RPC.INVALID_REQUEST);
       }
       if (!Object.hasOwn(message, 'id') && !['notifications/cancelled', 'notifications/initialized'].includes(message.method)) {
@@ -1107,6 +1135,16 @@ function createMcp2026HttpServer(adapter, healthPayload = null) {
       else chunks.push(chunk);
     });
     req.on('end', async () => {
+      try {
+        await handleHttpBody();
+      } catch (error) {
+        // Last resort: nothing thrown while serving one request may leave the loop and stop the process.
+        const body = JSON.stringify(internalErrorResponse(null, error));
+        if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'application/json' });
+        if (!res.writableEnded) res.end(body);
+      }
+    });
+    async function handleHttpBody() {
       if (overflow) {
         res.writeHead(413, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(rpcError(null, JSON_RPC.REQUEST_TOO_LARGE, 'Request body exceeds limit')));
@@ -1130,7 +1168,7 @@ function createMcp2026HttpServer(adapter, healthPayload = null) {
         transport: 'http',
         headers: req.headers,
         signal: controller.signal,
-        correlationId: req.headers.traceparent || `mcp-http:${message.id}`,
+        correlationId: req.headers.traceparent || `mcp-http:${isMessageObject(message) && isUsableId(message.id) ? message.id : undefined}`,
       });
       if (controller.signal.aborted || res.destroyed) return;
       if (response === null) {
@@ -1149,7 +1187,7 @@ function createMcp2026HttpServer(adapter, healthPayload = null) {
             : 200;
       res.writeHead(status, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(response));
-    });
+    }
   });
 }
 
@@ -1158,6 +1196,14 @@ function startMcp2026Stdio(adapter, { input = process.stdin, output = process.st
   const inflight = new Map();
   const rl = readline.createInterface({ input, crlfDelay: Number.POSITIVE_INFINITY });
   rl.on('line', async (line) => {
+    try {
+      await handleStdioLine(line);
+    } catch (error) {
+      // Last resort: nothing thrown while serving one line may leave the loop and stop the process.
+      output.write(`${JSON.stringify(internalErrorResponse(null, error))}\n`);
+    }
+  });
+  async function handleStdioLine(line) {
     if (!line.trim()) return;
     if (byteLength(line) > adapter.maxBodyBytes) {
       output.write(`${JSON.stringify(rpcError(null, JSON_RPC.REQUEST_TOO_LARGE, 'Request body exceeds limit'))}\n`);
@@ -1170,7 +1216,7 @@ function startMcp2026Stdio(adapter, { input = process.stdin, output = process.st
       output.write(`${JSON.stringify(rpcError(null, JSON_RPC.PARSE_ERROR, 'Parse error'))}\n`);
       return;
     }
-    if (message && message.method === 'notifications/cancelled' && !Object.hasOwn(message, 'id')) {
+    if (isMessageObject(message) && message.method === 'notifications/cancelled' && !Object.hasOwn(message, 'id')) {
       let requestId;
       try {
         validateRpcRequest(message);
@@ -1191,14 +1237,15 @@ function startMcp2026Stdio(adapter, { input = process.stdin, output = process.st
       return;
     }
     const controller = new AbortController();
-    if (Object.hasOwn(message, 'id')) inflight.set(message.id, controller);
+    const trackedId = hasMessageId(message) && isUsableId(message.id);
+    if (trackedId) inflight.set(message.id, controller);
     try {
       const response = await adapter.handle(message, { transport: 'stdio', connection, signal: controller.signal });
       if (response) output.write(`${JSON.stringify(response)}\n`);
     } finally {
-      if (Object.hasOwn(message, 'id') && inflight.get(message.id) === controller) inflight.delete(message.id);
+      if (trackedId && inflight.get(message.id) === controller) inflight.delete(message.id);
     }
-  });
+  }
   return rl;
 }
 
