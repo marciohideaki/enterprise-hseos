@@ -9,7 +9,6 @@ const { createNativeCampaignAdapter } = require('../tools/cli/lib/provider-nativ
 const { runCampaignProcess } = require('../tools/cli/lib/provider-campaign-process');
 const { setup } = require('./helpers/claude-account');
 
-
 // A killed process is gone once it no longer runs. Until its new parent reaps it, it can linger as a zombie, which
 // `kill(pid, 0)` still reports as present, so read the kernel's state and give the reaper a bounded moment.
 const state = (pid) => {
