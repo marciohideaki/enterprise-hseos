@@ -468,6 +468,8 @@ class EngineeringControl {
             responseSource: sourced?.source,
             binding: input.binding_id ? this.bindings[input.binding_id] : undefined,
             createOnly: true,
+            // Already admitted by admitCreation (or replayed from a job admitted earlier): do not re-admit.
+            admission: false,
             extensionCatalog: this.extensionCatalog,
             extensionIds: input.extension_ids,
             pluginModel: input.plugin_model,
