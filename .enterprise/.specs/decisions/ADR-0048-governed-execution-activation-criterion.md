@@ -72,7 +72,8 @@ protocolo dos clientes registrados.
      de modo que clientes só-legado continuam funcionando após a troca.
    - (f) A compat legada do servidor moderno **negocia o `initialize` das revisões legadas
      conhecidas** (`2024-11-05`, `2025-06-18`, `2025-11-25`; a K4 avalia também `2025-03-26`,
-     listada na recomendação da K1), atendendo-as no modo compat, com aviso de depreciação e
+     citada na recomendação da K1 e na lista de versões do binário do Codex
+     (`binary-strings.txt`), sem frame observado), atendendo-as no modo compat, com aviso de depreciação e
      contador de uso, e **sem executar para esses clientes ferramentas que exigem aprovação**
      (ADR-0023, Decision item 15). A ferramenta continua listada, e a chamada devolve
      `MCP_LEGACY_APPROVAL_UNSUPPORTED` (`tools/lib/mcp-2026-adapter.js:911-917`). No
@@ -82,8 +83,8 @@ protocolo dos clientes registrados.
      ainda estar em revisão): o Codex 0.163.0 envia `initialize` com `2025-06-18` e o
      adaptador atual só aceita `2024-11-05` exato (`tools/lib/mcp-2026-adapter.js:978`),
      recusando com `-32022`; o Claude Code 2.1.305 fala `2026-07-28` por padrão, **mas em 1
-     de 8 execuções** caiu em `initialize` `2025-11-25` e foi recusado (flag remota
-     `tengu_mcp_protocol_negotiation_stdio`). Portanto o (f) é necessário também para ele. O servidor legado não pode continuar registrado para o Codex,
+     de 8 execuções** caiu em `initialize` `2025-11-25` e foi recusado (causa não
+     determinada; hipótese não verificada: flag remota em cache). Portanto o (f) é necessário também para ele. O servidor legado não pode continuar registrado para o Codex,
      pois se recusa a abrir banco ativado. Sem (f), a troca do Codex para o moderno quebra o
      cliente. A mudança é **entrega futura da W10/K4** (inexistente em 1a23be3b) e é
      **alteração parcial do ADR-0023 §Mitigations** (último item): a janela de compatibilidade
@@ -173,13 +174,13 @@ protocolo dos clientes registrados.
 
 ## Affected Standards
 
-| Standard                                | Section / Rule                                                              | Change                                                                                                                 |
-| --------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| ADR-0022                                | §Mitigations (critério de ativação e datas); §Rollback (exceção delimitada) | Supersedes o critério; Extends o rollback com exceção do piloto                                                        |
-| ADR-0023                                | §Mitigations (janela de compatibilidade e datas)                            | Supersedes a janela e as datas; Amends o \"only\" de `2024-11-05` (passa a aceitar também `2025-06-18` e `2025-11-25`) |
-| ADR-0024                                | §Activation, item 1                                                         | Clarifies (satisfeito pelo critério deste ADR)                                                                         |
-| ADR-0035                                | Sunset do rastreamento de negações em `as_events`                           | Clarifies (gatilho passa a ser a ativação conforme este ADR)                                                           |
-| `docs/evolution/runbooks/activation.md` | Passo 1b; §9 Dívida do sunset MCP                                           | Passa a citar este ADR; o runbook é atualizado na E7b (`task/w6-e7`, ainda não mergeada)                               |
+| Standard                                | Section / Rule                                                              | Change                                                                                                               |
+| --------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| ADR-0022                                | §Mitigations (critério de ativação e datas); §Rollback (exceção delimitada) | Supersedes o critério; Extends o rollback com exceção do piloto                                                      |
+| ADR-0023                                | §Mitigations (janela de compatibilidade e datas)                            | Supersedes a janela e as datas; Amends o "only" de `2024-11-05` (passa a aceitar também `2025-06-18` e `2025-11-25`) |
+| ADR-0024                                | §Activation, item 1                                                         | Clarifies (satisfeito pelo critério deste ADR)                                                                       |
+| ADR-0035                                | Sunset do rastreamento de negações em `as_events`                           | Clarifies (gatilho passa a ser a ativação conforme este ADR)                                                         |
+| `docs/evolution/runbooks/activation.md` | Passo 1b; §9 Dívida do sunset MCP                                           | Passa a citar este ADR; o runbook é atualizado na E7b (`task/w6-e7`, ainda não mergeada)                             |
 
 ## Compliance
 
