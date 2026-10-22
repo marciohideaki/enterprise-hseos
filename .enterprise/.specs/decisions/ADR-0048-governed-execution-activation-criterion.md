@@ -22,12 +22,15 @@ consecutivos de zero uso legado, com ativação até 2026-10-31 e remoção do c
 compatibilidade até 2026-11-30. Os fatos de 2026-10-22 mostram que esse critério não é
 alcançável:
 
-- O uso legado do próprio host do owner foi registrado em 2026-10-16, 2026-10-17 e 2026-10-20.
+- O uso legado do próprio host do owner foi registrado em 2026-10-16, 2026-10-17 e 2026-10-20
+  (**a verificar na K1/K3**: datas vêm do contador de uso legado, ainda não arquivado como evidência).
   O contador de 30 dias reinicia a cada uso e já não pode fechar antes de 2026-10-31.
-- O Codex em uso normal negocia a era legada (`2024-11-05`); portanto, uso normal de um cliente
+- O Codex em uso normal negocia a era legada (`2024-11-05`) (**a verificar na K1**); portanto, uso normal de um cliente
   registrado conta como legado, e "zero uso legado" exigiria parar de usar os clientes.
-- O runbook de ativação (`docs/evolution/runbooks/activation.md`, §9 "Dívida do sunset MCP")
-  já reconhece que o critério não cabe antes de 2026-11-30.
+- O runbook de ativação (§9 "Dívida do sunset MCP"; vive em `task/w6-e7`/W6, ainda não
+  mergeada, e não existe nesta base) já reconhece que o critério não cabe antes de
+  2026-11-30 (o prazo de ativação de 2026-10-31 também já não cabe; **a verificar na K3**
+  contra o contador de uso).
 - Os quatro servidores nativos instalados (`mcp-project-state`, `mcp-hseos-governance`,
   `mcp-hseos-swarm`, `mcp-axon-bridge`) sobem o servidor legado
   (`tools/lib/legacy-mcp-server.js`), que **não aplica** o sunset (só emite metadado de
@@ -51,15 +54,18 @@ protocolo dos clientes registrados.
 
 1. **Piloto e escopo.** O primeiro e único banco coberto por este ADR é
    `.hseos/state/project.db` do repositório enterprise-hseos. Ativa-se um banco por vez. Os
-   demais 21 `project.db` do workspace ficam fora até ADR ou autorização própria.
+   demais 21 `project.db` do workspace (número **a verificar na K3**) ficam fora até ADR ou autorização própria.
 2. **Critério de ativação (todas as condições, com evidência arquivada).**
-   - (a) A suíte de contrato do servidor moderno passa sobre um **banco existente já
-     ativado** (não apenas sobre fixture vazia).
+   - (a) As suítes de contrato do servidor moderno (`test/test-mcp-2026-adapter.js` e
+     `test/test-mcp-contract.js`) passam sobre um **banco existente já ativado** (não apenas
+     sobre fixture vazia).
    - (b) O ensaio de ativação e rollback em **cópia** do banco
-     (`tools/lib/agentic-activation-rehearsal.js`) conclui, e o backup do banco real traz
-     `PRAGMA integrity_check` = `ok` e sha256 do original e do backup.
-   - (c) Uma journey MCP moderna roda de ponta a ponta com **contagens de ferramentas
-     conferidas** contra o catálogo esperado (inclusive `environment.*` e `memory.*`).
+     (`tools/lib/agentic-activation-rehearsal.js`) conclui.
+   - (b2) O backup do banco real traz `PRAGMA integrity_check` = `ok` e o sha256 do
+     original e do backup, registrados como evidência própria, separada do ensaio em cópia.
+   - (c) A journey MCP moderna (`test/journeys/mcp-journey.mjs`) roda de ponta a ponta com
+     **contagens de ferramentas conferidas** contra o catálogo esperado, inclusive
+     `environment.*` e `memory.*` (contagens 15/15/5 por servidor, **a conferir na K7**).
    - (d) Prova com cliente real (Codex instalado) via `tools/list` e `tools/call` contra o
      servidor moderno, com a versão de protocolo negociada registrada.
    - (e) A compatibilidade **legado-dentro-do-moderno** (`2024-11-05`) permanece ativa no
@@ -69,7 +75,14 @@ protocolo dos clientes registrados.
    registrados (Codex, Claude Code) falam `2026-07-28` em `tools/list`/`tools/call`. Sem essa
    evidência, a compatibilidade continua. Nova data-limite: **a fixar pelo owner após K1**
    (sem valor proposto aqui); a fixação e qualquer extensão exigem decisão registrada com
-   evidência de uso, nos moldes já exigidos por ADR-0022/0023.
+   evidência de uso, nos moldes já exigidos por ADR-0022/0023. **Enquanto o owner não fixar a
+   data, a compatibilidade legada NÃO expira.**
+   Consequência de código, **entrega futura da W10/K4** (inexistente em 1a23be3b): o sunset
+   deixa de ser a constante `LEGACY_SUNSET = '2026-11-30'`
+   (`tools/lib/mcp-2026-adapter.js:33`, aplicada em `:695` por `LEGACY_SUNSET_INSTANT`) e
+   passa a ser configurável e derivado deste ADR (sem data configurada = sem expiração).
+   O `LEGACY_SUNSET` de `tools/lib/legacy-mcp-server.js:10`, hoje ligado ao critério de 30
+   dias, é religado ao novo critério pela mesma entrega.
 4. **Rollback.** Parar os servidores e CLIs que usam o banco, restaurar o backup da etapa (b)
    e re-registrar o servidor legado nos clientes. A **perda das escritas posteriores à
    ativação é aceita explicitamente** (declarada ao owner antes do passo 1b). O banco
@@ -86,9 +99,24 @@ protocolo dos clientes registrados.
      por projeção descrita em ADR-0022, sem exceção.
      Sem a aceitação expressa dessa exceção pelo owner, o item 4 não pode ser executado e o
      rollback fica restrito ao procedimento original de ADR-0022.
-6. **Gate de ativação.** O comando de ativação **recusa** executar sem `--adr` apontando para
-   um ADR com status **Accepted**; a recusa é testada (passo negativo obrigatório). Este ADR
-   em Proposed não satisfaz o gate.
+6. **Gate de ativação.** O comando `hseos execution-activation plan|apply|rollback --db
+--adr` é **entrega futura (W10/K2)** e **não existe em 1a23be3b**; a recusa de `apply`
+   sem `--adr` apontando para um ADR com status **Accepted** é **requisito** dele (com passo
+   negativo testado), não um fato atual. Este ADR em Proposed não satisfaz o gate.
+7. **Pré-condições do `apply`.**
+   - Congelar as escritas legadas e provar o escritor único: reaplica-se a mitigação de
+     ADR-0022 §Mitigations ("freeze legacy writes before enabling the new path and add a
+     single-writer invariant test"), com o teste de escritor único verde antes do `apply`.
+   - **Efeito colateral da ativação:** depois de ativado, `assertOperationalSchemaBoundary`
+     (`tools/mcp-project-state/lib/operational-state-db.js:26,82`) e o guard de
+     `tools/cli/lib/governed-action.js:83-95` fecham o banco para os 4 servidores MCP
+     legados, CLIs e hooks que o usam. Portanto, **antes do `apply`**, todos os clientes,
+     CLIs e hooks que usam esse `project.db` devem ser re-registrados no servidor moderno:
+     os 4 servidores nativos (`mcp-project-state`, `mcp-hseos-governance`, `mcp-hseos-swarm`,
+     `mcp-axon-bridge`) registrados no Codex (3 MCPs do Codex e demais registros, lista
+     nominal **a levantar na K3**), no Claude Code e nos hooks. O re-registro entra na
+     verificação (d) e no checklist de Compliance; sem lista nominal fechada, o `apply` não
+     roda.
 
 ## Consequences
 
@@ -120,13 +148,13 @@ protocolo dos clientes registrados.
 
 ## Affected Standards
 
-| Standard                                | Section / Rule                                                              | Change                                                          |
-| --------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| ADR-0022                                | §Mitigations (critério de ativação e datas); §Rollback (exceção delimitada) | Supersedes o critério; Extends o rollback com exceção do piloto |
-| ADR-0023                                | §Mitigations (janela de compatibilidade e datas)                            | Supersedes                                                      |
-| ADR-0024                                | §Activation, item 1                                                         | Clarifies (satisfeito pelo critério deste ADR)                  |
-| ADR-0035                                | Sunset do rastreamento de negações em `as_events`                           | Clarifies (gatilho passa a ser a ativação conforme este ADR)    |
-| `docs/evolution/runbooks/activation.md` | Passo 1b; §9 Dívida do sunset MCP                                           | Passa a citar este ADR (atualização em E7b)                     |
+| Standard                                | Section / Rule                                                              | Change                                                                                   |
+| --------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| ADR-0022                                | §Mitigations (critério de ativação e datas); §Rollback (exceção delimitada) | Supersedes o critério; Extends o rollback com exceção do piloto                          |
+| ADR-0023                                | §Mitigations (janela de compatibilidade e datas)                            | Supersedes                                                                               |
+| ADR-0024                                | §Activation, item 1                                                         | Clarifies (satisfeito pelo critério deste ADR)                                           |
+| ADR-0035                                | Sunset do rastreamento de negações em `as_events`                           | Clarifies (gatilho passa a ser a ativação conforme este ADR)                             |
+| `docs/evolution/runbooks/activation.md` | Passo 1b; §9 Dívida do sunset MCP                                           | Passa a citar este ADR; o runbook é atualizado na E7b (`task/w6-e7`, ainda não mergeada) |
 
 ## Compliance
 
@@ -135,6 +163,7 @@ protocolo dos clientes registrados.
 - [ ] Data-limite do sunset fixada pelo owner após K1 — **a fixar pelo owner após K1**
 - [ ] Evidência K1 (protocolo dos clientes) arquivada em `docs/evolution/w10/evidence/k1/`
 - [ ] Evidência K3 (ensaio de ativação e rollback em cópia; backup com integrity_check e sha256)
+- [ ] Lista nominal de clientes, CLIs e hooks re-registrados no servidor moderno antes do `apply`
 - [ ] Evidência K7 (journey MCP moderno, contagens e prova com cliente real)
 - [ ] Checklist aberto de ADR-0022 (padrões ES/CQRS/AR/Tool Design referenciando o ADR;
       dry-run de migração revisado contra cópia de backup; suíte de conformance de adaptadores;
