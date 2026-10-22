@@ -898,28 +898,35 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
     const { containsCredential } = require('./campaign-evidence-store');
     const host = { project_id: config.project_id };
     for (const family of services) {
-      const toolchain = toolchains[family];
-      const ledger = environment.createEnvironmentLedgerSink({
-        ledger: wiring.ledger,
-        project_id: config.project_id,
-        actor: MCP_ENVIRONMENT_ACTOR,
-        session_id: `mcp-${family}-${randomUUID()}`,
-        containsCredential,
-      });
-      const policy =
-        config.workspace && typeof toolchain?.root === 'string'
-          ? require('../../../packages/agent-isolation-attestation').createIsolationPolicy({
-              backend: 'bwrap',
-              ...config.workspace,
-              profile: SERVICE_PROFILE[family],
-              toolchain_roots: [toolchain.root],
-            })
-          : undefined;
-      host[family] = (options.factories?.[family] ?? defaultServiceFactory(family))({
-        policy,
-        toolchain: toolchain ?? NOT_READY(family),
-        ledger,
-      });
+      // A family that cannot be composed (no usable toolchain root, a policy the workspace refuses) is omitted with its
+      // cause; it never takes the governance server down.
+      try {
+        const toolchain = toolchains[family];
+        const ledger = environment.createEnvironmentLedgerSink({
+          ledger: wiring.ledger,
+          project_id: config.project_id,
+          actor: MCP_ENVIRONMENT_ACTOR,
+          session_id: `mcp-${family}-${randomUUID()}`,
+          containsCredential,
+        });
+        const policy =
+          config.workspace && typeof toolchain?.root === 'string'
+            ? require('../../../packages/agent-isolation-attestation').createIsolationPolicy({
+                backend: 'bwrap',
+                ...config.workspace,
+                profile: SERVICE_PROFILE[family],
+                toolchain_roots: [toolchain.root],
+              })
+            : undefined;
+        host[family] = (options.factories?.[family] ?? defaultServiceFactory(family))({
+          policy,
+          toolchain: toolchain ?? NOT_READY(family),
+          ledger,
+        });
+      } catch (error) {
+        delete host[family];
+        log(`hseos mcp: the ${family} service is off: ${error.message}`);
+      }
     }
     if (memory) {
       const { createExecutionApprovalVerifier } = require('../../../packages/agent-memory');

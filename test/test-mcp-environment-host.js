@@ -822,3 +822,114 @@ test('K9: the memory note is printed only when memory is configured', () => {
     withMemory.join('\n'),
   );
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// W10/K9: a family that cannot be composed never takes the server down; it is omitted with a logged cause.
+// ---------------------------------------------------------------------------------------------------------------
+
+function workspaceFor(box) {
+  const main = path.join(box.root, 'main');
+  fs.mkdirSync(path.join(main, 'ws'), { recursive: true });
+  fs.writeFileSync(path.join(main, 'manifest.json'), '{}');
+  return { host_workspace: path.join(main, 'ws'), main_checkout: main, protected_paths: [path.join(main, 'manifest.json')] };
+}
+
+/** Boots a native modern server over the activated database with the factory, as project_state does, and lists its tools. */
+async function serverToolsWith(t, box, section, options) {
+  await activated(box);
+  const logs = [];
+  const factory = createMcpEnvironmentHostFactory(section, { isolationProbe: AVAILABLE, ...options, log: (m) => logs.push(m) });
+  assert.ok(factory, logs.join('\n'));
+  t.after(() => factory.dispose());
+  const handle = startNativeMcpServer({
+    serverId: 'swarm',
+    tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+    invokeTool: async () => ({ runs: [] }),
+    mode: 'http',
+    port: 0,
+    dbPath: box.databasePath,
+    environmentHost: factory,
+    log: () => {},
+  });
+  t.after(() => handle.close());
+  const listed = await handle.adapter.handle({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/list',
+    params: {
+      _meta: {
+        [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+        [CLIENT_INFO_META_KEY]: { name: 'k9', version: '1' },
+        [CLIENT_CAPABILITIES_META_KEY]: {},
+      },
+    },
+  });
+  return { names: new Set(listed.result.tools.map((tool) => tool.name)), logs };
+}
+
+const BROKEN_FAMILIES = {
+  'a toolchain without a usable root (what an empty cache can yield)': {
+    prepare: { lsp: () => ({}), dap: () => ({}) },
+    pattern: /isolation policy/,
+  },
+  'a toolchain whose pin is invalid': {
+    prepare: {
+      lsp: () => {
+        throw new Error('pin mismatch for typescript-language-server');
+      },
+      dap: () => {
+        throw new Error('pin mismatch for js-debug');
+      },
+    },
+    pattern: /pin mismatch/,
+  },
+};
+
+for (const [name, { prepare, pattern }] of Object.entries(BROKEN_FAMILIES)) {
+  test(`K9: ${name} omits lsp and dap with a logged cause and the server still boots with memory`, async (t) => {
+    const box = sandbox(t);
+    const { names, logs } = await serverToolsWith(t, box, environmentSection({ toolchain_cache: box.root, workspace: workspaceFor(box) }), {
+      prepare,
+    });
+    for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), kept);
+    for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+    assert.ok(
+      logs.some((message) => /lsp/.test(message) && pattern.test(message)),
+      logs.join('\n'),
+    );
+  });
+}
+
+test('K9: a workspace that does not exist is a configuration error: no capability, a warning, and the server stays up', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const workspace = { ...workspaceFor(box), host_workspace: path.join(box.root, 'does-not-exist') };
+  const config = configFile(box, environmentSection({ toolchain_cache: box.root, workspace }));
+  const client = await withServer(t, box, { config });
+  const names = await client.names();
+  assert.ok(names.size > 0, 'the governance tools are still served');
+  for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+  assert.match(client.stderr(), /host_workspace/);
+});
+
+for (const [label, prepareCache] of [
+  ['an empty toolchain cache', () => {}],
+  [
+    'a cache without the toolchain',
+    (dir) => fs.writeFileSync(path.join(dir, 'toolchain-manifest.json'), JSON.stringify({ schema_version: 1, toolchains: {} })),
+  ],
+]) {
+  test(`K9: the server boots with ${label} and a workspace: no lsp/dap, memory.* stays, the cause is on stderr`, async (t) => {
+    const box = sandbox(t);
+    await activated(box);
+    const cache = path.join(box.root, 'cache');
+    fs.mkdirSync(cache);
+    prepareCache(cache);
+    const config = configFile(box, environmentSection({ toolchain_cache: cache, workspace: workspaceFor(box) }));
+    const client = await withServer(t, box, { config });
+    const names = await client.names();
+    for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), `${kept}\n${client.stderr()}`);
+    for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+    assert.match(client.stderr(), /\b(lsp|dap)\b.*\boff\b/s);
+  });
+}
