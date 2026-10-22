@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "hseos-governance": {
+      "type": "stdio",
+      "command": "/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node",
+      "args": [
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w10-k1/docs/evolution/w10/evidence/k1/stdio-tee.cjs",
+        "/build/tmp/hseos-w5/closeout/k1/claude-frames.jsonl",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w10-k1",
+        "/build/tmp/hseos-w5/closeout/k1/claude-state/state.db"
+      ]
+    }
+  }
+}

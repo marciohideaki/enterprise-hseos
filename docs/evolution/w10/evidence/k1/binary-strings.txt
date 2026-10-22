@@ -1,0 +1,28 @@
+# Codex 0.163.0 (strings of vendor/x86_64-unknown-linux-musl/bin/codex), excerpts
+
+## CODEX_MCP_PROTOCOL_VERSION
+'\ninvalid HTTP header name `\n$invalid HTTP header value read from \n for `\nenv_vars entry `\n7` uses source `remote`, which requires remote MCP stdio\n(unsupported CODEX_MCP_PROTOCOL_VERSION `\n-` for stdio MCP server; expected `2026-07-28`\nrmcp-client/src/www_authenticate.rs\nhttp://\n\t/callback\nhttp://[\n\t/callback\n!invalid MCP OAuth callback port `\n#`: port must be between 1 and 65535\nMCP'
+
+## legacy MCP endpoint does not support server/discover
+'lls_instructions><current_time_unavailable></current_time_unavailable>text/event-stream, mcp-session-idevents/streamMCP-Protocol-Version2026-07-28Mcp-Session-Idlegacy MCP endpoint does not support server/discovertimed out waiting for MCP event stream response headersmissing-content-typefeedback attachment is not a regular file or exceeds the size limithttps://ae32ed50620d7a7792c1ce5df38b3e3e@o33249.ingest.us.'
+
+## input_required did not complete within
+"el/extension.rs\nMcp error: \nTransport send error: \n(subscription consumer lagged behind its \n-message buffer\ntask cancelled for reason \nrequest timeout after \n'input_required did not complete within \n MRTR rounds\nTransport [\n\t] error: \n*expect initialized request, but received: \nconnection closed: \nunexpected initialize result: \ninitialize failed: \nSend message error \n, when \ninsufficient scope:"
+
+## mcp_2026_07_28
+'ses\nd for thread id no rollout founder_message_asyncsend_user_messag\n<multi_agent_mode>\ner_instructions><managed_develop<multi_agent_rol\nffffffffffffffffFZ\\;\ns_mcp_2026_07_28codex_apps_mcp_2auth_elicitation_model_discoveryapi_key_model_di_sandbox_servicewindows_sandbox__access_programsapi_key_cyber_acponses-api-proxyresponses-api-prmigrate-rollouts\nWTcredential_broker\narc'
+
+# Codex: count of 2024-11-05 literal: 12
+
+# Claude Code 2.1.305 (strings of the installed binary), excerpts
+
+## supportedProtocolVersions contains no pre-2026-07-28
+"or\nmcp.AuthorizationServerMismatchError\nmcp.InsufficientScopeError\nmcp.UnauthorizedError\ncached document is not an objectj\nCannot run the initialize handshake: supportedProtocolVersions contains no pre-2026-07-28 protocol version\nServer sent invalid initialize result: \nServer's protocol version is not supported: *\nthe second server/discover does not offer \n_anthropicProbeTimedOut\n_anthropicRediscoverError\nconnect({ prior }) with a modern verdict re"
+
+## Fixed MCP servers showing no tools, or every tool call failing, when the server negotiates protocol version 2026-07-28
+"`/design revoke` suggesting `/design-login` when they fail in a cloud session, where it isn't available; the message now points to claude.ai/design/settings\\n- Fixed MCP servers showing no tools, or every tool call failing, when the server negotiates protocol version 2026-07-28 but omits `resultType`, `ttlMs` or `cacheScope`\\n- Fixed prompt suggestions spending usage credits on models your plan pays for only with credits: they are now skipped after a reply billed to credits\\n- Fixed URLs written in backticks bein"
+
+## server-discover-probe
+'Issuer\ncurrentIssuer\nInsufficient scope\n: required "\n_store\n_isUserSupplied\n_reportError\n_cachePartition\ncached tools/list document has a malformed tools array\nserver-discover-probe-\n_clientInfo\nversionNegotiation\ninputRequired\nresponseCacheStore\ncachePartition\ndefaultCacheTtlMs\nlistMaxPagesm\nsubscriptions/listen: client reconnected or closed; subscription state from the previous connection was reset\nUnsupported resul'
+
+## legacy supported list: UZ=[Lxe,"2025-06-18","2025-03-26","2024-11-05","2024-10-07"]

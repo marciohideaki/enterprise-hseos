@@ -1,0 +1,40 @@
+[
+  {
+    "t": "2026-10-22T03:34:45.305Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "method": "initialize",
+      "params": {
+        "protocolVersion": "2025-06-18",
+        "capabilities": {
+          "experimental": {
+            "codex/auth-change": {}
+          },
+          "elicitation": {
+            "form": {},
+            "url": {}
+          }
+        },
+        "clientInfo": {
+          "name": "codex-mcp-client",
+          "title": "Codex",
+          "version": "0.163.0"
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:34:45.751Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "error": {
+        "code": -32022,
+        "message": "Unsupported legacy protocol version"
+      }
+    }
+  }
+]
