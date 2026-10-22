@@ -353,3 +353,142 @@ Fecho condicionado: C9 (teste estático de "chamador de produção") e C10 (inte
 ### Plugins das capacidades continuam `scaffolded` (C12)
 
 Os plugins `plugins/lsp`, `plugins/dap`, `plugins/browser`, `plugins/computer-use` e `plugins/memory` seguem com `status: scaffolded` em `.agents/plugins/registry.yaml`. Ligar as capacidades ao runtime de tarefa e ao MCP (onda W4) não os promove: a promoção é decisão de ativação. Pelo mesmo motivo, `plugins/` fica fora de `files` do `package.json`: o pacote publicado carrega o runtime e os contratos das capacidades (`packages/**`, `tools/**`), não os plugins empacotados. Incluir `plugins/` em `files`, mudar o `status` e instalar os plugins pertencem à ativação (W8), no passo e com a autorização próprios descritos em `docs/evolution/runbooks/activation.md`. Esse runbook ainda não está na master: hoje vive na branch `feature/hseos-w5-closeout-w7` e passa a ser citável quando a onda W7 for mergeada.
+
+## Registro final de resíduos — fechamento W1–W5
+
+Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-closeout-w6`. Fontes: a seção "Desvios registrados durante a execução" de `.hseos/runs/dev-squad/20261020-w5-closeout/PLAN.md`, as revisões céticas das tasks W6 e os registros de integração acima. Este registro não executa nem ativa nada. "Dono" é quem decide se o resíduo muda de destino: o **owner** (decisão de produto ou de risco) ou o **Commander** (planejamento e revisão da run). Destino: **aceito** (fica como está, com a justificativa), **→ W10** (resolvido pela onda W10 do `PLAN-CONCLUSAO.md`) ou **→ ativação** (tratado no runbook `docs/evolution/runbooks/activation.md`).
+
+### Testes instáveis e mutantes
+
+1. **Três testes instáveis observados no CI e um de teto absoluto.**
+   - Descrição: `cancellation during workflow dispatch drains before settlement` falhou uma vez no shard 22.x 1/6 da W7 (run 39505105700, mudança só de docs) e passou no re-run. `the dialog is drawn: more than the empty black root` (display real) falhou na 1ª tentativa do CI da W4-C8 (run 39535516377) e passou no re-run. `parallel tasks share the declared aggregate budget` falhou no Node 22 shard 1/6 do CI da W6-E3 (run 39536874211) e passou no re-run; a leitura do revisor foi que a tarefa `addition` terminou `blocked` (`engineering-execution-blocked`) enquanto `clamp` foi aprovada, com o orçamento íntegro, e a suspeita é bloqueio de isolamento ou de recursos sob carga do shard. O teste do guard `ambiguous slashes cost a constant number of passes (1 MB)` tinha teto absoluto de 200 ms e reprovava sob load ~20 até na master (250–300 ms); `realistic 1 MB took 203 ms` falhou no CI da #241 e o job foi reexecutado.
+   - Justificativa: nenhum dos três primeiros reproduziu depois do re-run e não há causa determinada para os dois primeiros nas fontes; o PLAN.md não registra a causa-raiz deles. Os casos de teto de parede do guard foram tratados na W6-E8 (`abf2c7bb`, depois `2cf09f86`), que passou a provar o custo por escala em vez de por tempo absoluto.
+   - Dono: Commander (investigação na task própria W6-E8); owner se um deles reaparecer como bloqueio de merge.
+   - Destino: **aceito**, sem afrouxar asserção. Reaparecimento vira task própria de investigação.
+2. **Instabilidade de `aborting the campaign kills the client through the cgroup` (caso g).**
+   - Descrição: sob carga o cliente morria antes pelo timeout do próprio worker, e o teste não discriminava o `cgroup.kill`. A W6-E8 consertou o estado do processo (`b1ba8bff`) e, na rodada 2 (`2cf09f86`), a fixture `immortal` (ignora sinais, neto com `setsid`) passou a exigir o `cgroup.kill`.
+   - Justificativa: a defesa é em camadas (stop e drain), então o teste só fica vermelho com os **dois** kills desligados; desligar só um deles segue verde. É o desenho da defesa, e a revisão da rodada 2 aprovou.
+   - Dono: Commander.
+   - Destino: **aceito**.
+3. **Mutantes sem detecção, declarados nos recibos.**
+   - Descrição: W5-11a: `dap_survivor` sem mutante oficial, a segunda guarda de localização do LSP e o `RUN_ID_PATTERN` do MCP (defesa em profundidade). W5-08: M04, M24 e M22. W5-07: o recibo declara M01, M07 e M21 como equivalentes documentados (`evidence/w5-07/receipt.json:191-195`); M18b e N5 não têm evidência em recibo algum. cl2: T01, T06 e T07. W5-04: P01, P04, P06, M03 (equivalente). 02b2: Y12 (equivalente).
+   - Justificativa: equivalentes ou defesa em profundidade sem caminho público que os distinga; cada um foi aceito na revisão cética da respectiva task, com o motivo no recibo.
+   - Dono: Commander (revisor da task).
+   - Destino: **aceito**.
+
+### Diagnóstico e redação de segredos (W6-E9, achados 3 e 4)
+
+4. **Corpo PEM multilinha sem marcador.**
+   - Descrição: um segredo multilinha sem marcador (corpo PEM) fora da janela de 4096 bytes do stderr pode chegar ao diagnóstico.
+   - Justificativa: a redação cobre credenciais com marcador e a janela limitada; a revisão da E9 (5e30586e, PASS-WITH-NOTES) a registrou como resíduo para este registro, sem exigir correção.
+   - Dono: owner (risco de vazamento de credencial).
+   - Destino: **aceito**.
+5. **Trecho de entrada nas mensagens de `JSON.parse`.**
+   - Descrição: as mensagens de `JSON.parse` do Node 24 trazem ~10 caracteres da entrada, então um trecho de prompt ou de saída em texto livre pode chegar ao diagnóstico; a redação só barra credenciais.
+   - Justificativa: o volume é de ~10 caracteres e a redação não tem como distinguir texto livre de dado inofensivo sem descartar a mensagem de erro inteira, que é o que o diagnóstico precisa mostrar.
+   - Dono: owner.
+   - Destino: **aceito**.
+
+### Guard de captura de capacidades (W6-E8, itens f e h)
+
+6. **Lentidão linear de fator constante não detectada.**
+   - Descrição: os casos (f) e (h) provam o custo por escala e não detectam lentidão linear de fator constante (< 2,5x no (f), < 7x no (h)).
+   - Justificativa: a cobertura restante vem dos orçamentos absolutos do guard (5k linhas < 1000 ms, `export` não fechado < 1000 ms, listas de `export` < 400 ms), que continuam sensíveis a carga. Trocar um pelo outro perderia ou a garantia de complexidade ou a de tempo, e nenhuma das duas pode ser afrouxada.
+   - Dono: Commander.
+   - Destino: **aceito**.
+7. **Join com fallback após o deadline relança rejeições.**
+   - Descrição: caso (a) da W6-E8, o join em fallback depois do deadline relança as rejeições de runtime, inclusive a da própria cancelação.
+   - Justificativa: efeito aceito explicitamente na revisão da E8 (`abf2c7bb`); a alternativa de engolir a rejeição esconderia falha de runtime.
+   - Dono: Commander.
+   - Destino: **aceito**.
+
+### Fio legado do MCP e sunset
+
+8. **Fio legado sem `error.data.code`.**
+   - Descrição: `tools/lib/mcp-transport.js:205` usa `buildMcpError(id, -32000, error.message)` sem código estável, então `MCP_SCOPE_DENIED` não chega ao cliente do servidor legado e os testes casam por mensagem. A ressalva (a) da W0-5, `test/test-mcp-contract.js` casando `'required'`, foi tratada na W6-E3.
+   - Justificativa: expor `error.data = {code}` mexe numa superfície legada que tem sunset (revisão da W0-5).
+   - Dono: owner (data do sunset).
+   - Destino: **aceito**, enquanto o legado existir. A data e a condição do sunset passam por ADR novo (→ W10, G0).
+9. **O servidor legado ignora o sunset de 2026-11-30.**
+   - Descrição: os 4 servidores MCP instalados sobem o legado (`tools/lib/legacy-mcp-server.js`) e só gravam o sunset como metadado de telemetria; o moderno, o único que recusa o legado depois do sunset, está bloqueado por `EXECUTION_ACTIVATION_PENDING` até a ativação ADR-0022/0023, que exige 30 dias de zero legado e não cabe antes de 30/11. Decisão do owner de 2026-10-20: registrar como dívida da ativação, sem mexer na produção.
+   - Justificativa: o sunset só vale ao ativar o moderno.
+   - Dono: owner.
+   - Destino: **→ W10** (G0: ADR de critério de ativação em Proposed, que o owner aceita; K4: servidor moderno sobre banco ativado). A execução fica no passo 1b do runbook de ativação.
+
+### Isolamento, extração e navegador
+
+10. **`SIGKILL` do timeout do filho de extração do zip.**
+    - Descrição: o filho que descomprime entradas do zip do `chrome-headless-shell` usa `killSignal: 'SIGKILL'` (`tools/lib/environment-toolchain-pins.js:427`); nenhum teste prova `SIGKILL` em vez de `SIGTERM`.
+    - Justificativa: o timeout, o teto de memória do filho (pico do pai de 541 MB para 95 MB no chrome real) e a extração byte-idêntica estão provados (E4, aprovada); o sinal em si é detalhe de implementação.
+    - Dono: Commander.
+    - Destino: **aceito**.
+11. **CSP sem leitura de violação no console.**
+    - Descrição: o serviço de browser (`createDefaultBrowserService`) não expõe mensagens de console nem violações de CSP, então a ausência de violação na CSP do state-ui não foi observada num navegador (W6-E6, aprovada).
+    - Justificativa: a revisão da E6 aprovou com a limitação registrada; observar o console exige capacidade nova no serviço de browser.
+    - Dono: owner.
+    - Destino: **aceito**; leitura de console é candidata a capacidade futura.
+12. **Varredura de `pids_max` limitada a 5 arquivos.**
+    - Descrição: a W6-E5 (`84746de5`, `5d35b336`) derivou a faixa de `pids_max` de uma fonte única (`LIMIT_FLOOR`/`LIMIT_CEILING` em `profiles.js`), estendeu o escopo a 3 adapters de provider com o mesmo literal e fixou as fronteiras dos adapters native e antigravity; a varredura independente de formatação cobre só os arquivos listados na task.
+    - Justificativa: um literal novo em arquivo fora da varredura não seria detectado; o risco é de manutenção, não de comportamento atual.
+    - Dono: Commander.
+    - Destino: **aceito**.
+
+### Ambiente de teste e CI
+
+13. **Hook leve falhou uma vez em "Tests (touched + referencing)".**
+    - Descrição: na integração W6-INT-2 o hook leve falhou uma vez sem identificar o teste; a reexecução passou.
+    - Justificativa: não reproduziu e o log não nomeou o teste; a prova completa é o CI de cada push.
+    - Dono: Commander.
+    - Destino: **aceito**; reaparecimento exige capturar o nome do teste antes de reexecutar.
+14. **Falhas ambientais fora do cgroup.**
+    - Descrição: `worktree-manager.sh validate` reprova 5 casos de `test/test-kernel-mutations.js` (`task_cancellation`, `job_shutdown`, `job_acceptance`, `job_ledger`, `job_preparation`) fora do cgroup, também na master pura (desvio de 2026-10-20). A lista do plano de conclusão atribui as 5 falhas ambientais a `test-provider-campaign-adapters`; o PLAN.md só registra o arquivo `test-kernel-mutations.js`, e a divergência de nome fica sem resolver nesta fonte.
+    - Justificativa: o isolamento exige o cgroup delegado; os commits e testes passam a rodar por `/build/tmp/hseos-w5/bin/commit-in-cgroup.sh` e `run-in-cgroup.sh`.
+    - Dono: Commander.
+    - Destino: **aceito**.
+15. **Falhas de infra do CI.**
+    - Descrição: `apt` com HTTP 403 em `packages.microsoft.com` e falha no fetch do `chrome-headless-shell` durante o provisionamento (CI da W6-E5), resolvidos por re-run sem mudança. O smoke em ambiente limpo sem cache de toolchain na #241 foi corrigido em `766f13ab`.
+    - Justificativa: falha externa ao código, sem mudança de teste ou de workflow.
+    - Dono: owner (workflow).
+    - Destino: **aceito**.
+16. **`test-engineering-task-runtime.js` roda 3 vezes na suíte completa.**
+    - Descrição: ~60 s, nos jobs `test:engineering-task`, `test:kernel` sob c8 no kernel-coverage e na conformance de providers.
+    - Justificativa: não é bug; reduzir exige redesenhar gates.
+    - Dono: owner.
+    - Destino: **aceito**.
+17. **O supervisor de suítes mascara vazamento de processo.**
+    - Descrição: o supervisor da conformance mata o grupo também no fim normal (W0-7); um neto com `setsid` escapa do grupo e segura o pipe até o backstop. Sugestão da revisão: emitir aviso quando o `killGroup` do fim normal encontrar processos vivos.
+    - Justificativa: a limpeza é o efeito desejado; o aviso é melhoria.
+    - Dono: Commander.
+    - Destino: **aceito**.
+
+### Dívidas de produto
+
+18. **Opacidade com `max_tokens` abaixo de ~12000.**
+    - Descrição: o contrato de engenharia termina em `session-failed:internal_error` com mensagem genérica (overflow de montagem de contexto descartado por `normalizedFailure`); candidato é validar um mínimo ou expor `context_overflow`.
+    - Justificativa: o PLAN.md manda registrar aqui "se não for tratado na W1" e não registra o tratamento; esta fonte não permite afirmar que foi tratado.
+    - Dono: Commander.
+    - Destino: **aceito**, não verificado se a W1 tratou.
+19. **Elicitação mostra o digest do screenshot, não a imagem.**
+    - Descrição: quem aprova o `computer.*` depende do cliente para ter visto a imagem.
+    - Justificativa: limitação registrada na W4 (C7); mostrar a imagem depende do cliente.
+    - Dono: owner.
+    - Destino: **aceito**.
+20. **Host de produção do ambiente e da memória governada.**
+    - Descrição: nenhum código de produção monta o store de memória governado nem o `environmentHost` do servidor MCP; ambos chegam por injeção do embedder (dívida de `063adf5d`). Sem o host, o comportamento é `ENV_CAPABILITY_UNAVAILABLE` ou `ENGINEERING_ENVIRONMENT_HOST_REQUIRED`.
+    - Justificativa: depende da ativação do banco; o plano de conclusão a resolve com `createProductionEnvironmentHost` (K5) e a seção `environment:` em `~/.config/hseos/config.yaml`.
+    - Dono: owner.
+    - Destino: **→ W10** (K5); a composição de referência está descrita no runbook de ativação.
+21. **Admissão do `agent run`.**
+    - Descrição: `agent run --task-contract` e o caminho de workflow da CLI não passam pela admissão (aceite da W5-10b); ao ligar um `environmentHost` à CLI ou ao worker, o caminho `readEngineeringTask` sem admissão rodaria tarefas novas com `environment` sem a admissão da W2 (pré-condição C10/C11).
+    - Justificativa: hoje não há host na CLI, então nada roda sem admissão; a pré-condição vale a partir do K5.
+    - Dono: owner.
+    - Destino: **→ W10** (K6: `readEngineeringTask` com `admission`, `runEngineeringTask` e `validate-task`; o worker segue com `admission:false` por design).
+22. **Ativação do banco existente e do servidor MCP moderno.**
+    - Descrição: nenhum comando de ativação existe; a migration 017 segue em `migrations-pending-activation`.
+    - Justificativa: depende do ADR de critério de ativação aceito pelo owner (G0) e do comando `hseos execution-activation plan|apply|rollback` (K2).
+    - Dono: owner.
+    - Destino: **→ W10** (G0, K2, K3, K4, K7) e **→ ativação** (passo 1b do runbook, só com autorização própria).
+
+### Resíduos anteriores que seguem como estão
+
+Os resíduos registrados nas seções acima (B1, B2, B3, cl1, cl2, B4 e "Limitações aceitas na entrega") continuam aceitos pelas revisões que os registraram; este registro não reabre nenhum deles. Os plugins seguem `scaffolded` (C12), `real_consumers: not_verified` para F14, F15 e F20, e a ativação (hooks, timer, contratos, tags, distribuição) segue não executada e dependente de autorização própria por passo.
