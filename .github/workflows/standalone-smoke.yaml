@@ -11,6 +11,8 @@ permissions:
   contents: read
 
 jobs:
+  # A clean-environment smoke on the oldest supported Node. The full suite does not run here: Node 24 runs it on every
+  # push and pull request, and ci.yaml runs it on Node 22 nightly and on manual dispatch (see the `plan` job there).
   standalone-smoke:
     name: "Standalone clean-env smoke (node:22)"
     runs-on: ubuntu-latest
@@ -54,13 +56,6 @@ jobs:
       - name: Install dependencies (npm ci)
         run: npm ci
 
-      # test/test-engineering-environment.js (part of `npm test`) runs the real TypeScript language server through the
-      # ToolRuntime and asserts the pinned toolchain cache is ready; ci.yaml provisions the same cache for its shards.
-      # Artifacts are downloaded here, each verified against the SHA-256 (and size, where pinned) in the repo.
-      - name: Provision the pinned toolchain cache
-        timeout-minutes: 15
-        run: node .github/scripts/provision-toolchain-cache.mjs "$RUNNER_TEMP/hseos-toolchain"
-
       - name: Validate schemas
         run: npm run validate:schemas
 
@@ -91,13 +86,3 @@ jobs:
           set -e
           grep -q "vault_required: false" .agents/skills/second-brain/SKILL.md
           grep -q "vault_required: false" .agents/skills/second-brain/QUICK.md
-
-      - name: Full test suite
-        run: |
-          sudo systemd-run --wait --collect --pipe --service-type=exec \
-            --uid="$(id -u)" --gid="$(id -g)" \
-            --property=Delegate=yes --property=DelegateSubgroup=tests \
-            --working-directory="$PWD" \
-            --setenv="PATH=$PATH" --setenv="HOME=$HOME" --setenv=CI=true \
-            --setenv="HSEOS_TOOLCHAIN_CACHE=$RUNNER_TEMP/hseos-toolchain" \
-            bash -c 'node .github/scripts/enable-test-cgroup.mjs && npm test'
