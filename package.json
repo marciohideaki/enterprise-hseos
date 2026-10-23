@@ -162,6 +162,7 @@
     "test:mcp-stdio": "node test/test-mcp-stdio.js && node test/test-mcp-transport-robustness.js",
     "test:mcp-swarm": "node test/test-mcp-hseos-swarm.js && node --test --test-concurrency=1 test/test-mcp-hseos-swarm-scope.js",
     "test:model-providers": "node --test --test-concurrency=1 test/test-model-providers.js",
+    "test:node22-compat": "npm run check:cli && node --test --test-concurrency=1 test/test-operational-state-db.js test/test-execution-event-ledger.js test/test-agent-liveness.js",
     "test:package-surface": "node --test --test-concurrency=1 test/test-package-surface.js",
     "test:platform-bindings": "node test/test-platform-bindings.js",
     "test:platform-bindings-command": "node --test --test-concurrency=1 test/test-platform-bindings-command.js",

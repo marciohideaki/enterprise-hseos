@@ -6,6 +6,10 @@ on:
     branches: [master, "task/**", "feature/**"]
   pull_request:
     branches: [master, "feature/**"]
+  # The full suite on Node 22 is a compatibility check, not a per-commit one: it runs here and on demand.
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -21,16 +25,34 @@ env:
   SHARD_COUNT: 6
 
 jobs:
+  # Node 24 is the development runtime and always gets the full suite. Node 22 is the oldest supported runtime
+  # (package.json engines): the full suite runs on it only on the nightly schedule and on manual dispatch; every push
+  # and pull request gets the compatibility subset (`test:node22-compat`) instead.
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      full_node_versions: ${{ steps.plan.outputs.full_node_versions }}
+    steps:
+      - id: plan
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo 'full_node_versions=["22.x","24.x"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'full_node_versions=["24.x"]' >> "$GITHUB_OUTPUT"
+          fi
+
   # The full suite, split into SHARD_COUNT parallel jobs per Node version. The `test` job below fans the shards back
   # in under the check names that branch protection requires (`test (22.x)`, `test (24.x)`).
   shard:
+    needs: plan
     name: test-shard (${{ matrix.node-version }}, ${{ matrix.shard }}/6)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        node-version: ["22.x", "24.x"]
+        node-version: ${{ fromJSON(needs.plan.outputs.full_node_versions) }}
         shard: [1, 2, 3, 4, 5, 6]
     services:
       postgres:
@@ -83,9 +105,11 @@ jobs:
             bash -c 'node .github/scripts/enable-test-cgroup.mjs && node .github/scripts/ci-test-shards.mjs run --shards ${{ env.SHARD_COUNT }} --shard ${{ matrix.shard }}'
 
   # Fan-in. The job id and matrix keep the required check names `test (22.x)` and `test (24.x)`. Each one passes only
-  # when the shard split provably covers the whole suite and every shard of its own Node version succeeded.
+  # when the shard split provably covers the whole suite and every shard of its own Node version succeeded. When the
+  # plan runs no shards for a Node version, its check runs the compatibility subset instead (Node 22 on pushes and
+  # pull requests), so the required check name stays satisfiable and still proves the supported runtime works.
   test:
-    needs: shard
+    needs: [plan, shard]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -96,11 +120,25 @@ jobs:
       fail-fast: false
       matrix:
         node-version: ["22.x", "24.x"]
+    env:
+      FULL_RUN: ${{ contains(fromJSON(needs.plan.outputs.full_node_versions), matrix.node-version) }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: ${{ env.FULL_RUN != 'true' }}
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: Compatibility subset on this Node version
+        if: ${{ env.FULL_RUN != 'true' }}
+        run: |
+          npm ci
+          npm run test:node22-compat
       - name: Prove the shards cover the whole suite exactly once
+        if: ${{ env.FULL_RUN == 'true' }}
         run: node .github/scripts/ci-test-shards.mjs verify --shards ${{ env.SHARD_COUNT }}
       - name: Require every shard of this Node version to have succeeded
+        if: ${{ env.FULL_RUN == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
           NODE_VERSION: ${{ matrix.node-version }}
