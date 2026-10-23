@@ -8,6 +8,18 @@ class CanonicalEnvelopeError extends Error {
   }
 }
 
+// A deliberate refusal worded by the governed runtime itself. The MCP adapter relays the message of this class only;
+// a plain Error that merely carries the same fields is not one.
+class GovernedRefusalError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = 'GovernedRefusalError';
+    this.code = code;
+    this.retryable = false;
+    this.outcome = 'failed';
+  }
+}
+
 function executionEnvelope({ ok, data = null, error = null, evidence = [], warnings = [] }) {
   return {
     schema_version: 1,
@@ -86,4 +98,4 @@ function assertCanonicalEnvelope(outcome) {
   return outcome;
 }
 
-module.exports = { assertCanonicalEnvelope, CanonicalEnvelopeError, executionEnvelope, failureEnvelope };
+module.exports = { assertCanonicalEnvelope, CanonicalEnvelopeError, executionEnvelope, failureEnvelope, GovernedRefusalError };
