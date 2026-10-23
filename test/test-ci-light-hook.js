@@ -45,7 +45,15 @@ test('the CI fan-in keeps the check names that branch protection requires', () =
   assert.deepEqual(workflow.on.push.branches, ['master', 'task/**', 'feature/**']);
   assert.deepEqual(workflow.jobs.test.strategy.matrix['node-version'], ['22.x', '24.x']);
   assert.equal(workflow.jobs.test.name, undefined, 'the default name `test (<node>)` is the required check');
-  assert.equal(workflow.jobs.test.needs, 'shard');
+  assert.deepEqual(workflow.jobs.test.needs, ['plan', 'shard']);
+  // Node 24 always gets the full suite; Node 22 gets it only on the nightly schedule and manual dispatch, and the
+  // `test (22.x)` check runs the compatibility subset otherwise, so the required check name stays satisfiable.
+  assert.equal(workflow.jobs.shard.strategy.matrix['node-version'], '${{ fromJSON(needs.plan.outputs.full_node_versions) }}');
+  const planStep = workflow.jobs.plan.steps.find((step) => step.id === 'plan').run;
+  assert.match(planStep, /full_node_versions=\["22\.x","24\.x"\]/);
+  assert.match(planStep, /full_node_versions=\["24\.x"\]/);
+  assert.ok(workflow.on.schedule.length > 0 && 'workflow_dispatch' in workflow.on);
+  assert.match(workflow.jobs.test.steps.map((step) => step.run ?? '').join('\n'), /npm run test:node22-compat/);
   assert.equal(workflow.jobs.governance.needs, 'test');
   assert.equal(workflow.jobs.shard.strategy.matrix.shard.length, workflow.env.SHARD_COUNT);
 });
