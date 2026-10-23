@@ -337,6 +337,117 @@ test('execution port must return the exact canonical six-field envelope', async 
   }
 });
 
+test("a failure that is not the adapter's never reaches the client with its own message", async (t) => {
+  const stderrOriginal = process.stderr.write;
+  const captured = [];
+  process.stderr.write = (chunk) => {
+    captured.push(String(chunk));
+    return true;
+  };
+  t.after(() => {
+    process.stderr.write = stderrOriginal;
+  });
+  const leak = 'secret sk-AAAAAAAAAAAAAAAAAAAA at /home/x/.ssh/id';
+  const { instance } = adapter({
+    execute: async () => {
+      throw new Error(leak);
+    },
+  });
+  const response = await instance.handle(modernMessage('tools/call', { name: 'zeta.echo', arguments: { value: 'hello' } }, 11));
+  assert.equal(response.id, 11);
+  assert.equal(response.error.code, JSON_RPC.INTERNAL_ERROR);
+  assert.equal(response.error.message, 'Internal error');
+  assert.ok(!JSON.stringify(response).includes('sk-AAAA'), 'credential must not reach the client');
+  assert.ok(!JSON.stringify(response).includes('.ssh'), 'path must not reach the client');
+  assert.ok(captured.join('').includes(leak), 'the real cause stays on stderr for the operator');
+});
+
+test("only the governed runtime's own refusal class keeps its message; a forged lookalike is generic", async (t) => {
+  const stderrOriginal = process.stderr.write;
+  process.stderr.write = () => true;
+  t.after(() => {
+    process.stderr.write = stderrOriginal;
+  });
+  const { GovernedRefusalError } = require('../tools/lib/governed-execution/canonical-envelope');
+  const call = async (error, id) => {
+    const { instance } = adapter({
+      execute: async () => {
+        throw error;
+      },
+    });
+    return instance.handle(modernMessage('tools/call', { name: 'zeta.echo', arguments: { value: 'hello' } }, id));
+  };
+  const real = await call(new GovernedRefusalError('ENV_PROJECT_SCOPE_MISMATCH', 'memory.delete is bound to project alpha'), 14);
+  assert.equal(real.error.code, JSON_RPC.INTERNAL_ERROR);
+  assert.equal(real.error.message, 'memory.delete is bound to project alpha');
+
+  const forged = await call(
+    Object.assign(new Error('EACCES open /home/x/.ssh/id sk-AAAAAAAAAAAAAAAAAAAA'), {
+      code: 'X',
+      retryable: false,
+      outcome: 'failed',
+    }),
+    15,
+  );
+  assert.equal(forged.error.code, JSON_RPC.INTERNAL_ERROR);
+  assert.equal(forged.error.message, 'Internal error');
+  assert.ok(!JSON.stringify(forged).includes('.ssh'));
+});
+
+test('a schema validation worker failure reaches the client only as a fixed message', async (t) => {
+  const captured = [];
+  const stderrOriginal = process.stderr.write;
+  process.stderr.write = (chunk) => {
+    captured.push(String(chunk));
+    return true;
+  };
+  t.after(() => {
+    process.stderr.write = stderrOriginal;
+  });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-worker-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const crash = path.join(dir, 'crash.js');
+  fs.writeFileSync(crash, "throw new Error('worker secret sk-AAAAAAAAAAAAAAAAAAAA at /home/x/.ssh/id');\n");
+  const rejecting = path.join(dir, 'reject.js');
+  fs.writeFileSync(
+    rejecting,
+    "require('node:worker_threads').parentPort.postMessage({ compilerError: 'compiler secret sk-AAAAAAAAAAAAAAAAAAAA at /home/x/.ssh/id' });\n",
+  );
+  for (const [workerPath, expected, id] of [
+    [crash, 'Schema validation worker failed', 16],
+    [rejecting, 'Schema validation worker rejected schema', 17],
+  ]) {
+    const { instance } = adapter({ validationWorkerPath: workerPath });
+    const response = await instance.handle(modernMessage('tools/call', { name: 'zeta.echo', arguments: { value: 'hello' } }, id));
+    assert.equal(response.error.message, expected);
+    assert.ok(!JSON.stringify(response).includes('sk-AAAA'), 'worker text must not reach the client');
+    assert.ok(!JSON.stringify(response).includes('.ssh'));
+  }
+  assert.ok(captured.join('').includes('worker secret'), 'the real cause stays on stderr');
+  assert.ok(captured.join('').includes('compiler secret'), 'the real cause stays on stderr');
+});
+
+test('adapter-authored failures keep their message and code, and a bad cancellation is answered with its own', async () => {
+  const { instance } = adapter();
+  const response = await instance.handle(modernMessage('tools/call', { name: 'does.not.exist', arguments: {} }, 13));
+  assert.equal(response.id, 13);
+  assert.notEqual(response.error.message, 'Internal error');
+  assert.equal(typeof response.error.code, 'number');
+
+  const input = new PassThrough();
+  const output = new PassThrough();
+  const rl = startMcp2026Stdio(instance, { input, output });
+  const lines = [];
+  output.on('data', (chunk) => lines.push(...String(chunk).split('\n').filter(Boolean)));
+  input.write(`${JSON.stringify({ jsonrpc: '2.0', method: 'notifications/cancelled', params: { requestId: { not: 'usable' } } })}\n`);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  rl.close();
+  const answer = JSON.parse(lines[0]);
+  assert.equal(answer.id, null);
+  assert.equal(answer.error.code, JSON_RPC.INVALID_PARAMS);
+  assert.equal(answer.error.message, 'Cancellation requestId must be a non-empty string or integer');
+});
+
 test('invalid input and unsupported modern lifecycle methods fail before execution', async () => {
   const { calls, instance } = adapter();
   const invalid = await instance.handle(modernMessage('tools/call', { name: 'zeta.echo', arguments: { value: 42 } }));
