@@ -136,6 +136,25 @@ decisions. Historical events and already admitted contracts stay readable.
   grant to; the service gate is resolved only after that approval, in the approver's name. The server stays fixture-only
   (`EXECUTION_ACTIVATION_PENDING` otherwise).
 
+### Context floor for `max_tokens` (H-4)
+
+New task admissions refuse a `limits.max_tokens` that cannot hold the first model request, with the stable
+`detail.code` `ENGINEERING_MAX_TOKENS_BELOW_FLOOR`. The message names the minimum and the received value
+(for the `addition.json` task with the default 8192 output reserve: minimum 11903; a provider with a smaller
+output cap lowers it). Before, such a task was admitted and ended in `session-failed:internal_error` with a
+generic message, because the context overflow is not one of the runtime's normalized failure codes
+(`packages/agent-runtime/runtime.js`, unchanged). Raise `max_tokens` to at least the reported minimum.
+The control API checks the exact cap of the binding or plugin model it resolves; only `validate-task` without a
+model source and the structural pre-read of `agent run` assume the smallest possible reserve (3712 for
+`addition.json`), and `agent run` repeats the check with the exact cap.
+
+The minimum is a lower bound, not a guarantee: a value just above it can still end in the generic failure.
+Measured margins above the minimum: 752 to 753 tokens for the schema 1 `addition.json` task (caps 96 to 8192),
+2359 tokens for the schema 2 project fixture with a plugin model of cap 8192; extensions and environment tools were
+not measured. Later requests must also fit and report `session-budget-exceeded` (with its numbers) when they do
+not. Contracts already admitted, replays, job claim and recovery, and a plain `readEngineeringTask` are not
+re-checked; `job expand` does re-check, like the W5-10b rules. No field, type or schema version changes.
+
 ### Stricter acceptance for engineering tasks (W5-10b)
 
 New task admissions now refuse a delivery that cannot be verified, with stable

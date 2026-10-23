@@ -795,3 +795,127 @@ test('validate-task still accepts admitted v1 and v2 contracts (K6)', async (t) 
     assert.equal(result.contract_sha256, readEngineeringTask(filename, { admission: true }).sha256);
   }
 });
+
+// H-4: a max_tokens that cannot hold the first model request is refused at admission with its minimum, not left to
+// end as session-failed:internal_error. The floor is a lower bound derived from the request the runtime really builds.
+const withMaxTokens = (value, mutate) => {
+  const contract = fixture();
+  contract.limits.max_tokens = value;
+  mutate?.(contract);
+  return contract;
+};
+const admissionError = (contract) => {
+  try {
+    parseEngineeringTask(contract, { admission: true, outputCap: null });
+  } catch (error) {
+    return error;
+  }
+  return null;
+};
+
+test('admission refuses a max_tokens below the context floor, citing the minimum and the received value (H-4)', () => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  const floor = minimumMaxTokens(fixture());
+  // Pinned on purpose: a change to the instructions, the tool floor or the reserve must be a conscious update here, checked
+  // against the assembled request by the runtime test.
+  assert.equal(floor, 11_903);
+  assert.equal(admissionError(withMaxTokens(11_902))?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admissionError(withMaxTokens(11_903)), null);
+  const refused = admissionError(withMaxTokens(floor - 1));
+  assert.equal(refused?.code, 'ENGINEERING_TASK_CONTRACT_INVALID', 'the compatibility category is kept');
+  assert.equal(refused.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.ok(refused.message.includes(String(floor)) && refused.message.includes(String(floor - 1)), refused.message);
+  assert.match(refused.message, /max_tokens/);
+  assert.equal(admissionError(withMaxTokens(floor)), null, 'exactly the minimum is admitted');
+  assert.equal(admissionError(withMaxTokens(100_000)), null, 'the fixture value is admitted');
+  assert.equal(admissionError(withMaxTokens(1)).reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+});
+
+test('the floor does not depend on max_tokens itself and grows with the criteria the model must read (H-4)', () => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  assert.equal(minimumMaxTokens(withMaxTokens(1)), minimumMaxTokens(withMaxTokens(999_999_999)));
+  const long = withMaxTokens(100_000, (c) => {
+    c.requirements[0].description += ' x'.repeat(500);
+  });
+  assert.ok(minimumMaxTokens(long) >= minimumMaxTokens(fixture()) + 1000);
+});
+
+test('reading a contract without admission keeps accepting a low max_tokens (H-4)', () => {
+  for (const value of [1, 4000, 12_000]) {
+    assert.equal(reasonOf(withMaxTokens(value)), 'ok', `parse without admission accepts ${value}`);
+  }
+});
+
+test('every admitting path refuses a low max_tokens: agent run, validate-task, runEngineeringTask, readEngineeringTask (H-4)', async (t) => {
+  const agent = require('../tools/cli/commands/agent');
+  const { runEngineeringTask } = require('../tools/cli/lib/engineering-task-runtime');
+  const { filename, responses } = admittedFile(t, withMaxTokens(10_000));
+  const reason = 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR';
+  // A scripted model has no output cap: the full reserve applies.
+  assert.equal(await refusedReason(() => runEngineeringTask({ taskContract: filename, scriptedResponses: responses })), reason);
+  assert.equal(await refusedReason(() => agent.execute('run', { taskContract: filename, scriptedResponses: responses })), reason);
+  assert.equal(await refusedReason(() => silently(() => readEngineeringTask(filename, { admission: true, outputCap: null }))), reason);
+  assert.ok(readEngineeringTask(filename).contract, 'the plain read (worker replay, recovery) still accepts it');
+  // With no model source the cap is unknown: only a value no provider could run is refused.
+  assert.equal(await refusedReason(() => agent.execute('validate-task', { taskContract: filename })), 'ok');
+  const tiny = admittedFile(t, withMaxTokens(100));
+  assert.equal(await refusedReason(() => agent.execute('validate-task', { taskContract: tiny.filename })), reason);
+  assert.equal(await refusedReason(() => silently(() => readEngineeringTask(tiny.filename, { admission: true }))), reason);
+  try {
+    readEngineeringTask(filename, { admission: true, outputCap: null });
+  } catch (error) {
+    assert.match(error.message, /max_tokens 10000 is below the minimum \d+/, 'the curated message survives the admitting read');
+  }
+});
+
+test('admission keeps accepting the shipped examples and the fixture (H-4)', () => {
+  const { createEngineeringExample } = require('../tools/examples/engineering-task');
+  assert.equal(admissionError(fixture()), null);
+  for (const name of ['addition', 'clamp', 'unique', 'correction']) {
+    assert.equal(admissionError(structuredClone(createEngineeringExample(name).contract)), null, name);
+  }
+});
+
+// H-4 round 1: the output reserve is min(8192, provider cap), so the floor follows the cap the caller knows; an unknown cap
+// takes the smallest reserve the provider schema allows (a positive integer), so no contract that can run is refused.
+const admitWith = (value, outputCap) => {
+  try {
+    parseEngineeringTask(withMaxTokens(value), { admission: true, outputCap });
+    return null;
+  } catch (error) {
+    return error;
+  }
+};
+
+test('the floor follows the provider output cap the admission knows, and never refuses what a smaller cap can run (H-4)', () => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  const floorFor = (reserve) => minimumMaxTokens(fixture(), reserve);
+  for (const cap of [2048, 1024, 256, 96]) {
+    const floor = floorFor(cap);
+    assert.ok(floor < 11_903, `a cap of ${cap} lowers the floor: ${floor}`);
+    assert.equal(admitWith(floor, cap), null, `cap ${cap}: exactly the effective minimum ${floor} is admitted`);
+    const refused = admitWith(floor - 1, cap);
+    assert.equal(refused?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR', `cap ${cap}: one below is refused`);
+    assert.ok(refused.message.includes(`minimum ${floor}`) && refused.message.includes(`max_tokens ${floor - 1}`), refused.message);
+  }
+  // A cap above 8192 is capped by the runtime reserve; null means no provider cap (scripted model).
+  assert.equal(admitWith(11_903, 65_536), null);
+  assert.equal(admitWith(11_902, 65_536)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admitWith(11_902, null)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  // Unknown cap (binding or plugin model chosen later): the safe floor assumes the smallest possible reserve.
+  const safe = floorFor(1);
+  assert.ok(safe < floorFor(96));
+  assert.equal(admitWith(safe), null);
+  assert.equal(admitWith(safe - 1)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admitWith(floorFor(1024)), null, 'a contract that fits a 1024 cap is not refused while the cap is unknown');
+});
+
+test('the effective output reserve is the runtime rule, shared (H-4)', () => {
+  const { effectiveOutputReserve } = require('../tools/cli/lib/engineering-task-contract');
+  assert.equal(effectiveOutputReserve(), 8192);
+  assert.equal(effectiveOutputReserve(null), 8192);
+  assert.equal(effectiveOutputReserve(65_536), 8192);
+  assert.equal(effectiveOutputReserve(8192), 8192);
+  assert.equal(effectiveOutputReserve(1024), 1024);
+  assert.equal(effectiveOutputReserve(1), 1);
+});
