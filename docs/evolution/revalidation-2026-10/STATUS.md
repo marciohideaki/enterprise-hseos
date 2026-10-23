@@ -1,5 +1,7 @@
 # Revalidação do core — estado
 
+> Nota de 2026-10-23: a situação atual de cada pendência desta página (resolvida com evidência, aberta ou não verificada) está em [pendencias-w0-w5/MAPA.md §4](../pendencias-w0-w5/MAPA.md#4-pendências-da-revalidação-de-2026-10-situação-em-2026-10-23). O texto abaixo é histórico.
+
 Atualizado em 2026-10-10. Base: `master` `4a95592b`. Ponta verificada: `1ae317c0`
 (branch `feature/core-revalidation-2026-10`, a integrar na `master`). Decisões do dono
 e pendências abertas estão explícitas abaixo; nada pendente é tratado como aprovado.
