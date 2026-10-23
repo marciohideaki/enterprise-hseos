@@ -1,3 +1,5 @@
+# ACTIVE contract of this repository since 2026-10-22 (W8 window). The disabled/default example lives in
+# docs/evolution/contracts/activity-coordination.example.yaml. To revert: set `enabled: false`.
 # W5-CO1 — cross-tool activity coordination contract. Absent file or `enabled: false` means no effect.
 # The file is re-read on every execution; if it becomes invalid the last valid configuration applies, with a warning.
 enabled: true

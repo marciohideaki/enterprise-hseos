@@ -10,6 +10,7 @@ const path = require('node:path');
 const { spawn, spawnSync } = require('node:child_process');
 const { test } = require('node:test');
 const Database = require('better-sqlite3');
+const yaml = require('yaml');
 
 const ROOT = path.join(__dirname, '..');
 const { loadConfig, validate } = require('../tools/lib/activity-coordination/config');
@@ -100,6 +101,23 @@ test('contract absent or disabled has no effect: no file, no directory, snapshot
   const invalidBefore = tree(invalid);
   assert.equal(loadConfig(invalid).enabled, false);
   assert.deepEqual(tree(invalid), invalidBefore);
+});
+
+test('shipped example is valid, disabled and has no effect', () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, '.hseos', 'config'), { recursive: true });
+  fs.copyFileSync(
+    path.join(ROOT, 'docs', 'evolution', 'contracts', 'activity-coordination.example.yaml'),
+    path.join(dir, '.hseos', 'config', 'activity-coordination.yaml'),
+  );
+  const loaded = loadConfig(dir);
+  assert.deepEqual([loaded.enabled, loaded.source, loaded.warnings], [false, 'disabled', []]);
+});
+
+test('the live contract of this repository is valid and enabled', () => {
+  const raw = yaml.parse(fs.readFileSync(path.join(ROOT, '.hseos', 'config', 'activity-coordination.yaml'), 'utf8'));
+  assert.deepEqual(validate(raw), []);
+  assert.equal(raw.enabled, true);
 });
 
 test('invalid contract falls back to the last valid configuration with a warning', () => {

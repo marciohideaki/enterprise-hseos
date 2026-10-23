@@ -2,7 +2,7 @@
 
 Adapters for the cross-tool activity coordination track (`.specs/features/harness-w5/coordination.md`). The core (`hseos activity ...`) lives in W5-CO1; this folder documents how each tool plugs into it.
 
-Nothing here has effect until a project adds `.hseos/config/activity-coordination.yaml` with `enabled: true`. Without it every handler exits 0.
+Nothing here has effect until a project adds `.hseos/config/activity-coordination.yaml` with `enabled: true`. Without it every handler exits 0. The disabled example (the default shape) is `docs/evolution/contracts/activity-coordination.example.yaml`; the repository's own `.hseos/config/activity-coordination.yaml` is its live contract (enabled since 2026-10-22), not the example.
 
 ## Claude Code
 

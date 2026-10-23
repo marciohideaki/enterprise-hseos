@@ -1,3 +1,5 @@
+# ACTIVE contract of this repository since 2026-10-22 (W8 window). The disabled/default example lives in
+# docs/evolution/contracts/agent-liveness.example.yaml. To revert: set `enabled: false`.
 # Agent liveness contract ("no silent idle"). Spec: .specs/features/harness-w5/liveness.md
 # Disabled by default: with enabled: false (or this file absent) no liveness behavior runs.
 # Every key is optional; the values below are the defaults.
