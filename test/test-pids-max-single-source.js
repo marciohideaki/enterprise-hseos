@@ -73,16 +73,33 @@ test('pids_max boundaries are identical across the three validators', () => {
   }
 });
 
+// Known limits of this heuristic scan (it is a regex scan, not a proof): it does not see
+// expressions such as `Math.min(256, pids_max)`, tuples such as `['pids_max', 256]`,
+// arithmetic such as `3 * 32`, values built at run time, or files that are not js/cjs/mjs
+// (.d.ts, .py). It also leaves test/ out on purpose. It catches the realistic regressions:
+// a copied schema range, a comparison with a literal, or a bound-valued assignment.
 // Every pids_max declaration must take its range from the shared constants. The scan is
 // formatting-independent: it finds each `pids_max:` property and inspects its whole
 // expression (up to the next top-level comma), so multi-line chains are covered.
-const SCANNED = [
+// Files that must declare the range through the shared constants (positive check).
+const RANGE_DECLARATIONS = [
   'tools/cli/lib/engineering-task-contract.js',
   'tools/lib/execution-plugin-manifest.js',
   'tools/cli/lib/provider-antigravity-adapter.js',
   'tools/cli/lib/provider-native-adapter.js',
   'tools/cli/lib/provider-claude-account-adapter.js',
 ];
+// The sweep covers the whole code tree; these are the only files allowed to carry a literal.
+const SWEEP_ROOTS = ['tools', 'packages', 'src'];
+const SWEEP_EXTENSIONS = new Set(['.js', '.cjs', '.mjs']);
+const EXCEPTIONS = new Map([
+  ['packages/agent-isolation-attestation/profiles.js', 'the single source: it is where LIMIT_FLOOR and LIMIT_CEILING are defined'],
+  [
+    'packages/agent-environment/browser.js',
+    'a profile value (pids_max: 256) validated at run time by createResourceGroup, not a range declaration; it happens to equal the ceiling',
+  ],
+]);
+const BOUND_VALUES = new Set([LIMIT_FLOOR.pids_max, LIMIT_CEILING.pids_max]);
 function rangeViolations(source) {
   const problems = [];
   for (const match of source.matchAll(/\bpids_max\s*:\s*/g)) {
@@ -104,12 +121,71 @@ function rangeViolations(source) {
   }
   return problems;
 }
+// A pids limit (any spelling: pids_max, pidsMax, PIDS_MAX, pids-max, MAX_PIDS, quoted or
+// bracketed keys; readings such as pids_peak are not limits and are not matched) compared with a numeric literal, or set to a literal equal to a range bound.
+// Numeric literals may be decimal, hex, octal or binary, with `_` separators.
+const PIDS_NAME = String.raw`["'\`]?[\w$-]*(?:pids[_-]?max|max[_-]?pids)[\w$-]*["'\`]?\]?`;
+const NUMBER = String.raw`(?:0[xX][\da-fA-F_]+|0[oO][0-7_]+|0[bB][01_]+|\d[\d_]*)`;
+const COMPARATOR = String.raw`(?:[<>]=?|[!=]==?)`;
+const literalValue = (text) => Number(text.replaceAll('_', ''));
+function literalViolations(source) {
+  const problems = [];
+  const record = (match) => problems.push(match[0].replaceAll(/\s+/g, ' '));
+  for (const match of source.matchAll(new RegExp(String.raw`${PIDS_NAME}\s*${COMPARATOR}\s*${NUMBER}\b`, 'gi'))) record(match);
+  for (const match of source.matchAll(new RegExp(String.raw`\b${NUMBER}\s*${COMPARATOR}\s*[\w$.]*${PIDS_NAME}`, 'gi'))) record(match);
+  for (const match of source.matchAll(new RegExp(String.raw`${PIDS_NAME}\s*(?::|=(?!=))\s*(${NUMBER})\b`, 'gi'))) {
+    if (BOUND_VALUES.has(literalValue(match[1]))) record(match);
+  }
+  return problems;
+}
+function codeFiles(directory, found = []) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    if (entry.name === 'node_modules') continue;
+    const full = path.join(directory, entry.name);
+    if (entry.isDirectory()) codeFiles(full, found);
+    else if (SWEEP_EXTENSIONS.has(path.extname(entry.name))) found.push(full);
+  }
+  return found;
+}
+const sweepFiles = () =>
+  SWEEP_ROOTS.filter((dir) => fs.existsSync(path.join(root, dir)))
+    .flatMap((dir) => codeFiles(path.join(root, dir)))
+    .map((file) => path.relative(root, file).split(path.sep).join('/'))
+    .sort();
+function sweep(exceptions = EXCEPTIONS) {
+  const offenders = [];
+  const files = sweepFiles();
+  for (const file of files) {
+    if (exceptions.has(file)) continue;
+    const source = fs.readFileSync(path.join(root, file), 'utf8');
+    const problems = [...rangeViolations(source), ...literalViolations(source)];
+    if (problems.length > 0) offenders.push(`${file}: ${problems.join('; ')}`);
+  }
+  return { files, offenders };
+}
 
-test('every pids_max min/max in the scanned modules references the shared constants', () => {
-  for (const file of SCANNED) {
+test('every pids_max min/max in the declaring modules references the shared constants', () => {
+  for (const file of RANGE_DECLARATIONS) {
     const source = fs.readFileSync(path.join(root, file), 'utf8');
     assert.ok(/pids_max\s*:\s*[^,]*\.min\(/.test(source), `${file} must declare a pids_max range`);
-    assert.deepEqual(rangeViolations(source), [], `${file} hardcodes the pids_max range`);
+  }
+});
+
+test('no file in the code tree hardcodes the pids_max range outside the single source', () => {
+  const { files, offenders } = sweep();
+  assert.ok(files.length > 300, `the sweep must cover the whole tree, found ${files.length} files`);
+  for (const file of [...EXCEPTIONS.keys(), ...RANGE_DECLARATIONS]) assert.ok(files.includes(file), `${file} is not swept`);
+  assert.deepEqual(offenders, [], 'pids_max literal outside the single source');
+});
+
+test('the sweep exceptions are real: dropping one makes the sweep fail', () => {
+  for (const file of EXCEPTIONS.keys()) {
+    const without = new Map(EXCEPTIONS);
+    without.delete(file);
+    assert.ok(
+      sweep(without).offenders.some((entry) => entry.startsWith(`${file}:`)),
+      `${file} is excepted but carries no literal`,
+    );
   }
 });
 
@@ -123,4 +199,26 @@ test('the scan rejects literal bounds regardless of value or formatting', () => 
     assert.notDeepEqual(rangeViolations(mutated), [], mutated);
   }
   assert.deepEqual(rangeViolations('pids_max: z.number().int().min(LIMIT_FLOOR.pids_max).max(LIMIT_CEILING.pids_max).optional(),'), []);
+});
+
+test('the literal scan rejects comparisons and bound-valued assignments', () => {
+  for (const mutated of [
+    'if (pids_max > 256) fail();',
+    'if (limits.pids_max < 32) fail();',
+    'if (64 <= limits.pids_max) ok();',
+    'pids_max: 32,',
+    'pids_max = 256) {',
+  ]) {
+    assert.notDeepEqual(literalViolations(mutated), [], mutated);
+  }
+  for (const clean of [
+    'pids_max: 128,',
+    'pids_max: LIMIT_FLOOR.pids_max,',
+    'pids_max < LIMIT_FLOOR.pids_max',
+    '"pids_max": 128',
+    'const MAX_PIDS = 128;',
+    'rapids === other',
+  ]) {
+    assert.deepEqual(literalViolations(clean), [], clean);
+  }
 });
