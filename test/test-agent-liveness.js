@@ -1511,7 +1511,8 @@ test('schema: a diverging as_liveness_events fails closed', () => {
 
 test('systemd: backslash, dollar, percent and quote are escaped', () => {
   const units = liveness.renderSystemdUnits({ directory: String.raw`/tmp/a$HOME b\ 50%` + '"q"', nodePath: '/n', cliPath: '/c' });
-  assert.ok(units.service.includes(String.raw`WorkingDirectory="/tmp/a$$HOME b\\ 50%%\"q\""`), units.service);
+  assert.ok(units.service.includes(String.raw`WorkingDirectory=/tmp/a$HOME b\ 50%%"q"`), units.service);
+  assert.ok(!/WorkingDirectory="/.test(units.service), 'systemd rejects a quoted WorkingDirectory');
   assert.ok(units.service.includes(String.raw`--directory "/tmp/a$$HOME b\\ 50%%\"q\""`));
 });
 

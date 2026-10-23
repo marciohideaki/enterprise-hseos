@@ -1370,7 +1370,7 @@ async function awaitCondition(options) {
 
 // ---------------------------------------------------------------- systemd ----
 
-function assertUnitValue(label, value) {
+function assertUnitValueText(label, value) {
   if (
     typeof value !== 'string' ||
     value.length === 0 ||
@@ -1378,7 +1378,12 @@ function assertUnitValue(label, value) {
   ) {
     throw new TypeError(`${label} must be a non-empty single-line string`);
   }
-  return value
+  return value;
+}
+
+/** ExecStart words: quoted, with the C-style escapes and the $ and % expansions neutralised. */
+function assertUnitValue(label, value) {
+  return assertUnitValueText(label, value)
     .replaceAll('\\', '\\\\')
     .replaceAll('$', '$$$$')
     .replaceAll('%', '%%')
@@ -1391,6 +1396,8 @@ function assertUnitValue(label, value) {
  */
 function renderSystemdUnits({ directory, nodePath, cliPath, intervalS }) {
   const dir = assertUnitValue('directory', directory);
+  // WorkingDirectory= takes the rest of the line as a path: systemd rejects quotes there and only expands specifiers.
+  const workingDirectory = assertUnitValueText('directory', directory).replaceAll('%', '%%');
   const node = assertUnitValue('nodePath', nodePath);
   const cli = assertUnitValue('cliPath', cliPath);
   const interval = Number.isInteger(intervalS) && intervalS >= 5 ? intervalS : 120;
@@ -1399,7 +1406,7 @@ Description=HSEOS agent liveness watchdog (one cycle)
 
 [Service]
 Type=oneshot
-WorkingDirectory="${dir}"
+WorkingDirectory=${workingDirectory}
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus
 ExecStart="${node}" "${cli}" liveness watch --once --directory "${dir}"
 Nice=10

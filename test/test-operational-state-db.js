@@ -184,3 +184,9 @@ if (process.argv[2] === '--lock-holder') {
     }
   });
 }
+
+test('the receipt commit is the checkout HEAD, never an unrelated ancestor repository', () => {
+  const { execFileSync } = require('node:child_process');
+  const { currentCommit } = require('../tools/mcp-project-state/lib/operational-state-db');
+  assert.equal(currentCommit(), execFileSync('git', ['rev-parse', 'HEAD']).toString().trim());
+});

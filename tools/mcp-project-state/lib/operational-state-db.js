@@ -530,16 +530,23 @@ function planExecutionLedgerActivation(databasePath, opts = {}) {
   };
 }
 
+/**
+ * The commit of the code that is running. Only a checkout rooted exactly at REPOSITORY_ROOT answers for it: an
+ * immutable release has no .git, and git would otherwise resolve an unrelated ancestor repository. A release directory
+ * is named after the commit it was built from, so that name is the identity there.
+ */
 function currentCommit() {
+  const git = (...args) =>
+    execFileSync('git', args, { cwd: REPOSITORY_ROOT, stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 })
+      .toString()
+      .trim();
   try {
-    return (
-      execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPOSITORY_ROOT, stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 })
-        .toString()
-        .trim() || null
-    );
+    if (fs.realpathSync(git('rev-parse', '--show-toplevel')) === fs.realpathSync(REPOSITORY_ROOT)) return git('rev-parse', 'HEAD') || null;
   } catch {
-    return null;
+    // Not a checkout: fall through to the release identity.
   }
+  const releaseName = path.basename(fs.realpathSync(REPOSITORY_ROOT));
+  return /^[\da-f]{40}$/.test(releaseName) ? releaseName : null;
 }
 
 /**
@@ -818,6 +825,7 @@ module.exports = {
   activateExecutionLedger,
   assertOperationalSchemaBoundary,
   assertPendingFixturePath,
+  currentCommit,
   DEFAULT_STATE_DB,
   MIGRATIONS_DIRECTORY,
   OPERATIONAL_SCHEMA_VERSION,
