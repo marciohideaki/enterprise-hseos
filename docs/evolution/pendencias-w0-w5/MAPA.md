@@ -31,7 +31,7 @@ conteúdo estático, repositórios com filtros Git recusados, workflows sem apli
 **W2.** F01, F11 e F16 com consumidor só em escopo instalado local. Bytes anteriores à persistência podem se perder em crash; retenção operacional e acesso
 remoto não certificados. Exige cgroup v2 delegado, bubblewrap e pidfd; `test-mcp-environment-host` (K9) falha sem cgroup delegado, também na baseline.
 
-**W3.** Quarta família (família API compatível; o plano canônico lista DeepSeek) não exercitada, por decisão do dono "só depois de todas as fases" (FR07
+**W3.** Quarta família (família API compatível, a quarta das listadas na linha W3 do [PLAN](../PLAN.md)) não exercitada, por decisão do dono "só depois de todas as fases" (FR07
 pendente). F08, F17 e F18 seguem `not_verified_for_evolution` apesar das campanhas reais de Codex, Claude e Antigravity local. `tools/call` e aprovação MRTR do
 Codex `NOT_EXERCISED`. Financeiro: teto US$ 10, reservas US$ 9, saldo US$ 1, 30 despachos; a reserva retida pelo recibo rejeitado não tem decisão de liberação.
 
