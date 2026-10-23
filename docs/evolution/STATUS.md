@@ -21,6 +21,8 @@ consumidor real verificado (`real_consumers: not_verified`). Plugins `scaffolded
 
 **Atualização (2026-10-20):** a W5 entrou na `master` pela PR #230 (merge `eecfaa90`), seguida pelas PRs #231 (`7a5a12fd`) e #232 (`6ac6ad16`, contexto v2 com autoridade e proveniência declaradas pelo runtime). O texto "sem merge para a `master`" do parágrafo acima descreve o fechamento de 2026-10-17 e está superado; publicação, instalação global e ativação (G6) seguem não feitas.
 
+**Atualização (2026-10-23):** o fechamento da fundação W1–W5 foi concluído e mergeado (PRs #235–#245; ADR-0048 aceito; ledger ativado no `project.db` do `enterprise-hseos`, distribuição global do SHA `795e6540`, hooks, watchdog e contratos ligados, 10 tags no remoto). O texto "nada ativado" dos parágrafos acima descreve os fechamentos de 2026-10-10 e 2026-10-17 e está superado. O mapa por onda canônica, o que ainda falta e o que a W6 exige antes de começar estão em [PLAN — estado consolidado](PLAN.md#estado-consolidado-frente-ao-plano-de-fechamento-da-fundação-2026-10-23). W6–W8 seguem não iniciadas.
+
 Tudo abaixo desta linha é **histórico**: preserva o que foi afirmado em cada
 checkpoint e não descreve o estado atual.
 

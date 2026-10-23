@@ -12,6 +12,7 @@ prova aprovação: todos os estados de evolução começam não verificados.
 - [Comparação original preservada](COMPARISON-2026-09-25.md)
 - [Manifesto imutável da candidata](baseline.json)
 - [Plano e critérios por onda](PLAN.md)
+- [Estado consolidado por onda frente ao fechamento da fundação](PLAN.md#estado-consolidado-frente-ao-plano-de-fechamento-da-fundação-2026-10-23)
 - [Estado e verificações](STATUS.md)
 - [Verificação de fechamento W0](W0-CLOSEOUT.md)
 - [Decisão arquitetural](../../.enterprise/.specs/decisions/ADR-0043-harness-evolution.md)
