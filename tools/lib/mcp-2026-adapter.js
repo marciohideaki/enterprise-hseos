@@ -8,7 +8,7 @@ const { TextDecoder } = require('node:util');
 const { Worker } = require('node:worker_threads');
 const Ajv2020 = require('ajv/dist/2020');
 
-const { assertCanonicalEnvelope, failureEnvelope } = require('./governed-execution/canonical-envelope');
+const { assertCanonicalEnvelope, failureEnvelope, GovernedRefusalError } = require('./governed-execution/canonical-envelope');
 const { deterministicOperationId } = require('./governed-execution/runtime');
 const { MCP_LEGACY_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION } = require('./mcp-protocol');
 
@@ -231,6 +231,16 @@ function isUsableId(id) {
 function internalErrorResponse(id, error) {
   process.stderr.write(`[mcp] internal error: ${error && error.stack ? error.stack : String(error)}\n`);
   return rpcError(id, JSON_RPC.INTERNAL_ERROR, 'Internal error');
+}
+
+// Only a failure the adapter or the governed runtime worded itself carries a message meant for the client; anything
+// else (a system error, a throwing tool) is reported generically and its cause goes to stderr.
+function failureResponse(id, error) {
+  if (error instanceof McpAdapterError) {
+    return rpcError(id, error.code, error.message, Object.keys(error.data).length > 0 ? error.data : undefined);
+  }
+  if (error instanceof GovernedRefusalError) return rpcError(id, JSON_RPC.INTERNAL_ERROR, error.message);
+  return internalErrorResponse(id, error);
 }
 
 function rpcError(id, code, message, data) {
@@ -509,11 +519,19 @@ function validateInWorker({ schema, value, timeoutMs, workerPath, signal }) {
       timeoutMs,
     );
     if (signal) signal.addEventListener('abort', abort, { once: true });
-    worker.once('error', (error) => finish(() => reject(new McpAdapterError(`Schema validation worker failed: ${error.message}`))));
+    // The worker's own wording can carry runtime detail: the client gets a fixed message, the operator gets stderr.
+    worker.once('error', (error) =>
+      finish(() => {
+        process.stderr.write(`[mcp] schema validation worker failed: ${error && error.stack ? error.stack : String(error)}\n`);
+        reject(new McpAdapterError('Schema validation worker failed'));
+      }),
+    );
     worker.once('message', (message) => {
       finish(() => {
-        if (message.compilerError) reject(new McpAdapterError(`Schema validation worker rejected schema: ${message.compilerError}`));
-        else resolve({ errors: message.errors || [], valid: message.valid === true });
+        if (message.compilerError) {
+          process.stderr.write(`[mcp] schema validation worker rejected schema: ${message.compilerError}\n`);
+          reject(new McpAdapterError('Schema validation worker rejected schema'));
+        } else resolve({ errors: message.errors || [], valid: message.valid === true });
       });
     });
     worker.postMessage({ schema, value });
@@ -909,7 +927,12 @@ class Mcp2026Adapter {
       executionRequest.approval_context = approvalContext;
     }
     const outcome = await this.executePort(executionRequest);
-    assertCanonicalEnvelope(outcome);
+    try {
+      assertCanonicalEnvelope(outcome);
+    } catch (error) {
+      // The envelope check words its own failures (fixed text, no port data), so they are safe to relay.
+      throw error.name === 'CanonicalEnvelopeError' ? new McpAdapterError(error.message) : error;
+    }
     if (outcome.ok && tool.outputSchema) {
       const outputValidation =
         outcome.data &&
@@ -1062,9 +1085,9 @@ class Mcp2026Adapter {
    * Answers one decoded JSON-RPC message; never throws.
    *
    * Error policy: a failure raised by this adapter (McpAdapterError) carries a controlled domain message and code.
-   * Any other failure keeps its own message under -32603 (a contract the canonical-envelope tests rely on); the stack
-   * is never sent. Failures that escape handle() altogether are caught by the transports' last resort, which answers a
-   * fixed "Internal error" with a null id and logs the cause on stderr.
+   * Any other failure is answered with a fixed "Internal error" under -32603 for the request id and its cause is logged
+   * on stderr; neither its message nor its stack is sent. Failures that escape handle() altogether are caught by the
+   * transports' last resort, which answers the same way with a null id.
    */
   async handle(message, requestContext = {}) {
     const id = hasMessageId(message) && isUsableId(message.id) ? message.id : null;
@@ -1098,8 +1121,7 @@ class Mcp2026Adapter {
       }
       return await this._legacy(message, context);
     } catch (error) {
-      const normalized = error instanceof McpAdapterError ? error : new McpAdapterError(error.message || 'Internal error');
-      return rpcError(id, normalized.code, normalized.message, Object.keys(normalized.data).length > 0 ? normalized.data : undefined);
+      return failureResponse(id, error);
     }
   }
 }
@@ -1236,8 +1258,7 @@ function startMcp2026Stdio(adapter, { input = process.stdin, output = process.st
           throw new McpAdapterError('Cancellation reason must be a string', JSON_RPC.INVALID_PARAMS);
         }
       } catch (error) {
-        const normalized = error instanceof McpAdapterError ? error : new McpAdapterError(error.message || 'Invalid cancellation');
-        output.write(`${JSON.stringify(rpcError(null, normalized.code, normalized.message))}\n`);
+        output.write(`${JSON.stringify(failureResponse(null, error))}\n`);
         return;
       }
       const controller = inflight.get(requestId);
