@@ -26,6 +26,17 @@ function tmpProject({ enabled = true, extra = '' } = {}) {
   return directory;
 }
 
+// The shipped example (disabled, defaults) copied into a throwaway project, so the tests do not depend on the live contract of this repository.
+function exampleProject() {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-liveness-example-'));
+  fs.mkdirSync(path.join(directory, '.hseos', 'config'), { recursive: true });
+  fs.copyFileSync(
+    path.join(__dirname, '..', 'docs', 'evolution', 'contracts', 'agent-liveness.example.yaml'),
+    path.join(directory, '.hseos', 'config', 'agent-liveness.yaml'),
+  );
+  return directory;
+}
+
 function withDb(directory, fn) {
   const db = liveness.openLivenessDb(directory, { write: true });
   try {
@@ -64,9 +75,14 @@ test('contract: absent file is disabled with defaults, example file validates an
   const loaded = contract.loadLivenessConfig(empty);
   assert.deepEqual([loaded.present, loaded.valid, loaded.enabled], [false, true, false]);
   assert.equal(loaded.config.foreground_wait_max_s, 540);
-  const example = contract.loadLivenessConfig(path.join(__dirname, '..'));
+  const example = contract.loadLivenessConfig(exampleProject());
   assert.deepEqual([example.present, example.valid, example.enabled], [true, true, false]);
   assert.deepEqual(example.config, contract.DEFAULTS);
+});
+
+test('contract: the live contract of this repository is valid and enabled', () => {
+  const live = contract.loadLivenessConfig(path.join(__dirname, '..'));
+  assert.deepEqual([live.present, live.valid, live.enabled], [true, true, true], JSON.stringify(live.errors));
 });
 
 test('contract: schema rejects bad ranges and incoherent combinations but only warns on an unknown key', () => {
@@ -1827,7 +1843,7 @@ test('central snapshot: partial snapshots and a failing db.close degrade quietly
 
 test('config: max_wait_deadline_s is part of the contract', () => {
   assert.equal(contract.DEFAULTS.max_wait_deadline_s, 14_400);
-  assert.equal(contract.loadLivenessConfig(path.join(__dirname, '..')).config.max_wait_deadline_s, 14_400);
+  assert.equal(contract.loadLivenessConfig(exampleProject()).config.max_wait_deadline_s, 14_400);
   for (const document of [
     { max_wait_deadline_s: 30 },
     { max_wait_deadline_s: 700_000 },

@@ -1,0 +1,16 @@
+# W5-CO1 — cross-tool activity coordination contract. Absent file or `enabled: false` means no effect.
+# The file is re-read on every execution; if it becomes invalid the last valid configuration applies, with a warning.
+enabled: false
+store:
+  backend: machine # machine | project-aggregate | adapter:<name>
+  path: ~/.local/state/hseos/activity.db
+  adapters: [] # optional mirrors (e.g. axon), only when installed
+  project_dirs: [] # project-aggregate only: projects whose .hseos/state/project.db are read
+hot_files: [] # repo globs that raise a high-severity warning on overlap
+reservations:
+  kinds: [path, version, name]
+  ttl_s: 86400
+enforce:
+  publish_guard: false # true: a version reserved by another session or already published is refused
+overlap:
+  include_git_diff: true
