@@ -1,5 +1,7 @@
 # W3 — estado de execução
 
+> Nota de 2026-10-23: a W3 foi integrada na `master` (W0–W4 pela PR #182) e a janela de ativação do piloto de 2026-10-22 ativou o ledger de execução só no `enterprise-hseos`; "sem merge", "não ativado" e "ativação não executada" descrevem o momento do fechamento da onda. Estado atual por onda em [PLAN — estado consolidado](../PLAN.md) e pendências em [pendencias-w0-w5/MAPA.md](../pendencias-w0-w5/MAPA.md). O texto abaixo é histórico e não foi reescrito.
+
 **Entrega técnica corrente de W3 validada**, com campanha da quarta família
 diferida para depois de todas as fases por decisão explícita do proprietário.
 Essa jornada permanece pendente, não PASS, e não bloqueia o avanço atual.

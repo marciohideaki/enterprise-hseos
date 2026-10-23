@@ -1,5 +1,7 @@
 # Onda 1 — engenharia geral
 
+> Nota de 2026-10-23: a W1 foi integrada na `master` (W0–W4 pela PR #182) e a janela de ativação do piloto de 2026-10-22 ativou o ledger de execução só no `enterprise-hseos`; "sem merge", "não ativado" e "ativação não executada" descrevem o momento do fechamento da onda. Estado atual por onda em [PLAN — estado consolidado](../PLAN.md) e pendências em [pendencias-w0-w5/MAPA.md](../pendencias-w0-w5/MAPA.md). O texto abaixo é histórico e não foi reescrito.
+
 **Implementada e verificada deterministicamente como candidata Linux.**
 O programa W0–W8 permanece em evolução. Modelos reais não foram certificados e
 não houve ativação operacional, merge, publicação ou instalação global.
@@ -25,13 +27,13 @@ Base lógica: `feature/hseos-evolution-w0-quality`; entrega:
 
 ## Verificação sequencial
 
-| Verificação | Node 24.15.0 | Node 22.23.3 |
-|---|---|---|
-| Suíte integral/gates | 887 testes Node; 0 falhas/skips | 887 testes Node; 0 falhas/skips |
-| Suíte crítica final | 416 testes; 0 falhas/skips | 416 testes; 0 falhas/skips |
-| Cobertura crítica | 95,41% linhas / 88,06% branches | 95,41% linhas / 88,10% branches |
-| Gate por arquivo | todos >=90% linhas e >=80% branches | todos >=90% linhas e >=80% branches |
-| Instalação externa | dois projetos aprovados e aplicados | dois projetos aprovados e aplicados |
+| Verificação          | Node 24.15.0                        | Node 22.23.3                        |
+| -------------------- | ----------------------------------- | ----------------------------------- |
+| Suíte integral/gates | 887 testes Node; 0 falhas/skips     | 887 testes Node; 0 falhas/skips     |
+| Suíte crítica final  | 416 testes; 0 falhas/skips          | 416 testes; 0 falhas/skips          |
+| Cobertura crítica    | 95,41% linhas / 88,06% branches     | 95,41% linhas / 88,10% branches     |
+| Gate por arquivo     | todos >=90% linhas e >=80% branches | todos >=90% linhas e >=80% branches |
+| Instalação externa   | dois projetos aprovados e aplicados | dois projetos aprovados e aplicados |
 
 Cada suíte integral incluiu PostgreSQL real; scripts auxiliares também passaram.
 Os gates mantêm um aviso histórico de placeholders no template de épicos;
@@ -78,11 +80,11 @@ configurados são recusados. Workflows não têm aplicação agregada de patches
 Campanhas com modelos/bindings reais, certificação de provedores e ativação são
 marcos separados. Terminais e ampliação do lifecycle pertencem à Onda 2.
 
-| Marco | Estado |
-|---|---|
-| Implementado e verificado deterministicamente | concluído no escopo W1 |
-| Consumidores reais | CLI/API/SDK instalados verificados; modelos reais não certificados |
-| Autorizado e ativado operacionalmente | não ativado |
+| Marco                                         | Estado                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------ |
+| Implementado e verificado deterministicamente | concluído no escopo W1                                             |
+| Consumidores reais                            | CLI/API/SDK instalados verificados; modelos reais não certificados |
+| Autorizado e ativado operacionalmente         | não ativado                                                        |
 
 ## Artefatos de revisão
 
