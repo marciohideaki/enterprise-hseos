@@ -1028,7 +1028,28 @@ test('K9: the real server boots with an empty cache, a workspace and NO memory o
   const names = await client.names();
   assert.ok(names.size > 0, 'the governance tools are still served');
   for (const absent of [...MEMORY_TOOLS, 'environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
-  assert.match(client.stderr(), /no environment capability could be composed/);
+  const stderr = client.stderr();
+  // The same verdict the server takes at start-up (delegated cgroup and the bwrap binary), never a parallel detection.
+  const isolation = defaultIsolationProbe();
+  if (isolation.available) {
+    assert.match(stderr, /no environment capability could be composed/);
+    assert.doesNotMatch(stderr, /environment\.lsp and environment\.dap are off/);
+  } else {
+    // Without the isolation the probe drops lsp and dap first, so the composition is never attempted: the log carries the
+    // probe's own cause (cgroup or bwrap) and how to launch, memory is reported off, and nothing is "composed and empty".
+    assert.ok(
+      stderr.includes(
+        `hseos mcp: environment.lsp and environment.dap are off: ${isolation.reason}. Launch the server in a delegated cgroup`,
+      ),
+      stderr,
+    );
+    assert.match(
+      isolation.reason,
+      /^(delegated cgroup unavailable \(.+\)|the bwrap binary \(.+\) is unavailable or is not a real executable)$/,
+    );
+    assert.match(stderr, /hseos mcp: memory is off \(it needs environment\.memory\.operator\)/);
+    assert.doesNotMatch(stderr, /no environment capability could be composed/);
+  }
 });
 
 // ---------------------------------------------------------------------------------------------------------------
