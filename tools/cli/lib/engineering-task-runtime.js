@@ -1003,7 +1003,15 @@ function classifyScopeDenial(bundle) {
       !result.error?.issues?.some((issue) => issue.path?.[0] === 'path' && /^invalid_(?:value|enum_value)$/.test(issue.code))
     )
       return result;
-    return { success: false, error: { issues: result.error.issues, hseos_code: 'ENGINEERING_SCOPE_DENIED' } };
+    return {
+      success: false,
+      error: {
+        issues: result.error.issues,
+        hseos_code: 'ENGINEERING_SCOPE_DENIED',
+        // The cause names the field and the rule, never the value the model sent.
+        hseos_cause: 'path is not one of the paths this task declares in scope.read or scope.write',
+      },
+    };
   };
   return { ...bundle, contract: { ...bundle.contract, input_schema: { ...schema, safeParse } } };
 }

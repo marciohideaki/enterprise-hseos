@@ -171,6 +171,21 @@ New task admissions now refuse a delivery that cannot be verified, with stable
   and their `contract_sha256` does not change.
 - `ENGINEERING_COMMAND_ARG_INVALID`: an argument of a command used by a
   `command_checks` entry is outside the conservative argument alphabet.
+- Cross-rule refusals that used to share one `detail.code` now have their own (list in
+  `docs/engineering-control-api.md`); the old code stays with the primary rule of its family, so a client
+  that matched a shared code must also match the new ones. Contracts that were valid stay valid.
+- `command_checks` arguments are unwrapped (percent-escapes, `file:`, `-cVALUE`, `:line:col`, `=` splits)
+  before the outside-root and writable checks, at every parse; new admissions also refuse the wrapped
+  forms with `ENGINEERING_COMMAND_ARG_INVALID`.
+- An argument that unwraps to more than 64 distinct readings is refused with
+  `ENGINEERING_COMMAND_ARG_INVALID` at every parse (fail-closed; exactly 64 is accepted).
+- Order of checks changed for contracts with more than one fault: `source_ids` and `requirement_ids` are
+  checked for repeats before unknown ids, and `initial_files` are checked for readability, then digest, then
+  the byte budget (before, all of these were `ENGINEERING_INITIAL_FILES_INVALID` or
+  `ENGINEERING_TRACEABILITY_BROKEN`). A contract with a single fault gets the same refusal, with the code of
+  that fault.
+- The scope denial message is `input does not match schema v1: path is not one of the paths this task
+declares in scope.read or scope.write` (code `ENGINEERING_SCOPE_DENIED` unchanged, no input value echoed).
 - `ENGINEERING_PROTECTED_CONFIG_MISSING`: a contract with `command_checks` lists a
   known project configuration file among its readable or initial files without
   declaring it in the verifier's protected paths.
