@@ -345,6 +345,32 @@ test('profile, toolchain and installation gaps are BLOCKED with their cause, nev
 // Controller branches driven by a stand-in executor (the real path is covered above).
 // ---------------------------------------------------------------------------------------------------------------
 
+test('a navigation outside the allowlist is refused by the controller before the profile, the toolchain or any launch is considered', async () => {
+  let launched = 0;
+  const service = browser.createBrowserService({
+    // P1 would be BLOCKED for any launch: only the controller-side allowlist check can answer first.
+    policy: { profile: 'P1' },
+    toolchain,
+    broker: stubBroker(),
+    mediaStore,
+    containsCredential,
+    sandboxFlags: () => [],
+    createChannel: () => ({ verify: () => [], dispose() {} }),
+    execute: async () => {
+      launched += 1;
+      return hostResult({ ok: true, steps: [], captures: [] });
+    },
+  });
+  const refused = await service.run({ steps: [{ op: 'goto', url: 'http://Denied.Example.Test:8080/Path?q=1' }] });
+  assert.deepEqual([refused.status, refused.code], ['refused', 'ENV_BROWSER_EGRESS_DENIED']);
+  assert.deepEqual(
+    refused.egress.denied.map((entry) => [entry.host, entry.port, entry.reason]),
+    [['denied.example.test', 8080, 'host_not_allowed']],
+    'the denial names the lower-cased host and the port',
+  );
+  assert.equal(launched, 0, 'nothing was launched');
+});
+
 function stubBroker(events = []) {
   return { allow: ['localhost:80', 'localhost:443'], drain: () => events.splice(0), dropped: () => ({ allowed: 0, denied: 0 }) };
 }

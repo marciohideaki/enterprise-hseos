@@ -191,6 +191,47 @@ test('a failure midway discards the staging directory and keeps the previous ins
   assert.equal(fs.readFileSync(path.join(destination, 'tool/tool/ok'), 'utf8'), 'first');
 });
 
+const LIMITS = { entry_bytes: 100_000, total_bytes: 200_000 };
+
+function installedOnce(content) {
+  const first = syntheticCache([{ name: 'tool/ok', data: Buffer.from(content) }], LIMITS);
+  const destination = temp('hseos-zip-dest-');
+  pins.installToolchain({ destination, names: ['tool'], cacheDirectory: first.cache, expected: first.expected });
+  return { destination, ok: path.join(destination, 'tool/tool/ok') };
+}
+
+test('a failed final rename puts the previous install back and leaves no staging or previous directory', (t) => {
+  const { destination, ok } = installedOnce('first');
+  const next = syntheticCache([{ name: 'tool/ok', data: Buffer.from('second') }], LIMITS);
+  const real = fs.renameSync;
+  t.mock.method(fs, 'renameSync', (from, to) => {
+    if (String(from).includes('.staging-')) throw Object.assign(new Error('rename refused'), { code: 'EXDEV' });
+    return real(from, to);
+  });
+  assert.throws(
+    () => pins.installToolchain({ destination, names: ['tool'], cacheDirectory: next.cache, expected: next.expected }),
+    (error) => error.code === 'ENV_TOOLCHAIN_INSTALL_FAILED' && error.cause.code === 'EXDEV',
+  );
+  assert.equal(fs.existsSync(ok), true, 'the previous install is back, not lost');
+  assert.equal(fs.readFileSync(ok, 'utf8'), 'first');
+  assert.deepEqual(fs.readdirSync(destination), ['tool'], 'no staging or previous directory is left');
+});
+
+test('a staging or previous directory left by an earlier run of the same pid never leaks into, or blocks, the next install', () => {
+  const { destination, ok } = installedOnce('first');
+  const staging = path.join(destination, `tool.staging-${process.pid}`);
+  const previous = path.join(destination, `tool.previous-${process.pid}`);
+  fs.mkdirSync(path.join(staging, 'tool'), { recursive: true });
+  fs.writeFileSync(path.join(staging, 'tool/stale'), 'left by an interrupted run');
+  fs.mkdirSync(previous);
+  fs.writeFileSync(path.join(previous, 'stale'), 'left by an interrupted run');
+  const next = syntheticCache([{ name: 'tool/ok', data: Buffer.from('second') }], LIMITS);
+  assert.doesNotThrow(() => pins.installToolchain({ destination, names: ['tool'], cacheDirectory: next.cache, expected: next.expected }));
+  assert.equal(fs.readFileSync(ok, 'utf8'), 'second');
+  assert.equal(fs.existsSync(path.join(destination, 'tool/tool/stale')), false, 'a stale staging file is not part of the new install');
+  assert.deepEqual(fs.readdirSync(destination), ['tool']);
+});
+
 test('entries above the inline threshold are streamed through a child and stay byte-identical, with the same refusals', () => {
   const entryBytes = 9 * 1024 * 1024;
   const pattern = Buffer.from(Array.from({ length: 4099 }, (_, index) => (index * 31) % 256));

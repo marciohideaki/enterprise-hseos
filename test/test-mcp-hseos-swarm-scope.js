@@ -322,6 +322,94 @@ async function runInProcessScopeTests() {
       }
     });
 
+    await it('run-scope: the final component is opened with O_NOFOLLOW, so a symlink swapped in after the check is named as one and creates nothing', async () => {
+      const runDir = path.join(runs, 'r1');
+      const messageOf = (fn) => {
+        try {
+          fn();
+        } catch (error) {
+          return error.message;
+        }
+        return null;
+      };
+      const readSecret = path.join(outside, 'nofollow-read.md');
+      fs.writeFileSync(readSecret, 'NOFOLLOW-SECRET');
+      const readTarget = path.join(runDir, 'NOFOLLOW-READ.md');
+      fs.writeFileSync(readTarget, 'harmless');
+      // The target outside does not exist: opening through the link would create it.
+      const dangling = path.join(outside, 'nofollow-created.md');
+      const writeTarget = path.join(runDir, 'NOFOLLOW-WRITE.md');
+      try {
+        runScope.hooks.afterCheck = (file) => {
+          fs.rmSync(file, { force: true });
+          fs.symlinkSync(file === readTarget ? readSecret : dangling, file);
+        };
+        assert.match(
+          messageOf(() => runScope.readContained(runDir, readTarget)),
+          /^Symlink not allowed: NOFOLLOW-READ\.md/,
+        );
+        assert.match(
+          messageOf(() => runScope.writeContained(runDir, writeTarget, 'X')),
+          /^Symlink not allowed: NOFOLLOW-WRITE\.md/,
+        );
+        assert.equal(fs.existsSync(dangling), false, 'a write through a swapped link must not create anything outside the base');
+      } finally {
+        runScope.hooks.afterCheck = null;
+      }
+    });
+
+    await it('run-scope: an ancestor swapped for a symlink after the path check is caught by the parent descriptor, before anything is created', async () => {
+      const base2 = path.join(runs, 'r-anc');
+      fs.mkdirSync(path.join(base2, 'sub'), { recursive: true });
+      // The parent itself stays a real directory, so only the real location of its descriptor can reveal the swap.
+      const stolen = path.join(outside, 'stolen-anc');
+      fs.mkdirSync(path.join(stolen, 'sub'), { recursive: true });
+      const file = path.join(base2, 'sub', 'NEW.md');
+      let swapped = false;
+      runScope.hooks.afterCheck = () => {
+        if (swapped) return;
+        swapped = true;
+        fs.renameSync(base2, `${base2}.bak`);
+        fs.symlinkSync(stolen, base2);
+      };
+      try {
+        assert.equal(
+          scopeCode(() => runScope.writeContained(base2, file, 'X')),
+          runScope.SCOPE_DENIED,
+        );
+        assert.equal(fs.existsSync(path.join(stolen, 'sub', 'NEW.md')), false, 'nothing may be created outside the base');
+      } finally {
+        runScope.hooks.afterCheck = null;
+      }
+    });
+
+    await it('run-scope: the file is opened relative to the validated parent descriptor, not by path, so a swap after the parent check lands nowhere', async () => {
+      const racing = path.join(runs, 'r-fd');
+      fs.mkdirSync(racing);
+      const stolen = path.join(outside, 'stolen-fd');
+      fs.mkdirSync(stolen);
+      // Swap the parent directory for a symlink right after its real location was validated from the descriptor.
+      const realRealpath = fs.realpathSync;
+      let armed = true;
+      fs.realpathSync = (...args) => {
+        const result = realRealpath(...args);
+        if (armed && typeof args[0] === 'string' && args[0].startsWith('/proc/self/fd/')) {
+          armed = false;
+          fs.renameSync(racing, `${racing}.bak`);
+          fs.symlinkSync(stolen, racing);
+        }
+        return result;
+      };
+      try {
+        runScope.writeContained(runs, path.join(racing, 'NEW.md'), 'X');
+      } finally {
+        fs.realpathSync = realRealpath;
+      }
+      assert.equal(armed, false, 'the swap ran between the parent check and the open');
+      assert.equal(fs.existsSync(path.join(stolen, 'NEW.md')), false, 'the open followed the descriptor, not the swapped path');
+      assert.equal(fs.readFileSync(path.join(`${racing}.bak`, 'NEW.md'), 'utf8'), 'X');
+    });
+
     await it('run-scope: a FIFO in place of a file is rejected without blocking', async () => {
       const runDir = path.join(runs, 'r1');
       const fifo = path.join(runDir, 'PIPE.md');
