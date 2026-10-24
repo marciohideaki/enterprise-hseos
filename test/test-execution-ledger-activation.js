@@ -14,6 +14,7 @@ const {
   OPERATIONAL_SCHEMA_VERSION,
   activateExecutionLedger,
   assertOperationalSchemaBoundary,
+  currentCommit,
   openOperationalStateDatabase,
   planExecutionLedgerActivation,
   restoreExecutionLedgerBackup,
@@ -567,6 +568,57 @@ test('the CLI companion plans, applies and rolls back with --json and refuses ap
 
   const unknown = run('explode', '--db', databasePath);
   assert.notEqual(unknown.status, 0);
+});
+
+test('the real CLI applies ADR-0048 to a disposable database and rolls it back byte for byte', async (t) => {
+  const sandbox = makeSandbox(t);
+  const databasePath = makeV4Database(sandbox.root);
+  const before = dumpOperational(databasePath);
+  const original = sha256(databasePath);
+  const repositoryRoot = path.join(__dirname, '..');
+  const run = (...args) =>
+    spawnSync(process.execPath, [path.join(repositoryRoot, 'tools', 'cli', 'hseos-cli.js'), 'execution-activation', ...args], {
+      cwd: sandbox.root,
+      encoding: 'utf8',
+      env: { ...process.env, TMPDIR: os.tmpdir() },
+    });
+
+  const applied = run('apply', '--db', databasePath, '--adr', 'ADR-0048', '--backup-dir', sandbox.backups, '--json');
+  assert.equal(applied.status, 0, applied.stderr);
+  const result = JSON.parse(applied.stdout);
+
+  assert.equal(userVersion(databasePath), ACTIVATED_VERSION);
+  assert.deepEqual(dumpOperational(databasePath), before, 'every original row survives the activation');
+  assert.ok(fs.existsSync(result.backup_path), 'the backup file exists');
+  assert.equal(sha256(result.backup_path), original, 'the backup is a byte copy of the original');
+  assert.equal(result.receipt.backup_sha256, original);
+  assert.equal(result.receipt.original_sha256_before, original);
+  assert.deepEqual(JSON.parse(fs.readFileSync(result.receipt_path, 'utf8')), result.receipt);
+  assert.equal(result.receipt.adr, 'ADR-0048');
+  assert.equal(result.receipt.adr_status, 'Accepted');
+  assert.equal(result.receipt.commit, currentCommit());
+  assert.equal(result.receipt.user_version_after, ACTIVATED_VERSION);
+
+  const legacy = new Database(databasePath);
+  try {
+    assert.throws(
+      () => assertOperationalSchemaBoundary(legacy),
+      (error) => error.code === 'EXECUTION_ACTIVATION_PENDING',
+    );
+  } finally {
+    legacy.close(); // an open handle would make the rollback refuse the database as in use
+  }
+
+  const again = run('apply', '--db', databasePath, '--adr', 'ADR-0048', '--backup-dir', sandbox.backups, '--json');
+  assert.notEqual(again.status, 0);
+  assert.match(again.stderr, /EXECUTION_ACTIVATION_ALREADY_ACTIVATED/);
+  assert.equal(userVersion(databasePath), ACTIVATED_VERSION);
+
+  const rolledBack = run('rollback', '--db', databasePath, '--backup', result.backup_path, '--expected-sha256', original, '--json');
+  assert.equal(rolledBack.status, 0, rolledBack.stderr);
+  assert.equal(sha256(databasePath), original, 'rollback returns the bytes of the original database');
+  assert.equal(userVersion(databasePath), OPERATIONAL_SCHEMA_VERSION);
+  assert.deepEqual(dumpOperational(databasePath), before);
 });
 
 test('only the criterion ADR list opens the gate, even for an unrelated Accepted ADR', async (t) => {

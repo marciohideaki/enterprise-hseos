@@ -146,14 +146,14 @@ function fakeSystem(overrides = {}) {
     calls: [],
     ...overrides,
   };
-  const spawn = (binary, args) => {
+  const spawn = (binary, args, options) => {
     const child = fakeChild();
-    state.spawned.push({ binary, args, child });
+    state.spawned.push({ binary, args, env: options?.env, child });
     if (binary === host.XVFB && state.xvfbExits) setImmediate(() => child.emit('exit', 1, null));
     return child;
   };
   const spawnSync = (binary, args, options) => {
-    state.calls.push({ binary, args, display: options.env?.DISPLAY });
+    state.calls.push({ binary, args, display: options.env?.DISPLAY, env: options.env });
     if (binary === host.XDOTOOL && args[0] === 'getdisplaygeometry') {
       if (state.reachable.has(options.env.DISPLAY)) return { status: 0, stdout: Buffer.from('640 400') };
       if (state.geometryFailures > 0 && options.env.DISPLAY.startsWith(':99')) {
@@ -923,6 +923,51 @@ test('host start: private display, no operator DISPLAY in any child, target afte
   assert.ok(session.written() > 0);
 });
 
+test("host children never inherit the operator's DISPLAY: the display server gets none, the target and the tools get only the private one", async () => {
+  const operator = ':0';
+  const previous = process.env.DISPLAY;
+  const modulePath = require.resolve('../packages/agent-environment/computer-host');
+  const cached = require.cache[modulePath];
+  process.env.DISPLAY = operator;
+  delete require.cache[modulePath];
+  try {
+    // The child environment is fixed when the module loads, so the module is loaded afresh with the operator display set.
+    const fresh = require(modulePath);
+    const system = fakeSystem({ windowAfter: 2 });
+    const lines = [];
+    const session = fresh.createHost({
+      spawn: system.spawn,
+      spawnSync: system.spawnSync,
+      fsApi: system.fsApi,
+      connect: system.connect,
+      emit: (line) => lines.push(JSON.parse(line)),
+      sleep: () => Promise.resolve(),
+      limits: contract.LIMITS,
+    });
+    await session.start(START);
+    assert.equal(lines[0].event, 'ready');
+    const [xvfb, target] = system.state.spawned;
+    assert.equal(xvfb.env.DISPLAY, undefined, 'the display server itself is not pointed at any display');
+    assert.equal(target.env.DISPLAY, ':99', 'the target sees only the private display');
+    const tools = system.state.calls.filter((call) => call.display !== undefined && !START.deny_displays.includes(call.display));
+    assert.ok(tools.length > 0);
+    assert.ok(
+      tools.every((call) => call.env.DISPLAY === ':99'),
+      'every tool call after the probes runs against the private display',
+    );
+    for (const name of START.deny_displays) {
+      const probes = system.state.calls.filter((call) => call.args[0] === 'getdisplaygeometry' && call.display === name);
+      assert.equal(probes.length, 1, `${name} is only probed, never used`);
+    }
+    session.stop();
+  } finally {
+    if (previous === undefined) delete process.env.DISPLAY;
+    else process.env.DISPLAY = previous;
+    if (cached) require.cache[modulePath] = cached;
+    else delete require.cache[modulePath];
+  }
+});
+
 test('host start waits, bounded, for the target to draw before it reports ready', async () => {
   const slow = fakeHost({ paintAfter: 3, xwd: xwd({ pixel: noisy }) });
   await slow.session.start(START);
@@ -1446,6 +1491,20 @@ test('a screenshot becomes untrusted display data with provenance, stored by dig
     'ENV_COMPUTER_RESULT_INVALID',
     'a picture of another size is not this display',
   );
+  // Honest in every claim (size, dimensions, digest) but one byte past the ceiling: the controller enforces the limit itself.
+  const padded = Buffer.concat([PNG, Buffer.alloc(contract.LIMITS.max_screenshot_bytes + 1 - PNG.length)]);
+  assert.equal(padded.length, contract.LIMITS.max_screenshot_bytes + 1);
+  assert.equal(
+    (await lies(() => ({ png_base64: padded.toString('base64'), bytes: padded.length, sha256: sha256(padded) }))).code,
+    'ENV_COMPUTER_RESULT_INVALID',
+    'a picture above the byte ceiling is refused even when every claim about it is true',
+  );
+  const atLimit = Buffer.concat([PNG, Buffer.alloc(contract.LIMITS.max_screenshot_bytes - PNG.length)]);
+  assert.equal(
+    (await lies(() => ({ png_base64: atLimit.toString('base64'), bytes: atLimit.length, sha256: sha256(atLimit) }))).status,
+    'ok',
+    'a picture exactly at the ceiling is accepted',
+  );
   assert.equal((await lies(() => ({ png_base64: 'not base64!' }))).code, 'ENV_COMPUTER_OUTPUT_INVALID');
   assert.equal((await lies(() => ({ png_base64: undefined }))).code, 'ENV_COMPUTER_OUTPUT_INVALID');
 });
@@ -1474,6 +1533,8 @@ test('an approved action runs once, bound to session, sequence, action, argument
   const approve = (action) => {
     const pending = instance.requestApproval(id, action);
     assert.equal(pending.status, 'pending', JSON.stringify(pending));
+    // The approver is shown the screenshot the grant is bound to, by the digest the controller hashed itself.
+    assert.equal(pending.screenshot_digest, sha256(PNG));
     approvals.approve(pending.request_id, { approver: 'operator' });
     return pending.request_id;
   };
