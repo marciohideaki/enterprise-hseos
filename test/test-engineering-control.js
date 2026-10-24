@@ -25,9 +25,9 @@ const command = (id, action, sequence, input = {}) => ({
   input,
 });
 
-async function setup(t) {
+async function setup(t, { bindings } = {}) {
   const f = fixture(t, { files: { 'index.js': 'module.exports = n => n - 1;' } });
-  const control = new EngineeringControl({ workspaces: [f.root] });
+  const control = new EngineeringControl({ workspaces: [f.root], ...(bindings ? { bindings: bindings(f.directory) } : {}) });
   const server = await startControlServer({ control, credential });
   const client = new ControlClient({ url: server.url, credential });
   t.after(async () => {
@@ -587,6 +587,109 @@ test('a job admitted under the previous rules is still claimed and re-validated,
   assert.equal(claimed.status, 'claimed');
   // Recovery re-validates through the same path as the claim.
   await control.jobs.worker.admit(control.jobs.query(id));
+});
+
+test('admission refuses a max_tokens below the context floor through create and create_workflow, citing both numbers (H-4)', async (t) => {
+  const f = await setup(t);
+  const low = structuredClone(f.contract);
+  low.limits.max_tokens = 100;
+  const expectDetail = (error) => {
+    assert.equal(error.code, 'CONTROL_REQUEST_REJECTED');
+    assert.equal(error.detail.code, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+    assert.match(error.detail.message, /max_tokens 100 is below the minimum \d+/);
+    return true;
+  };
+  await assert.rejects(f.client.execute(command(randomUUID(), 'create', 0, { contract: low, responses: [] })), expectDetail);
+  const workflow = {
+    schema_version: 1,
+    workflow_id: 'workflow:low-tokens',
+    max_parallelism: 1,
+    limits: { ...f.contract.limits, max_children: 1, max_workflow_steps: 1, max_duration_ms: f.contract.limits.max_duration_ms * 2 },
+    tasks: [
+      {
+        id: 'only',
+        contract: { ...low, verifier: { ...low.verifier, sha256: projectVerifierDigest(low) } },
+        responses: f.create.input.responses,
+        depends_on: [],
+      },
+    ],
+  };
+  await assert.rejects(f.client.execute(command(randomUUID(), 'create_workflow', 0, { definition: workflow })), expectDetail);
+});
+
+// A binding file with a given provider output cap, for the admission floor that follows the cap the control API resolves.
+function bindingFile(directory, cap) {
+  const YAML = require('yaml');
+  const binding = YAML.parse(
+    fs.readFileSync(path.join(__dirname, '../.agents/activation/provider-bindings/openai-compatible.example.yaml'), 'utf8'),
+  );
+  binding.provider.base_url = 'https://engineering.fixture.invalid/v1';
+  binding.provider.limits = { context_tokens: 1_000_000, max_output_tokens: cap, max_parallel_requests: 1 };
+  binding.provider.secret_refs[0].source_ref = 'env://ENGINEERING_FIXTURE_CREDENTIAL';
+  binding.transport.max_attempts = 1;
+  const filename = path.join(directory, `binding-${cap}.yaml`);
+  fs.writeFileSync(filename, YAML.stringify(binding));
+  return { id: binding.binding_id, filename };
+}
+
+test('create with a binding id is held to the floor of the binding output cap, exactly (H-4)', async (t) => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  for (const cap of [8192, 1024, 256]) {
+    let binding;
+    const f = await setup(t, {
+      bindings: (directory) => {
+        binding = bindingFile(directory, cap);
+        return { [binding.id]: binding.filename };
+      },
+    });
+    const withTokens = (value) => ({ ...f.contract, limits: { ...f.contract.limits, max_tokens: value } });
+    const floor = minimumMaxTokens(f.contract, cap);
+    const create = (value, id = randomUUID()) =>
+      f.client.execute(command(id, 'create', 0, { contract: withTokens(value), binding_id: binding.id }));
+    await assert.rejects(
+      () => create(floor - 1),
+      (error) => {
+        assert.equal(error.detail.code, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR', `cap ${cap}`);
+        assert.ok(error.detail.message.includes(`minimum ${floor} `) && error.detail.message.includes(`max_tokens ${floor - 1} `));
+        return true;
+      },
+      `cap ${cap}: one below the exact floor`,
+    );
+    // Not the smallest-reserve floor: a cap-8192 binding must not be admitted just above the cap-1 floor.
+    if (cap > 1024) await assert.rejects(() => create(minimumMaxTokens(f.contract, 1) + 1), { code: 'CONTROL_REQUEST_REJECTED' });
+    const created = await create(floor);
+    assert.equal(created.reason, 'awaiting-execution', `cap ${cap}: exactly the floor is admitted: ${JSON.stringify(created)}`);
+  }
+});
+
+test('create_workflow admits scripted tasks at the exact scripted floor (H-4)', async (t) => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  const f = await setup(t);
+  const floor = minimumMaxTokens(f.contract);
+  const workflow = (value) => {
+    const contract = { ...f.contract, limits: { ...f.contract.limits, max_tokens: value } };
+    return {
+      schema_version: 1,
+      workflow_id: 'workflow:floor',
+      max_parallelism: 1,
+      limits: {
+        ...f.contract.limits,
+        max_tokens: value,
+        max_children: 1,
+        max_workflow_steps: 1,
+        max_duration_ms: f.contract.limits.max_duration_ms * 2,
+      },
+      tasks: [{ id: 'only', contract, responses: f.create.input.responses, depends_on: [] }],
+    };
+  };
+  const attempt = (value) => f.client.execute(command(randomUUID(), 'create_workflow', 0, { definition: workflow(value) }));
+  // One below the scripted floor, but above the unknown-cap floor: only the scripted reserve (8192) refuses it.
+  await assert.rejects(
+    () => attempt(floor - 1),
+    (error) => error.detail?.code === 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR',
+  );
+  const created = await attempt(floor);
+  assert.ok(created.resource_id, JSON.stringify(created));
 });
 
 test('the job command pre-check refuses weak acceptance before any other validation', async (t) => {

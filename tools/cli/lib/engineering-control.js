@@ -10,7 +10,7 @@ const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-
 const { createExecutionLedgerFileFixture, openExecutionLedgerFileFixture } = require('../../mcp-project-state/lib/execution-ledger-schema');
 const { engineeringDigest } = require('./engineering-task-state');
 const { runEngineeringTask, inspectEngineeringTask } = require('./engineering-task-runtime');
-const { parseEngineeringTask } = require('./engineering-task-contract');
+const { parseEngineeringTask, requireContextFloor } = require('./engineering-task-contract');
 const { runEngineeringWorkflow, inspectEngineeringWorkflow, parseEngineeringWorkflow } = require('./engineering-workflow-runtime');
 const { reviewProjectResult, applyProjectResult } = require('./engineering-workspace');
 
@@ -72,7 +72,9 @@ function parseCreationInput(action, value, { admission = false } = {}) {
   if (!['create', 'create_workflow'].includes(action)) throw new ControlError('CONTROL_COMMAND_UNKNOWN');
   const input = inputs[action].parse(value);
   if (action === 'create') {
-    const contract = parseEngineeringTask(input.contract, { admission });
+    // A scripted model has no output cap; a binding id or plugin model is resolved after admission (cap unknown).
+    const outputCap = input.responses || input.responses_from ? null : undefined;
+    const contract = parseEngineeringTask(input.contract, { admission, outputCap });
     if (contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
     if ([input.responses, input.responses_from, input.binding_id, input.plugin_model].filter(Boolean).length > 1)
       throw new ControlError('CONTROL_MODEL_CONFLICT');
@@ -83,7 +85,8 @@ function parseCreationInput(action, value, { admission = false } = {}) {
   const { definition } = parseEngineeringWorkflow(input.definition);
   for (const task of definition.tasks) {
     if (task.contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
-    parseEngineeringTask(task.contract, { admission });
+    // Control workflow tasks are scripted (a task binding is refused below): no provider output cap.
+    parseEngineeringTask(task.contract, { admission, outputCap: task.binding ? undefined : null });
     if (task.binding) throw new ControlError('CONTROL_BINDING_UNKNOWN');
   }
   return { definition };
@@ -356,6 +359,8 @@ class EngineeringControl {
             require('../../lib/agent-provider-binding').readProviderBinding(this.bindings[input.binding_id]).binding,
           )
         : undefined;
+      // The cap the runtime will reserve is known now: hold the contract to the exact floor, not the smallest-reserve one.
+      if (admission && binding) requireContextFloor(contract, binding.provider.limits.max_output_tokens);
       let selection, pluginModel;
       if (input.extension_ids?.length || input.plugin_model) {
         selection = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(this.extensionCatalog, [
@@ -382,6 +387,7 @@ class EngineeringControl {
           });
           pluginModel = model.pin;
           await model.close();
+          if (admission) requireContextFloor(contract, pluginModel.provider_manifest.limits.max_output_tokens);
         }
       }
       return {
