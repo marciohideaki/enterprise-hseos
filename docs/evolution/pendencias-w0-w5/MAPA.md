@@ -91,3 +91,21 @@ Lista original em [revalidation-2026-10/STATUS.md](../revalidation-2026-10/STATU
 10. macOS e Windows (W7) e tag nova do ECP: dependem de terceiros ou de infraestrutura.
 
 O que pode avançar sem essas decisões está em [PLAN.md](PLAN.md).
+
+## 6. Execução da P2 e da P3 (2026-10-24): resíduos e achados
+
+Executadas sem decisão do owner (tasks T-1, T-3, T-5, T-6 e H-2, H-4, H-7, H-9). Cada task teve revisão cética isolada em duas passagens. Nada abaixo muda o estado de uma onda; é o que ficou fora do escopo.
+
+| Item                                       | Situação                                                                                                                                                                                                                   | Dono      |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Dívida 18 (`max_tokens` baixo)             | Reduzida, não fechada. O piso é limite inferior; faixa opaca residual de 752–753 tokens (schema 1) e 2359 (schema 2). Extensões, ambiente e memória não medidos                                                            | Commander |
+| Receipt da ativação                        | O backup grava `<stamp>-project.db.receipt.json` e o rollback procura `<backup>.receipt.json`; só com `--backup` o rollback não cruza o receipt. Corrigir muda a ativação                                                  | Owner     |
+| Envelope de erro do adaptador MCP          | `data.issues` do Ajv no ramo do `outputSchema` pode levar nomes de chave da saída da tool ao cliente. Corrigir muda o formato do envelope                                                                                  | Owner     |
+| Erros com `code` e sem `outcome`           | Passam a responder `Internal error` no adaptador (por exemplo `TASK_NOT_FOUND`); `engineering-task-extensions.js` lança `Error` com `outcome` sem `GovernedRefusalError`. Confirmar que nenhum cliente depende da mensagem | Commander |
+| Cobertura (`.c8-kernel.json`)              | `packages/governed-execution/canonical-envelope.js` e `packages/agent-environment/index.js` fora do gate                                                                                                                   | Owner     |
+| `browser.js:19`                            | `pids_max: 256` literal igual ao teto da faixa; se o teto baixar, falha só em runtime                                                                                                                                      | Commander |
+| `test-mcp-hseos-swarm-scope.js` no Node 22 | Sai com 0 sem a linha de contagem e ficou verde com a mutação `mcp_run_id`; no agendamento noturno não protege nada                                                                                                        | Commander |
+| Redação de PEM sem marcador (H-9)          | Limites conhecidos: Ed25519 PKCS8 de uma linha; última linha com menos de 16 caracteres; sem fixture de chave real; `containsCredential` de três módulos não usa a heurística                                              | Commander |
+| H-4                                        | Mutante sobrevivente em `engineering-control.js:362` (`admission &&` do recheck do binding sem teste de `admission:false`); precedência de erros do `create` mais larga que a documentada                                  | Commander |
+| H-7                                        | `detail.code` próprio nas regras cruzadas secundárias muda valores já publicados (alternativa: campo `detail.rule`); teto de 64 leituras por argumento recusa por `ENGINEERING_COMMAND_ARG_INVALID`                        | Owner     |
+| T-5                                        | Mutantes equivalentes sem lugar durável além do corpo do commit: P04, M21, `toLowerCase` de `browser-contract.js:71`, `assertOpenedInside`, `dap_survivor`                                                                 | Commander |
