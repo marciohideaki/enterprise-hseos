@@ -14,7 +14,7 @@ const { executorOwner } = require('../packages/agent-isolation-attestation/execu
 const { createPluginModelCampaignAdapter } = require('../tools/cli/lib/engineering-plugin-model');
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 
-async function setup(t, { source = 'module.exports=()=>({text:"done",tool_calls:[]});', files } = {}) {
+async function setup(t, { source = 'module.exports=()=>({text:"done",tool_calls:[]});', files, outputCap = 8192 } = {}) {
   const f = fixture(t, { files });
   const directory = path.join(f.directory, 'plugin');
   fs.mkdirSync(directory);
@@ -38,7 +38,7 @@ async function setup(t, { source = 'module.exports=()=>({text:"done",tool_calls:
     binding_id: 'local-model',
     model: 'plugin/test',
     models: ['plugin/test'],
-    limits: { max_requests: 20, max_input_tokens: 65_536, max_output_tokens: 8192, max_duration_ms: 3000 },
+    limits: { max_requests: 20, max_input_tokens: 65_536, max_output_tokens: outputCap, max_duration_ms: 3000 },
   };
   const catalog = {
     selected: {
@@ -162,6 +162,28 @@ test('create-only pins authorized model identity; resume reserves the original c
   assert.equal((await f.control.query(f.resourceId, 'session')).status, 'completed');
   assert.equal((await f.command('resume')).task_result, 'approved');
   assert.equal(f.launches, 1);
+});
+
+test('a plugin model is held to the floor of its own output cap at admission, and runs above it (H-4)', async (t) => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  for (const cap of [8192, 1024, 256]) {
+    const f = await setup(t, { outputCap: cap });
+    const withTokens = (value) => ({ ...f.contract, limits: { ...f.contract.limits, max_tokens: value } });
+    const floor = minimumMaxTokens(f.contract, cap);
+    await assert.rejects(
+      f.create(f.resourceId, { contract: withTokens(floor - 1) }),
+      (error) => error.reason === 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR' && error.message.includes(`minimum ${floor} `),
+      `cap ${cap}: one below the pinned cap's floor`,
+    );
+    // The floor leaves out the per-message framing and the schema 2 tools: measured on this fixture, the first request
+    // assembles from floor + 2359 (cap 8192), so the run gets a margin above that.
+    await f.create(f.resourceId, { contract: withTokens(floor + 3000) });
+    // The plugin session runs outside this process, so the assembly is observed through its outcome.
+    const result = await f.command('resume');
+    assert.notEqual(result.reason, 'session-failed:internal_error', JSON.stringify(result));
+    // A later request may not fit; that failure is explicit (session-budget-exceeded) and is not what H-4 is about.
+    assert.match(result.reason, /^(session-budget-exceeded|criteria-satisfied)$/, `cap ${cap}: ${JSON.stringify(result)}`);
+  }
 });
 
 test('model tool proposal is executed by the task gateway and independently accepted', async (t) => {

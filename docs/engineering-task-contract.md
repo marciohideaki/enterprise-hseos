@@ -80,6 +80,29 @@ a distinct `detail.code` (`docs/engineering-control-api.md`).
   fixed expectations and the external verifier. This is the Commander's reading of "executable verifier"
   (the task text asked for the verification module in `protected_paths`); it has no formal owner
   approval yet and is recorded here for review.
+- Context floor (H-4): admission also refuses `limits.max_tokens` below `minimumMaxTokens(contract, reserve)` with
+  `ENGINEERING_MAX_TOKENS_BELOW_FLOOR`; the message names the minimum and the received value. The floor is the
+  output reserve plus what the context assembler certainly counts as input: the precedence preamble, both
+  instructions, the protected-criteria block and the first user turn (both built from the contract), the request
+  parameters and the native tool schemas of a schema 1 task (1853, measured). The reserve is the one the runtime
+  sends, `effectiveOutputReserve(cap)` = `min(8192, provider cap)`, shared by both, so admission uses the exact
+  cap wherever it is resolved: a scripted model has none (reserve 8192); `agent run --binding` and the control API
+  `create` with a `binding_id` or a `plugin_model` check again after the binding or the plugin pin is resolved
+  (`admitCreation`), with that cap; control `create_workflow` tasks are scripted (a task binding is refused), so they
+  use 8192. The only checks that still assume the smallest reserve a provider can impose (1; floor 3712 for
+  `addition.json`) are `validate-task` without a model source, which runs nothing, and the structural pre-read of
+  `agent run`, which `runEngineeringTask` repeats with the exact cap. Below the floor the first request cannot be
+  assembled and the session used to end in `session-failed:internal_error` with no cause.
+  The floor is a lower bound, so a value above it can still fail opaquely. Measured by bisection (first request
+  assembles from floor + margin): schema 1 `addition.json`, caps 96, 256, 1024, 2048 and 8192: margin 752 to 753
+  tokens (per-message framing); schema 2 project fixture with a plugin model of cap 8192: margin 2359 tokens (framing
+  plus the schema 2 tool schemas the floor does not count). Extensions, environment tools and memory add context
+  the floor does not count either, and their residual was not measured. A run can also stop with
+  `session-budget-exceeded` when later requests do not fit; that failure already names its numbers. The floor is
+  checked before `requireExecutableAcceptance`, so a contract with both problems reports the floor first. Contracts
+  already admitted, replays, recovery and `readEngineeringTask` without admission are not re-checked; `job expand`
+  re-evaluates the whole workflow with admission, so an older task with a low `max_tokens` blocks the expansion, as
+  the W5-10b rules already do.
 - Known configuration files, `protected_config_files_version` 1 (the list only grows, by a new version):
   `package.json`, `tsconfig*.json`, `vitest.config.*`, `vite.config.*`, `.npmrc`, `pnpm-workspace.yaml`,
   matched by file name at any depth outside the pnpm store. Missing from `protected_paths`:
@@ -91,7 +114,12 @@ a distinct `detail.code` (`docs/engineering-control-api.md`).
 - Each `command_checks` argument must be an identifier or relative path `[A-Za-z0-9._@/-]`, a long option
   `--name` with at most one `=` whose value is in the same alphabet, or one single-letter short option.
   `file:index.js`, `index%2Ejs`, `index.js:1`, `--a=b=index.js`, `~`, `\\`, `-cindex.js` and empty
-  values are refused with `ENGINEERING_COMMAND_ARG_INVALID`.
+  values are refused with `ENGINEERING_COMMAND_ARG_INVALID`. Independently of the alphabet, and at every
+  parse (so an already admitted contract is checked too), each argument is unwrapped to the paths it can
+  name (percent-escapes in any case, a `file:` scheme in any case, a short option glued to its value as in
+  `-cindex.js` or `-c=index.js`, a `:line[:column]` suffix, every `=` split) and none may resolve outside the
+  project root (`ENGINEERING_COMMAND_ARG_OUTSIDE_ROOT`) or to a writable path (`ENGINEERING_COMMAND_ARG_WRITABLE`). An argument that unwraps to more than 64
+  distinct readings is refused with `ENGINEERING_COMMAND_ARG_INVALID` (fail-closed).
 - Acceptance by criterion (W2): in a schema 2 contract each `acceptance[]` entry may carry `check_ids`, and each
   `verifier.checks[]` entry may carry an `id`. Check ids and `command_checks[].command_id` share one namespace; a
   criterion names the checks and commands that decide it. The id is part of the pinned acceptance but is never sent to

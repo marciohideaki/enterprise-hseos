@@ -136,6 +136,25 @@ decisions. Historical events and already admitted contracts stay readable.
   grant to; the service gate is resolved only after that approval, in the approver's name. The server stays fixture-only
   (`EXECUTION_ACTIVATION_PENDING` otherwise).
 
+### Context floor for `max_tokens` (H-4)
+
+New task admissions refuse a `limits.max_tokens` that cannot hold the first model request, with the stable
+`detail.code` `ENGINEERING_MAX_TOKENS_BELOW_FLOOR`. The message names the minimum and the received value
+(for the `addition.json` task with the default 8192 output reserve: minimum 11903; a provider with a smaller
+output cap lowers it). Before, such a task was admitted and ended in `session-failed:internal_error` with a
+generic message, because the context overflow is not one of the runtime's normalized failure codes
+(`packages/agent-runtime/runtime.js`, unchanged). Raise `max_tokens` to at least the reported minimum.
+The control API checks the exact cap of the binding or plugin model it resolves; only `validate-task` without a
+model source and the structural pre-read of `agent run` assume the smallest possible reserve (3712 for
+`addition.json`), and `agent run` repeats the check with the exact cap.
+
+The minimum is a lower bound, not a guarantee: a value just above it can still end in the generic failure.
+Measured margins above the minimum: 752 to 753 tokens for the schema 1 `addition.json` task (caps 96 to 8192),
+2359 tokens for the schema 2 project fixture with a plugin model of cap 8192; extensions and environment tools were
+not measured. Later requests must also fit and report `session-budget-exceeded` (with its numbers) when they do
+not. Contracts already admitted, replays, job claim and recovery, and a plain `readEngineeringTask` are not
+re-checked; `job expand` does re-check, like the W5-10b rules. No field, type or schema version changes.
+
 ### Stricter acceptance for engineering tasks (W5-10b)
 
 New task admissions now refuse a delivery that cannot be verified, with stable
@@ -152,6 +171,21 @@ New task admissions now refuse a delivery that cannot be verified, with stable
   and their `contract_sha256` does not change.
 - `ENGINEERING_COMMAND_ARG_INVALID`: an argument of a command used by a
   `command_checks` entry is outside the conservative argument alphabet.
+- Cross-rule refusals that used to share one `detail.code` now have their own (list in
+  `docs/engineering-control-api.md`); the old code stays with the primary rule of its family, so a client
+  that matched a shared code must also match the new ones. Contracts that were valid stay valid.
+- `command_checks` arguments are unwrapped (percent-escapes, `file:`, `-cVALUE`, `:line:col`, `=` splits)
+  before the outside-root and writable checks, at every parse; new admissions also refuse the wrapped
+  forms with `ENGINEERING_COMMAND_ARG_INVALID`.
+- An argument that unwraps to more than 64 distinct readings is refused with
+  `ENGINEERING_COMMAND_ARG_INVALID` at every parse (fail-closed; exactly 64 is accepted).
+- Order of checks changed for contracts with more than one fault: `source_ids` and `requirement_ids` are
+  checked for repeats before unknown ids, and `initial_files` are checked for readability, then digest, then
+  the byte budget (before, all of these were `ENGINEERING_INITIAL_FILES_INVALID` or
+  `ENGINEERING_TRACEABILITY_BROKEN`). A contract with a single fault gets the same refusal, with the code of
+  that fault.
+- The scope denial message is `input does not match schema v1: path is not one of the paths this task
+declares in scope.read or scope.write` (code `ENGINEERING_SCOPE_DENIED` unchanged, no input value echoed).
 - `ENGINEERING_PROTECTED_CONFIG_MISSING`: a contract with `command_checks` lists a
   known project configuration file among its readable or initial files without
   declaring it in the verifier's protected paths.
