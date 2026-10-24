@@ -41,8 +41,11 @@ function parseSchema(schema, value, phase) {
     // A schema may classify its own rejection with a specific, closed-form code; the default stays EXECUTION_<PHASE>_INVALID.
     const specific =
       parsed && parsed.error && /^[A-Z][A-Z0-9_]{2,63}$/.test(parsed.error.hseos_code || '') ? parsed.error.hseos_code : null;
+    // A schema may also state its cause: a fixed phrase naming the field and the rule, never an input value.
+    const cause =
+      parsed && parsed.error && /^[A-Za-z][A-Za-z0-9 ._,/-]{0,159}$/.test(parsed.error.hseos_cause || '') ? parsed.error.hseos_cause : null;
     throw new ExecutionContractError(
-      `${phase} does not match schema v${schema.version}`,
+      `${phase} does not match schema v${schema.version}${cause ? `: ${cause}` : ''}`,
       specific || `EXECUTION_${phase.toUpperCase()}_INVALID`,
       {
         phase,
