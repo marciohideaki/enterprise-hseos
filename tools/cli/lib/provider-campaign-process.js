@@ -16,12 +16,97 @@ const WITHHELD = '<withheld: credential pattern>';
 // Keys that could carry the prompt, model output or a secret never reach a diagnostic, whatever an adapter attaches.
 const FORBIDDEN_KEY = /prompt|secret|password|credential|authorization|content|text/i;
 
+// Key material that lost its marker. The stderr capture keeps only the last STDERR_CAPTURE_CHARS, so a PEM block can
+// arrive with its BEGIN line cut off: a bare base64 body, maybe followed by a loose END line. A loose END line is a
+// marker pattern like the older ones: it withholds the whole text.
+const LOOSE_KEY_END = /-----END [A-Z ]*PRIVATE KEY-----/;
+// Heuristic for the body itself (applied to one block at a time, see redactKeyBodies):
+//  - a "full" line is base64 or base64url ([A-Za-z0-9+/_-]) of 40+ characters, optionally ending in `=` padding, that is not
+//    hex-only and mixes upper case, lower case and digits (PEM wraps at 64, MIME at 76; EC keys end on a shorter line);
+//  - a "tail" line (16+ characters, mixed) counts only right after two or more full lines, so a key whose last line is
+//    short (EC SEC1 P-256: 64 + 64 + 36) is still caught; it ends the block;
+//  - a line carrying `=` ends the block, so `=` in the middle of lines does not chain (a tampered body can escape);
+//  - three lines is the threshold: two would catch pairs of digests, while real bodies run to dozens of lines and keep
+//    enough of them when the capture window starts mid-block;
+//  - a common line prefix (`[stderr] `, `stderr: `, a simple timestamp) is ignored when classifying a line.
+// Trade-off, fail-closed per block: only the matching lines are replaced by a short marker and the rest of the text (the
+// real cause of the error) is kept, but legitimate text of the same shape is lost as well: the output of `base64`, a
+// wrapped data URI, three lines of mixed base64url tokens or of base64 hashes. Known limits: a one-line body (Ed25519
+// PKCS8, 64 characters) cannot be told from a digest and is NOT covered; two-line bodies and lines under 40 characters
+// (other than a block tail) are not covered; interleaved text breaks a block. The same heuristic is NOT applied to
+// containsCredential() in campaign-evidence-store.js (retained model output, where base64 is legitimate and a false
+// positive would drop evidence), nor to engineering-task-runtime.js (probe stderr) or platform-bindings.js (git stderr).
+const FULL_LINE = /^[A-Za-z0-9+/_-]{40,}={0,2}$/;
+const TAIL_LINE = /^[A-Za-z0-9+/_-]{16,}={0,2}$/;
+// A fragment must look like key text (8+ characters with a digit or upper case), not like a word such as `oops`.
+const PARTIAL_LINE = /^(?=.*[0-9A-Z])[A-Za-z0-9+/_-]{8,}$/;
+const HEX_ONLY = /^[0-9a-fA-F]+$/;
+const LINE_PREFIX = /^(?:\[[A-Za-z0-9 _.:-]{1,24}\]|[A-Za-z]{3,12}:|\d{4}-\d{2}-\d{2}[T ][\d:.]+Z?)\s*/;
+const MIN_BODY_LINES = 3;
+
+const mixed = (line) => /[A-Z]/.test(line) && /[a-z]/.test(line) && /[0-9]/.test(line);
+function classify(raw) {
+  const line = raw.trim();
+  const candidates = [line, line.replace(LINE_PREFIX, '')];
+  for (const candidate of candidates) {
+    if (FULL_LINE.test(candidate) && !HEX_ONLY.test(candidate) && mixed(candidate))
+      return { kind: 'full', padded: candidate.endsWith('=') };
+  }
+  for (const candidate of candidates) {
+    if (
+      TAIL_LINE.test(candidate) &&
+      !HEX_ONLY.test(candidate) &&
+      ((/[A-Z]/.test(candidate) && /[a-z]/.test(candidate)) || /[0-9]/.test(candidate))
+    )
+      return { kind: 'tail', padded: candidate.endsWith('=') };
+  }
+  return null;
+}
+
+/**
+ * Replaces each run of MIN_BODY_LINES or more key-body-like lines (see above) with `<withheld: key body, N lines>` and
+ * keeps the rest. A leading fragment left by the capture window (a base64-only first line right before a block) belongs
+ * to the block. Returns the text unchanged when nothing matched.
+ */
+function redactKeyBodies(text) {
+  const lines = text.split('\n');
+  const out = [];
+  let run = [];
+  const flush = () => {
+    if (run.length >= MIN_BODY_LINES) {
+      const first = run[0];
+      if (first === 1 && out.length === 1 && PARTIAL_LINE.test(out[0].trim().replace(LINE_PREFIX, ''))) {
+        out.pop();
+        run.unshift(0);
+      }
+      out.push(`<withheld: key body, ${run.length} lines>`);
+    } else {
+      for (const index of run) out.push(lines[index]);
+    }
+    run = [];
+  };
+  for (const [index, raw] of lines.entries()) {
+    const kind = classify(raw);
+    const joins = kind && (kind.kind === 'full' || run.length >= 2);
+    if (!joins) {
+      flush();
+      out.push(raw);
+      continue;
+    }
+    run.push(index);
+    if (kind.kind === 'tail' || kind.padded) flush();
+  }
+  flush();
+  return out.join('\n');
+}
+
 /** Free text for a diagnostic: checked whole for credential shapes (before any cut can split one), then cut. */
 function clipText(value, limit = TEXT_KEPT_CHARS, fromEnd = false) {
   if (typeof value !== 'string') return null;
-  if (containsCredential(value)) return WITHHELD;
-  if (value.length <= limit) return value;
-  return fromEnd ? value.slice(-limit) : value.slice(0, limit);
+  if (containsCredential(value) || LOOSE_KEY_END.test(value)) return WITHHELD;
+  const text = redactKeyBodies(value);
+  if (text.length <= limit) return text;
+  return fromEnd ? text.slice(-limit) : text.slice(0, limit);
 }
 
 /**
