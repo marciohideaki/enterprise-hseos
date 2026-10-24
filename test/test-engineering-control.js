@@ -244,6 +244,10 @@ test('an out-of-scope read by the executor fails with ENGINEERING_SCOPE_DENIED',
   const text = JSON.stringify([result, (await f.client.events(f.id, { limit: 1000 })).events]);
   assert.ok(text.includes('ENGINEERING_SCOPE_DENIED'), text.slice(0, 600));
   assert.ok(!text.includes('EXECUTION_INPUT_INVALID'));
+  assert.ok(
+    text.includes('does not match schema v1: path is not one of the paths this task declares in scope.read or scope.write'),
+    'the message names the field and the rule',
+  );
   assert.notEqual(result.task_result, 'approved');
 });
 

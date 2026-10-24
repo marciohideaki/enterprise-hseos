@@ -114,7 +114,12 @@ a distinct `detail.code` (`docs/engineering-control-api.md`).
 - Each `command_checks` argument must be an identifier or relative path `[A-Za-z0-9._@/-]`, a long option
   `--name` with at most one `=` whose value is in the same alphabet, or one single-letter short option.
   `file:index.js`, `index%2Ejs`, `index.js:1`, `--a=b=index.js`, `~`, `\\`, `-cindex.js` and empty
-  values are refused with `ENGINEERING_COMMAND_ARG_INVALID`.
+  values are refused with `ENGINEERING_COMMAND_ARG_INVALID`. Independently of the alphabet, and at every
+  parse (so an already admitted contract is checked too), each argument is unwrapped to the paths it can
+  name (percent-escapes in any case, a `file:` scheme in any case, a short option glued to its value as in
+  `-cindex.js` or `-c=index.js`, a `:line[:column]` suffix, every `=` split) and none may resolve outside the
+  project root (`ENGINEERING_COMMAND_ARG_OUTSIDE_ROOT`) or to a writable path (`ENGINEERING_COMMAND_ARG_WRITABLE`). An argument that unwraps to more than 64
+  distinct readings is refused with `ENGINEERING_COMMAND_ARG_INVALID` (fail-closed).
 - Acceptance by criterion (W2): in a schema 2 contract each `acceptance[]` entry may carry `check_ids`, and each
   `verifier.checks[]` entry may carry an `id`. Check ids and `command_checks[].command_id` share one namespace; a
   criterion names the checks and commands that decide it. The id is part of the pinned acceptance but is never sent to
