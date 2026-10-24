@@ -513,6 +513,39 @@ test('a store changed after assembly stops a model-invoked command before it run
   }
 });
 
+test('a harmless-looking addition to the store between assembly and the first command is still drift, because the runtime pins what it verified', async (t) => {
+  const f = pnpmProject(t, { mounted: true });
+  const { EngineeringTaskState } = require('../tools/cli/lib/engineering-task-state');
+  const original = EngineeringTaskState.prototype.append;
+  let injected = false;
+  t.mock.method(EngineeringTaskState.prototype, 'append', function (event, version) {
+    const receipt = original.call(this, event, version);
+    if (event.kind === 'execution_started' && !injected) {
+      injected = true;
+      // A plain file with no link to anything: a full verification would accept it, only the pin taken at assembly refuses it.
+      fs.writeFileSync(path.join(f.root, 'node_modules/.pnpm/mini-test@1.0.0/late-plain.js'), 'module.exports = 1;\n');
+    }
+    return receipt;
+  });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, JSON.stringify([{ name: 'engineering.command', input: { id: 'native' } }]));
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(injected, true);
+  assert.notEqual(result.task_result, 'approved', JSON.stringify(result));
+  const handle = require('../tools/mcp-project-state/lib/execution-ledger-schema').openExecutionLedgerFileFixture(result.state);
+  try {
+    const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+    const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
+    const session = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) }).replay(result.session_id);
+    const invocation = Object.values(session.tool_invocations).find((entry) => entry.name === 'engineering.command');
+    assert.notEqual(invocation.outcome?.status, 'succeeded', 'the command never ran against the changed store');
+    assert.match(JSON.stringify(invocation.outcome), /pnpm store changed after it was verified/);
+  } finally {
+    handle.close();
+  }
+});
+
 function driftFixture(t, name) {
   const f = pnpmProject(t, { mounted: true });
   const secret = path.join(f.directory, 'private-key');
