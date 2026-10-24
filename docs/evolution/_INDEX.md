@@ -40,3 +40,4 @@ separados.
 - [Validação em consumidor real 2026-10](consumer-validation-2026-10/README.md) ([estado](consumer-validation-2026-10/STATUS.md))
 - [Revalidação real e revisão adversarial](w3/LIVE-REVALIDATION.md)
 - [ACP restrito: compatibilidade, fronteira e campanha real](w3/ACP-CAMPAIGN.md)
+- [Pendências das ondas W0–W5: mapa e plano](pendencias-w0-w5/MAPA.md) ([plano](pendencias-w0-w5/PLAN.md))

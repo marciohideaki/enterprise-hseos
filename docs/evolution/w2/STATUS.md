@@ -1,5 +1,7 @@
 # Onda 2 — terminais e lifecycle
 
+> Nota de 2026-10-23: a W2 foi integrada na `master` (W0–W4 pela PR #182) e a janela de ativação do piloto de 2026-10-22 ativou o ledger de execução só no `enterprise-hseos`; "sem merge", "não ativado" e "ativação não executada" descrevem o momento do fechamento da onda. Estado atual por onda em [PLAN — estado consolidado](../PLAN.md) e pendências em [pendencias-w0-w5/MAPA.md](../pendencias-w0-w5/MAPA.md). O texto abaixo é histórico e não foi reescrito.
+
 Revisões posteriores autorizadas: [REVIEW.md](REVIEW.md) e
 [fechamento de detach](DETACH-REVIEW.md). Os resultados abaixo descrevem a
 entrega original; cada revisão preserva seu próprio recibo.
