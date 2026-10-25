@@ -480,28 +480,52 @@ test('admission requires known configuration files present in the workspace to b
 test('every cross rule of the contract refuses with its own reason and keeps the compatibility code', (t) => {
   const cases = [
     ['ENGINEERING_CONTRACT_SCHEMA_INVALID', (c) => (c.task_id = '')],
-    ['ENGINEERING_CONTRACT_TOO_LARGE', (c) => (c.max_artifact_bytes = 1_048_577)],
+    ['ENGINEERING_ARTIFACT_BUDGET_TOO_LARGE', (c) => (c.max_artifact_bytes = 1_048_577)],
     ['ENGINEERING_DUPLICATE_ID', (c) => c.sources.push(structuredClone(c.sources[0]))],
     ['ENGINEERING_SCOPE_INVALID', (c) => c.scope.read.push('index.js')],
-    ['ENGINEERING_SCOPE_INVALID', (c) => c.scope.write.push('other.js')],
-    ['ENGINEERING_SCOPE_INVALID', (c) => c.scope.read.push('index.js/x')],
+    ['ENGINEERING_SCOPE_WRITE_NOT_READABLE', (c) => c.scope.write.push('other.js')],
+    ['ENGINEERING_SCOPE_PATH_NESTED', (c) => c.scope.read.push('index.js/x')],
+    ['ENGINEERING_SCOPE_INVALID', (c) => c.scope.write.push('index.js')],
+    [
+      'ENGINEERING_SCOPE_TOO_MANY_PATHS',
+      (c) => {
+        c.scope.read = ['index.js', 'check.js', ...Array.from({ length: 62 }, (_, index) => `extra${index}.js`)];
+        c.scope.write = ['index.js', 'zz.js'];
+      },
+    ],
     ['ENGINEERING_INITIAL_FILES_INVALID', (c) => (c.initial_files = [{ path: 'zzz.js', content: 'x', sha256: sha('x') }])],
     ['ENGINEERING_SOURCE_DIGEST_MISMATCH', (c) => (c.sources[0].sha256 = '0'.repeat(64))],
     ['ENGINEERING_TRACEABILITY_BROKEN', (c) => (c.requirements[0].source_ids = ['ghost'])],
-    ['ENGINEERING_TRACEABILITY_BROKEN', (c) => (c.acceptance[0].requirement_ids = ['ghost'])],
+    ['ENGINEERING_TRACEABILITY_UNKNOWN_REQUIREMENT', (c) => (c.acceptance[0].requirement_ids = ['ghost'])],
+    ['ENGINEERING_DUPLICATE_ID', (c) => c.requirements[0].source_ids.push(c.requirements[0].source_ids[0])],
+    ['ENGINEERING_TRACEABILITY_DUPLICATE_REQUIREMENT_REF', (c) => c.acceptance[0].requirement_ids.push(c.acceptance[0].requirement_ids[0])],
+    ['ENGINEERING_TRACEABILITY_SOURCE_UNUSED', (c) => c.sources.push({ id: 'unused', kind: 'memory', content: 'u', sha256: sha('u') })],
+    [
+      'ENGINEERING_TRACEABILITY_REQUIREMENT_UNCOVERED',
+      (c) => c.requirements.push({ id: 'orphan', description: 'o', source_ids: [c.sources[0].id] }),
+    ],
+    ['ENGINEERING_VERIFIER_ACCEPTANCE_DUPLICATE', (c) => c.verifier.acceptance_ids.push(c.verifier.acceptance_ids[0])],
     ['ENGINEERING_ACCEPTANCE_MISMATCH', (c) => (c.verifier.acceptance_ids = ['ghost'])],
     ['ENGINEERING_COMMAND_ENTRYPOINT_UNREADABLE', (c) => (c.commands[0].entrypoint = 'missing.js')],
-    ['ENGINEERING_LIMITS_INVALID', (c) => (c.limits.max_children = 1)],
+    ['ENGINEERING_CHILDREN_NOT_ALLOWED', (c) => (c.limits.max_children = 1)],
+    ['ENGINEERING_CHILDREN_NOT_ALLOWED', (c) => (c.limits.max_workflow_steps = 1)],
+    ['ENGINEERING_INITIAL_FILE_DIGEST_MISMATCH', (c) => (c.initial_files = [{ path: 'index.js', content: 'x', sha256: '0'.repeat(64) }])],
+    [
+      'ENGINEERING_INITIAL_FILES_OVER_BUDGET',
+      (c) => ((c.max_artifact_bytes = 1), (c.initial_files = [{ path: 'index.js', content: 'xx', sha256: sha('xx') }])),
+    ],
     ['ENGINEERING_CHECK_PATH_UNREADABLE', (c) => (c.verifier.checks[0].path = 'missing.js')],
     ['ENGINEERING_PROTECTED_PATH_INVALID', (c) => c.verifier.protected_paths.push('index.js')],
-    ['ENGINEERING_PROTECTED_PATH_INVALID', (c) => c.verifier.protected_paths.push('check.js')],
+    ['ENGINEERING_PROTECTED_PATH_DUPLICATE', (c) => c.verifier.protected_paths.push('check.js')],
     ['ENGINEERING_COMMAND_CHECK_UNKNOWN', (c) => (c.verifier.command_checks = [{ command_id: 'ghost' }])],
-    ['ENGINEERING_DUPLICATE_ID', (c) => c.verifier.command_checks.push({ command_id: 'check' })],
+    ['ENGINEERING_COMMAND_CHECK_DUPLICATE', (c) => c.verifier.command_checks.push({ command_id: 'check' })],
+    ['ENGINEERING_DUPLICATE_ID', (c) => c.commands.push(structuredClone(c.commands[0]))],
     ['ENGINEERING_COMMAND_ARG_OUTSIDE_ROOT', (c) => (c.commands[0].args = ['../outside'])],
     ['ENGINEERING_COMMAND_ARG_WRITABLE', (c) => (c.commands[0].args = ['--file=index.js'])],
     ['ENGINEERING_WORKSPACE_DIGEST_MISMATCH', (c) => (c.initial_files = [{ path: 'index.js', content: 'x', sha256: sha('x') }])],
   ];
   for (const [reason, mutate] of cases) assert.equal(reasonOf(admissionContract(t, mutate)), reason, reason);
+  // The ENGINEERING_WORKSPACE_DIGEST_MISMATCH case above is the only one that needs the real workspace; the rest stop earlier.
   const unprotectedEntry = admissionContract(t, (c) => (c.verifier.protected_paths = ['lib.js']), { 'lib.js': 'x' });
   assert.equal(reasonOf(unprotectedEntry), 'ENGINEERING_COMMAND_ENTRYPOINT_UNPROTECTED');
 });
@@ -549,12 +573,12 @@ test('v2 large files: 256 KiB accepted, one character more refused, at most 4 ab
   assert.equal(parseReason(projectContract(t, withFiles([262_144]))), ACCEPTED);
   assert.equal(parseReason(projectContract(t, withFiles([262_145]))), 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
   assert.equal(parseReason(projectContract(t, withFiles([65_537, 65_537, 65_537, 65_537]))), ACCEPTED);
-  assert.equal(parseReason(projectContract(t, withFiles([65_537, 65_537, 65_537, 65_537, 65_537]))), 'ENGINEERING_INITIAL_FILES_INVALID');
+  assert.equal(parseReason(projectContract(t, withFiles([65_537, 65_537, 65_537, 65_537, 65_537]))), 'ENGINEERING_LARGE_FILES_LIMIT');
   // Files up to 64 KB never count as large.
   assert.equal(parseReason(projectContract(t, withFiles([65_536, 65_536, 65_536, 65_536, 65_536, 65_536]))), ACCEPTED);
   // The large files together stay within 1 MiB of bytes: two 1 MiB halves fit, a third large file does not.
   assert.equal(parseReason(projectContract(t, withFiles([262_144, 262_144], 'é'))), ACCEPTED);
-  assert.equal(parseReason(projectContract(t, withFiles([262_144, 262_144, 65_537], 'é'))), 'ENGINEERING_INITIAL_FILES_INVALID');
+  assert.equal(parseReason(projectContract(t, withFiles([262_144, 262_144, 65_537], 'é'))), 'ENGINEERING_LARGE_FILES_LIMIT');
   const v1 = fixture();
   const content = 'x'.repeat(65_537);
   v1.initial_files = [{ path: 'add.js', content, sha256: sha(content) }];
@@ -606,7 +630,7 @@ test('a computer capability needs the one that opens the session', (t) => {
     contract.environment = { capabilities };
   };
   for (const dependent of ['environment.computer.screenshot', 'environment.computer.act', 'environment.computer.stop']) {
-    assert.equal(parseReason(projectContract(t, declared([dependent]))), 'ENGINEERING_ENVIRONMENT_INVALID', dependent);
+    assert.equal(parseReason(projectContract(t, declared([dependent]))), 'ENGINEERING_ENVIRONMENT_COMPUTER_START_REQUIRED', dependent);
     assert.equal(parseReason(projectContract(t, declared(['environment.computer.start', dependent]))), 'ok', dependent);
   }
   assert.equal(parseReason(projectContract(t, declared(['environment.computer.start']))), 'ok');
@@ -636,7 +660,7 @@ test('check_ids link a criterion to checks and commands in one namespace; unknow
     });
   assert.equal(reasonOf(linked()), 'ok', 'a module check and a command check can both be named');
   assert.equal(reasonOf(linked((c) => (c.acceptance[0].check_ids = ['missing']))), 'ENGINEERING_CHECK_ID_UNKNOWN');
-  assert.equal(reasonOf(linked((c) => (c.acceptance[0].check_ids = ['sum', 'sum']))), 'ENGINEERING_CHECK_ID_DUPLICATE');
+  assert.equal(reasonOf(linked((c) => (c.acceptance[0].check_ids = ['sum', 'sum']))), 'ENGINEERING_CHECK_IDS_DUPLICATE_IN_CRITERION');
   assert.equal(
     reasonOf(linked((c) => (c.verifier.checks[0].id = 'check'))),
     'ENGINEERING_CHECK_ID_DUPLICATE',
@@ -715,7 +739,7 @@ test('admission treats a task with environment capabilities like any other: acce
   assert.equal(admissionCode(unlinked), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'no check_ids: refused by the admission path');
   assert.equal(reasonOf(unlinked), 'ok', 'and still readable outside admission');
   const dangling = withEnvironment((c) => c.environment.capabilities.push('environment.computer.act'));
-  assert.equal(admissionCode(dangling), 'ENGINEERING_ENVIRONMENT_INVALID', 'a computer action without start is refused');
+  assert.equal(admissionCode(dangling), 'ENGINEERING_ENVIRONMENT_COMPUTER_START_REQUIRED', 'a computer action without start is refused');
 });
 
 // K6: `agent run` and `validate-task` admit the contract like the control API; the plain read stays lenient.
@@ -794,4 +818,168 @@ test('validate-task still accepts admitted v1 and v2 contracts (K6)', async (t) 
     assert.equal(result.status, 'structurally-valid');
     assert.equal(result.contract_sha256, readEngineeringTask(filename, { admission: true }).sha256);
   }
+});
+
+// H-4: a max_tokens that cannot hold the first model request is refused at admission with its minimum, not left to
+// end as session-failed:internal_error. The floor is a lower bound derived from the request the runtime really builds.
+const withMaxTokens = (value, mutate) => {
+  const contract = fixture();
+  contract.limits.max_tokens = value;
+  mutate?.(contract);
+  return contract;
+};
+const admissionError = (contract) => {
+  try {
+    parseEngineeringTask(contract, { admission: true, outputCap: null });
+  } catch (error) {
+    return error;
+  }
+  return null;
+};
+
+test('admission refuses a max_tokens below the context floor, citing the minimum and the received value (H-4)', () => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  const floor = minimumMaxTokens(fixture());
+  // Pinned on purpose: a change to the instructions, the tool floor or the reserve must be a conscious update here, checked
+  // against the assembled request by the runtime test.
+  assert.equal(floor, 11_903);
+  assert.equal(admissionError(withMaxTokens(11_902))?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admissionError(withMaxTokens(11_903)), null);
+  const refused = admissionError(withMaxTokens(floor - 1));
+  assert.equal(refused?.code, 'ENGINEERING_TASK_CONTRACT_INVALID', 'the compatibility category is kept');
+  assert.equal(refused.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.ok(refused.message.includes(String(floor)) && refused.message.includes(String(floor - 1)), refused.message);
+  assert.match(refused.message, /max_tokens/);
+  assert.equal(admissionError(withMaxTokens(floor)), null, 'exactly the minimum is admitted');
+  assert.equal(admissionError(withMaxTokens(100_000)), null, 'the fixture value is admitted');
+  assert.equal(admissionError(withMaxTokens(1)).reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+});
+
+test('the floor does not depend on max_tokens itself and grows with the criteria the model must read (H-4)', () => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  assert.equal(minimumMaxTokens(withMaxTokens(1)), minimumMaxTokens(withMaxTokens(999_999_999)));
+  const long = withMaxTokens(100_000, (c) => {
+    c.requirements[0].description += ' x'.repeat(500);
+  });
+  assert.ok(minimumMaxTokens(long) >= minimumMaxTokens(fixture()) + 1000);
+});
+
+test('reading a contract without admission keeps accepting a low max_tokens (H-4)', () => {
+  for (const value of [1, 4000, 12_000]) {
+    assert.equal(reasonOf(withMaxTokens(value)), 'ok', `parse without admission accepts ${value}`);
+  }
+});
+
+test('every admitting path refuses a low max_tokens: agent run, validate-task, runEngineeringTask, readEngineeringTask (H-4)', async (t) => {
+  const agent = require('../tools/cli/commands/agent');
+  const { runEngineeringTask } = require('../tools/cli/lib/engineering-task-runtime');
+  const { filename, responses } = admittedFile(t, withMaxTokens(10_000));
+  const reason = 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR';
+  // A scripted model has no output cap: the full reserve applies.
+  assert.equal(await refusedReason(() => runEngineeringTask({ taskContract: filename, scriptedResponses: responses })), reason);
+  assert.equal(await refusedReason(() => agent.execute('run', { taskContract: filename, scriptedResponses: responses })), reason);
+  assert.equal(await refusedReason(() => silently(() => readEngineeringTask(filename, { admission: true, outputCap: null }))), reason);
+  assert.ok(readEngineeringTask(filename).contract, 'the plain read (worker replay, recovery) still accepts it');
+  // With no model source the cap is unknown: only a value no provider could run is refused.
+  assert.equal(await refusedReason(() => agent.execute('validate-task', { taskContract: filename })), 'ok');
+  const tiny = admittedFile(t, withMaxTokens(100));
+  assert.equal(await refusedReason(() => agent.execute('validate-task', { taskContract: tiny.filename })), reason);
+  assert.equal(await refusedReason(() => silently(() => readEngineeringTask(tiny.filename, { admission: true }))), reason);
+  try {
+    readEngineeringTask(filename, { admission: true, outputCap: null });
+  } catch (error) {
+    assert.match(error.message, /max_tokens 10000 is below the minimum \d+/, 'the curated message survives the admitting read');
+  }
+});
+
+test('admission keeps accepting the shipped examples and the fixture (H-4)', () => {
+  const { createEngineeringExample } = require('../tools/examples/engineering-task');
+  assert.equal(admissionError(fixture()), null);
+  for (const name of ['addition', 'clamp', 'unique', 'correction']) {
+    assert.equal(admissionError(structuredClone(createEngineeringExample(name).contract)), null, name);
+  }
+});
+
+// H-4 round 1: the output reserve is min(8192, provider cap), so the floor follows the cap the caller knows; an unknown cap
+// takes the smallest reserve the provider schema allows (a positive integer), so no contract that can run is refused.
+const admitWith = (value, outputCap) => {
+  try {
+    parseEngineeringTask(withMaxTokens(value), { admission: true, outputCap });
+    return null;
+  } catch (error) {
+    return error;
+  }
+};
+
+test('the floor follows the provider output cap the admission knows, and never refuses what a smaller cap can run (H-4)', () => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  const floorFor = (reserve) => minimumMaxTokens(fixture(), reserve);
+  for (const cap of [2048, 1024, 256, 96]) {
+    const floor = floorFor(cap);
+    assert.ok(floor < 11_903, `a cap of ${cap} lowers the floor: ${floor}`);
+    assert.equal(admitWith(floor, cap), null, `cap ${cap}: exactly the effective minimum ${floor} is admitted`);
+    const refused = admitWith(floor - 1, cap);
+    assert.equal(refused?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR', `cap ${cap}: one below is refused`);
+    assert.ok(refused.message.includes(`minimum ${floor}`) && refused.message.includes(`max_tokens ${floor - 1}`), refused.message);
+  }
+  // A cap above 8192 is capped by the runtime reserve; null means no provider cap (scripted model).
+  assert.equal(admitWith(11_903, 65_536), null);
+  assert.equal(admitWith(11_902, 65_536)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admitWith(11_902, null)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  // Unknown cap (binding or plugin model chosen later): the safe floor assumes the smallest possible reserve.
+  const safe = floorFor(1);
+  assert.ok(safe < floorFor(96));
+  assert.equal(admitWith(safe), null);
+  assert.equal(admitWith(safe - 1)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admitWith(floorFor(1024)), null, 'a contract that fits a 1024 cap is not refused while the cap is unknown');
+});
+
+test('the effective output reserve is the runtime rule, shared (H-4)', () => {
+  const { effectiveOutputReserve } = require('../tools/cli/lib/engineering-task-contract');
+  assert.equal(effectiveOutputReserve(), 8192);
+  assert.equal(effectiveOutputReserve(null), 8192);
+  assert.equal(effectiveOutputReserve(65_536), 8192);
+  assert.equal(effectiveOutputReserve(8192), 8192);
+  assert.equal(effectiveOutputReserve(1024), 1024);
+  assert.equal(effectiveOutputReserve(1), 1);
+});
+
+test('command_checks refuse every wrapped form of a writable or out-of-root file, with or without admission', (t) => {
+  const forms = [
+    '-cindex.js',
+    '-c=index.js',
+    'file:index.js',
+    'FILE:index.js',
+    'File://index.js',
+    'index%2Ejs',
+    'index%2ejs',
+    'index.js:1',
+    'index.js:1:2',
+    '--a=b=index.js',
+    '--file=file:index.js',
+    '--file=index%2ejs',
+    '-c=index.js:3',
+  ];
+  for (const arg of forms) {
+    const mutate = (c) => (c.commands[0].args = [arg]);
+    assert.equal(reasonOf(admissionContract(t, mutate)), 'ENGINEERING_COMMAND_ARG_WRITABLE', `without admission: ${arg}`);
+    assert.equal(admissionCode(admissionContract(t, mutate)), 'ENGINEERING_COMMAND_ARG_INVALID', `admission: ${arg}`);
+  }
+  for (const arg of ['file:../outside', '-c../outside', '..%2foutside', '../outside:1'])
+    assert.equal(reasonOf(admissionContract(t, (c) => (c.commands[0].args = [arg]))), 'ENGINEERING_COMMAND_ARG_OUTSIDE_ROOT', arg);
+  for (const arg of ['run', '--reporter=dot', '@scope/pkg/bin.js', './x.js', '-v', '3', '--timeout=5000', 'src/a.test.js'])
+    assert.equal(admissionCode(admissionContract(t, (c) => (c.commands[0].args = [arg]))), 'ok', arg);
+  assert.equal(reasonOf(admissionContract(t, (c) => (c.commands[0].args = ['100%']))), 'ok', 'a lone percent sign is not an escape');
+});
+
+test('an argument that unwraps to more paths than the limit is refused, never waved through', (t) => {
+  const writable = (arg) => reasonOf(admissionContract(t, (c) => (c.commands[0].args = [arg])));
+  const chain = (links) => `${'file:'.repeat(links)}index.js`;
+  const splits = (segments) => Array.from({ length: segments }, (_, index) => `p${index}`).join('=');
+  // Targets of a chain of n `file:` links: n + 1 distinct strings; of n `=` segments: n + 1 (the whole text and each part).
+  assert.equal(writable(chain(80)), 'ENGINEERING_COMMAND_ARG_INVALID', 'file: x80 followed by a writable path');
+  assert.equal(writable(`index.js=${splits(70)}`), 'ENGINEERING_COMMAND_ARG_INVALID', 'a writable path among 70 = segments');
+  assert.equal(writable(splits(63)), 'ok', 'exactly at the limit and legitimate: accepted');
+  assert.equal(writable(splits(64)), 'ENGINEERING_COMMAND_ARG_INVALID', 'one past the limit: refused');
+  assert.equal(writable(chain(62)), 'ENGINEERING_COMMAND_ARG_WRITABLE', 'under the limit the real target is still found');
 });

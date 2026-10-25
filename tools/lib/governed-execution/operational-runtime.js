@@ -4,6 +4,7 @@ const { randomUUID } = require('node:crypto');
 
 const Ajv2020 = require('ajv/dist/2020');
 
+const { GovernedRefusalError } = require('./canonical-envelope');
 const { ExecutionContractRegistry, registerCapabilityContractStubs } = require('./contract-registry');
 const { createExecutionEventRegistry } = require('./event-registry');
 const { createGovernedExecutionPort } = require('./execution-port');
@@ -134,15 +135,11 @@ function outputContract() {
 
 function capabilityUnavailable(tool, cause) {
   // Nothing was attempted, so the outcome is a plain failure and not an uncertain mutation.
-  return Object.assign(new Error(`${tool} is unavailable: ${cause}`), {
-    code: ENV_CAPABILITY_UNAVAILABLE,
-    retryable: false,
-    outcome: 'failed',
-  });
+  return new GovernedRefusalError(ENV_CAPABILITY_UNAVAILABLE, `${tool} is unavailable: ${cause}`);
 }
 
 function refusal(code, message) {
-  return Object.assign(new Error(message), { code, retryable: false, outcome: 'failed' });
+  return new GovernedRefusalError(code, message);
 }
 
 // The policy version the runtime expects for a contract comes from this table, never from the contract itself: a

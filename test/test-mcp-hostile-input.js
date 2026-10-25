@@ -413,10 +413,10 @@ test('modern HTTP: a non-string, non-integer id is refused with -32600 and a nul
   assert.ok(probe.body.result);
 });
 
-// Characterisation of CURRENT behaviour (not an endorsement): handle() relays the message of an unexpected failure raised
-// by the execution port. Recorded as a residue; the policy is documented on handle().
-test('characterisation: an execution port throwing a system error is relayed by message, as -32603, today', async (t) => {
-  silenceStderr(t);
+// An unexpected failure raised by the execution port keeps its message away from the client: the wire carries a fixed
+// "Internal error" and the real cause goes to stderr for the operator.
+test('an execution port throwing a system error is answered as a generic -32603 and the cause goes to stderr', async (t) => {
+  const stderr = silenceStderr(t);
   const instance = newAdapter({
     execute: async () => {
       throw Object.assign(new Error("ENOENT: no such file or directory, open '/fixture/path'"), { code: 'ENOENT' });
@@ -428,8 +428,10 @@ test('characterisation: an execution port throwing a system error is relayed by 
   );
   assert.equal(response.id, 9);
   assert.equal(response.error.code, JSON_RPC.INTERNAL_ERROR);
-  assert.equal(response.error.message, "ENOENT: no such file or directory, open '/fixture/path'");
+  assert.equal(response.error.message, 'Internal error');
+  assert.ok(!JSON.stringify(response).includes('/fixture/path'), 'no internal detail on the wire');
   assert.ok(!/\n\s+at\s/.test(JSON.stringify(response)), 'no stack on the wire');
+  assert.ok(stderr.join('').includes('/fixture/path'), 'the real cause stays available to the operator on stderr');
 });
 
 // ---------------------------------------------------------------------------

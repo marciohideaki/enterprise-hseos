@@ -207,23 +207,38 @@ aprovada), `PROJECT_CANDIDATE_CHANGED`, `PROJECT_APPROVAL_STALE` (baseline venci
 `review_sha256` divergente), `PROJECT_CHANGED_BEFORE_APPLY`, `PROJECT_PATCH_READ_ONLY_PATH`;
 falhas de sistema de arquivos não curadas expõem apenas o errno (`ENOENT`, ...). Toda
 recusa por regra cruzada do contrato de tarefa na criação (`create` e `create_workflow`)
-traz `detail.code` próprio com prefixo `ENGINEERING_` (mensagem curada, sem eco de valores):
+traz `detail.code` próprio com prefixo `ENGINEERING_` (mensagem curada; sem eco de valores, exceto `ENGINEERING_MAX_TOKENS_BELOW_FLOOR`, que cita o mínimo e o valor recebido):
 `ENGINEERING_ACCEPTANCE_WEAK` (aceite sem verificador executável), `ENGINEERING_ACCEPTANCE_UNCOVERED` (critério sem check executável em `check_ids`), `ENGINEERING_CHECK_ID_UNKNOWN`, `ENGINEERING_CHECK_ID_DUPLICATE`, `ENGINEERING_CHECK_IDS_INCOMPLETE` (vínculos de `check_ids`), `ENGINEERING_COMMAND_ARG_INVALID`
 (arg fora do alfabeto conservador), `ENGINEERING_PROTECTED_CONFIG_MISSING` (arquivo de configuração
-conhecido fora de `protected_paths`) e, só como rótulo das regras que já existiam,
+conhecido fora de `protected_paths`), `ENGINEERING_MAX_TOKENS_BELOW_FLOOR` (`limits.max_tokens` abaixo do mínimo que cabe a primeira requisição ao modelo; a mensagem cita o mínimo e o valor recebido) e, só como rótulo das regras que já existiam,
 `ENGINEERING_CONTRACT_SCHEMA_INVALID`, `ENGINEERING_CONTRACT_TOO_LARGE`, `ENGINEERING_STORE_MOUNT_CONFLICT`,
 `ENGINEERING_DUPLICATE_ID`, `ENGINEERING_SCOPE_INVALID`, `ENGINEERING_INITIAL_FILES_INVALID`,
 `ENGINEERING_SOURCE_DIGEST_MISMATCH`, `ENGINEERING_TRACEABILITY_BROKEN`, `ENGINEERING_ACCEPTANCE_MISMATCH`,
 `ENGINEERING_COMMAND_ENTRYPOINT_UNREADABLE`, `ENGINEERING_LIMITS_INVALID`, `ENGINEERING_CHECK_PATH_UNREADABLE`,
 `ENGINEERING_PROTECTED_PATH_INVALID`, `ENGINEERING_COMMAND_CHECK_UNKNOWN`,
 `ENGINEERING_COMMAND_ENTRYPOINT_UNPROTECTED`, `ENGINEERING_COMMAND_ARG_OUTSIDE_ROOT`,
-`ENGINEERING_COMMAND_ARG_WRITABLE` e `ENGINEERING_WORKSPACE_DIGEST_MISMATCH`; `error.code` segue
+`ENGINEERING_COMMAND_ARG_WRITABLE` e `ENGINEERING_WORKSPACE_DIGEST_MISMATCH`. Regras cruzadas que antes dividiam um
+rótulo agora têm código próprio (o rótulo antigo ficou com a regra primária de cada família):
+`ENGINEERING_SCOPE_TOO_MANY_PATHS`, `ENGINEERING_SCOPE_PATH_NESTED`, `ENGINEERING_SCOPE_WRITE_NOT_READABLE`
+(`ENGINEERING_SCOPE_INVALID` fica para caminho repetido em `scope.read`/`scope.write`),
+`ENGINEERING_INITIAL_FILE_DIGEST_MISMATCH`, `ENGINEERING_INITIAL_FILES_OVER_BUDGET`, `ENGINEERING_LARGE_FILES_LIMIT`
+(`ENGINEERING_INITIAL_FILES_INVALID` fica para arquivo inicial fora de `scope.read` ou repetido),
+`ENGINEERING_TRACEABILITY_UNKNOWN_REQUIREMENT`, `ENGINEERING_TRACEABILITY_SOURCE_UNUSED`,
+`ENGINEERING_TRACEABILITY_REQUIREMENT_UNCOVERED`, `ENGINEERING_TRACEABILITY_DUPLICATE_REQUIREMENT_REF` (`requirement_ids` repetido; `source_ids` repetido segue `ENGINEERING_DUPLICATE_ID`)
+(`ENGINEERING_TRACEABILITY_BROKEN` fica para `source_ids` desconhecido), `ENGINEERING_VERIFIER_ACCEPTANCE_DUPLICATE`,
+`ENGINEERING_CHILDREN_NOT_ALLOWED` (`max_children`/`max_workflow_steps` diferentes de 0; `ENGINEERING_LIMITS_INVALID`
+fica para limite não inteiro seguro), `ENGINEERING_ARTIFACT_BUDGET_TOO_LARGE` (`max_artifact_bytes` acima do teto;
+`ENGINEERING_CONTRACT_TOO_LARGE` fica para o tamanho do contrato), `ENGINEERING_ENVIRONMENT_COMPUTER_START_REQUIRED`
+(`ENGINEERING_ENVIRONMENT_INVALID` fica para capacidade repetida), `ENGINEERING_PROTECTED_PATH_DUPLICATE`,
+`ENGINEERING_COMMAND_CHECK_DUPLICATE` e `ENGINEERING_CHECK_IDS_DUPLICATE_IN_CRITERION`; `error.code` segue
 `CONTROL_REQUEST_REJECTED`. As regras de aceite endurecido valem só para novas admissões; contratos já
 admitidos continuam legíveis (`docs/engineering-task-contract.md`). Quem
 tratava `CONTROL_REQUEST_REJECTED` continua funcionando. Negação de escopo nas ferramentas
 de engenharia (caminho fora de `scope.read`/`scope.write`) agora falha com
 `ENGINEERING_SCOPE_DENIED` (antes `EXECUTION_INPUT_INVALID`), mantendo fail-closed; os
-demais erros de schema continuam `EXECUTION_INPUT_INVALID`. Sem detalhes
+demais erros de schema continuam `EXECUTION_INPUT_INVALID`. A mensagem agora traz a causa
+(`input does not match schema v1: path is not one of the paths this task declares in scope.read or
+scope.write`), sem o valor enviado. Sem detalhes
 sensíveis. Autenticação retorna 401, recurso desconhecido 404 (tarefa, job, terminal, campanha
 e vínculo de provider, em consulta e em `/events`), consulta ou cursor malformado 400
 (`CONTROL_QUERY_INVALID`, validado antes da existência do recurso), conflitos 409.

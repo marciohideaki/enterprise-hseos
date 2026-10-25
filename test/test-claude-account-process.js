@@ -155,6 +155,32 @@ test('stderr without a credential is kept, cut to a fixed size', async (t) => {
   assert.ok(error.diagnostic.stderr.length > 0 && error.diagnostic.stderr.length <= 1024);
 });
 
+test('a key body whose BEGIN marker fell out of the stderr window never reaches the diagnostic', async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-diagnostic-worker-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const worker = path.join(directory, 'worker.js');
+  fs.writeFileSync(
+    worker,
+    [
+      "const { randomBytes } = require('node:crypto');",
+      "const rows = Array.from({ length: 90 }, () => 'Zz9' + randomBytes(48).toString('base64').replace(/=/g, 'q').slice(0, 61));",
+      String.raw`process.stderr.write(['-----BEGIN PRIVATE KEY-----', ...rows, ''].join('\n'));`,
+      'process.exitCode = 1;',
+    ].join('\n'),
+  );
+  const error = await rejection(
+    runCampaignProcess({
+      args: [worker],
+      input: { operation: 'run' },
+      signal: new AbortController().signal,
+      timeout_ms: 5000,
+      pids_max: 64,
+      memory_max_bytes: 536_870_912,
+    }),
+  );
+  assert.match(error.diagnostic.stderr, /^<withheld: key body, \d+ lines>$/);
+});
+
 test('a timeout and an abort are named in the diagnostic', async (t) => {
   const f = setup(t, { run: 'stubborn' });
   f.m.limits.max_duration_ms = 3000;
