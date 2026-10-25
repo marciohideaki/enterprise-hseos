@@ -35,7 +35,10 @@ const WEAK = '^engineering: static-only';
 const ARGS = '^engineering: every argument form';
 const UNCOVERED = '^engineering: a criterion without an executable check';
 
-// [id, group, matrix case (anchored name pattern), file, [[anchor, replacement], ...]]; every anchor must occur once.
+// [id, group, matrix case (anchored name pattern), file, [[anchor, replacement], ...], options?]; every anchor must occur once.
+// A mutant that the matrix cannot reach (a second guard behind the public one, a guard only a seam-level test can distinguish)
+// names its own detecting suite in `options.suite`; `options.failure` is the assertion text the failing run must show (default
+// ERR_ASSERTION). The matrix stays the default so the 28 original mutants are untouched.
 const MUTANTS = [
   [
     'import_eager',
@@ -229,6 +232,143 @@ const MUTANTS = [
       ],
     ],
   ],
+  // Mutants declared without detection by the W5 residue register (T-5 triage). Each is killed by a unit-level suite, not by the
+  // matrix, because the guard sits behind a public one or a seam is needed to distinguish it.
+  [
+    'lsp_scope_resolved',
+    'scope',
+    '^every reported location is mapped',
+    'packages/agent-environment/lsp.js',
+    [
+      [
+        "if (!within(workspace, real)) throw new LspError('location resolves outside the workspace root', 'ENV_LSP_OUT_OF_SCOPE');",
+        'void 0;',
+      ],
+    ],
+    { suite: 'test/test-environment-lsp.js' },
+  ],
+  [
+    'mcp_run_id',
+    'scope',
+    null,
+    'tools/mcp-hseos-swarm/lib/run-scope.js',
+    [["if (typeof value !== 'string' || !RUN_ID_PATTERN.test(value)) {", 'if (false) {']],
+    {
+      suite: 'test/test-mcp-hseos-swarm-scope.js',
+      failure: /consolidate_handoff refused .* with an unexpected error: tools\/call: Path escapes allowed directory/,
+    },
+  ],
+  [
+    'approval_screenshot_digest',
+    'approval',
+    '^an approved action runs once, bound',
+    'packages/agent-environment/computer.js',
+    [['screenshot_digest: current.lastShot?.digest,', "screenshot_digest: 'a'.repeat(64),"]],
+    { suite: 'test/test-environment-computer.js' },
+  ],
+  [
+    'screenshot_ceiling',
+    'provenance',
+    '^a screenshot becomes untrusted display data',
+    'packages/agent-environment/computer.js',
+    [['png.length <= LIMITS.max_screenshot_bytes &&', 'true &&']],
+    { suite: 'test/test-environment-computer.js' },
+  ],
+  [
+    'computer_display_env',
+    'scope',
+    '^host children never inherit',
+    'packages/agent-environment/computer-host.js',
+    [
+      [
+        "const BASE_ENV = Object.freeze({ PATH: '/usr/bin:/bin', HOME: '/tmp', LANG: 'C' });",
+        "const BASE_ENV = Object.freeze({ PATH: '/usr/bin:/bin', HOME: '/tmp', LANG: 'C', DISPLAY: process.env.DISPLAY });",
+      ],
+    ],
+    { suite: 'test/test-environment-computer.js' },
+  ],
+  [
+    'browser_preflight',
+    'scope',
+    '^a navigation outside the allowlist is refused by the controller',
+    'packages/agent-environment/browser.js',
+    [['if (!broker.allow.includes(urlAuthority(url))) {', 'if (false) {']],
+    { suite: 'test/test-environment-browser.js' },
+  ],
+  [
+    'zip_extract_traversal',
+    'scope',
+    '^extractZip defends itself',
+    'tools/lib/environment-toolchain-pins.js',
+    [['if (destination !== base && !destination.startsWith(`${base}${path.sep}`))', 'if (false)']],
+    { suite: 'test/test-toolchain-zip-streaming.js' },
+  ],
+  [
+    'run_scope_nofollow',
+    'scope',
+    null,
+    'tools/mcp-hseos-swarm/lib/run-scope.js',
+    [['flags | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK', 'flags | fs.constants.O_NONBLOCK']],
+    {
+      suite: 'test/test-mcp-hseos-swarm-scope.js',
+      failure:
+        /did not match the regular expression .*Symlink not allowed: NOFOLLOW-READ[^]*Input:\s*#?\s*'Path escapes allowed directory: NOFOLLOW-READ\.md'/,
+    },
+  ],
+  [
+    'run_scope_parent_realpath',
+    'scope',
+    null,
+    'tools/mcp-hseos-swarm/lib/run-scope.js',
+    [['if (!isInside(canonicalBase, fs.realpathSync(`/proc/self/fd/${parentFd}`))) {', 'if (false) {']],
+    {
+      suite: 'test/test-mcp-hseos-swarm-scope.js',
+      failure: /an ancestor swapped for a symlink[^]{0,200}nothing may be created outside the base/,
+    },
+  ],
+  [
+    'run_scope_open_by_path',
+    'scope',
+    null,
+    'tools/mcp-hseos-swarm/lib/run-scope.js',
+    [['target = `/proc/self/fd/${parentFd}/${path.basename(file)}`;', 'target = file;']],
+    {
+      suite: 'test/test-mcp-hseos-swarm-scope.js',
+      failure: /the file is opened relative to the validated parent descriptor[^]{0,80}Path escapes allowed directory: NEW\.md/,
+    },
+  ],
+  [
+    'toolchain_restore',
+    'scope',
+    '^a failed final rename puts the previous install back',
+    'tools/lib/environment-toolchain-pins.js',
+    [['if (replaced) fs.renameSync(previous, target);', 'void 0;']],
+    { suite: 'test/test-toolchain-zip-streaming.js' },
+  ],
+  [
+    'toolchain_stale_staging',
+    'scope',
+    '^a staging or previous directory left by an earlier run',
+    'tools/lib/environment-toolchain-pins.js',
+    [['removeQuietly(staging);\n      removeQuietly(previous);', 'removeQuietly(previous);']],
+    { suite: 'test/test-toolchain-zip-streaming.js' },
+  ],
+  [
+    'toolchain_stale_previous',
+    'scope',
+    '^a staging or previous directory left by an earlier run',
+    'tools/lib/environment-toolchain-pins.js',
+    [['removeQuietly(staging);\n      removeQuietly(previous);', 'removeQuietly(staging);']],
+    { suite: 'test/test-toolchain-zip-streaming.js' },
+  ],
+  [
+    'store_pin_at_assembly',
+    'scope',
+    '^a harmless-looking addition to the store between assembly',
+    'tools/cli/lib/engineering-task-runtime.js',
+    [['if (storeMount) pinStoreMount(policy, contract.workspace.root, storeMount);', 'void 0;']],
+    { suite: 'test/test-engineering-project.js' },
+  ],
 ];
 
 // The loader replays the recorded replacement in memory when the target module is compiled.
@@ -256,12 +396,13 @@ after(() => fs.rmSync(scratch, { recursive: true, force: true }));
 const loader = path.join(scratch, 'loader.cjs');
 fs.writeFileSync(loader, LOADER);
 
-function runMatrix(pattern, extraEnv) {
+function runSuite(suite, pattern, extraEnv) {
   const env = { ...process.env, NODE_V8_COVERAGE: '', ...extraEnv };
   delete env.NODE_TEST_CONTEXT;
   delete env.NODE_OPTIONS;
   if (extraEnv.NODE_OPTIONS) env.NODE_OPTIONS = extraEnv.NODE_OPTIONS;
-  return spawnSync(process.execPath, ['--test', '--test-concurrency=1', '--test-reporter=tap', `--test-name-pattern=${pattern}`, MATRIX], {
+  const selection = pattern === null ? [] : [`--test-name-pattern=${pattern}`];
+  return spawnSync(process.execPath, ['--test', '--test-concurrency=1', '--test-reporter=tap', ...selection, suite], {
     cwd: REPO,
     env,
     encoding: 'utf8',
@@ -272,24 +413,26 @@ function runMatrix(pattern, extraEnv) {
 
 const status = () => spawnSync('git', ['-C', REPO, 'status', '--porcelain', '--untracked-files=all'], { encoding: 'utf8' }).stdout;
 
-for (const [id, group, pattern, file, replacements] of MUTANTS) {
-  test(`the negative matrix detects removal of the ${id} guard (${group})`, () => {
+for (const [id, group, pattern, file, replacements, options = {}] of MUTANTS) {
+  const suite = options.suite ?? MATRIX;
+  test(`the ${options.suite ? 'unit suite' : 'negative matrix'} detects removal of the ${id} guard (${group})`, () => {
     const dirty = status();
-    const control = runMatrix(pattern, {});
+    const control = runSuite(suite, pattern, {});
     assert.equal(control.error, undefined);
     assert.equal(control.status, 0, control.stdout + control.stderr);
-    assert.match(control.stdout, /^# tests 1$/m, 'the pattern selects exactly one matrix case');
+    assert.match(control.stdout, /^# tests 1$/m, 'the pattern selects exactly one case');
     assert.match(control.stdout, /^# fail 0$/m);
     assert.doesNotMatch(control.stdout + control.stderr, /HSEOS_TEST_MUTATION_APPLIED/);
 
     const specFile = path.join(scratch, `${id}.json`);
     fs.writeFileSync(specFile, JSON.stringify({ id, repo: REPO, file, replacements }));
-    const mutant = runMatrix(pattern, { HSEOS_W5_MUTATION_SPEC: specFile, NODE_OPTIONS: `--require ${loader}` });
+    const mutant = runSuite(suite, pattern, { HSEOS_W5_MUTATION_SPEC: specFile, NODE_OPTIONS: `--require ${loader}` });
     assert.equal(mutant.error, undefined);
     assert.equal(mutant.status, 1, mutant.stdout + mutant.stderr);
     assert.match(mutant.stdout + mutant.stderr, new RegExp(`HSEOS_TEST_MUTATION_APPLIED:${id}`), 'the mutation was applied');
     assert.match(mutant.stdout, /^# fail 1$/m);
-    assert.match(mutant.stdout, /ERR_ASSERTION/);
+    if (options.failure) assert.match(mutant.stdout + mutant.stderr, options.failure);
+    else assert.match(mutant.stdout, /ERR_ASSERTION/);
     assert.equal(status(), dirty, 'the working tree is exactly as before the mutant');
   });
 }
