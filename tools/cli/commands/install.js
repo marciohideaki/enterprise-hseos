@@ -183,6 +183,10 @@ module.exports = {
         process.exit(0);
       }
     } catch (error) {
+      if (error.code === 'EHSEOS_INSTALL_LOCKED') {
+        console.error(`error: ${error.message}`);
+        process.exit(75);
+      }
       if (error instanceof PlatformBindingsError) {
         console.error(`error: ${error.message}`);
         process.exit(1);
