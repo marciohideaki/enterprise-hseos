@@ -19,6 +19,65 @@ const { CustomHandler } = require('../custom/handler');
 const prompts = require('../../../lib/prompts');
 const { HSEOS_FOLDER_NAME } = require('../ide/shared/path-utils');
 
+const INSTALL_LOCK_FILE = '.hseos-install.lock';
+
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
+  }
+}
+
+// Creates the lock atomically and complete: link() of a finished temp file. A filesystem without hard links
+// (EPERM/ENOTSUP/EXDEV/ENOSYS) falls back to an exclusive create of the same content; a reader that sees it half
+// written treats it as held (see readLockHolder).
+async function createLockFile(temp, lockFile) {
+  try {
+    await fs.link(temp, lockFile);
+  } catch (error) {
+    if (!['EPERM', 'ENOTSUP', 'EXDEV', 'ENOSYS'].includes(error.code)) throw error;
+    await fs.writeFile(lockFile, await fs.readFile(temp), { flag: 'wx' });
+  }
+}
+
+// A lock file that is empty or half-written is treated as held for a short grace period (it cannot happen with link(),
+// but an old or hand-made file might); a readable pid is alive when the process exists.
+async function readLockHolder(lockFile) {
+  let pid = null;
+  try {
+    pid = JSON.parse(await fs.readFile(lockFile, 'utf8')).pid;
+  } catch {
+    try {
+      const age = Date.now() - (await fs.stat(lockFile)).mtimeMs;
+      return { pid: null, alive: age < 2000 };
+    } catch {
+      return { pid: null, alive: false };
+    }
+  }
+  return { pid, alive: Number.isInteger(pid) && pid > 0 && isProcessAlive(pid) };
+}
+
+// Short-lived mutex for taking over a dead holder's lock. A mutex older than 10 s belongs to a crashed taker.
+async function acquireTakeover(takeover) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await fs.writeFile(takeover, String(process.pid), { flag: 'wx' });
+      return true;
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+      try {
+        if (Date.now() - (await fs.stat(takeover)).mtimeMs < 10_000) return false;
+        await fs.remove(takeover);
+      } catch {
+        // vanished meanwhile: retry
+      }
+    }
+  }
+  return false;
+}
+
 class Installer {
   constructor() {
     this.detector = new Detector();
@@ -221,6 +280,97 @@ class Installer {
   }
 
   /**
+   * Serialises installs that write the same project directory. The lock is `<dir>/.hseos-install.lock` (JSON with the
+   * holder pid). It is created with link() from a finished temp file, so it appears atomically and complete, and
+   * fails with EEXIST while another install holds it. A second install is refused (EHSEOS_INSTALL_LOCKED), not
+   * queued. A lock whose holder is dead is taken over under a short-lived `.takeover` mutex, re-checked after the
+   * mutex is held, so two processes can never both discard it. Re-entrant per Installer (quickUpdate delegates to
+   * install). Released on success, on error, and on SIGINT/SIGTERM/SIGHUP. The lock covers the installer writes under
+   * the project's HSEOS folder; files the CLI writes after the installer returns are outside it.
+   */
+  async _withInstallLock(directory, work) {
+    const projectDir = path.resolve(directory);
+    this._heldInstallLocks = this._heldInstallLocks || new Set();
+    if (this._heldInstallLocks.has(projectDir)) return work();
+    const lockFile = path.join(projectDir, INSTALL_LOCK_FILE);
+    const takeover = `${lockFile}.takeover`;
+    await fs.ensureDir(projectDir);
+    const temp = `${lockFile}.${process.pid}.${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+    await fs.writeFile(temp, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
+    try {
+      for (let attempt = 0; ; attempt++) {
+        try {
+          await createLockFile(temp, lockFile);
+          break;
+        } catch (error) {
+          if (error.code !== 'EEXIST') throw error;
+        }
+        const holder = await readLockHolder(lockFile);
+        if (holder.alive || attempt >= 200) {
+          const locked = new Error(
+            `Another hseos install is already running in ${projectDir} (pid ${holder.pid ?? 'unknown'}); retry when it finishes. ` +
+              `If no install is running, remove ${lockFile} and retry.`,
+          );
+          locked.code = 'EHSEOS_INSTALL_LOCKED';
+          throw locked;
+        }
+        if (await acquireTakeover(takeover)) {
+          try {
+            // Re-read under the mutex: the lock may have been replaced by a live holder since the first read.
+            const again = await readLockHolder(lockFile);
+            if (!again.alive) await fs.remove(lockFile);
+          } finally {
+            await fs.remove(takeover);
+          }
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+      }
+    } finally {
+      await fs.remove(temp);
+    }
+    this._heldInstallLocks.add(projectDir);
+    const release = () => {
+      this._heldInstallLocks.delete(projectDir);
+      try {
+        // Only remove a lock that is still ours: it may have been deleted by hand and re-created by another install.
+        if (JSON.parse(fs.readFileSync(lockFile, 'utf8')).pid === process.pid) fs.removeSync(lockFile);
+      } catch {
+        // already removed or unreadable
+      }
+    };
+    const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+    const onSignal = (signal) => {
+      release();
+      for (const name of signals) process.removeListener(name, onSignal);
+      process.kill(process.pid, signal);
+    };
+    for (const name of signals) process.once(name, onSignal);
+    try {
+      return await work();
+    } finally {
+      for (const name of signals) process.removeListener(name, onSignal);
+      release();
+    }
+  }
+
+  async install(originalConfig) {
+    return this._withInstallLock(originalConfig.directory, () => this._install(originalConfig));
+  }
+
+  async update(config) {
+    return this._withInstallLock(config.directory, () => this._update(config));
+  }
+
+  async quickUpdate(config) {
+    return this._withInstallLock(config.directory, () => this._quickUpdate(config));
+  }
+
+  async compileAgents(config) {
+    return this._withInstallLock(config.directory, () => this._compileAgents(config));
+  }
+
+  /**
    * Main installation method
    * @param {Object} config - Installation configuration
    * @param {string} config.directory - Target directory
@@ -229,7 +379,7 @@ class Installer {
    * @param {string[]} config.ides - IDEs to configure
    * @param {boolean} config.skipIde - Skip IDE configuration
    */
-  async install(originalConfig) {
+  async _install(originalConfig) {
     // Clone config to avoid mutating the caller's object
     const config = { ...originalConfig };
 
@@ -1584,7 +1734,7 @@ class Installer {
   /**
    * Update existing installation
    */
-  async update(config) {
+  async _update(config) {
     const spinner = await prompts.spinner();
     spinner.start('Checking installation...');
 
@@ -2926,7 +3076,7 @@ fi
    * @param {Object} config - Configuration with directory
    * @returns {Object} Update result
    */
-  async quickUpdate(config) {
+  async _quickUpdate(config) {
     const spinner = await prompts.spinner();
     spinner.start('Starting quick update...');
 
@@ -3168,7 +3318,7 @@ fi
    * @param {Object} config - Configuration with directory
    * @returns {Object} Compilation result
    */
-  async compileAgents(config) {
+  async _compileAgents(config) {
     // Using @clack prompts
     const { ModuleManager } = require('../modules/manager');
     const { getSourcePath } = require('../../../lib/project-root');
