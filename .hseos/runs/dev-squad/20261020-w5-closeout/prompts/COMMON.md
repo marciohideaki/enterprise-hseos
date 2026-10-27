@@ -1,0 +1,30 @@
+# Regras comuns (dev-squad W5-closeout) — leia antes de agir
+- Português (BR). Você é executor Sonnet do squad; o Commander decide escopo. Projeto com .axon/: use mcp__axon__* via ToolSearch (select:mcp__axon__get_context_capsule,mcp__axon__get_skeleton) começando por get_context_capsule.
+- Worktree: crie com `scripts/governance/worktree-manager.sh create <task-id> <base>` (base indicada no prompt). Depois: `cp -a` do node_modules do checkout principal e `node node_modules/husky/bin.js` no worktree (sem isso o commit sai com exit 72).
+- Testes/builds: `uptime` antes; via `/build/tmp/hseos-w5/bin/run-in-cgroup.sh <worktree> '<cmd>'`; um job pesado por vez; nunca suíte completa fora do hook; se a fila do heavy-run morrer com exit 143 por job alheio, repita desacoplado (`setsid nohup … > log 2>&1 &`) e acompanhe em primeiro plano; não toque em processos alheios.
+- Nada em /tmp literal (use $TMPDIR=/build/tmp, ou /build/tmp/hseos-w5/closeout/ para arquivos que precisam sobreviver, como a mensagem de commit — $TMPDIR é compartilhado e já teve arquivo apagado por outra sessão).
+- G3 SEM FOLGA: nenhum arquivo novo em tools/ (393/393), packages/ (137/137) ou outra área publicada; arquivos novos só em test/, docs/evolution/, .specs/. Confira com `npm pack --dry-run --json` (npm do Node 24). O gate é test/test-package-surface.js.
+- Cobertura 90/80 por arquivo do kernel (.c8-kernel.json). NUNCA afrouxe gate, threshold, assert ou teste; nunca pule/apague teste. Bloqueio = BLOCKED/FAIL com causa, nunca PASS.
+- Git: sem git stash, sem --no-verify, sem sudo, sem push, sem PR (o Commander abre). Commit SÓ quando o Commander mandar: `worktree-manager.sh commit` (ou /build/tmp/hseos-w5/bin/commit-in-cgroup.sh) com o túnel Postgres aberto só durante o commit (`kubectl -n platform-shared-dev port-forward svc/postgres-shared 39317:5432 --address 127.0.0.1`, encerre depois). Mensagem conventional sem Co-Authored-By e sem citar IA/fornecedores (Claude, Codex, Anthropic, OpenAI, GPT, LLM, AI) no assunto NEM no corpo; termos como `claude-account` também são barrados pelo validador.
+- Testes vermelhos primeiro (prove a falha pelo motivo certo), depois o conserto; prettier e eslint --max-warnings=0 nos tocados.
+
+## NO SILENT IDLE (verbatim do SKILL.md)
+> **NO SILENT IDLE.** Background-task and Monitor notices do NOT wake you once your turn ends.
+> - Never end a turn saying "waiting" / "aguardando". Run long commands in the foreground, in blocks of at most 540 s (`timeout 540 bash -c 'until <condition>; do sleep 15; done'`), repeating until the result is out.
+> - End the final turn with exactly one last line:
+>   `LIVENESS: {"state":"DONE"|"BLOCKED"|"FAILED"|"WAITING_ON","reason":"...","evidence":"<hash|path|run id>"}`
+> - Use `WAITING_ON` for a third party, including a pending decision from the Commander or a human (that is a wait, never `BLOCKED`), with `"waiting_on":{"condition":"...","wake_via":"commander"|"human","deadline_at":"<ISO-8601 within max_wait_deadline_s>"}`. `wake_via: self` does not exist. Waiting on your own process is never a reason to end the turn.
+> - Compute `deadline_at` with `date -u` at the moment you emit the line; never type a clock time from memory. `BLOCKED` is only for a real impediment, with its cause in `reason`.
+
+## Adendo 2026-10-20 (Commander)
+- NUNCA instale versões de Node em ~/.nvm (nem `nvm install`): o wrapper global ~/.local/bin/hseos escolhe a maior versão do nvm e quebra o `hseos` de todas as sessões. Node 24.22.0 para teste está em /build/tmp/hseos-w5/closeout/node-v24.22.0/bin (use com /build/tmp/hseos-w5/closeout/run-in-cgroup-nv.sh via NODEBIN=...).
+
+## Adendo 2026-10-20 (após a W0) — regime novo de testes e commit
+- Bases: as ondas W1, W3, W6, W7 partem de `feature/hseos-w5-closeout-<onda>` (= 5e0eb11c, W0 integrada). Crie o worktree com `scripts/governance/worktree-manager.sh create <task-id> feature/hseos-w5-closeout-<onda>`, `cp -a` do node_modules, `node node_modules/husky/bin.js`.
+- Hook local é LEVE por padrão (testes staged + quem os cita, lint/prettier, G3; ~segundos). NÃO precisa de túnel Postgres. Commit direto com `git commit -F <arquivo-de-mensagem>` (mensagem em /build/tmp/hseos-w5/closeout/), passando pelos hooks. PROIBIDO `core.hooksPath`, `--no-verify` ou qualquer bypass; se um hook recusar, corrija ou pare e reporte.
+- Teste local: só os arquivos que você tocou e os que os importam (uptime antes, run-in-cgroup). `test:kernel-coverage` local só se o arquivo tocado estiver em `.c8-kernel.json` e você precisar de feedback rápido; a prova oficial é o CI.
+- Prova completa = CI do GitHub: depois do commit, PUSH da sua branch `task/<task-id>` (autorizado; sem force; sem PR) e espere em primeiro plano, em blocos ≤540 s (`gh run list --branch task/<task-id>` / `gh run watch <id> --exit-status`), o run do SEU SHA terminar. Reporte DONE só com o CI verde do SHA (cite URL e SHA). CI vermelho = FAIL com o log do job que falhou.
+- Merges de integração (só o integrador): `git merge --no-ff -m "chore(merge): integrate <task-id> into <feature>"` pelo hook.
+- O hook leve usa o node/npm do PATH; com o /usr/bin/node 22 (npm 9.2) o G3 conta docs 9 > 7 e falha. Antes de commitar: `export PATH=/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:$PATH`.
+- CORREÇÃO (2026-10-20, revisão da W0-9): o hook leve roda os testes selecionados, e os de isolamento/engenharia exigem o cgroup delegado. Portanto o commit deve rodar DENTRO do cgroup: use `/build/tmp/hseos-w5/bin/commit-in-cgroup.sh` (com `NO_ADD=1` se você já fez o `git add` seletivo) — com o hook leve ele não precisa de túnel. `git commit` direto fora do cgroup só serve para commits de docs (sem testes selecionados).
+- LIMITE DA API DO GITHUB (2026-10-20): todos os agentes compartilham o mesmo token e já houve HTTP 403 por rate limit. NÃO use `gh run watch` (faz polling a cada poucos segundos). Para esperar o CI: `gh run list --branch <branch> --limit 1 --json databaseId,status,conclusion,headSha` a cada 120 s no máximo, dentro de `timeout 540 bash -c '...'`. Se receber 403, espere até o reset (`gh api rate_limit`) em vez de insistir.
