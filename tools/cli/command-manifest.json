@@ -814,7 +814,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "2d6e25522345b47a88dc4fb80fedbcccadf4dcaf08f1ec477a7c21e93fa55dd6"
+      "source_sha256": "91c581b11e60976bb20e818d261619026443a3af07ce096bdc80567142c3e3d8"
     },
     {
       "filename": "kanban-central.js",
