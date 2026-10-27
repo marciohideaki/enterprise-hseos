@@ -221,3 +221,30 @@ fell back to the executor default of 32 processes, which real clients exceed.
   `docs/evolution/w3/ADAPTERS-CAMPAIGN.md` recommend 256 until `pids_peak` is
   measured), recompute the binding digest and submit the manifest again. To roll
   back, return to the previous runtime.
+
+## `hseos install`: concurrent installs in one directory are refused
+
+Two `install`, `update` or quick-update runs writing the same project directory
+could interleave their writes to the manifest. They now take an exclusive lock,
+`<directory>/.hseos-install.lock`, which holds the pid of the running install.
+
+- A second run in the same directory is refused: it prints
+  `Another hseos install is already running in <directory> (pid N)` and exits
+  with code 75 (`EX_TEMPFAIL`). Nothing is queued and nothing is written. Retry
+  when the first run finishes.
+- A lock whose holder is dead (crash, `kill -9`) is taken over automatically,
+  under a short-lived `<directory>/.hseos-install.lock.takeover` mutex so two
+  runs can never both discard it. The lock is released on success, on error and
+  on SIGINT, SIGTERM and SIGHUP.
+- If the pid in the lock was recycled by an unrelated live process, the refusal
+  names the lock file: delete it by hand once you know no install is running.
+- The lock covers the installer's own writes (`install`, `update`, quick update
+  and agent recompilation). Files the CLI writes after the installer returns
+  (capability selection, platform bindings) are outside it. The directory is
+  created before the lock if it does not exist yet, and the lock file shows up
+  in `git status` of the project only while an install is running.
+- Installs in different directories do not block each other. A single install
+  behaves as before and leaves no lock behind.
+- To adapt: scripts that start several installs in one directory must run them
+  one after the other, or treat exit 75 as "try again". To roll back, return to
+  the previous runtime.
