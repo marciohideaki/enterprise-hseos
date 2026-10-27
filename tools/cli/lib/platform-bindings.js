@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const yaml = require('yaml');
+const { redactDiagnosticText } = require('./campaign-evidence-store');
 const { readYaml, assertObject, assertExactKeys, assertStringList } = require('./capability-catalog');
 
 const PLATFORM_MODES = ['platform', 'hybrid', 'local'];
@@ -33,6 +34,11 @@ const DATE = /^([0-9]{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
 
 const STACK_ROOTS = ['src', 'apps', 'services'];
 const MAX_SCAN_ENTRIES = 500;
+
+// git stderr reaches error messages and findings: key material and credential shapes never do.
+function safeStderr(error) {
+  return redactDiagnosticText(String(error.stderr || error.message).trim()) ?? '[redacted: credential-like content]';
+}
 
 function modeStrength(mode) {
   const index = PLATFORM_MODES.indexOf(mode);
@@ -755,13 +761,13 @@ function readRecordedMode(projectDir, ref = 'HEAD') {
     runGit(directory, ['rev-parse', '--is-inside-work-tree']);
   } catch (error) {
     if (error.status === 128 && /not a git repository/i.test(String(error.stderr))) return fallback;
-    throw new Error(`cannot read the recorded platform mode: git failed: ${String(error.stderr || error.message).trim()}`);
+    throw new Error(`cannot read the recorded platform mode: git failed: ${safeStderr(error)}`);
   }
   try {
     runGit(directory, ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]);
   } catch (error) {
     if (error.status === 1) return fallback; // the ref does not exist (for example no commits yet)
-    throw new Error(`cannot read the recorded platform mode: git failed: ${String(error.stderr || error.message).trim()}`);
+    throw new Error(`cannot read the recorded platform mode: git failed: ${safeStderr(error)}`);
   }
   const target = PROJECT_BINDINGS_FILE.split(path.sep).join('/');
   let text;
@@ -769,7 +775,7 @@ function readRecordedMode(projectDir, ref = 'HEAD') {
     if (runGit(directory, ['ls-tree', '--name-only', ref, '--', `./${target}`]).trim() === '') return fallback;
     text = runGit(directory, ['show', `${ref}:./${target}`]);
   } catch (error) {
-    throw new Error(`cannot read the recorded platform mode: git failed: ${String(error.stderr || error.message).trim()}`);
+    throw new Error(`cannot read the recorded platform mode: git failed: ${safeStderr(error)}`);
   }
   let doc = null;
   try {
@@ -846,7 +852,7 @@ function readCommitted(directory, relative) {
     if (!REGULAR_FILE_MODES.has(mode)) return { error: `'${relative}' is not a regular file at HEAD (git mode ${mode})` };
     return { content: runGitBuffer(directory, ['show', `HEAD:./${relative}`]) };
   } catch (error) {
-    return { error: `git failed while reading '${relative}' at HEAD: ${String(error.stderr || error.message).trim()}` };
+    return { error: `git failed while reading '${relative}' at HEAD: ${safeStderr(error)}` };
   }
 }
 
@@ -1007,7 +1013,7 @@ function downgradeProblem(projectDir, modeRef, from, to) {
     directory = fs.realpathSync(runGitBuffer(project, ['rev-parse', '--show-toplevel']).toString('utf8').trim());
     prefix = path.relative(directory, project).split(path.sep).join('/');
   } catch (error) {
-    return deny(`git failed while locating the repository root: ${String(error.stderr || error.message).trim()}`);
+    return deny(`git failed while locating the repository root: ${safeStderr(error)}`);
   }
   const inRepo = (relative) => (prefix ? `${prefix}/${relative}` : relative);
   const committed = readCommitted(directory, inRepo(modeRef));
@@ -1060,6 +1066,7 @@ module.exports = {
   overrideRefResolves,
   parsePlatformBindingFlag,
   readRecordedMode,
+  safeStderr,
   validateBindingsDocument,
   writePlatformBindings,
 };

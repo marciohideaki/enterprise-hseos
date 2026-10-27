@@ -54,6 +54,140 @@ function literalAssignment(text) {
   return false;
 }
 
+// Key material that lost its marker. A stderr capture keeps only the last characters, so a PEM block can arrive with its
+// BEGIN line cut off: a bare base64 body, maybe followed by a loose END line. A loose END line is a marker pattern like
+// the older ones: it withholds the whole text.
+const LOOSE_KEY_END = /-----END [A-Z ]*PRIVATE KEY-----/;
+// Heuristic for the body itself (applied to one block at a time, see redactKeyBodies):
+//  - a "full" line is base64 or base64url ([A-Za-z0-9+/_-]) of 40+ characters, optionally ending in `=` padding, that is not
+//    hex-only and mixes upper case, lower case and digits (PEM wraps at 64, MIME at 76; EC keys end on a shorter line);
+//  - a "tail" line (16+ characters, mixed) counts only right after two or more full lines, so a key whose last line is
+//    short (EC SEC1 P-256: 64 + 64 + 36) is still caught; it ends the block;
+//  - a line carrying `=` ends the block, so `=` in the middle of lines does not chain (a tampered body can escape);
+//  - three lines is the threshold: two would catch pairs of digests, while real bodies run to dozens of lines and keep
+//    enough of them when the capture window starts mid-block;
+//  - a common line prefix (`[stderr] `, `stderr: `, a simple timestamp) is ignored when classifying a line.
+// A one-line body (Ed25519 PKCS8 is 64 characters, or any key joined into a line) cannot be told from a digest by shape,
+// so it is recognised by what it contains: the DER header of a private key (PKCS8 Ed25519/X25519/RSA/EC, PKCS1 RSA, SEC1
+// EC) or the OpenSSH key envelope, at ANY position of a base64 sequence (`key=`, `?k=`, `path/`, a JSON value), with 20+
+// characters after it; everything from the header to the end of the sequence is replaced. Digests and hashes do not
+// contain these headers. A header that ends its line opens a block, so the following lines of a wrapped body go too, and
+// the glued last line of a block (base64 of 16+ characters followed by text or `"}`) is taken as the block tail.
+// A literal `\n` (JSON-escaped text) separates lines like a real newline.
+// Trade-off, fail-closed per block: only the matching lines are replaced by a short marker and the rest of the text (the
+// real cause of the error) is kept, but legitimate text of the same shape is lost as well: the output of `base64`, a
+// wrapped data URI, three lines of mixed base64url tokens or of base64 hashes. Known limits: two-line bodies without a
+// recognised header and lines under 40 characters (other than a block tail) are not covered; interleaved text breaks a
+// block; a glued last line under 16 characters stays; an encrypted PKCS8 key or a one-line body of a format not listed
+// above is not recognised. The heuristic is NOT applied to containsCredential()
+// (retained model output, where base64 is legitimate and a false positive would drop evidence); diagnostic texts call
+// redactDiagnosticText() instead.
+const FULL_LINE = /^[A-Za-z0-9+/_-]{40,}={0,2}$/;
+const TAIL_LINE = /^[A-Za-z0-9+/_-]{16,}={0,2}$/;
+// A fragment must look like key text (8+ characters with a digit or upper case), not like a word such as `oops`.
+const PARTIAL_LINE = /^(?=.*[0-9A-Z])[A-Za-z0-9+/_-]{8,}$/;
+const HEX_ONLY = /^[0-9a-fA-F]+$/;
+const LINE_PREFIX = /^(?:\[[A-Za-z0-9 _.:-]{1,24}\]|[A-Za-z]{3,12}:|\d{4}-\d{2}-\d{2}[T ][\d:.]+Z?)\s*/;
+const MIN_BODY_LINES = 3;
+// DER headers of private keys, as base64: PKCS8 Ed25519/X25519 (`MC4CAQAwBQYDK2V`), PKCS8 RSA, PKCS1 RSA, PKCS8 EC, SEC1 EC
+// (P-256 uses the short length form, `MHcCAQEE`), and the OpenSSH envelope (`openssh-key-v1`). The wildcard spans carry
+// the length bytes of the structure. Public keys (SPKI) start differently and are not matched.
+const KEY_HEADER =
+  '(?:MC4CAQAwBQYDK2V[a-z]|MII[A-Za-z0-9+/]{3}IBADANBgkqhkiG9w0BAQEFAASC|MII[A-Za-z0-9+/]{3}IBAAK|' +
+  'MI[GH][A-Za-z0-9+/]AgEAMB|MI[GH][A-Za-z0-9+/]AgEBB|MHcCAQEEI|b3BlbnNzaC1rZXktdjE)';
+const ANCHOR_LINE = new RegExp(`^${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}$`);
+const SINGLE_LINE_BODY = new RegExp(`${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}`, 'g');
+const END_ANCHOR = new RegExp(`${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}$`);
+// The last line of a block glued to text or to the `"}` of a JSON value: its base64 head is key text.
+const GLUED_TAIL = /^[A-Za-z0-9+/_-]{16,}={0,2}(?![A-Za-z0-9+/_=-])/;
+
+const keyText = (text) => (/[A-Z]/.test(text) && /[a-z]/.test(text)) || /[0-9]/.test(text);
+const mixed = (line) => /[A-Z]/.test(line) && /[a-z]/.test(line) && /[0-9]/.test(line);
+function classify(raw) {
+  const line = raw.trim();
+  const candidates = [line, line.replace(LINE_PREFIX, '')];
+  // A line that is a private-key header followed by body is certain by itself: it opens a block of any length.
+  for (const candidate of candidates) {
+    if (ANCHOR_LINE.test(candidate)) return { kind: 'full', padded: candidate.endsWith('='), anchor: true };
+  }
+  for (const candidate of candidates) {
+    if (FULL_LINE.test(candidate) && !HEX_ONLY.test(candidate) && mixed(candidate))
+      return { kind: 'full', padded: candidate.endsWith('=') };
+  }
+  for (const candidate of candidates) {
+    if (
+      TAIL_LINE.test(candidate) &&
+      !HEX_ONLY.test(candidate) &&
+      ((/[A-Z]/.test(candidate) && /[a-z]/.test(candidate)) || /[0-9]/.test(candidate))
+    )
+      return { kind: 'tail', padded: candidate.endsWith('=') };
+  }
+  return null;
+}
+
+/**
+ * Replaces each run of MIN_BODY_LINES or more key-body-like lines (see above) with `<withheld: key body, N lines>` and
+ * keeps the rest. A leading fragment left by the capture window (a base64-only first line right before a block) belongs
+ * to the block. Returns the text unchanged when nothing matched.
+ */
+function redactKeyBodies(text) {
+  const normalized = text.replaceAll(String.raw`\n`, '\n');
+  const redacted = redactLines(normalized);
+  return redacted === normalized ? text : redacted;
+}
+function redactLines(text) {
+  const lines = text.split('\n');
+  const out = [];
+  let run = [];
+  let anchored = false;
+  let lead = '';
+  const flush = () => {
+    if (run.length >= MIN_BODY_LINES || anchored) {
+      const first = run[0];
+      if (first === 1 && out.length === 1 && PARTIAL_LINE.test(out[0].trim().replace(LINE_PREFIX, ''))) {
+        out.pop();
+        run.unshift(0);
+      }
+      out.push(`${lead}<withheld: key body, ${run.length === 1 ? '1 line' : `${run.length} lines`}>`);
+    } else {
+      for (const index of run) out.push(lines[index]);
+    }
+    run = [];
+    anchored = false;
+    lead = '';
+  };
+  for (const [index, raw] of lines.entries()) {
+    let kind = classify(raw);
+    const ending = kind?.anchor ? null : END_ANCHOR.exec(raw.trimEnd());
+    if (ending) kind = { kind: 'full', padded: raw.trimEnd().endsWith('='), anchor: true, lead: raw.slice(0, ending.index) };
+    const joins = kind && (kind.kind === 'full' || run.length >= 2 || (anchored && run.length > 0));
+    if (!joins) {
+      const inBlock = run.length >= MIN_BODY_LINES || anchored;
+      flush();
+      // A header inside a longer line (`key=MIIE…`, a JSON value) is replaced in place.
+      const glued = inBlock ? GLUED_TAIL.exec(raw) : null;
+      const rest = glued && keyText(glued[0]) ? raw.slice(glued[0].length) : raw;
+      out.push(rest.replaceAll(SINGLE_LINE_BODY, '<withheld: key body, 1 line>'));
+      continue;
+    }
+    if (kind.anchor) {
+      flush();
+      anchored = true;
+      lead = kind.lead ?? '';
+    }
+    run.push(index);
+    if (kind.kind === 'tail' || kind.padded) flush();
+  }
+  flush();
+  return out.join('\n');
+}
+
+/** Text for a diagnostic or an error message: null when it carries a credential shape, else with key bodies replaced. */
+function redactDiagnosticText(text) {
+  if (containsCredential(text) || LOOSE_KEY_END.test(text)) return null;
+  return redactKeyBodies(text);
+}
+
 function fail(code) {
   throw Object.assign(new Error(code), { code });
 }
@@ -147,4 +281,12 @@ function readEvidence(state, ref) {
   }
 }
 
-module.exports = { MAX_EVIDENCE_BYTES, containsCredential, storeEvidence, readEvidence, evidenceSha256: sha256 };
+module.exports = {
+  MAX_EVIDENCE_BYTES,
+  containsCredential,
+  redactKeyBodies,
+  redactDiagnosticText,
+  storeEvidence,
+  readEvidence,
+  evidenceSha256: sha256,
+};
