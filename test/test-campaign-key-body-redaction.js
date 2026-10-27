@@ -2,9 +2,12 @@
 // Diagnostic redaction of key material that lost its marker: the stderr tail keeps only the last 4096 characters, so a
 // PEM block can reach the diagnostic as a bare base64 body (BEGIN cut off) with, at most, a loose END line.
 const assert = require('node:assert/strict');
-const { createHash } = require('node:crypto');
+const { createHash, generateKeyPairSync } = require('node:crypto');
 const { test } = require('node:test');
 const { clipText, sanitizeDiagnostic } = require('../tools/cli/lib/provider-campaign-process');
+const { redactDiagnosticText } = require('../tools/cli/lib/campaign-evidence-store');
+const { safeStderr } = require('../tools/cli/lib/platform-bindings');
+const { sessionEvidence } = require('../tools/cli/lib/engineering-task-runtime');
 
 const WITHHELD = '<withheld: credential pattern>';
 const STDERR_CAPTURE_CHARS = 4096;
@@ -151,11 +154,14 @@ test('ordinary error output, stack traces, tables, JSON, hex dumps and short log
   for (const sample of samples) assert.equal(clipText(sample, 100_000), sample);
 });
 
-test('a single long base64 line (digest) is kept: a one-line body cannot be told from a hash', () => {
+test('a single long base64 line (digest) is kept: only a private-key header makes a one-line body', () => {
   const digest = `sha512-${row(86)}`;
   assert.equal(clipText(`integrity ${digest}`), `integrity ${digest}`);
   const single = row(64);
   assert.equal(clipText(single), single);
+  // A header with fewer than 20 characters after it is not a key body.
+  const short = `x-MC4CAQAwBQYDK2Vw${row(10)}`;
+  assert.equal(clipText(short), short);
 });
 
 test('the classifier stays linear on pathological input', () => {
@@ -173,4 +179,136 @@ test('credential shapes that were already covered are withheld exactly as before
     'password=Sup3rSecretValue',
   ])
     assert.equal(clipText(sample), WITHHELD);
+});
+
+// One-line and literal-`\\n` bodies, from keys generated in memory (nothing is written to disk).
+const OPENSSH_HEADER = 'b3BlbnNzaC1rZXktdjEAAAAABG5vbmU'; // base64 of the "openssh-key-v1" envelope that follows the BEGIN marker
+const der = (key, type) => key.export({ type, format: 'der' }).toString('base64');
+const privateKeys = () => {
+  const keys = {
+    'ed25519 pkcs8': der(generateKeyPairSync('ed25519').privateKey, 'pkcs8'),
+    'x25519 pkcs8': der(generateKeyPairSync('x25519').privateKey, 'pkcs8'),
+    'openssh ed25519': OPENSSH_HEADER + row(180),
+  };
+  for (const bits of [2048, 4096]) {
+    const { privateKey } = generateKeyPairSync('rsa', { modulusLength: bits });
+    keys[`rsa-${bits} pkcs8`] = der(privateKey, 'pkcs8');
+    keys[`rsa-${bits} pkcs1`] = der(privateKey, 'pkcs1');
+  }
+  for (const namedCurve of ['prime256v1', 'secp384r1', 'secp521r1']) {
+    const { privateKey } = generateKeyPairSync('ec', { namedCurve });
+    keys[`${namedCurve} pkcs8`] = der(privateKey, 'pkcs8');
+    keys[`${namedCurve} sec1`] = der(privateKey, 'sec1');
+  }
+  return keys;
+};
+const chunks = (value) => Array.from({ length: Math.floor(value.length / 20) }, (_, i) => value.slice(i * 20, i * 20 + 20));
+const exposes = (output, value) => chunks(value).some((chunk) => output.includes(chunk));
+const wrap = (value, width) => value.match(new RegExp(`.{1,${width}}`, 'g'));
+
+for (const [name, key] of Object.entries(privateKeys())) {
+  test(`${name}: the body is withheld as one line, wrapped, behind a prefix and with literal \\n`, () => {
+    assert.equal(exposes(clipText(`worker failed: ${key}`, 100_000), key), false, 'inline');
+    assert.equal(exposes(clipText(`[stderr] ${key}\nExit 1`, 100_000), key), false, 'line prefix');
+    assert.equal(exposes(clipText(wrap(key, 64).join('\n'), 100_000), key), false, 'wrapped at 64');
+    assert.equal(exposes(clipText(wrap(key, 76).join('\n'), 100_000), key), false, 'wrapped at 76');
+    const escaped = `{"error":"boom\\n${wrap(key, 64).join(String.raw`\n`)}\\nExit 1"}`;
+    assert.equal(escaped.includes(String.raw`\n`), true);
+    assert.equal(exposes(clipText(escaped, 100_000), key), false, 'literal backslash-n');
+    assert.equal(exposes(JSON.stringify(sanitizeDiagnostic({ stderr: key })), key), false, 'sanitizeDiagnostic');
+  });
+}
+
+test('a one-line key keeps the error text around it', () => {
+  const key = der(generateKeyPairSync('ed25519').privateKey, 'pkcs8');
+  assert.equal(clipText(`before ${key} after`), 'before <withheld: key body, 1 line> after');
+  assert.equal(clipText(`stderr: ${key}\nExit 1`), '<withheld: key body, 1 line>\nExit 1');
+});
+
+test('public keys and digests that merely look like base64 are kept', () => {
+  const spki = der(generateKeyPairSync('ed25519').publicKey, 'spki');
+  const rsaPublic = der(generateKeyPairSync('rsa', { modulusLength: 2048 }).publicKey, 'spki');
+  for (const sample of [spki, rsaPublic, `sha256-${row(43)}=`, createHash('sha256').update('x').digest('base64')])
+    assert.equal(clipText(sample), sample);
+});
+
+test('diagnostic text with a credential shape is withheld whole; the others pass through redactDiagnosticText', () => {
+  assert.equal(redactDiagnosticText('token sk-' + 'a'.repeat(30)), null);
+  assert.equal(redactDiagnosticText('plain error'), 'plain error');
+});
+
+test('git stderr that carries key material never reaches the message (platform-bindings)', () => {
+  const key = der(generateKeyPairSync('ed25519').privateKey, 'pkcs8');
+  const withKey = safeStderr({ stderr: Buffer.from(`fatal: bad object ${key}\n`) });
+  assert.equal(exposes(withKey, key), false);
+  assert.match(withKey, /^fatal: bad object <withheld: key body, 1 line>$/);
+  assert.equal(safeStderr({ stderr: `-----BEGIN ${'OPENSSH'} PRIVATE KEY-----\n${key}` }), '[redacted: credential-like content]');
+  assert.equal(safeStderr({ message: 'spawn git ENOENT' }), 'spawn git ENOENT');
+});
+
+test('probe stderr and the evidence message redact key material (engineering-task-runtime)', () => {
+  const key = der(generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey, 'pkcs8');
+  const probe = sessionEvidence.probeStderr(`launcher: ${key}`);
+  assert.equal(exposes(probe, key), false);
+  assert.equal(probe, '<withheld: key body, 1 line>');
+  assert.equal(sessionEvidence.probeStderr('x'.repeat(500)).length, 200);
+  assert.equal(sessionEvidence.probeStderr('password=Sup3rSecretValue'), '[redacted: credential-like content]');
+  const message = sessionEvidence.evidenceMessage(`session failed: ${key}`);
+  assert.equal(exposes(message, key), false);
+  assert.equal(message, 'session failed: <withheld: key body, 1 line>');
+  assert.equal(sessionEvidence.evidenceMessage('password=Sup3rSecretValue'), '[redacted: credential-like content]');
+});
+
+// F1: the header may sit anywhere in a base64 sequence; F2: the last line of a wrapped body may be glued to text.
+const contexts = {
+  'key=': (k) => `key=${k}`,
+  'data=': (k) => `data=${k} done`,
+  '?k=': (k) => `GET /x?k=${k}&v=1`,
+  'path/': (k) => `/var/run/${k}`,
+  'dash-': (k) => `k-${k}`,
+  underscore_: (k) => `k_${k}`,
+  json: (k) => JSON.stringify({ k }),
+};
+for (const [name, key] of Object.entries(privateKeys())) {
+  test(`${name}: the body is withheld after =, -, _, / and inside JSON, and a glued last line goes too`, () => {
+    for (const [context, build] of Object.entries(contexts)) assert.equal(exposes(clipText(build(key), 100_000), key), false, context);
+    const rows = wrap(key, 64);
+    const glued = [
+      (k) => `${k}\nExit 1`,
+      (k) => `${k} trailing text`,
+      (k) => `key=${k}`,
+      (k) => JSON.stringify({ stderr: k }),
+      (k) => JSON.stringify({ stderr: `boom\n${k}`, code: 1 }),
+    ];
+    for (const build of glued) {
+      const out = clipText(build(rows.join('\n')), 100_000);
+      assert.equal(exposes(out, key), false, build(rows.join('\n')).slice(0, 20));
+      assert.equal(
+        rows.some((r) => r.length >= 16 && out.includes(r)),
+        false,
+      );
+    }
+  });
+}
+
+test('the text around a withheld body survives, and short prose after a block is kept', () => {
+  const key = der(generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey, 'pkcs8');
+  assert.equal(clipText(`key=${key}`), 'key=<withheld: key body, 1 line>');
+  assert.equal(clipText(`{"k":"${key}","n":1}`), '{"k":"<withheld: key body, 1 line>","n":1}');
+  const out = clipText(`${wrap(key, 64).join('\n')}\nExit 1`);
+  assert.match(out, /^<withheld: key body, \d+ lines>\nExit 1$/);
+  const prose = `${wrap(key, 64).slice(0, 8).join('\n')}\nworker failed: ECONNRESET`;
+  assert.match(clipText(prose), /\nworker failed: ECONNRESET$/);
+});
+
+test('every branch of probeStderr and evidenceMessage', () => {
+  const key = der(generateKeyPairSync('ed25519').privateKey, 'pkcs8');
+  assert.equal(sessionEvidence.probeStderr(''), '');
+  assert.equal(sessionEvidence.probeStderr('  plain failure \n'), 'plain failure');
+  assert.equal(sessionEvidence.probeStderr(`k=${key}`), 'k=<withheld: key body, 1 line>');
+  assert.equal(sessionEvidence.probeStderr('token=Sup3rSecretValue99'), '[redacted: credential-like content]');
+  assert.equal(sessionEvidence.evidenceMessage('x'.repeat(600)), `${'x'.repeat(512)}...`);
+  assert.equal(sessionEvidence.evidenceMessage('short'), 'short');
+  assert.equal(sessionEvidence.evidenceMessage(`bad ${key}`), 'bad <withheld: key body, 1 line>');
+  assert.equal(sessionEvidence.evidenceMessage('Authorization: Bearer ' + 'a1B2'.repeat(10)), '[redacted: credential-like content]');
 });

@@ -29,7 +29,7 @@ const { attestEngineeringVerifier, verifyEngineeringTask } = require('./engineer
 const { materializeStoreLinks, pinStoreMount, verifyPnpmStoreMount } = require('./engineering-workspace');
 const { EngineeringTaskState, engineeringDigest } = require('./engineering-task-state');
 const { evaluatePermissionLattice } = require('../../../packages/agent-policy-lattice');
-const { containsCredential } = require('./campaign-evidence-store');
+const { redactDiagnosticText } = require('./campaign-evidence-store');
 const { accountSessionTokens } = require('../../../packages/agent-context/token-counter');
 
 const MANIFEST = 'engineering-task.json';
@@ -522,11 +522,16 @@ async function attestExecutor(policy, deadline) {
   });
   if (probe.status !== 'succeeded' || !probe.descendants_terminated) {
     // The reason has no error code, so say what the probe saw: a load-dependent timeout and a launcher failure look alike otherwise.
-    const stderr = typeof probe.stderr === 'string' ? probe.stderr.trim().slice(0, 200) : '';
+    const stderr = typeof probe.stderr === 'string' ? probeStderr(probe.stderr) : '';
     throw new Error(
       `Executor resource/teardown proof failed: status=${probe.status} exit_code=${probe.exit_code} descendants_terminated=${probe.descendants_terminated}${stderr ? ` stderr=${JSON.stringify(stderr)}` : ''}`,
     );
   }
+}
+
+// The probe stderr reaches an error message: key material is redacted before the cut, so the cut cannot split a body.
+function probeStderr(stderr) {
+  return (redactDiagnosticText(stderr.trim()) ?? '[redacted: credential-like content]').slice(0, 200);
 }
 
 function createEngineeringTaskWorkspace(handle, created, id) {
@@ -809,7 +814,9 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
 const SESSION_FAILURE_MESSAGE_MAX = 512;
 // The failure message is runtime-authored text that reaches durable evidence: drop it whole if it looks like a credential.
 function evidenceMessage(message) {
-  if (containsCredential(message)) return '[redacted: credential-like content]';
+  const redacted = redactDiagnosticText(message);
+  if (redacted === null) return '[redacted: credential-like content]';
+  message = redacted;
   return message.length > SESSION_FAILURE_MESSAGE_MAX ? `${message.slice(0, SESSION_FAILURE_MESSAGE_MAX)}...` : message;
 }
 
@@ -1085,4 +1092,4 @@ async function executeJobTask(control, id) {
   }
 }
 module.exports.executeJobTask = executeJobTask;
-module.exports.sessionEvidence = { evidenceMessage, overBudgetEvidence, unverifiedSession };
+module.exports.sessionEvidence = { evidenceMessage, overBudgetEvidence, unverifiedSession, probeStderr };
