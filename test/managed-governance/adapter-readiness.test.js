@@ -211,6 +211,42 @@ test('an enabled adapter with no submitted receipt keeps the whole report not re
   }
 });
 
+test('a failure message from the remote control plane is not relayed to the client', async (context) => {
+  const remoteText = 'internal host db-7.corp token=sk-test-000';
+  const remote = require('node:http').createServer((request, response) => {
+    response.writeHead(500, { 'content-type': 'application/json' });
+    response.end(
+      JSON.stringify({
+        schema_version: 1,
+        ok: false,
+        data: null,
+        error: { code: 'internal_error', message: remoteText },
+        evidence: [],
+        warnings: [],
+      }),
+    );
+  });
+  await new Promise((resolve) => remote.listen(0, '127.0.0.1', resolve));
+  const projectRoot = writeProjectConfig(`http://127.0.0.1:${remote.address().port}`);
+  context.after(() => {
+    remote.close();
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  });
+  const stderrOriginal = process.stderr.write;
+  const captured = [];
+  process.stderr.write = (chunk) => (captured.push(String(chunk)), true);
+  try {
+    await assert.rejects(createProjectGovernanceQueryAdapter({ projectRoot }).getGovernanceReadiness(), (error) => {
+      assert.equal(error.message, 'managed governance query failed');
+      assert.equal(error.code, 'MANAGED_GOVERNANCE_QUERY_UNAVAILABLE');
+      return true;
+    });
+  } finally {
+    process.stderr.write = stderrOriginal;
+  }
+  assert.ok(captured.join('').includes('sk-test-000'), 'the remote text goes to the operator log');
+});
+
 test('a window with no evaluation at all is reported honestly as not-yet-evaluated, never guessed at', async (context) => {
   const organizationId = `adapter-readiness-unevaluated-${crypto.randomBytes(6).toString('hex')}`;
   const { server, baseUrl } = await startReadinessServer(organizationId);

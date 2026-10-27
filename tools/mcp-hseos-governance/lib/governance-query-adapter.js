@@ -120,7 +120,9 @@ async function requestJson(endpoint, method, pathname, body) {
     throw new GovernanceQueryError('managed governance response contract is invalid');
   }
   if (!envelope.ok) {
-    throw new GovernanceQueryError(envelope.error?.message || 'managed governance query failed');
+    // The remote control plane words its own message; it is not relayed to the client.
+    process.stderr.write(`[mcp-hseos-governance] remote query failed: ${String(envelope.error?.message)}\n`);
+    throw new GovernanceQueryError('managed governance query failed');
   }
   return envelope.data;
 }

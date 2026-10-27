@@ -10,7 +10,7 @@ const path = require('node:path');
 
 function snapshotRun(db, run_id) {
   const run = db.prepare('SELECT * FROM as_runs WHERE id = ?').get(run_id);
-  if (!run) throw new Error(`Run not found: ${run_id}`);
+  if (!run) throw Object.assign(new Error(`Run not found: ${run_id}`), { code: 'RUN_NOT_FOUND' });
   const tasks = db.prepare('SELECT * FROM as_tasks WHERE run_id = ? ORDER BY wave, id').all(run_id);
   const agentRuns = db.prepare('SELECT * FROM as_agent_runs WHERE run_id = ? ORDER BY started_at').all(run_id);
   const arIds = agentRuns.map((a) => a.id);

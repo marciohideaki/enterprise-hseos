@@ -51,7 +51,7 @@ module.exports = [
     },
     handler: (db, args = {}) => {
       const run = db.prepare(`SELECT * FROM as_runs WHERE id = ?`).get(args.run_id);
-      if (!run) throw new Error(`Run not found: ${args.run_id}`);
+      if (!run) throw Object.assign(new Error(`Run not found: ${args.run_id}`), { code: 'RUN_NOT_FOUND' });
       const taskCounts = db.prepare(`SELECT status, COUNT(*) AS n FROM as_tasks WHERE run_id = ? GROUP BY status`).all(args.run_id);
       const agentRunCounts = db
         .prepare(`SELECT status, COUNT(*) AS n FROM as_agent_runs WHERE run_id = ? GROUP BY status`)

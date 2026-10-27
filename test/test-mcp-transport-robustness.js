@@ -240,6 +240,60 @@ async function runW504Tests() {
     assert.ok(good.result);
   });
 
+  await it('transport: only errors with an allowlisted authored code keep their message on the client', async () => {
+    const hostile = 'ENOENT /home/x/.ssh/id_ed25519 token=sk-test-000';
+    const thrown = new Map([
+      ['plain', () => new Error(hostile)],
+      ['foreign-code', () => Object.assign(new Error(hostile), { code: 'ENOENT' })],
+      ['authored', () => Object.assign(new Error('Task not found: t-1'), { code: 'TASK_NOT_FOUND' })],
+      ['prefixed', () => Object.assign(new Error('axon is down'), { code: 'AXON_UNAVAILABLE' })],
+    ]);
+    const stderrOriginal = process.stderr.write;
+    const captured = [];
+    process.stderr.write = (chunk) => (captured.push(String(chunk)), true);
+    try {
+      const handler = createMessageHandler({
+        serverInfo: { name: 't', version: '1' },
+        tools: [{ name: 'boom', description: 'd', inputSchema: { type: 'object', properties: { kind: { type: 'string' } } } }],
+        callTool: async (name, args) => {
+          throw thrown.get(args.kind)();
+        },
+      });
+      const call = (kind) => handler({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'boom', arguments: { kind } } });
+      for (const kind of ['plain', 'foreign-code']) {
+        const response = await call(kind);
+        assert.equal(response.error.code, -32_000);
+        assert.equal(response.error.message, 'Tool failed');
+        assert.ok(!JSON.stringify(response).includes('id_ed25519'), JSON.stringify(response));
+      }
+      assert.equal((await call('authored')).error.message, 'Task not found: t-1');
+      assert.equal((await call('prefixed')).error.message, 'axon is down');
+      assert.ok(captured.join('').includes('id_ed25519'), 'the detail must go to stderr');
+
+      const http = createHttpServer(
+        async (message) => {
+          throw thrown.get(message.kind)();
+        },
+        { status: 'ok' },
+      );
+      const port = await listen(http);
+      try {
+        for (const kind of ['plain', 'foreign-code']) {
+          const response = await rawPost(port, JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'x', kind }));
+          assert.equal(response.body.error.code, -32_603);
+          assert.equal(response.body.error.message, 'Internal error');
+          assert.ok(!JSON.stringify(response.body).includes('id_ed25519'), JSON.stringify(response.body));
+        }
+        const authored = await rawPost(port, JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'x', kind: 'authored' }));
+        assert.equal(authored.body.error.message, 'Internal error: Task not found: t-1');
+      } finally {
+        http.close();
+      }
+    } finally {
+      process.stderr.write = stderrOriginal;
+    }
+  });
+
   await it('transport: a legacy HTTP body above the limit is refused with 413 and the server survives', async () => {
     assert.equal(MAX_HTTP_BODY_BYTES, 1_048_576);
     const handled = [];
@@ -523,9 +577,11 @@ async function runW504Tests() {
       };
       const refused = await call(3, 'ghost_tool', {});
       assert.ok(refused.body.error, 'the call stays denied');
-      assert.match(refused.body.error.message, /Unknown tool: ghost_tool \(denial not recorded: store is read-only\)/);
+      assert.match(refused.body.error.message, /Unknown tool: ghost_tool \(denial not recorded\)/);
+      assert.ok(!refused.body.error.message.includes('store is read-only'), 'the recorder failure text stays off the wire');
       const refusedScope = await call(4, 'echo', { text: 'escape' });
       assert.match(refusedScope.body.error.message, /denial not recorded/);
+      assert.ok(!refusedScope.body.error.message.includes('store is read-only'));
       assert.equal(invoked, 2);
     } finally {
       await handle.close();

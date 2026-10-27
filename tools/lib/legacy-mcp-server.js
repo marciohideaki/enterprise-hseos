@@ -86,7 +86,8 @@ function createLegacyGateway({ serverId, tools, invokeTool, recordDenial, log = 
       if (typeof recordDenial === 'function') recordDenial(denial);
     } catch (error) {
       log(`[${serverId}:gateway:warn] denial recorder failed: ${error.message}`);
-      return `denial not recorded: ${error.message}`;
+      // The recorder's own text (paths, SQL errors) stays in the operator log; the client sees only a fixed suffix.
+      return typeof error.code === 'string' ? `denial not recorded: ${error.code}` : 'denial not recorded';
     }
     return null;
   };

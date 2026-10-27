@@ -16,6 +16,18 @@ class AxonError extends Error {
   }
 }
 
+// The cause of a spawn or protocol failure can carry binary paths and child output: it goes to the operator log, and the
+// client sees a fixed text (plus a string error code when there is one).
+function spawnFailureReason(error) {
+  process.stderr.write(`[axon-bridge] cannot execute axon binary: ${error && error.stack ? error.stack : String(error)}\n`);
+  return typeof (error && error.code) === 'string' ? `cannot execute axon binary (${error.code})` : 'cannot execute axon binary';
+}
+
+function pipeFailureReason(error) {
+  process.stderr.write(`[axon-bridge] axon pipe failure: ${error && error.stack ? error.stack : String(error)}\n`);
+  return typeof (error && error.code) === 'string' ? error.code : 'pipe error';
+}
+
 function unavailableError(toolName, reason = 'axon binary not found — install axon or set AXON_BIN env var') {
   return new AxonError('AXON_UNAVAILABLE', reason, { tool: toolName });
 }
@@ -148,7 +160,7 @@ function runAxon(binaryPath, toolName, args, { timeoutMs = DEFAULT_TIMEOUT_MS } 
       child = spawn(binaryPath, ['serve'], { stdio: ['pipe', 'pipe', 'pipe'] });
     } catch (error) {
       clearTimeout(timer);
-      reject(unavailableError(toolName, `cannot execute axon binary: ${error.message}`));
+      reject(unavailableError(toolName, spawnFailureReason(error)));
       return;
     }
 
@@ -175,7 +187,8 @@ function runAxon(binaryPath, toolName, args, { timeoutMs = DEFAULT_TIMEOUT_MS } 
       if (message.id !== 2) return;
       if (message.error) {
         const code = message.error.code === -32_601 || message.error.code === -32_602 ? 'AXON_INCOMPATIBLE' : 'AXON_TOOL_ERROR';
-        fail(code, message.error.message || 'axon returned an error');
+        process.stderr.write(`[axon-bridge] axon tool error: ${String(message.error.message)}\n`);
+        fail(code, 'axon returned an error');
         return;
       }
       const text = message.result?.content?.[0]?.text;
@@ -201,8 +214,8 @@ function runAxon(binaryPath, toolName, args, { timeoutMs = DEFAULT_TIMEOUT_MS } 
     };
 
     // An axon that exits early closes the pipe (EPIPE); that must not crash the bridge.
-    child.stdin.on('error', (error) => incompatible(`axon closed its stdin early (${error.code || error.message})`));
-    child.stdout.on('error', (error) => incompatible(`axon stdout failed (${error.code || error.message})`));
+    child.stdin.on('error', (error) => incompatible(`axon closed its stdin early (${pipeFailureReason(error)})`));
+    child.stdout.on('error', (error) => incompatible(`axon stdout failed (${pipeFailureReason(error)})`));
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', (chunk) => {
       buffer += chunk;
@@ -222,7 +235,7 @@ function runAxon(binaryPath, toolName, args, { timeoutMs = DEFAULT_TIMEOUT_MS } 
     child.stderr.on('data', (chunk) => {
       stderr = `${stderr}${chunk}`.slice(-2000);
     });
-    child.on('error', (error) => finish(reject, unavailableError(toolName, `cannot execute axon binary: ${error.message}`)));
+    child.on('error', (error) => finish(reject, unavailableError(toolName, spawnFailureReason(error))));
     child.on('close', (code) => {
       if (!settled)
         incompatible(`axon serve exited (code=${code}) before answering; the installed axon may not support the MCP stdio interface`);
