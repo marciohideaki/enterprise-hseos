@@ -193,3 +193,170 @@ test('light hook: journey CLIs and helpers that cite a staged file are never run
   assert.match(output, /test\/sub\/test-nested\.js/);
   assert.match(output, /test\/test-uses-lib\.js/);
 });
+
+// The supervisor must not hide process leaks: a descendant still alive after a command ends is killed, and the
+// command fails naming the orphans. Fixtures leak real sleeps with a distinctive duration so assertions never match
+// anything else on the machine.
+const ORPHANS = path.join(ROOT, '.github/scripts/suite-orphans.mjs');
+const LEAK_SECONDS = '4711';
+
+// A killed process may linger as a zombie until its new parent reaps it; a zombie is dead for this purpose.
+function alive(pid) {
+  try {
+    const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8');
+    return !/^\S+ \(.*\) [ZX]/.test(stat);
+  } catch {
+    return false;
+  }
+}
+
+// SIGKILL is delivered asynchronously, so give the kernel a moment before calling a process alive.
+function stillAlive(pid) {
+  for (let attempt = 0; attempt < 40 && alive(pid); attempt += 1) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50);
+  return alive(pid);
+}
+
+test('a command that leaves a child alive is killed and reported as an orphan with pid and command', async () => {
+  const { runGuarded, describeOrphans } = await import(pathToFileURL(ORPHANS).href);
+  const result = runGuarded(`sleep ${LEAK_SECONDS} & exit 0`, { cwd: ROOT, settleMs: 200 });
+  assert.equal(result.status, 0);
+  assert.equal(result.orphans.length, 1);
+  assert.match(result.orphans[0].command, new RegExp(`sleep ${LEAK_SECONDS}`));
+  assert.match(describeOrphans('fixture', result.orphans), new RegExp(`pid ${result.orphans[0].pid}: sleep ${LEAK_SECONDS}`));
+  assert.equal(stillAlive(result.orphans[0].pid), false, 'the orphan must be killed');
+});
+
+test('a double-forked setsid orphan, which reparents to init, is still found', async () => {
+  const { runGuarded } = await import(pathToFileURL(ORPHANS).href);
+  const result = runGuarded(`setsid sleep ${LEAK_SECONDS} </dev/null >/dev/null 2>&1 & exit 0`, { cwd: ROOT, settleMs: 200 });
+  assert.equal(result.orphans.length, 1);
+  assert.equal(stillAlive(result.orphans[0].pid), false);
+});
+
+test('a clean command and a child that exits during the settle window are not orphans', async () => {
+  const { runGuarded } = await import(pathToFileURL(ORPHANS).href);
+  assert.deepEqual(runGuarded('true', { cwd: ROOT, settleMs: 200 }).orphans, []);
+  const slow = runGuarded('(sleep 0.4 &) ; exit 0', { cwd: ROOT, settleMs: 2000 });
+  assert.deepEqual(slow.orphans, []);
+});
+
+test('a failing command keeps its exit status and only the supervised command tree is inspected', async () => {
+  const { runGuarded } = await import(pathToFileURL(ORPHANS).href);
+  const bystander = require('node:child_process').spawn('sleep', [LEAK_SECONDS], { stdio: 'ignore' });
+  try {
+    const result = runGuarded('exit 3', { cwd: ROOT, settleMs: 200 });
+    assert.equal(result.status, 3);
+    assert.deepEqual(result.orphans, []);
+    assert.equal(alive(bystander.pid), true, 'a process the command did not start must never be touched');
+  } finally {
+    bystander.kill('SIGKILL');
+  }
+});
+
+test('an allowlisted segment is killed but not failed, and an allowlist entry needs a reason', async () => {
+  const { runGuarded, loadAllowlist } = await import(pathToFileURL(ORPHANS).href);
+  const command = `sleep ${LEAK_SECONDS} & exit 0`;
+  const result = runGuarded(command, { cwd: ROOT, settleMs: 200, allowlist: { [command]: 'fixture' } });
+  assert.deepEqual(result.orphans, []);
+  assert.equal(result.allowed.length, 1);
+  assert.equal(stillAlive(result.allowed[0].pid), false);
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'orphan-allow-')), 'a.json');
+  try {
+    fs.writeFileSync(file, JSON.stringify({ x: ' ' }));
+    assert.throws(() => loadAllowlist(file), /needs a reason/);
+  } finally {
+    fs.rmSync(path.dirname(file), { recursive: true, force: true });
+  }
+  assert.deepEqual(loadAllowlist(), {}, 'the shipped allowlist stays empty: leaks are fixed, not listed');
+});
+
+test('npm run steps split into per-file segments only when the chain is plain &&', async () => {
+  const { segmentsOf } = await import(pathToFileURL(ORPHANS).href);
+  const scripts = {
+    'test:a': 'node test/a.js && node test/b.js',
+    'test:b': 'node test/a.js || node test/b.js',
+    'test:c': 'node test/a.js | cat',
+    'test:d': 'npm run test:a && node x.js',
+    'test:e': 'node --test test/a.js',
+  };
+  assert.deepEqual(segmentsOf('npm run test:a', scripts), ['node test/a.js', 'node test/b.js']);
+  assert.deepEqual(segmentsOf('npm run test:b', scripts), ['npm run test:b']);
+  assert.deepEqual(segmentsOf('npm run test:c', scripts), ['npm run test:c']);
+  assert.deepEqual(segmentsOf('npm run test:d', scripts), ['npm run test:d']);
+  assert.deepEqual(segmentsOf('npm run test:e', scripts), ['node --test test/a.js']);
+  assert.deepEqual(segmentsOf('npm run missing', scripts), ['npm run missing']);
+  // state carried between parts, quoting and npm pre/post hooks keep the item whole
+  const stateful = {
+    'test:cd': 'cd sub && node a.js',
+    'test:env': 'FOO=1 && node a.js',
+    'test:quote': 'node -e "a && b" && node c.js',
+    'test:hooked': 'node a.js && node b.js',
+    'pretest:hooked': 'node pre.js',
+  };
+  for (const name of ['test:cd', 'test:env', 'test:quote', 'test:hooked']) {
+    assert.deepEqual(segmentsOf(`npm run ${name}`, stateful), [`npm run ${name}`]);
+  }
+});
+
+test('the shard runner fails the item that leaks, names the segment, and stops at the first failure', async () => {
+  const { runItem } = await import(pathToFileURL(SHARDS).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'orphan-root-'));
+  try {
+    fs.writeFileSync(
+      path.join(root, 'package.json'),
+      JSON.stringify({
+        scripts: {
+          'test:leak': `echo ok && (sleep ${LEAK_SECONDS} &) ; true`,
+          'test:split': 'echo ok && node leak.js && touch after-leak',
+          'test:ok': 'true && true',
+        },
+      }),
+    );
+    fs.writeFileSync(
+      path.join(root, 'leak.js'),
+      `require('node:child_process').spawn('sleep', ['${LEAK_SECONDS}'], { detached: true, stdio: 'ignore' }).unref();`,
+    );
+    assert.equal(runItem('npm run test:ok', { root, allowlist: {}, settleMs: 200 }).ok, true);
+    // `;` keeps test:leak whole, so the whole item is the supervised segment
+    assert.equal(runItem('npm run test:leak', { root, allowlist: {}, settleMs: 200 }).ok, false);
+    const split = runItem('npm run test:split', { root, allowlist: {}, settleMs: 200 });
+    assert.equal(split.ok, false);
+    assert.equal(fs.existsSync(path.join(root, 'after-leak')), false, 'later segments must not run after a leak');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Regression: the scan once returned EVERY readable process (the token was never compared), and the reaper then
+// SIGKILLed the whole user session. Matching must be by token only, and the reaper must never signal itself, its
+// ancestors, pid 0 or pid 1, whatever a scan returned.
+test('the orphan scan matches only processes that carry the token, and the reaper never signals protected pids', async () => {
+  const { findTagged, reapOrphans, TOKEN_VAR } = await import(pathToFileURL(ORPHANS).href);
+  const proc = fs.mkdtempSync(path.join(os.tmpdir(), 'orphan-proc-'));
+  const entry = (pid, environ, state = 'S') => {
+    fs.mkdirSync(path.join(proc, String(pid)));
+    fs.writeFileSync(path.join(proc, String(pid), 'environ'), environ);
+    fs.writeFileSync(path.join(proc, String(pid), 'stat'), `${pid} (x) ${state} 1 1 1 0`);
+    fs.writeFileSync(path.join(proc, String(pid), 'cmdline'), `cmd${pid}\0`);
+  };
+  const sent = [];
+  const realKill = process.kill;
+  try {
+    entry(900_001, `A=1\0${TOKEN_VAR}=tok\0`);
+    entry(900_002, 'A=1\0B=2\0');
+    entry(900_003, `${TOKEN_VAR}=other\0`);
+    entry(900_004, `X${TOKEN_VAR}=tok\0`);
+    entry(900_005, `${TOKEN_VAR}=tok\0`, 'Z');
+    assert.deepEqual(
+      findTagged('tok', proc).map((p) => p.pid),
+      [900_001],
+    );
+
+    process.kill = (pid, signal) => sent.push([pid, signal]);
+    reapOrphans([{ pid: process.pid }, { pid: process.ppid }, { pid: 1 }, { pid: 0 }, { pid: -1 }, { pid: 900_001 }]);
+    assert.deepEqual(sent, [[900_001, 'SIGKILL']]);
+  } finally {
+    process.kill = realKill;
+    fs.rmSync(proc, { recursive: true, force: true });
+  }
+});

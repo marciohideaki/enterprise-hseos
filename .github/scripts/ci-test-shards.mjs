@@ -9,10 +9,10 @@
 //   node .github/scripts/ci-test-shards.mjs plan   --shards N [--shard I]   print the plan (or one shard, 1-based)
 //   node .github/scripts/ci-test-shards.mjs run    --shards N --shard I      run one shard, every item, then report
 //   node .github/scripts/ci-test-shards.mjs verify --shards N               prove union(shards) == the full suite
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { describeOrphans, loadAllowlist, runGuarded, segmentsOf } from './suite-orphans.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const EXTRA_ITEMS = ['npm run test:kernel-coverage'];
@@ -87,6 +87,22 @@ function verify(count) {
   );
 }
 
+// Runs the segments of one item in order, stopping at the first failure like `&&` would. Each segment is supervised:
+// a descendant still alive when it ends is killed and fails the item, naming the segment and the orphans.
+export function runItem(item, { root = ROOT, allowlist = loadAllowlist(), settleMs } = {}) {
+  const scripts = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).scripts;
+  for (const segment of segmentsOf(item, scripts)) {
+    const result = runGuarded(segment, { cwd: root, allowlist, settleMs, pathPrepend: path.join(root, 'node_modules', '.bin') });
+    if (result.allowed.length > 0) console.log(`allowlisted long-lived processes after: ${segment}`);
+    if (result.orphans.length > 0) {
+      console.log(describeOrphans(segment, result.orphans));
+      return { ok: false };
+    }
+    if (result.status !== 0) return { ok: false };
+  }
+  return { ok: true };
+}
+
 function run(count, index) {
   const { shards } = loadPlan(count);
   const shard = shards[index - 1];
@@ -94,10 +110,10 @@ function run(count, index) {
   for (const { item } of shard.items) {
     console.log(`::group::${item}`);
     const started = Date.now();
-    const child = spawnSync('bash', ['-c', item], { cwd: ROOT, stdio: 'inherit' });
+    const outcome = runItem(item);
     const seconds = Math.round((Date.now() - started) / 1000);
     console.log('::endgroup::');
-    const ok = child.status === 0;
+    const ok = outcome.ok;
     results.push({ item, seconds, ok });
     console.log(`${ok ? 'PASS' : 'FAIL'} ${seconds}s ${item}`);
   }
