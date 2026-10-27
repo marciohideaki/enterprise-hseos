@@ -106,7 +106,8 @@ function handleTool(db, name, args, context) {
 
     case 'tasks_add': {
       const { id, owner, description, depends } = args;
-      if (!id || !owner || !description) throw new Error('id, owner, description are required');
+      if (!id || !owner || !description)
+        throw Object.assign(new Error('id, owner, description are required'), { code: 'PROJECT_STATE_ARGUMENT_REQUIRED' });
       db.prepare('INSERT OR IGNORE INTO tasks (id, owner, description, depends_on) VALUES (?, ?, ?, ?)').run(
         id,
         owner,
@@ -118,10 +119,10 @@ function handleTool(db, name, args, context) {
 
     case 'tasks_update': {
       const { id, status, note } = args;
-      if (!id || !status) throw new Error('id and status are required');
+      if (!id || !status) throw Object.assign(new Error('id and status are required'), { code: 'PROJECT_STATE_ARGUMENT_REQUIRED' });
       const now = new Date().toISOString();
       const result = db.prepare('UPDATE tasks SET status = ?, note = ?, updated_at = ? WHERE id = ?').run(status, note || null, now, id);
-      if (!result.changes) throw new Error(`Task not found: ${id}`);
+      if (!result.changes) throw Object.assign(new Error(`Task not found: ${id}`), { code: 'TASK_NOT_FOUND' });
       return { updated: id, status, updated_at: now };
     }
 

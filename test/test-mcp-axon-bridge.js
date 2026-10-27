@@ -139,10 +139,21 @@ const rl = require('node:readline').createInterface({ input: process.stdin });
 rl.on('line', (line) => {
   const m = JSON.parse(line);
   if (m.method === 'initialize') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { protocolVersion: '2024-11-05', serverInfo: { name: 'fake', version: '9' }, capabilities: {} } }));
-  if (m.method === 'tools/call') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { content: [{ type: 'text', text: JSON.stringify({ echoed_tool: m.params.name, echoed_args: m.params.arguments }) }] } }));
+  if (m.method === 'tools/call' && ${JSON.stringify(mode)} === 'toolerror') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, error: { code: -32000, message: 'index at /home/x/.ssh/sk-test-000 is locked' } }));
+  else if (m.method === 'tools/call') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { content: [{ type: 'text', text: JSON.stringify({ echoed_tool: m.params.name, echoed_args: m.params.arguments }) }] } }));
 });
 `;
   fs.writeFileSync(file, script, { mode: 0o755 });
+  return file;
+}
+
+// Executable (so the resolver accepts it) but with an interpreter that does not exist: spawn fails, and the error
+// text names the path, which holds a synthetic secret.
+function writeUnspawnableAxon(dir) {
+  const secretDir = path.join(dir, 'sk-test-000');
+  fs.mkdirSync(secretDir, { recursive: true });
+  const file = path.join(secretDir, 'axon');
+  fs.writeFileSync(file, '#!/nonexistent-interpreter-sk-test-000\n', { mode: 0o755 });
   return file;
 }
 
@@ -274,6 +285,25 @@ async function callTool(port, name, args) {
       fs.rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  // --- failure causes (binary path, axon's own error text) never reach the client ------
+  for (const [label, bin, expected] of [
+    ['an unspawnable binary', writeUnspawnableAxon(fakeDir), 'AXON_UNAVAILABLE'],
+    ['an axon tool error', writeFakeAxon(fakeDir, 'toolerror'), 'AXON_TOOL_ERROR'],
+  ]) {
+    srv = startHttp({ AXON_BIN: bin, PATH: '/nonexistent-path-dir', HSEOS_AXON_BRIDGE_CREDENTIAL: CREDENTIAL });
+    try {
+      const port = await waitForServerPort(srv.child);
+      await it(`${label} yields ${expected} without the path or the child text`, async () => {
+        const response = await callTool(port, 'get_overview', {});
+        const message = response.error?.message || '';
+        if (!message.startsWith(expected)) throw new Error(`unexpected response: ${JSON.stringify(response).slice(0, 300)}`);
+        if (JSON.stringify(response).includes('sk-test-000')) throw new Error(`cause leaked: ${JSON.stringify(response)}`);
+      });
+    } finally {
+      await srv.stop();
+    }
+  }
 
   // --- axon with an incompatible interface: AXON_INCOMPATIBLE + detected version -------
   srv = startHttp({

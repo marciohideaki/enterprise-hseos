@@ -857,7 +857,9 @@ class Mcp2026Adapter {
     const inputValidation = await this._validateSchema(tool.inputSchema, argumentsValue, requestContext.signal);
     if (!inputValidation.valid) {
       throw new McpAdapterError('Tool arguments do not match inputSchema', JSON_RPC.INVALID_PARAMS, {
-        issues: inputValidation.errors,
+        // Only the failing keyword and location: the validator's params, messages and schema paths echo property
+        // names and allowed values.
+        issues: inputValidation.errors.map(({ keyword, instancePath }) => ({ keyword, instancePath })),
       });
     }
     const actor = await this.resolveActor(requestContext);
@@ -940,7 +942,8 @@ class Mcp2026Adapter {
         (await this._validateSchema(tool.outputSchema, outcome.data.result, requestContext.signal));
       if (!outputValidation || !outputValidation.valid) {
         throw new McpAdapterError('Execution result does not match the advertised outputSchema', JSON_RPC.INTERNAL_ERROR, {
-          issues: outputValidation ? outputValidation.errors : [],
+          // A tool result is not client input: no per-item detail, since keys and values in it are not the caller's own.
+          issues: { issue_count: outputValidation && outputValidation.errors ? outputValidation.errors.length : 0 },
         });
       }
     }
