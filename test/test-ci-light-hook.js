@@ -46,6 +46,11 @@ test('the CI fan-in keeps the check names that branch protection requires', () =
   assert.deepEqual(workflow.jobs.test.strategy.matrix['node-version'], ['22.x', '24.x']);
   assert.equal(workflow.jobs.test.name, undefined, 'the default name `test (<node>)` is the required check');
   assert.deepEqual(workflow.jobs.test.needs, ['plan', 'shard']);
+  // A failed plan leaves full_node_versions empty; the fan-in must fail on it explicitly instead of reading fromJSON('').
+  const [first] = workflow.jobs.test.steps;
+  assert.equal(first.name, 'Require the plan job to have succeeded');
+  assert.equal(first.if, "${{ needs.plan.result != 'success' }}");
+  assert.match(first.run, /exit 1/);
   // Node 24 always gets the full suite; Node 22 gets it only on the nightly schedule and manual dispatch, and the
   // `test (22.x)` check runs the compatibility subset otherwise, so the required check name stays satisfiable.
   assert.equal(workflow.jobs.shard.strategy.matrix['node-version'], '${{ fromJSON(needs.plan.outputs.full_node_versions) }}');
@@ -359,4 +364,111 @@ test('the orphan scan matches only processes that carry the token, and the reape
     process.kill = realKill;
     fs.rmSync(proc, { recursive: true, force: true });
   }
+});
+
+// Every tracked test file must be run by some suite step: the partition proof alone says nothing about files that no
+// script names. The allowlist is the only exemption and every entry needs a reason.
+const coverage = async () => import(pathToFileURL(SHARDS).href);
+const COVERAGE_FILES = ['test/test-listed.js', 'test/test-unlisted.js', 'test/sub/other.test.cjs', 'test/helpers/h.js', 'README.md'];
+const COVERAGE_SCRIPTS = {
+  test: 'npm run test:a',
+  'test:a': 'node test/test-listed.js && npm run test:b',
+  'test:b': 'node test/sub/other.test.cjs && npm run test:a',
+};
+
+test('coverage: a tracked test file that no suite step references fails with its path; helpers are not tests', async () => {
+  const { testCoverageProblems } = await coverage();
+  const result = testCoverageProblems({ files: COVERAGE_FILES, items: ['npm run test:a'], scripts: COVERAGE_SCRIPTS, allowlist: {} });
+  assert.deepEqual(result.problems, ['not run by any suite step: test/test-unlisted.js']);
+  assert.equal(result.count, 3);
+});
+
+test('coverage: an allowlist entry needs a reason, a tracked file and a file that is really unreferenced', async () => {
+  const { testCoverageProblems, loadTestAllowlist } = await coverage();
+  const run = (allowlist) =>
+    testCoverageProblems({ files: COVERAGE_FILES, items: ['npm run test:a'], scripts: COVERAGE_SCRIPTS, allowlist });
+  assert.deepEqual(run({ 'test/test-unlisted.js': 'needs a database the CI does not have' }).problems, []);
+  assert.match(run({ 'test/gone.js': 'x' }).problems.join('\n'), /not tracked: test\/gone\.js/);
+  assert.match(run({ 'test/test-listed.js': 'x' }).problems.join('\n'), /already runs: test\/test-listed\.js/);
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'test-allow-')), 'a.json');
+  try {
+    fs.writeFileSync(file, JSON.stringify({ 'test/test-unlisted.js': ' ' }));
+    assert.throws(() => loadTestAllowlist(file), /needs a reason/);
+  } finally {
+    fs.rmSync(path.dirname(file), { recursive: true, force: true });
+  }
+  assert.deepEqual(loadTestAllowlist(), {}, 'the shipped test allowlist stays empty: unrun tests are wired in, not listed');
+});
+
+test('coverage: verify run end to end in a fixture repo fails on an unreferenced tracked test and passes once allowlisted', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-coverage-'));
+  try {
+    const write = (name, content) => {
+      fs.mkdirSync(path.dirname(path.join(directory, name)), { recursive: true });
+      fs.writeFileSync(path.join(directory, name), content);
+    };
+    write('package.json', JSON.stringify({ scripts: { test: 'node test/test-a.js' } }));
+    write('test/test-a.js', '');
+    write('test/test-b.js', '');
+    write('.github/scripts/ci-test-shard-weights.json', '{}');
+    write('.github/scripts/suite-test-allowlist.json', '{}');
+    for (const name of ['ci-test-shards.mjs', 'suite-orphans.mjs']) {
+      fs.copyFileSync(path.join(ROOT, '.github/scripts', name), path.join(directory, '.github/scripts', name));
+    }
+    const git = (...args) => execFileSync('git', ['-C', directory, ...args], { encoding: 'utf8' });
+    git('init', '-q');
+    git('config', 'user.email', 't@example.invalid');
+    git('config', 'user.name', 't');
+    git('add', '-A');
+    git('commit', '-q', '-m', 'seed');
+    const verify = () => {
+      try {
+        return {
+          ok: true,
+          output: execFileSync('node', [path.join(directory, '.github/scripts/ci-test-shards.mjs'), 'verify', '--shards', '1'], {
+            encoding: 'utf8',
+            stdio: 'pipe',
+          }),
+        };
+      } catch (error) {
+        return { ok: false, output: String(error.stderr) };
+      }
+    };
+    const failing = verify();
+    assert.equal(failing.ok, false);
+    assert.match(failing.output, /not run by any suite step: test\/test-b\.js/);
+    assert.doesNotMatch(failing.output, /test-a\.js/);
+    write('.github/scripts/suite-test-allowlist.json', JSON.stringify({ 'test/test-b.js': 'fixture: intentionally not run' }));
+    assert.equal(verify().ok, true);
+    write('.github/scripts/suite-test-allowlist.json', JSON.stringify({ 'test/test-b.js': '' }));
+    assert.equal(verify().ok, false);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('coverage: a path is referenced only as a whole token, and fixtures, helpers and journeys are never tests', async () => {
+  const { testCoverageProblems, referencesPath, isTestFile } = await coverage();
+  assert.equal(referencesPath('node test/test-zz.json', 'test/test-zz.js'), false);
+  assert.equal(referencesPath('node test/test-zz.js', 'test/test-zz.js'), true);
+  assert.equal(referencesPath('node --test "test/a.js";x', 'test/a.js'), true);
+  assert.equal(referencesPath('node xtest/a.js', 'test/a.js'), false);
+  const prefix = testCoverageProblems({
+    files: ['test/test-zz.js', 'test/test-zz.json'],
+    items: ['node test/test-zz.json'],
+    scripts: {},
+    allowlist: {},
+  });
+  assert.deepEqual(prefix.problems, ['not run by any suite step: test/test-zz.js']);
+  for (const excluded of ['test/fixtures/test-a.js', 'test/helpers/test-a.js', 'test/journeys/test-a.js', 'test/fixtures/x.test.js']) {
+    assert.equal(isTestFile(excluded), false, excluded);
+  }
+  assert.equal(isTestFile('test/sub/test-a.mjs'), true);
+  const excluded = testCoverageProblems({
+    files: ['test/fixtures/test-a.js', 'test/journeys/test-b.js'],
+    items: [],
+    scripts: {},
+    allowlist: {},
+  });
+  assert.deepEqual(excluded, { problems: [], count: 0 });
 });

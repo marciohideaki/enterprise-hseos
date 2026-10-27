@@ -123,6 +123,10 @@ jobs:
     env:
       FULL_RUN: ${{ contains(fromJSON(needs.plan.outputs.full_node_versions), matrix.node-version) }}
     steps:
+      # FULL_RUN is derived from the plan output; a failed plan leaves it empty, so require the plan explicitly.
+      - name: Require the plan job to have succeeded
+        if: ${{ needs.plan.result != 'success' }}
+        run: 'echo "plan job result: ${{ needs.plan.result }}" && exit 1'
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         if: ${{ env.FULL_RUN != 'true' }}
