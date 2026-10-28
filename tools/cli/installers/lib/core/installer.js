@@ -59,7 +59,9 @@ async function readLockHolder(lockFile) {
   return { pid, alive: Number.isInteger(pid) && pid > 0 && isProcessAlive(pid) };
 }
 
-// Short-lived mutex for taking over a dead holder's lock. A mutex older than 10 s belongs to a crashed taker.
+// Short-lived mutex for taking over a dead holder's lock. A mutex older than 10 s belongs to a crashed taker. The stale
+// mutex is moved aside with an atomic rename and removed only if what was moved is the file that was judged stale
+// (same inode and mtime): a plain stat-then-remove could delete a mutex another taker created in between.
 async function acquireTakeover(takeover) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -68,8 +70,21 @@ async function acquireTakeover(takeover) {
     } catch (error) {
       if (error.code !== 'EEXIST') throw error;
       try {
-        if (Date.now() - (await fs.stat(takeover)).mtimeMs < 10_000) return false;
-        await fs.remove(takeover);
+        const seen = await fs.stat(takeover);
+        if (Date.now() - seen.mtimeMs < 10_000) return false;
+        const aside = `${takeover}.stale.${process.pid}.${Math.random().toString(36).slice(2, 10)}`;
+        await fs.rename(takeover, aside); // ENOENT: another taker already removed it
+        const moved = await fs.stat(aside);
+        if (moved.ino === seen.ino && moved.mtimeMs === seen.mtimeMs) {
+          await fs.remove(aside);
+        } else {
+          // We moved a fresh mutex that replaced the stale one: put it back (link fails if someone re-created it) and yield.
+          // Residual window: between the rename and the link a third taker can create the mutex, so two takers may then both
+          // hold it; accepted because the holder is re-read under the mutex and only a dead holder's lock is ever removed.
+          await fs.link(aside, takeover).catch(() => {});
+          await fs.remove(aside);
+          return false;
+        }
       } catch {
         // vanished meanwhile: retry
       }
@@ -294,6 +309,8 @@ class Installer {
     if (this._heldInstallLocks.has(projectDir)) return work();
     const lockFile = path.join(projectDir, INSTALL_LOCK_FILE);
     const takeover = `${lockFile}.takeover`;
+    // The lock file lives in projectDir, so the directory must exist before the lock; a refusal can therefore leave a directory
+    // this call just created (only when another install raced us into it).
     await fs.ensureDir(projectDir);
     const temp = `${lockFile}.${process.pid}.${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
     await fs.writeFile(temp, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));

@@ -186,6 +186,22 @@ test('a plugin model is held to the floor of its own output cap at admission, an
   }
 });
 
+test('re-validating an admitted plugin model job (admission:false) does not re-apply the pinned cap floor (H-4)', async (t) => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  const f = await setup(t);
+  const floor = minimumMaxTokens(f.contract, 8192);
+  const input = {
+    contract: { ...f.contract, limits: { ...f.contract.limits, max_tokens: floor - 1 } },
+    plugin_model: { selection_id: 'selected', campaign_id: f.campaignId },
+  };
+  await assert.rejects(() => f.control.admitCreation('create', input, f.resourceId), {
+    reason: 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR',
+  });
+  const revalidated = await f.control.admitCreation('create', input, f.resourceId, undefined, { admission: false });
+  assert.equal(revalidated.input.contract.limits.max_tokens, floor - 1);
+  assert.ok(revalidated.plugin_model, 'the plugin model pin is still produced');
+});
+
 test('model tool proposal is executed by the task gateway and independently accepted', async (t) => {
   const before = 'module.exports = (n) => n - 1;\n';
   const after = 'module.exports = (n) => n + 1;\n';

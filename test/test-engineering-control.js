@@ -666,6 +666,24 @@ test('create with a binding id is held to the floor of the binding output cap, e
   }
 });
 
+test('re-validating an admitted definition (admission:false) does not re-apply the binding cap floor (H-4)', async (t) => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  let binding;
+  const f = await setup(t, {
+    bindings: (directory) => {
+      binding = bindingFile(directory, 8192);
+      return { [binding.id]: binding.filename };
+    },
+  });
+  const floor = minimumMaxTokens(f.contract, 8192);
+  const input = { contract: { ...f.contract, limits: { ...f.contract.limits, max_tokens: floor - 1 } }, binding_id: binding.id };
+  // The same input that admission refuses is accepted when an already admitted job is claimed or recovered.
+  await assert.rejects(() => f.control.admitCreation('create', input, f.id), { reason: 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR' });
+  const revalidated = await f.control.admitCreation('create', input, f.id, undefined, { admission: false });
+  assert.equal(revalidated.input.contract.limits.max_tokens, floor - 1);
+  assert.equal(revalidated.binding.provider.limits.max_output_tokens, 8192);
+});
+
 test('create_workflow admits scripted tasks at the exact scripted floor (H-4)', async (t) => {
   const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
   const f = await setup(t);

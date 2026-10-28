@@ -52,6 +52,7 @@ function renderActivation(report) {
     'Execution ledger rolled back to the verified backup',
     `  user_version ${report.user_version}`,
     `  restored sha256: ${report.restored_sha256}`,
+    `  receipt verified: ${report.receipt_verified}`,
     `  writes made after the activation are preserved in ${report.preserved_activated_path}, not in the restored database`,
   ].join('\n');
 }
@@ -75,7 +76,12 @@ async function executionActivationAction(actionName, options) {
   } else {
     report = {
       action: 'rollback',
-      ...(await restoreExecutionLedgerBackup(databasePath, { backupPath: options.backup, expectedSha256: options.expectedSha256 })),
+      ...(await restoreExecutionLedgerBackup(databasePath, {
+        backupPath: options.backup,
+        expectedSha256: options.expectedSha256,
+        receiptPath: options.receipt,
+        allowMissingReceipt: options.allowMissingReceipt === true,
+      })),
     };
   }
   console.log(options.json ? JSON.stringify(report, null, 2) : renderActivation(report));
@@ -94,6 +100,8 @@ module.exports = {
         ['--backup-dir <dir>', 'Directory that receives the verified pre-activation backup and receipt'],
         ['--backup <path>', 'Backup file to restore (rollback)'],
         ['--expected-sha256 <hex>', 'Expected sha256 of the backup file (rollback)'],
+        ['--receipt <path>', 'Activation receipt to cross-check the backup against (rollback; default: <backup>.receipt.json)'],
+        ['--allow-missing-receipt', 'Restore without a verifiable receipt; the output records receipt_verified: false (rollback)'],
         ['--json', 'Output machine-readable JSON'],
       ],
       action: executionActivationAction,

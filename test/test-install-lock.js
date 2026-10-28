@@ -214,3 +214,103 @@ test('a filesystem without hard links still gets a lock (link() fails with EPERM
     fsExtra.link = realLink;
   }
 });
+
+// What kills a mutant that skips the liveness check is the 'no takeover mutex write' assertion; the time bound is only a
+// sanity limit with room for a slow CI host.
+test('a live holder is refused without touching the takeover mutex', async (t) => {
+  const dir = scratch(t);
+  const lock = path.join(dir, LOCK_NAME);
+  fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
+  const fsExtra = require('fs-extra');
+  const realWrite = fsExtra.writeFile;
+  const mutexWrites = [];
+  fsExtra.writeFile = (file, ...rest) => {
+    if (String(file).endsWith('.takeover')) mutexWrites.push(String(file));
+    return realWrite.call(fsExtra, file, ...rest);
+  };
+  const started = Date.now();
+  try {
+    await assert.rejects(
+      new Installer()._withInstallLock(dir, async () => 'never'),
+      (error) => error.code === 'EHSEOS_INSTALL_LOCKED',
+    );
+  } finally {
+    fsExtra.writeFile = realWrite;
+  }
+  assert.deepEqual(mutexWrites, [], 'a live holder must not start a takeover');
+  assert.ok(Date.now() - started < 1000, `refusal took ${Date.now() - started} ms; the refusal should not wait out the retry loop`);
+});
+
+for (const [label, content] of [
+  ['empty', ''],
+  ['half-written', '{"pid": 12'],
+]) {
+  test(`a ${label} lock file counts as held for 2 s, then is taken over`, async (t) => {
+    const dir = scratch(t);
+    const lock = path.join(dir, LOCK_NAME);
+    fs.writeFileSync(lock, content);
+    await assert.rejects(
+      new Installer()._withInstallLock(dir, async () => 'never'),
+      (error) => error.code === 'EHSEOS_INSTALL_LOCKED',
+    );
+    assert.equal(fs.readFileSync(lock, 'utf8'), content, 'a recent unreadable lock must not be removed');
+    const old = new Date(Date.now() - 10_000);
+    fs.utimesSync(lock, old, old);
+    const result = await new Installer()._withInstallLock(dir, async () => 'ran');
+    assert.equal(result, 'ran');
+    assert.ok(!fs.existsSync(lock));
+  });
+}
+
+test('a stale takeover mutex left by a crashed taker is cleared and leaves nothing behind', async (t) => {
+  const dir = scratch(t);
+  const lock = path.join(dir, LOCK_NAME);
+  const mutex = `${lock}.takeover`;
+  fs.writeFileSync(lock, JSON.stringify({ pid: deadPid() }));
+  fs.writeFileSync(mutex, '1');
+  const old = new Date(Date.now() - 60_000);
+  fs.utimesSync(mutex, old, old);
+  assert.equal(await new Installer()._withInstallLock(dir, async () => 'ran'), 'ran');
+  assert.deepEqual(
+    fs.readdirSync(dir).filter((name) => name.startsWith(LOCK_NAME)),
+    [],
+  );
+});
+
+test('a takeover mutex re-created by another taker while it is judged stale is not removed', async (t) => {
+  const dir = scratch(t);
+  const lock = path.join(dir, LOCK_NAME);
+  const mutex = `${lock}.takeover`;
+  fs.writeFileSync(lock, JSON.stringify({ pid: deadPid() }));
+  fs.writeFileSync(mutex, 'stale');
+  const old = new Date(Date.now() - 60_000);
+  fs.utimesSync(mutex, old, old);
+  const fsExtra = require('fs-extra');
+  const realRename = fsExtra.rename;
+  let swapped = false;
+  fsExtra.rename = async (from, to) => {
+    if (!swapped && from === mutex) {
+      swapped = true;
+      // Between the stale judgement and the removal, the stale holder is replaced by a live taker's fresh mutex.
+      fs.unlinkSync(mutex);
+      fs.writeFileSync(mutex, 'fresh-taker');
+    }
+    return realRename.call(fsExtra, from, to);
+  };
+  try {
+    await assert.rejects(
+      new Installer()._withInstallLock(dir, async () => 'must not run: the fresh taker owns the takeover'),
+      (error) => error.code === 'EHSEOS_INSTALL_LOCKED',
+    );
+  } finally {
+    fsExtra.rename = realRename;
+  }
+  assert.ok(swapped, 'the race must have been injected');
+  // The moved fresh mutex is given back (link) and the taker yields: mutex restored, dead holder lock untouched.
+  assert.equal(fs.readFileSync(mutex, 'utf8'), 'fresh-taker', 'the other taker mutex must survive');
+  assert.ok(fs.existsSync(lock), 'a taker that yields must not remove the lock');
+  assert.deepEqual(
+    fs.readdirSync(dir).filter((name) => name.includes('.stale.')),
+    [],
+  );
+});
