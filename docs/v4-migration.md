@@ -147,6 +147,17 @@ decisions. Historical events and already admitted contracts stay readable.
   grant to; the service gate is resolved only after that approval, in the approver's name. The server stays fixture-only
   (`EXECUTION_ACTIVATION_PENDING` otherwise).
 
+### Activation rollback requires a receipt (audit 2026-10-27)
+
+The rollback of the execution-ledger activation no longer skips the receipt cross-check when the receipt is missing.
+
+- It reads `<backup>.receipt.json`, or the path given with `--receipt <path>`, and compares `original_sha256_before` with the hash of the backup.
+- A receipt that is missing, or has no `original_sha256_before`, is refused with `EXECUTION_ACTIVATION_RECEIPT_REQUIRED`.
+- `--allow-missing-receipt` is the operator's explicit decision to restore anyway. It covers only a missing receipt or a missing `original_sha256_before`; a corrupt or contradictory receipt is never bypassed. The output records `receipt_verified: false`.
+- The backup hash, `integrity_check`, `user_version` and the copy hash stay mandatory in every case.
+
+Scripts that ran the rollback with only `--backup` must now pass `--receipt` or `--allow-missing-receipt`. See `docs/evolution/runbooks/activation.md`.
+
 ### Context floor for `max_tokens` (H-4)
 
 New task admissions refuse a `limits.max_tokens` that cannot hold the first model request, with the stable

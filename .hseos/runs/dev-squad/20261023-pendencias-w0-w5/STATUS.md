@@ -33,7 +33,7 @@
 | M-8 lock de install concorrente | e332b8d6 | 3 passagens (reprovado 1x por corrida no takeover; corrigido) | INTEGRADO; PR #253 |
 | M-10 supervisor de suítes | e8c626b2 | 2 passagens + reconferência | INTEGRADO; PR #253 |
 
-- PR #253 mergeada em 863fec28 (squash, CI 24/24, `CLEAN`). Tags locais `hseos-pend-p2`, `p3` e `p4`.
+- PR #253 mergeada em 863fec28 (squash, CI 24/24, `CLEAN`). Tags `hseos-pend-p2`, `p3` e `p4` no remoto (conferido com `git ls-remote --tags origin` em 2026-10-27).
 - Resíduos da P4 e do H-7 em `docs/evolution/pendencias-w0-w5/MAPA.md` §6 e §7.
 - Incidente: versão intermediária do M-10 sem comparação de token derrubou sessões do usuário (22:10:54 e 22:17:31); corrigido com comparação exata, `protectedPids()` e teste de regressão.
 - Pendente: primeiro run noturno do CI com o supervisor; decisões do owner listadas no MAPA §5.
