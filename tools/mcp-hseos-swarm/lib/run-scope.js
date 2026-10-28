@@ -91,8 +91,9 @@ function assertFileInside(base, file) {
   return file;
 }
 
-// Test seam: runs between the path check and the open, where a racing process could swap the path. Always null in production.
-const hooks = { afterCheck: null };
+// Test seam: afterCheck runs between the path check and the open, where a racing process could swap the path;
+// afterComponent runs inside the mkdirContained loop, before each missing component is created. Always null in production.
+const hooks = { afterCheck: null, afterComponent: null };
 
 // The descriptor, not the path, is checked: a hardlink (nlink > 1) aliases a file that may live outside the base, a
 // non-regular file (FIFO, device) must never be read, and on Linux the real location of the opened descriptor must still
@@ -175,6 +176,100 @@ function writeContained(base, file, content) {
   }
 }
 
+// Opens a directory without following a final symlink and returns its descriptor. A swapped symlink or a non-directory
+// is a scope denial; ENOENT and other errors propagate to the caller.
+function openDirectoryFd(dir) {
+  try {
+    return fs.openSync(dir, fs.constants.O_RDONLY | fs.constants.O_DIRECTORY | fs.constants.O_NOFOLLOW);
+  } catch (error) {
+    if (error.code === 'ELOOP' || error.code === 'ENOTDIR') throw scopeError(`Parent directory not allowed: ${path.basename(dir)}`);
+    throw error;
+  }
+}
+
+// The real location of an open directory descriptor must still be inside the base, whatever happened to its path.
+function assertFdInside(fd, canonicalBase, name) {
+  let actual;
+  try {
+    actual = fs.realpathSync(`/proc/self/fd/${fd}`);
+  } catch {
+    throw scopeError(`Cannot resolve the opened directory: ${name}`);
+  }
+  if (!isInside(canonicalBase, actual)) throw scopeError(`Path escapes allowed directory: ${name}`);
+}
+
+// Creates dir (and missing ancestors) through descriptors: the deepest existing ancestor is opened (O_DIRECTORY | O_NOFOLLOW)
+// and validated from the descriptor, then each missing component is created and reopened relative to the previous
+// descriptor, so an ancestor swapped for a symlink after the path check creates nothing outside the base. base must be an
+// ancestor of (or equal to) dir. Linux only; elsewhere there is no /proc/self/fd and the path is used as is.
+function mkdirContained(base, dir) {
+  assertFileInside(base, dir);
+  if (process.platform !== 'linux') {
+    fs.mkdirSync(dir, { recursive: true });
+    return;
+  }
+  const canonicalBase = canonicalize(base);
+  let existing = path.resolve(dir);
+  const rest = [];
+  while (!fs.existsSync(existing)) {
+    const parent = path.dirname(existing);
+    if (parent === existing) break;
+    rest.unshift(path.basename(existing));
+    existing = parent;
+  }
+  if (hooks.afterCheck) hooks.afterCheck(dir);
+  let fd = openDirectoryFd(existing);
+  try {
+    let current = existing;
+    for (const name of rest) {
+      // The descriptor is revalidated right before each component is created in it: the previous one may have been
+      // moved out of the base since it was opened.
+      if (hooks.afterComponent) hooks.afterComponent(path.join(current, name));
+      assertFdInside(fd, canonicalBase, path.basename(current));
+      const child = `/proc/self/fd/${fd}/${name}`;
+      try {
+        fs.mkdirSync(child);
+      } catch (error) {
+        if (error.code !== 'EEXIST') throw error;
+      }
+      const next = openDirectoryFd(child);
+      fs.closeSync(fd);
+      fd = next;
+      current = path.join(current, name);
+    }
+    assertFdInside(fd, canonicalBase, path.basename(current));
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+// Base for creating a run directory: the runs directory itself once it exists (it must not be a symlink), the project root
+// until then, so a runs directory swapped for a link to another project directory is refused.
+function runDirBase() {
+  const runs = runsDir();
+  if (!fs.existsSync(runs) && !isSymlink(runs)) return projectRoot();
+  if (isSymlink(runs)) throw scopeError('The runs directory must not be a symlink');
+  return runs;
+}
+
+// Lists dir through its descriptor: the directory is opened (O_DIRECTORY | O_NOFOLLOW), its real location validated, and
+// the listing read from /proc/self/fd, so a directory swapped for a symlink after the path check is never listed. Returns
+// names, or Dirents with { withFileTypes: true } (entries that are symlinks are reported as such, not followed).
+// Linux only; elsewhere the path is used as is.
+function readdirContained(base, dir, options) {
+  assertFileInside(base, dir);
+  if (process.platform !== 'linux') return fs.readdirSync(dir, options);
+  const canonicalBase = canonicalize(base);
+  if (hooks.afterCheck) hooks.afterCheck(dir);
+  const fd = openDirectoryFd(dir);
+  try {
+    assertFdInside(fd, canonicalBase, path.basename(dir));
+    return fs.readdirSync(`/proc/self/fd/${fd}`, options);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 module.exports = {
   hooks,
   SCOPE_DENIED,
@@ -185,4 +280,7 @@ module.exports = {
   assertFileInside,
   readContained,
   writeContained,
+  mkdirContained,
+  runDirBase,
+  readdirContained,
 };

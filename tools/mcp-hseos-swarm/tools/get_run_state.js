@@ -3,7 +3,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 
-const { resolveRunDir, readContained } = require('../lib/run-scope');
+const { resolveRunDir, readContained, readdirContained, runsDir } = require('../lib/run-scope');
 
 module.exports = [
   {
@@ -24,7 +24,7 @@ module.exports = [
       const statusPath = path.join(runDir, 'STATUS.md');
       const statusText = readContained(runDir, statusPath);
 
-      const files = fs.readdirSync(runDir);
+      const files = readdirContained(runsDir(), runDir);
       const reports = files
         .filter((f) => f.startsWith('WAVE-') || f.startsWith('wave-'))
         .map((f) => ({ file: f, text: readContained(runDir, path.join(runDir, f)) }));

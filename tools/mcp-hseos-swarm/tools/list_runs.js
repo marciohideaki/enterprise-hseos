@@ -3,7 +3,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 
-const { runsDir, assertFileInside, readContained } = require('../lib/run-scope');
+const { runsDir, readContained, readdirContained } = require('../lib/run-scope');
 
 module.exports = [
   {
@@ -18,13 +18,9 @@ module.exports = [
     handler(_db, args) {
       const RUNS_DIR = runsDir();
       if (!fs.existsSync(RUNS_DIR)) return { runs: [], total: 0 };
-      const dirs = fs.readdirSync(RUNS_DIR).filter((d) => {
-        try {
-          return fs.statSync(assertFileInside(RUNS_DIR, path.join(RUNS_DIR, d))).isDirectory();
-        } catch {
-          return false;
-        }
-      });
+      const dirs = readdirContained(RUNS_DIR, RUNS_DIR, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
       const runs = dirs.map((d) => {
         const statusPath = path.join(RUNS_DIR, d, 'STATUS.md');
         let statusText = '';
