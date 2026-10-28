@@ -321,6 +321,53 @@ test('advertised output schema is enforced at the adapter boundary', async () =>
   const response = await instance.handle(modernMessage('tools/call', { name: 'zeta.echo', arguments: { value: 'hello' } }));
   assert.equal(response.error.code, JSON_RPC.INTERNAL_ERROR);
   assert.match(response.error.message, /outputSchema/);
+
+  const secretKey = 'customerSecretKey';
+  const secretValue = 'sk-test-SECRET-VALUE-000';
+  const leaking = adapter({
+    execute: async () => successfulEnvelope({ echoed: 42, [secretKey]: secretValue }),
+  });
+  const leaked = await leaking.instance.handle(modernMessage('tools/call', { name: 'zeta.echo', arguments: { value: 'hello' } }));
+  assert.equal(leaked.error.code, JSON_RPC.INTERNAL_ERROR);
+  assert.deepEqual(leaked.error.data, { issues: { issue_count: 2 } });
+  const wire = JSON.stringify(leaked);
+  for (const secret of [secretKey, secretValue, 'additionalProperties', 'echoed']) {
+    assert.ok(!wire.includes(secret), `${secret} must not reach the client: ${wire}`);
+  }
+});
+
+test('input validation errors expose only keyword and instancePath, never keys, values or allowed values', async () => {
+  const secretKey = 'customerSecretKey';
+  const secretValue = 'sk-test-INPUT-SECRET-111';
+  const { calls, instance } = adapter({
+    tools: [
+      {
+        name: 'strict.tool',
+        description: 'Strict input',
+        inputSchema: {
+          type: 'object',
+          properties: { mode: { enum: ['alpha', 'beta'] } },
+          required: ['mode'],
+          additionalProperties: false,
+        },
+      },
+    ],
+  });
+  const response = await instance.handle(
+    modernMessage('tools/call', { name: 'strict.tool', arguments: { mode: secretValue, [secretKey]: secretValue } }),
+  );
+  assert.equal(response.error.code, JSON_RPC.INVALID_PARAMS);
+  assert.deepEqual(response.error.data, {
+    issues: [
+      { keyword: 'additionalProperties', instancePath: '' },
+      { keyword: 'enum', instancePath: '/mode' },
+    ],
+  });
+  const wire = JSON.stringify(response);
+  for (const secret of [secretKey, secretValue, 'allowedValues', 'alpha', 'schemaPath']) {
+    assert.ok(!wire.includes(secret), `${secret} must not reach the client: ${wire}`);
+  }
+  assert.equal(calls.length, 0);
 });
 
 test('execution port must return the exact canonical six-field envelope', async () => {

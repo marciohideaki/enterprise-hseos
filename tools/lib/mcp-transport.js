@@ -50,11 +50,34 @@ function createArgumentValidator(tools) {
   };
 }
 
+// Only an error the server worded itself, identified by a string `code` on this list, may show its message to the
+// client; any other failure (a system error, a throwing tool) is reported generically and its cause goes to stderr.
+const CLIENT_SAFE_ERROR_CODE_PREFIXES = ['AXON_', 'MANAGED_GOVERNANCE_', 'EXECUTION_ACTIVATION_'];
+const CLIENT_SAFE_ERROR_CODES = new Set([
+  'MCP_TOOL_UNKNOWN',
+  'MCP_SCOPE_DENIED',
+  'TASK_NOT_FOUND',
+  'HANDOFF_NOT_FOUND',
+  'RUN_NOT_FOUND',
+  'PROJECT_STATE_ARGUMENT_REQUIRED',
+]);
+
+function clientMessage(error, fallback) {
+  const code = error && error.code;
+  const authored =
+    typeof code === 'string' &&
+    (CLIENT_SAFE_ERROR_CODES.has(code) || CLIENT_SAFE_ERROR_CODE_PREFIXES.some((prefix) => code.startsWith(prefix)));
+  if (authored && typeof error.message === 'string') return error.message;
+  process.stderr.write(`[mcp] ${fallback.toLowerCase()}: ${error && error.stack ? error.stack : String(error)}\n`);
+  return null;
+}
+
 async function respondSafely(handleMessage, parsed) {
   try {
     return await handleMessage(parsed);
   } catch (error) {
-    return buildMcpError(null, -32_603, `Internal error: ${error.message}`);
+    const message = clientMessage(error, 'Internal error');
+    return buildMcpError(null, -32_603, message === null ? 'Internal error' : `Internal error: ${message}`);
   }
 }
 
@@ -202,7 +225,8 @@ function createMessageHandler({ serverInfo, tools, callTool, wrapToolResults = t
         }
       }
     } catch (error) {
-      return buildMcpError(id, -32_000, error.message);
+      const message = clientMessage(error, 'Tool failed');
+      return buildMcpError(id, -32_000, message === null ? 'Tool failed' : message);
     }
   };
 }

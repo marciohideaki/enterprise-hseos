@@ -9,6 +9,7 @@
 //   node .github/scripts/ci-test-shards.mjs plan   --shards N [--shard I]   print the plan (or one shard, 1-based)
 //   node .github/scripts/ci-test-shards.mjs run    --shards N --shard I      run one shard, every item, then report
 //   node .github/scripts/ci-test-shards.mjs verify --shards N               prove union(shards) == the full suite
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -67,6 +68,73 @@ function loadPlan(count) {
   return { steps, items, shards: planShards(items, count, weights) };
 }
 
+// Mirrors is_test_file in scripts/governance/quality-gates.sh: a real test file, not a helper, fixture or journey CLI.
+const TEST_FILE_PATTERNS = [
+  /^test\/test-[^/]*\.(js|cjs|mjs)$/,
+  /^test\/[^/]+\/test-[^/]*\.(js|cjs|mjs)$/,
+  /^test\/[^/]*\.test\.(js|cjs|mjs|sh)$/,
+  /^test\/[^/]+\/[^/]*\.test\.(js|cjs|mjs|sh)$/,
+];
+const NOT_TESTS = /^test\/(fixtures|helpers|journeys)\//;
+
+export function isTestFile(file) {
+  return !NOT_TESTS.test(file) && TEST_FILE_PATTERNS.some((pattern) => pattern.test(file));
+}
+
+export function trackedFiles(root = ROOT) {
+  try {
+    return execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      .split('\0')
+      .filter(Boolean);
+  } catch (error) {
+    throw new Error(`cannot list tracked files with git, so test coverage cannot be proven: ${error.message}`);
+  }
+}
+
+// The text of every script the suite items can reach: each item, then every `npm run <name>` found in it, recursively.
+export function expandedSuiteText(items, scripts) {
+  const seen = new Set();
+  const texts = [];
+  const visit = (text) => {
+    texts.push(text);
+    for (const match of text.matchAll(/npm run ([\w:.-]+)/g)) {
+      const name = match[1];
+      if (seen.has(name) || typeof scripts[name] !== 'string') continue;
+      seen.add(name);
+      visit(scripts[name]);
+    }
+  };
+  for (const item of items) visit(item);
+  return texts.join('\n');
+}
+
+export function loadTestAllowlist(file = path.join(ROOT, '.github/scripts/suite-test-allowlist.json')) {
+  const entries = JSON.parse(fs.readFileSync(file, 'utf8'));
+  for (const [key, reason] of Object.entries(entries)) {
+    if (typeof reason !== 'string' || reason.trim() === '') throw new Error(`Test allowlist entry needs a reason: ${key}`);
+  }
+  return entries;
+}
+
+// A path counts as referenced only as a whole token: `test/test-zz.json` must not cover `test/test-zz.js`.
+export function referencesPath(text, file) {
+  const escaped = file.replaceAll(/[$()*+.?[\\\]^{|}]/g, (char) => `\\${char}`);
+  return new RegExp(`(?:^|[\\s'"])${escaped}(?=$|[\\s'";&|])`).test(text);
+}
+
+// Problems for every tracked test file that no suite step references; the allowlist is the only exemption.
+export function testCoverageProblems({ files, items, scripts, allowlist }) {
+  const text = expandedSuiteText(items, scripts);
+  const tests = files.filter((file) => isTestFile(file));
+  const problems = [];
+  for (const file of tests) if (!referencesPath(text, file) && !(file in allowlist)) problems.push(`not run by any suite step: ${file}`);
+  for (const key of Object.keys(allowlist)) {
+    if (!files.includes(key)) problems.push(`test allowlist names a file that is not tracked: ${key}`);
+    else if (referencesPath(text, key)) problems.push(`test allowlist names a file that a suite step already runs: ${key}`);
+  }
+  return { problems, count: tests.length };
+}
+
 function verify(count) {
   const { steps, items, shards } = loadPlan(count);
   const placed = shards.flatMap((shard) => shard.items.map((entry) => entry.item));
@@ -79,11 +147,18 @@ function verify(count) {
   // The npm test chain, rebuilt from the items, must be exactly the script that `npm test` runs locally.
   const rebuilt = items.slice(0, steps.length).join(SEPARATOR);
   if (rebuilt !== readJson('package.json').scripts.test) problems.push('items do not rebuild scripts.test');
+  const coverage = testCoverageProblems({
+    files: trackedFiles(),
+    items,
+    scripts: readJson('package.json').scripts,
+    allowlist: loadTestAllowlist(),
+  });
+  problems.push(...coverage.problems);
   if (problems.length > 0) {
     throw new Error(problems.map((problem) => `FAIL ${problem}`).join('\n'));
   }
   console.log(
-    `OK ${items.length} items (${steps.length} from scripts.test + ${EXTRA_ITEMS.length} extra) covered once across ${count} shards`,
+    `OK ${items.length} items (${steps.length} from scripts.test + ${EXTRA_ITEMS.length} extra) covered once across ${count} shards; ${coverage.count} test files each run by a suite step`,
   );
 }
 

@@ -115,6 +115,17 @@ decisions. Historical events and already admitted contracts stay readable.
 - A malformed server or tool, or an unresolvable `$ref` in an `inputSchema`, fails
   at boot (exit `78`, `MCP_TOOL_CATALOG_INVALID` or `MCP_TOOL_SCHEMA_INVALID`)
   instead of being skipped or failing on the first call.
+- A tool-argument validation failure in the `mcp-2026` adapter reports only the
+  failing `keyword` and `instancePath` per issue in `error.data.issues`; property
+  names, values, allowed values and schema paths are no longer echoed. An
+  `outputSchema` violation reports no per-item detail, only
+  `error.data.issues.issue_count`.
+- The legacy transport returns an error message to the client only for errors the
+  server worded itself (an `error.code` on its allowlist: `MCP_TOOL_UNKNOWN`,
+  `MCP_SCOPE_DENIED`, `TASK_NOT_FOUND`, `HANDOFF_NOT_FOUND`, `RUN_NOT_FOUND`,
+  `PROJECT_STATE_ARGUMENT_REQUIRED` and the `AXON_`, `MANAGED_GOVERNANCE_` and
+  `EXECUTION_ACTIVATION_` families). Any other failure answers `Tool failed`
+  (`-32000`) or `Internal error` (`-32603`); the cause goes to stderr only.
 - Unknown tools and out-of-scope requests are denied and recorded. Outside the
   fixture the legacy path still runs, always through the gateway, and each denial
   is stored durably in `mcp_gateway_denials` in the legacy telemetry SQLite.

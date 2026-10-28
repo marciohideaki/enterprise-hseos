@@ -51,7 +51,7 @@ module.exports = [
     },
     handler: (db, args = {}) => {
       const row = db.prepare(`SELECT * FROM as_handoffs WHERE id = ?`).get(args.id);
-      if (!row) throw new Error(`Handoff not found: ${args.id}`);
+      if (!row) throw Object.assign(new Error(`Handoff not found: ${args.id}`), { code: 'HANDOFF_NOT_FOUND' });
       return { handoff: row };
     },
   },
