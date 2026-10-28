@@ -93,3 +93,53 @@ test('comparison inventory covers every source family and points to real sources
     }
   }
 });
+
+for (const [wave, script, table] of [
+  ['W4', 'check-w4-mutations.js', 'w4-mutation-cases.cjs'],
+  ['W5', 'check-w5-mutations.js', 'w5-mutants.cjs'],
+]) {
+  const checker = require(path.join(root, 'scripts', 'governance', script));
+  const data = Object.values(require(path.join(root, 'test', 'fixtures', table)))[0];
+  const tap = ({ tests = checker.EXPECTED, pass = checker.EXPECTED, fail = 0, skipped = 0, todo = 0 } = {}) =>
+    [
+      'TAP version 13',
+      `# tests ${tests}`,
+      `# pass ${pass}`,
+      `# fail ${fail}`,
+      `# cancelled 0`,
+      `# skipped ${skipped}`,
+      `# todo ${todo}`,
+      '',
+    ].join('\n');
+
+  test(`${wave} mutation gate derives its expected count from the mutant table`, () => {
+    // W5 adds the group-coverage test to the one-test-per-mutant matrix; W4 has no group test.
+    assert.equal(checker.EXPECTED, data.length + (wave === 'W5' ? 1 : 0));
+    assert.deepEqual(checker.checkTap(tap(), checker.EXPECTED), { ok: true, problems: [] });
+  });
+
+  test(`${wave} mutation gate rejects a short, skipped, todo, failing or unreported run`, () => {
+    const n = checker.EXPECTED;
+    for (const [label, output] of [
+      ['one test fewer', tap({ tests: n - 1, pass: n - 1 })],
+      ['one test more', tap({ tests: n + 1, pass: n + 1 })],
+      ['a skip', tap({ pass: n - 1, skipped: 1 })],
+      ['a todo', tap({ todo: 1 })],
+      ['a failure', tap({ pass: n - 1, fail: 1 })],
+      ['fail reported with every test passing', tap({ fail: 1 })],
+      ['one test not passing with fail 0', tap({ pass: n - 1 })],
+      ['a repeated tests line', `${tap()}# tests 1\n`],
+      ['a repeated pass line', `${tap()}# pass 1\n`],
+      ['a repeated fail line', `${tap()}# fail 0\n`],
+      ['a repeated skipped line', `${tap()}# skipped 0\n`],
+      ['a repeated todo line', `${tap()}# todo 0\n`],
+      ['no tests line', tap().replace(/^# tests .*\n/m, '')],
+      ['no skipped line', tap().replace(/^# skipped .*\n/m, '')],
+      ['empty output', ''],
+    ]) {
+      const verdict = checker.checkTap(output, n);
+      assert.equal(verdict.ok, false, label);
+      assert.ok(verdict.problems.length > 0, label);
+    }
+  });
+}
