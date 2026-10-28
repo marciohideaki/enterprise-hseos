@@ -702,7 +702,7 @@ function readReceipt(receiptFile) {
  * (ADR-0022: the ledger is never deleted during rollback) and the swap is an atomic rename.
  */
 async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
-  const { backupPath, expectedSha256, receiptPath, now = Date.now } = opts;
+  const { backupPath, expectedSha256, receiptPath, allowMissingReceipt = false, now = Date.now } = opts;
   let resolved = path.resolve(databasePath);
   if (!backupPath) throw new ExecutionActivationError('EXECUTION_ACTIVATION_BACKUP_REQUIRED', 'A backup path is required');
   if (typeof expectedSha256 !== 'string' || !SHA256_HEX.test(expectedSha256)) {
@@ -724,7 +724,8 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
   const blockers = [];
   if (!inspectDatabaseFile(resolved, blockers)) throw new ExecutionActivationError(blockers[0].code, blockers[0].message);
   resolved = path.join(fs.realpathSync(path.dirname(resolved)), path.basename(resolved));
-  const receipt = readReceipt(receiptPath ? path.resolve(receiptPath) : `${backup}.receipt.json`);
+  const receiptFile = receiptPath ? path.resolve(receiptPath) : `${backup}.receipt.json`;
+  const receipt = readReceipt(receiptFile);
 
   let contentMatchesOriginal = null;
   withVerificationCopy(backup, (check) => {
@@ -739,7 +740,14 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
       );
     }
   });
-  if (receipt && receipt.original_sha256_before) {
+  const receiptVerified = Boolean(receipt && receipt.original_sha256_before);
+  if (!receiptVerified && allowMissingReceipt !== true) {
+    throw new ExecutionActivationError(
+      'EXECUTION_ACTIVATION_RECEIPT_REQUIRED',
+      `No activation receipt with original_sha256_before at ${receiptFile}; pass --receipt <path> to point at it or --allow-missing-receipt to restore without verifying the original content`,
+    );
+  }
+  if (receiptVerified) {
     contentMatchesOriginal = receipt.original_sha256_before === expectedSha256;
     if (!contentMatchesOriginal) {
       throw new ExecutionActivationError(
@@ -818,6 +826,7 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
     user_version: restoredVersion,
     post_activation_writes_preserved_at: preserved,
     content_matches_original: contentMatchesOriginal,
+    receipt_verified: receiptVerified,
   };
 }
 

@@ -265,6 +265,208 @@ test('rollback refuses when the receipt of the original database disagrees with 
   assert.equal(sha256(databasePath), activatedSha);
 });
 
+async function activatedSandbox(t) {
+  const sandbox = makeSandbox(t);
+  const databasePath = makeV4Database(sandbox.root);
+  const original = sha256(databasePath);
+  const activation = await activateExecutionLedger(databasePath, {
+    adr: 'ADR-9001',
+    backupDir: sandbox.backups,
+    now: NOW,
+    internal: sandbox.internal,
+  });
+  return { sandbox, databasePath, original, activation };
+}
+
+function runActivationCli(cwd, ...args) {
+  return spawnSync(process.execPath, [path.join(__dirname, '..', 'tools', 'cli', 'hseos-cli.js'), 'execution-activation', ...args], {
+    cwd,
+    encoding: 'utf8',
+    env: { ...process.env, TMPDIR: os.tmpdir() },
+  });
+}
+
+test('rollback reports receipt_verified true when the receipt is present', async (t) => {
+  const { databasePath, activation } = await activatedSandbox(t);
+  const restored = await restoreExecutionLedgerBackup(databasePath, {
+    backupPath: activation.backup_path,
+    expectedSha256: activation.receipt.backup_sha256,
+  });
+  assert.equal(restored.receipt_verified, true);
+});
+
+test('rollback refuses a missing receipt unless the operator allows it', async (t) => {
+  const { databasePath, original, activation } = await activatedSandbox(t);
+  fs.rmSync(activation.receipt_path);
+  const activatedSha = sha256(databasePath);
+  const options = { backupPath: activation.backup_path, expectedSha256: activation.receipt.backup_sha256 };
+
+  await rejectsWithCode(restoreExecutionLedgerBackup(databasePath, options), 'EXECUTION_ACTIVATION_RECEIPT_REQUIRED');
+  assert.equal(sha256(databasePath), activatedSha, 'a refused rollback leaves the activated database untouched');
+
+  const restored = await restoreExecutionLedgerBackup(databasePath, { ...options, allowMissingReceipt: true });
+  assert.equal(restored.receipt_verified, false);
+  assert.equal(restored.content_matches_original, null);
+  assert.equal(sha256(databasePath), original);
+});
+
+test('rollback refuses a receipt without original_sha256_before', async (t) => {
+  const { databasePath, activation } = await activatedSandbox(t);
+  const { original_sha256_before: omitted, ...receipt } = activation.receipt;
+  assert.ok(omitted);
+  fs.writeFileSync(activation.receipt_path, JSON.stringify(receipt));
+  await rejectsWithCode(
+    restoreExecutionLedgerBackup(databasePath, { backupPath: activation.backup_path, expectedSha256: activation.receipt.backup_sha256 }),
+    'EXECUTION_ACTIVATION_RECEIPT_REQUIRED',
+  );
+});
+
+test('allowing a missing receipt does not relax the other rollback checks', async (t) => {
+  const { databasePath, activation } = await activatedSandbox(t);
+  fs.rmSync(activation.receipt_path);
+  await rejectsWithCode(
+    restoreExecutionLedgerBackup(databasePath, {
+      backupPath: activation.backup_path,
+      expectedSha256: '0'.repeat(64),
+      allowMissingReceipt: true,
+    }),
+    'EXECUTION_ACTIVATION_BACKUP_HASH_MISMATCH',
+  );
+});
+
+test('allowing a missing receipt still refuses a present receipt that contradicts the backup', async (t) => {
+  const { sandbox, databasePath, activation } = await activatedSandbox(t);
+  fs.writeFileSync(activation.receipt_path, JSON.stringify({ ...activation.receipt, original_sha256_before: '0'.repeat(64) }));
+  const activatedSha = sha256(databasePath);
+
+  await rejectsWithCode(
+    restoreExecutionLedgerBackup(databasePath, {
+      backupPath: activation.backup_path,
+      expectedSha256: activation.receipt.backup_sha256,
+      allowMissingReceipt: true,
+    }),
+    'EXECUTION_ACTIVATION_BACKUP_CONTENT_MISMATCH',
+  );
+  assert.equal(sha256(databasePath), activatedSha);
+
+  const viaCli = runActivationCli(
+    sandbox.root,
+    'rollback',
+    '--db',
+    databasePath,
+    '--backup',
+    activation.backup_path,
+    '--expected-sha256',
+    activation.receipt.backup_sha256,
+    '--allow-missing-receipt',
+    '--json',
+  );
+  assert.notEqual(viaCli.status, 0);
+  assert.match(viaCli.stderr, /EXECUTION_ACTIVATION_BACKUP_CONTENT_MISMATCH/);
+  assert.equal(sha256(databasePath), activatedSha);
+});
+
+test('allowing a missing receipt still refuses a backup that fails integrity_check or has the wrong user_version', async (t) => {
+  const corrupt = await activatedSandbox(t);
+  fs.rmSync(corrupt.activation.receipt_path);
+  corruptIndexConsistency(corrupt.activation.backup_path);
+  await rejectsWithCode(
+    restoreExecutionLedgerBackup(corrupt.databasePath, {
+      backupPath: corrupt.activation.backup_path,
+      expectedSha256: sha256(corrupt.activation.backup_path),
+      allowMissingReceipt: true,
+    }),
+    'EXECUTION_ACTIVATION_INTEGRITY_FAILED',
+  );
+
+  const stale = await activatedSandbox(t);
+  fs.rmSync(stale.activation.receipt_path);
+  const handle = new Database(stale.activation.backup_path);
+  handle.pragma('user_version = 2');
+  handle.close();
+  const activatedSha = sha256(stale.databasePath);
+  await rejectsWithCode(
+    restoreExecutionLedgerBackup(stale.databasePath, {
+      backupPath: stale.activation.backup_path,
+      expectedSha256: sha256(stale.activation.backup_path),
+      allowMissingReceipt: true,
+    }),
+    'EXECUTION_ACTIVATION_SCHEMA_VERSION_MISMATCH',
+  );
+  assert.equal(sha256(stale.databasePath), activatedSha);
+});
+
+test('rollback honours an explicit receipt path and still cross-checks it', async (t) => {
+  const { sandbox, databasePath, original, activation } = await activatedSandbox(t);
+  const moved = path.join(sandbox.root, 'elsewhere.receipt.json');
+  fs.renameSync(activation.receipt_path, moved);
+  const options = { backupPath: activation.backup_path, expectedSha256: activation.receipt.backup_sha256 };
+
+  fs.writeFileSync(moved, JSON.stringify({ ...activation.receipt, original_sha256_before: '0'.repeat(64) }));
+  await rejectsWithCode(
+    restoreExecutionLedgerBackup(databasePath, { ...options, receiptPath: moved }),
+    'EXECUTION_ACTIVATION_BACKUP_CONTENT_MISMATCH',
+  );
+
+  fs.writeFileSync(moved, JSON.stringify(activation.receipt));
+  const restored = await restoreExecutionLedgerBackup(databasePath, { ...options, receiptPath: moved });
+  assert.equal(restored.receipt_verified, true);
+  assert.equal(sha256(databasePath), original);
+});
+
+test('the CLI rollback requires the receipt and accepts an explicit --receipt', async (t) => {
+  const { sandbox, databasePath, original, activation } = await activatedSandbox(t);
+  const moved = path.join(sandbox.root, 'moved.receipt.json');
+  fs.renameSync(activation.receipt_path, moved);
+  const base = [
+    'rollback',
+    '--db',
+    databasePath,
+    '--backup',
+    activation.backup_path,
+    '--expected-sha256',
+    activation.receipt.backup_sha256,
+    '--json',
+  ];
+
+  const refused = runActivationCli(sandbox.root, ...base);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /EXECUTION_ACTIVATION_RECEIPT_REQUIRED/);
+  assert.equal(userVersion(databasePath), ACTIVATED_VERSION);
+
+  fs.writeFileSync(moved, JSON.stringify({ ...activation.receipt, original_sha256_before: '0'.repeat(64) }));
+  const contradicted = runActivationCli(sandbox.root, ...base, '--receipt', moved);
+  assert.notEqual(contradicted.status, 0);
+  assert.match(contradicted.stderr, /EXECUTION_ACTIVATION_BACKUP_CONTENT_MISMATCH/);
+
+  fs.writeFileSync(moved, JSON.stringify(activation.receipt));
+  const verified = runActivationCli(sandbox.root, ...base, '--receipt', moved);
+  assert.equal(verified.status, 0, verified.stderr);
+  assert.equal(JSON.parse(verified.stdout).receipt_verified, true);
+  assert.equal(sha256(databasePath), original);
+});
+
+test('the CLI rollback with --allow-missing-receipt restores and reports receipt_verified false', async (t) => {
+  // One rollback per sandbox: the preserved-database name carries a one-second stamp.
+  const { sandbox, databasePath, original, activation } = await activatedSandbox(t);
+  fs.rmSync(activation.receipt_path);
+  const rolledBack = runActivationCli(
+    sandbox.root,
+    'rollback',
+    '--db',
+    databasePath,
+    '--backup',
+    activation.backup_path,
+    '--expected-sha256',
+    activation.receipt.backup_sha256,
+    '--allow-missing-receipt',
+    '--json',
+  );
+  assert.equal(rolledBack.status, 0, rolledBack.stderr);
+  assert.equal(JSON.parse(rolledBack.stdout).receipt_verified, false);
+  assert.equal(sha256(databasePath), original);
+});
+
 test('the backup directory receives no SQLite sidecars from the verification', async (t) => {
   const sandbox = makeSandbox(t);
   const databasePath = makeV4Database(sandbox.root);

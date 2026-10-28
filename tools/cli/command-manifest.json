@@ -93,7 +93,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "e9ff275033493b2cdf30d097ff9208b67029e8e575a39ca8d9cc5c6621428b09"
+      "source_sha256": "13049859bd6ffd5698e2134a1d202604dd5dddaed027566bd8a17445c6ea66ff"
     },
     {
       "filename": "agent-activation-rehearsal.js",
@@ -121,12 +121,20 @@
           "Expected sha256 of the backup file (rollback)"
         ],
         [
+          "--receipt <path>",
+          "Activation receipt to cross-check the backup against (rollback; default: <backup>.receipt.json)"
+        ],
+        [
+          "--allow-missing-receipt",
+          "Restore without a verifiable receipt; the output records receipt_verified: false (rollback)"
+        ],
+        [
           "--json",
           "Output machine-readable JSON"
         ]
       ],
       "governed": false,
-      "source_sha256": "e9ff275033493b2cdf30d097ff9208b67029e8e575a39ca8d9cc5c6621428b09",
+      "source_sha256": "13049859bd6ffd5698e2134a1d202604dd5dddaed027566bd8a17445c6ea66ff",
       "companion": "execution-activation"
     },
     {
