@@ -113,8 +113,9 @@ foram corrigidas (#246); o receipt e as units já instalados não foram reescrit
 
 1. Consumidor real para F14, F15 e F20.
 2. Decisões do owner abertas: data do sunset do legado; `tools/call` e MRTR do Codex (login e gasto); navegador e computer-use na CLI.
-3. Dívidas técnicas: `test-mcp-environment-host` (K9) falha fora de cgroup delegado; gate `g9-zero-legacy-window` do ensaio oficial; `handle()` do adaptador relaya `error.message` de erros que não são do adaptador; `execution-activation apply` sem teste de sucesso pela CLI real; dívida 18.
-4. ADR que fixe a abordagem de fork do Code OSS e o upstream, antes de qualquer código da W6.
+3. Dívidas técnicas: gate `g9-zero-legacy-window` do ensaio oficial; `handle()` do adaptador relaya `error.message` de erros que não são do adaptador; dívida 18.
+4. Auditoria de conformidade de 2026-10-27: achados, correções e o que segue com o owner em [CONFORMIDADE-W0-W5](audit-2026-10-27/CONFORMIDADE-W0-W5.md) e [MAPA §8](pendencias-w0-w5/MAPA.md).
+5. ADR que fixe a abordagem de fork do Code OSS e o upstream, antes de qualquer código da W6.
 
 ## Verificação e fechamento
 

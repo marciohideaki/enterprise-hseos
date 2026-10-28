@@ -1,9 +1,16 @@
 'use strict';
 
 const path = require('node:path');
-const fs = require('node:fs');
 
-const { resolveRunDir, assertIdentifier, readContained, writeContained, projectRoot } = require('../lib/run-scope');
+const {
+  resolveRunDir,
+  assertIdentifier,
+  readContained,
+  writeContained,
+  mkdirContained,
+  runDirBase,
+  projectRoot,
+} = require('../lib/run-scope');
 
 const MAX_LINES = 40;
 
@@ -61,7 +68,7 @@ module.exports = [
       const truncated = lines.length > MAX_LINES;
 
       const outName = `handoff-${args.source_task}-to-${args.target_task}.md`;
-      fs.mkdirSync(runDir, { recursive: true });
+      mkdirContained(runDirBase(), runDir);
       const outPath = path.join(runDir, outName);
       writeContained(runDir, outPath, trimmed);
 

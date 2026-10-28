@@ -46,6 +46,15 @@ function waitForPort(child) {
   });
 }
 
+// A child that already died (boot failure) never emits 'exit' again: waiting for it would hang the run and exit 0
+// with no count line, so the exit is awaited only while the child is alive.
+async function stopChild(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  const exited = new Promise((resolve) => child.once('exit', resolve));
+  child.kill('SIGTERM');
+  await exited;
+}
+
 function rpc(port, method, params = {}) {
   const normalized =
     method === 'initialize'
@@ -383,6 +392,148 @@ async function runInProcessScopeTests() {
       }
     });
 
+    await it('run-scope: an ancestor swapped for a symlink during mkdir creates nothing outside the base and is a scope denial', async () => {
+      // Deepest existing ancestor itself swapped: the O_NOFOLLOW open of the descriptor refuses it.
+      const direct = path.join(runs, 'r-mk-direct');
+      fs.mkdirSync(direct);
+      const stolenDirect = path.join(outside, 'stolen-mk-direct');
+      fs.mkdirSync(stolenDirect);
+      // A higher ancestor swapped: the descriptor stays a real directory, only its real location reveals the swap.
+      const higher = path.join(runs, 'r-mk-higher');
+      fs.mkdirSync(path.join(higher, 'mid'), { recursive: true });
+      const stolenHigher = path.join(outside, 'stolen-mk-higher');
+      fs.mkdirSync(path.join(stolenHigher, 'mid'), { recursive: true });
+      let swap = null;
+      runScope.hooks.afterCheck = () => {
+        const [target, loot] = swap;
+        swap = null;
+        fs.renameSync(target, `${target}.bak`);
+        fs.symlinkSync(loot, target);
+      };
+      try {
+        swap = [direct, stolenDirect];
+        assert.equal(
+          scopeCode(() => runScope.mkdirContained(runs, path.join(direct, 'a', 'b'))),
+          runScope.SCOPE_DENIED,
+        );
+        assert.deepEqual(fs.readdirSync(stolenDirect), [], 'nothing may be created outside the base');
+        swap = [higher, stolenHigher];
+        assert.equal(
+          scopeCode(() => runScope.mkdirContained(runs, path.join(higher, 'mid', 'a', 'b'))),
+          runScope.SCOPE_DENIED,
+        );
+        assert.deepEqual(fs.readdirSync(path.join(stolenHigher, 'mid')), [], 'nothing may be created outside the base');
+      } finally {
+        runScope.hooks.afterCheck = null;
+      }
+      // Without a race the same call creates the missing components inside the base.
+      const created = path.join(runs, 'r-mk-ok', 'x', 'y');
+      runScope.mkdirContained(runs, created);
+      runScope.mkdirContained(runs, created);
+      assert.ok(fs.statSync(created).isDirectory());
+    });
+
+    await it('run-scope: a component swapped or moved out between two mkdir steps creates nothing outside the base', async () => {
+      const arm = (fn) => {
+        runScope.hooks.afterComponent = (component) => {
+          if (path.basename(component) !== 'b') return;
+          runScope.hooks.afterComponent = null;
+          fn();
+        };
+      };
+      try {
+        // The directory held by the descriptor is moved out of the base: the next component must not be created in it.
+        const moved = path.join(runs, 'r-mc-moved');
+        fs.mkdirSync(moved);
+        const exile = path.join(outside, 'exile-mc');
+        fs.mkdirSync(exile);
+        arm(() => fs.renameSync(path.join(moved, 'a'), path.join(exile, 'a')));
+        assert.equal(
+          scopeCode(() => runScope.mkdirContained(runs, path.join(moved, 'a', 'b', 'c'))),
+          runScope.SCOPE_DENIED,
+        );
+        assert.deepEqual(fs.readdirSync(path.join(exile, 'a')), [], 'nothing may be created in the directory moved out of the base');
+        // The path of the held directory is swapped for a link out: the next component is created through the descriptor.
+        const linked = path.join(runs, 'r-mc-link');
+        fs.mkdirSync(linked);
+        const stolen = path.join(outside, 'stolen-mc');
+        fs.mkdirSync(stolen);
+        arm(() => {
+          fs.renameSync(path.join(linked, 'a'), path.join(linked, 'a.bak'));
+          fs.symlinkSync(stolen, path.join(linked, 'a'));
+        });
+        try {
+          runScope.mkdirContained(runs, path.join(linked, 'a', 'b'));
+        } catch (error) {
+          assert.equal(error.code, runScope.SCOPE_DENIED);
+        }
+        assert.deepEqual(fs.readdirSync(stolen), [], 'a creation by path would have followed the link');
+      } finally {
+        runScope.hooks.afterComponent = null;
+      }
+    });
+
+    await it('run-scope: an existing runs directory is the base, so swapping it for a link to another project directory is refused', async () => {
+      const other = path.join(project, 'other-dir');
+      fs.mkdirSync(path.join(other, 'r-n2'), { recursive: true });
+      const runDir = path.join(runs, 'r-n2');
+      fs.mkdirSync(runDir);
+      assert.equal(runScope.runDirBase(), runs);
+      // Swapped during the call: the descriptor of the existing run directory now lives under the other directory.
+      runScope.hooks.afterCheck = () => {
+        runScope.hooks.afterCheck = null;
+        fs.renameSync(runs, `${runs}.bak`);
+        fs.symlinkSync(other, runs);
+      };
+      try {
+        assert.equal(
+          scopeCode(() => runScope.mkdirContained(runScope.runDirBase(), path.join(runDir, 'x'))),
+          runScope.SCOPE_DENIED,
+        );
+        assert.deepEqual(fs.readdirSync(path.join(other, 'r-n2')), [], 'nothing may be created in the other project directory');
+        // Already swapped before the call: refused up front.
+        assert.equal(
+          scopeCode(() => runScope.runDirBase()),
+          runScope.SCOPE_DENIED,
+        );
+      } finally {
+        runScope.hooks.afterCheck = null;
+        fs.rmSync(runs, { force: true });
+        fs.renameSync(`${runs}.bak`, runs);
+      }
+    });
+
+    await it('run-scope: a directory swapped for a symlink before the readdir is refused and the outside listing is not returned', async () => {
+      const listed = path.join(runs, 'r-ls');
+      fs.mkdirSync(listed);
+      fs.writeFileSync(path.join(listed, 'INSIDE.md'), 'x');
+      assert.deepEqual(runScope.readdirContained(runs, listed), ['INSIDE.md']);
+      const stolen = path.join(outside, 'stolen-ls');
+      fs.mkdirSync(stolen);
+      fs.writeFileSync(path.join(stolen, 'OUTSIDE-SECRET.md'), 'x');
+      runScope.hooks.afterCheck = () => {
+        fs.renameSync(listed, `${listed}.bak`);
+        fs.symlinkSync(stolen, listed);
+      };
+      let listing = null;
+      try {
+        assert.equal(
+          scopeCode(() => {
+            listing = runScope.readdirContained(runs, listed);
+          }),
+          runScope.SCOPE_DENIED,
+        );
+      } finally {
+        runScope.hooks.afterCheck = null;
+      }
+      assert.equal(listing, null, 'the outside listing must not be returned');
+      // A run directory that is already a symlink is refused up front as well.
+      assert.equal(
+        scopeCode(() => runScope.readdirContained(runs, listed)),
+        runScope.SCOPE_DENIED,
+      );
+    });
+
     await it('run-scope: the file is opened relative to the validated parent descriptor, not by path, so a swap after the parent check lands nowhere', async () => {
       const racing = path.join(runs, 'r-fd');
       fs.mkdirSync(racing);
@@ -478,8 +629,7 @@ async function runGovernedDenialTests() {
       await expectRejected(port, 'dispatch_wave', { run_id: '/etc' }, /^MCP_SCOPE_DENIED: /);
     });
   } finally {
-    child.kill('SIGTERM');
-    await new Promise((resolve) => child.once('exit', resolve));
+    await stopChild(child);
   }
   await it('governed swarm: the denials are recorded in the ledger with stable codes', async () => {
     const db = new Database(database, { readonly: true });
@@ -666,8 +816,7 @@ async function runGovernedDenialTests() {
       }
     });
   } finally {
-    child.kill('SIGTERM');
-    await new Promise((resolve) => child.once('exit', resolve));
+    await stopChild(child);
     await it('legacy swarm: out-of-scope refusals are durable in the telemetry store', async () => {
       const store = new (require('better-sqlite3'))(path.join(base, 'mcp-legacy-usage.db'), { readonly: true });
       try {

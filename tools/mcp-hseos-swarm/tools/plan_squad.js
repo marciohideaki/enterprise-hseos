@@ -1,9 +1,8 @@
 'use strict';
 
 const path = require('node:path');
-const fs = require('node:fs');
 
-const { resolveRunDir, writeContained } = require('../lib/run-scope');
+const { resolveRunDir, writeContained, mkdirContained, runDirBase } = require('../lib/run-scope');
 
 function generateRunId() {
   const now = new Date();
@@ -58,7 +57,7 @@ module.exports = [
     handler(_db, args) {
       const runId = requestedRunId(args);
       const runDir = resolveRunDir(runId);
-      fs.mkdirSync(runDir, { recursive: true });
+      mkdirContained(runDirBase(), runDir);
 
       const planMd = buildPlanMd(args.batch_description, args.tier_hints || null, runId);
       const planPath = path.join(runDir, 'PLAN.md');
