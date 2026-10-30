@@ -2,8 +2,15 @@
 
 ## Status
 
-Proposed — 2026-09-27. Implementação candidata autorizada pelo plano W4 na sessão.
-Aprovação institucional, merge, publicação e ativação operacional não concedidos.
+Accepted — 2026-10-30
+
+Aceite humano explícito do owner (Marcio Hideaki), registrado em 2026-10-30. O aceite reconhece a
+decisão já implementada e mergeada nas ondas W1–W5 da evolução do harness; não altera o corpo da
+decisão. O aceite não ativa nem publica nada além do que o ADR-0048 e as autorizações próprias
+de cada entrega já cobrem.
+
+Histórico de status: Proposed — 2026-09-27, com implementação candidata autorizada pelo plano W4 na sessão;
+aprovação institucional, merge, publicação e ativação operacional não concedidos.
 
 ## Context
 

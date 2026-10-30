@@ -6,18 +6,18 @@ Tipo: levantamento. Não altera estado de nenhuma onda nem aceita nada. Fontes: 
 ADRs 0042–0048 e `test/test-package-surface.js`. Itens marcados "verificado" foram conferidos no código nesta data; os demais vêm dos documentos.
 Nada aqui foi reexecutado.
 
-## 1. Decisões sem dono ou sem aceite
+## 1. Decisões sem dono ou sem aceite (ADRs 0042 a 0045 aceitos em 2026-10-30)
 
 | Item                                       | Situação                                                                                                                            |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| ADR-0043 (plano de evolução)               | `Draft de rastreabilidade`; não certifica capacidade nem autoriza merge, publicação ou ativação                                     |
-| ADR-0044 (controle de engenharia; W1 e W2) | `draft`                                                                                                                             |
-| ADR-0045 (plugins e jobs duráveis; W4)     | `Proposed`                                                                                                                          |
-| ADR-0042                                   | "decisão de implementação candidata", sem aceite                                                                                    |
+| ADR-0043 (plano de evolução)               | era `Draft de rastreabilidade`; **aceito pelo owner em 2026-10-30**; não certifica capacidade nem autoriza ativação                 |
+| ADR-0044 (controle de engenharia; W1 e W2) | era `draft`; **aceito pelo owner em 2026-10-30**                                                                                    |
+| ADR-0045 (plugins e jobs duráveis; W4)     | era `Proposed`; **aceito pelo owner em 2026-10-30**                                                                                 |
+| ADR-0042                                   | era "decisão de implementação candidata", sem aceite; **aceito pelo owner em 2026-10-30**                                           |
 | ADR-0046                                   | Aceito; depende da Decision 0006 do ECP, que está Accepted (2026-10-01, owner), conferido em 2026-10-27 por `gh api` no repo do ECP |
 | ADR-0047, ADR-0048                         | Aceitos; o 0047 declara que não promove os 0043, 0044 e 0045                                                                        |
 
-W1 a W5 foram construídas e mergeadas sobre ADRs que nunca foram aceitos (0042 a 0045).
+W1 a W5 foram construídas e mergeadas sobre ADRs que, até então, nunca tinham sido aceitos (0042 a 0045). O owner os aceitou em 2026-10-30, reconhecendo a decisão já implementada; o aceite não ativa nem publica nada além do que o ADR-0048 e as autorizações próprias já cobrem.
 
 ## 2. Pendências por onda
 
@@ -78,7 +78,7 @@ Lista original em [revalidation-2026-10/STATUS.md](../revalidation-2026-10/STATU
 
 ## 5. Decisões que dependem do owner
 
-1. Aceitar, alterar ou rejeitar os ADRs 0042, 0043, 0044 e 0045; confirmar a situação da Decision 0006 do ECP.
+1. Decidido em 2026-10-30: os ADRs 0042, 0043, 0044 e 0045 foram aceitos pelo owner; a Decision 0006 do ECP está Accepted (§1).
 2. O que certifica um binding (F08, F17, F18) e quando a quarta família roda, com credencial e teto.
 3. `tools/call` e MRTR do Codex (login e gasto); liberação da reserva de US$ 9.
 4. Navegador e computer-use na CLI.
@@ -170,4 +170,4 @@ Relatório: [CONFORMIDADE-W0-W5.md](../audit-2026-10-27/CONFORMIDADE-W0-W5.md), 
 
 ### Segue com o owner, fora desta run
 
-A-07 (semântica de `operational`), A-09 (conjunto do c8), A-16 (`env: {}` no supervisor), A-17 (corpos de PR antigos), A-18 (distribuição global) e os ADRs 0042–0045.
+A-07 (semântica de `operational`), A-09 (conjunto do c8), A-16 (`env: {}` no supervisor), A-17 (corpos de PR antigos), A-18 (distribuição global). Os ADRs 0042–0045 foram decididos pelo owner em 2026-10-30 (aceitos).

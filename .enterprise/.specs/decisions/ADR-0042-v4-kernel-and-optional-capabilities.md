@@ -2,9 +2,16 @@
 
 ## Status
 
-Decisão de implementação candidata autorizada pelo plano do responsável em
-2026-09-24. Promoção operacional permanece não autorizada. Este registro traduz
-as decisões explícitas do plano; não aprova a entrega nem seus resultados.
+Accepted — 2026-10-30
+
+Aceite humano explícito do owner (Marcio Hideaki), registrado em 2026-10-30. O aceite reconhece a
+decisão já implementada e mergeada nas ondas W1–W5 da evolução do harness; não altera o corpo da
+decisão. O aceite não ativa nem publica nada além do que o ADR-0048 e as autorizações próprias
+de cada entrega já cobrem.
+
+Histórico de status: decisão de implementação candidata autorizada pelo plano do responsável em
+2026-09-24, com promoção operacional não autorizada; o registro traduzia as decisões
+explícitas do plano e não aprovava a entrega nem seus resultados.
 
 ## Context
 

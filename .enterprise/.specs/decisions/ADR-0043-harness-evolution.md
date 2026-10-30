@@ -2,8 +2,17 @@
 
 ## Status
 
-Draft de rastreabilidade do plano de implementação fornecido pelo responsável em
-2026-09-25. Não certifica capacidades nem autoriza merge/publicação/ativação.
+Accepted — 2026-10-30
+
+Aceite humano explícito do owner (Marcio Hideaki), registrado em 2026-10-30. O aceite reconhece a
+decisão já implementada e mergeada nas ondas W1–W5 da evolução do harness; não altera o corpo da
+decisão. O aceite não ativa nem publica nada além do que o ADR-0048 e as autorizações próprias
+de cada entrega já cobrem.
+
+Histórico de status: draft de rastreabilidade do plano de implementação fornecido pelo responsável em
+2026-09-25, que não certificava capacidades nem autorizava merge, publicação ou ativação.
+
+O aceite não certifica as capacidades listadas nas matrizes de evolução.
 
 ## Context
 
