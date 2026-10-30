@@ -109,3 +109,5 @@ The following entries are ADR templates or placeholders for optional activation.
 - [ADR-0047 — Capacidades de ambiente (runtime no core, distribuição por plugin), autoridade e proveniência de contexto](ADR-0047-environment-capabilities-and-context-authority.md) — Accepted (2026-10-11); design da W5 aprovado no gate G2, ativação separada.
 
 - [ADR-0048 — Critério de ativação do ledger de execução governada e do servidor MCP moderno](ADR-0048-governed-execution-activation-criterion.md) — Accepted (2026-10-22); supersede em parte ADR-0022/0023 (critério de ativação e sunset); ativação separada.
+
+- [ADR-0049 — Fork do Code OSS e política de upstream para a IDE da W6](ADR-0049-code-oss-fork-and-upstream.md) — Proposed (2026-10-30); aguarda aceite do owner; estende ADR-0043; sem código da W6 antes do aceite.
