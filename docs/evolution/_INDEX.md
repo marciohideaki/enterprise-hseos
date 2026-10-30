@@ -15,7 +15,7 @@ prova aprovação: todos os estados de evolução começam não verificados.
 - [Estado consolidado por onda frente ao fechamento da fundação](PLAN.md#estado-consolidado-frente-ao-plano-de-fechamento-da-fundação-2026-10-23)
 - [Estado e verificações](STATUS.md)
 - [Verificação de fechamento W0](W0-CLOSEOUT.md)
-- [Decisão arquitetural](../../.enterprise/.specs/decisions/ADR-0043-harness-evolution.md)
+- [Decisão arquitetural (ADR-0043, Accepted em 2026-10-30)](../../.enterprise/.specs/decisions/ADR-0043-harness-evolution.md)
 
 `npm run test:kernel-quality` verifica integridade da fonte, completude das
 famílias, referências e cobertura de lint. `npm run test:kernel-coverage:measure`

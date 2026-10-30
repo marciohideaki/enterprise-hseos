@@ -97,12 +97,12 @@ The following entries are ADR templates or placeholders for optional activation.
 
 - [ADR-0040 — Disposable engineering execution](ADR-0040-disposable-engineering-execution.md)
 - [ADR-0041 — Engineering executor boundary](ADR-0041-engineering-executor-boundary.md) — candidato bwrap selecionado pelo responsável em 2026-09-24; sem ativação.
-- [ADR-0042 — Kernel v4 e capacidades opcionais](ADR-0042-v4-kernel-and-optional-capabilities.md) — implementação candidata autorizada, ativação separada.
+- [ADR-0042 — Kernel v4 e capacidades opcionais](ADR-0042-v4-kernel-and-optional-capabilities.md) — Accepted (2026-10-30); histórico: implementação candidata autorizada em 2026-09-24; ativação separada.
 
-- [ADR-0043 — Evolução do harness e IDE Code OSS](ADR-0043-harness-evolution.md) — draft; implementação por ondas, certificação e ativação separadas.
-- [ADR-0044 — Contrato de projeto e controle local](ADR-0044-project-engineering-control.md) — draft; W1 candidata, ativação separada.
+- [ADR-0043 — Evolução do harness e IDE Code OSS](ADR-0043-harness-evolution.md) — Accepted (2026-10-30); histórico: draft de 2026-09-25; implementação por ondas, certificação e ativação separadas.
+- [ADR-0044 — Contrato de projeto e controle local](ADR-0044-project-engineering-control.md) — Accepted (2026-10-30); histórico: draft de 2026-09-25; W1 candidata, ativação separada.
 
-- [ADR-0045 — Plugins de execução e jobs duráveis](ADR-0045-execution-plugins-and-durable-jobs.md) — Proposed; implementação candidata W4, ativação separada.
+- [ADR-0045 — Plugins de execução e jobs duráveis](ADR-0045-execution-plugins-and-durable-jobs.md) — Accepted (2026-10-30); histórico: Proposed de 2026-09-27; implementação candidata W4, ativação separada.
 
 - [ADR-0046 — Platform bindings, modos de adoção e autoridade de contratos do ECP](ADR-0046-platform-bindings-and-modes.md) — Accepted (2026-10-01); emenda ADR-0036/0033/0034; implementação e ativação separadas.
 

@@ -12,7 +12,7 @@ Status: **preparação (W7), nada é executado por este documento.** Por decisã
 | Cliente Antigravity                          | SDK Python oficial `google-antigravity==0.1.18`, só ferramentas da API HSEOS por tarefa                                      | `docs/evolution/w3/ANTIGRAVITY-CLIENT.md:4-8`                                                                                    |
 | Rota `api` no catálogo                       | Antigravity declara `api` com `auth: 'api_key'`; rota `api` exige reserva finita positiva por requisição                     | `tools/lib/provider-control-manifest.js:32,95`                                                                                   |
 | Credencial                                   | Referência solicitada ao owner mais de uma vez; a chave citada pertence à NB Eventos e a localização não foi confirmada      | `docs/evolution/w3/LITERT-LOCAL-DIAGNOSTIC.md:54-55`, `docs/evolution/w3/CLOSEOUT-REVALIDATION.md:67-68`                         |
-| ADR                                          | ADR-0044 permanece **candidato** (status draft)                                                                              | `.enterprise/.specs/decisions/ADR-0044-project-engineering-control.md:3`, `docs/evolution/w3/CLOSEOUT.md:44`                     |
+| ADR                                          | ADR-0044 **aceito pelo owner em 2026-10-30** (era draft); o aceite não autoriza a quarta família                             | `.enterprise/.specs/decisions/ADR-0044-project-engineering-control.md:3`, `docs/evolution/w3/CLOSEOUT.md:44`                     |
 | Entrada no `pass`                            | Nenhuma entrada Gemini encontrada em `pass ls` (grupo `google/` só tem OAuth/Calendar; `nb-eventos/` não lista chave Gemini) | consulta somente-leitura de nomes em 2026-10-20; **não verificada a existência fora dessa listagem**                             |
 
 Escopo: o ensaio é "Gemini API **ou compatível**". Se a campanha usar um endpoint compatível, o formato compatível **não comprova identidade, quota nem compatibilidade** do endpoint (`docs/evolution/w3/BINDINGS.md`, fontes e limites); essa prova é parte do ensaio.
@@ -86,7 +86,7 @@ BLOCKED (com causa, nunca PASS): referência `pass` ausente; grant não autoriza
 - Qualquer execução antes da ordem do owner.
 - Reutilizar a reserva ou os grants da W3/W4-07b.
 - Declarar "quatro famílias concluídas" enquanto este ensaio não tiver PASS, ou o programa "terminado" (W4–W8 e validação diferida; `docs/evolution/w3/CLOSEOUT.md:42-44`).
-- Promover ADR-0044 de candidato a aceito (decisão própria).
+- Tratar o aceite do ADR-0044 (2026-10-30) como autorização para rodar a quarta família: credencial e teto seguem como decisão própria do owner.
 - Inclusão nas campanhas comparativas (F1): só depois do PASS aqui.
 
 ## 9. Decisões que cabem ao owner
