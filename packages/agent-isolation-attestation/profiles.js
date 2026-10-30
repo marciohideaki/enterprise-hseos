@@ -421,6 +421,18 @@ function checkObservations(observed, profile) {
   return mismatches;
 }
 
+// The suite supervisor (.github/scripts/suite-orphans.mjs) tags each item with this variable (24 hex characters) so a
+// /proc scan can find leaked descendants. A child launched with a scrubbed environment would drop the tag and escape.
+// The tag is the only thing carried over, and only when the parent has it in the supervisor's exact format: in
+// production the variable is absent and the child environment stays exactly `{}`.
+const ORPHAN_TOKEN_VAR = 'HSEOS_SUITE_ORPHAN_TOKEN';
+const ORPHAN_TOKEN_FORMAT = /^[0-9a-f]{24}$/;
+
+function orphanTokenEnv(parent = process.env) {
+  const value = parent[ORPHAN_TOKEN_VAR];
+  return typeof value === 'string' && ORPHAN_TOKEN_FORMAT.test(value) ? { [ORPHAN_TOKEN_VAR]: value } : {};
+}
+
 /**
  * Run the network probe through a supervisor launch of the profile. The probe is evidence:
  * an observation that differs from the profile table refuses the profile.
@@ -432,7 +444,7 @@ function runProfileProbe(launch, { timeout_ms = 15_000, fds = [] } = {}) {
   let result;
   try {
     result = spawnSync(launch.binary, launch.args, {
-      env: {},
+      env: orphanTokenEnv(),
       encoding: 'utf8',
       timeout: timeout_ms,
       maxBuffer: 65_536,
@@ -469,6 +481,8 @@ module.exports = {
   chromiumSandboxFlags,
   evaluateSeccomp,
   openSeccompDescriptor,
+  ORPHAN_TOKEN_VAR,
+  orphanTokenEnv,
   profileRank,
   registerLaunch,
   resolveCallLimits,

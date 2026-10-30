@@ -7,6 +7,7 @@ const path = require('node:path');
 const { spawn, spawnSync } = require('node:child_process');
 
 const { canonicalJson } = require('../../../packages/agent-session-store');
+const { orphanTokenEnv } = require('../../../packages/agent-isolation-attestation/profiles');
 const { readProviderBinding } = require('../../lib/agent-provider-binding');
 const { CANDIDATE_PROFILE } = require('../../lib/agentic-activation-rehearsal');
 const { openExecutionLedgerFileFixture } = require('../../mcp-project-state/lib/execution-ledger-schema');
@@ -130,7 +131,7 @@ function probeExactSandboxProfile({ binaryPath, cwd, environment, sandbox, broke
   try {
     result = spawnSyncImpl(binaryPath, args, {
       cwd,
-      env: { PATH: environment.PATH || '', HSEOS_DISABLE_UPDATE_CHECK: '1' },
+      env: { PATH: environment.PATH || '', HSEOS_DISABLE_UPDATE_CHECK: '1', ...orphanTokenEnv() },
       encoding: 'utf8',
       maxBuffer: 65_536,
       timeout: 15_000,

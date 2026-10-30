@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { createResourceGroup, removeDrainedGroup } = require('../../../packages/agent-isolation-attestation/executor');
+const { orphanTokenEnv } = require('../../../packages/agent-isolation-attestation/profiles');
 const { redactDiagnosticText } = require('./campaign-evidence-store');
 
 // 64 KiB of retained model text can escape to six bytes per character (\\u00XX) inside the JSON envelope.
@@ -73,7 +74,7 @@ async function runCampaignProcess({
   try {
     const encoded = JSON.stringify({ ...input, group });
     if (Buffer.byteLength(encoded) > 131_072) throw new Error('CONTROL_CAMPAIGN_PROCESS_INVALID');
-    child = spawn(binary, args, { env: {}, stdio: ['pipe', 'pipe', 'pipe'], shell: false });
+    child = spawn(binary, args, { env: orphanTokenEnv(), stdio: ['pipe', 'pipe', 'pipe'], shell: false });
     // The tail of stderr is kept (bounded) as diagnostic evidence; it is never part of a result.
     let stderrTail = '';
     child.stderr.setEncoding('utf8');

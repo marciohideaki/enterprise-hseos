@@ -12,7 +12,8 @@
 // it to hide a leak, fix the test.
 //
 // Limits: Linux only (/proc); a test that launches children with a scrubbed environment (`env: {}`, `env -i`) drops
-// the token and escapes detection; a process owned by another user cannot be inspected.
+// the token and escapes detection, unless it passes `orphanTokenEnv()` (agent-isolation-attestation/profiles.js), which
+// carries this one variable and nothing else; a process owned by another user cannot be inspected.
 import { spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
