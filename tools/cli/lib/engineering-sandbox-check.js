@@ -6,6 +6,7 @@ const path = require('node:path');
 const { createHash, randomBytes } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { buildAiJailArgs, resolveCommand } = require('./sandbox');
+const { orphanTokenEnv } = require('../../../packages/agent-isolation-attestation/profiles');
 
 const FLAGS = Object.freeze([
   '--clean',
@@ -115,7 +116,7 @@ function checkEngineeringSandbox({ env = process.env, launch = spawnSync } = {})
       });
       const result = launch(binary.path, args, {
         cwd: workspace,
-        env: { PATH: '/usr/bin:/bin', HOME: home },
+        env: { PATH: '/usr/bin:/bin', HOME: home, ...orphanTokenEnv() },
         encoding: 'utf8',
         timeout: 10_000,
         killSignal: 'SIGKILL',

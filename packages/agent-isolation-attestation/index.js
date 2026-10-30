@@ -9,6 +9,7 @@ const { deepFreeze } = require('../agent-runtime-contracts');
 const {
   BROKER_SANDBOX_PATH,
   brokerBinding,
+  orphanTokenEnv,
   registerLaunch,
   resolveCallLimits,
   resolveProfile,
@@ -511,7 +512,7 @@ function runTransitiveIsolationJourney(policy) {
       try {
         result = spawnSync(policy.backend_binding.path, args, {
           cwd: policy.host_workspace,
-          env: {},
+          env: orphanTokenEnv(),
           encoding: 'utf8',
           timeout: 10_000,
           maxBuffer: MAX_OUTPUT_BYTES,

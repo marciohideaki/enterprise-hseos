@@ -7,6 +7,7 @@ const { execFileSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
 const YAML = require('yaml');
 const { canonicalJson } = require('../../../packages/agent-session-store');
+const { orphanTokenEnv } = require('../../../packages/agent-isolation-attestation/profiles');
 const { PROJECT_LIMITS, isProjectPath, isStorePath } = require('./engineering-task-contract');
 
 /**
@@ -34,7 +35,7 @@ function projectGit(root, args, input) {
     encoding: 'utf8',
     timeout: 5000,
     maxBuffer: 65_536,
-    env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_ATTR_NOSYSTEM: '1' },
+    env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_ATTR_NOSYSTEM: '1', ...orphanTokenEnv() },
     stdio: ['pipe', 'pipe', 'pipe'],
   };
   const keys = execFileSync('git', [...base, 'config', '--includes', '--name-only', '--list'], options);

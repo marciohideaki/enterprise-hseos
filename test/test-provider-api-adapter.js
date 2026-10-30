@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { randomUUID } = require('node:crypto');
+const { createHash, randomUUID } = require('node:crypto');
 const test = require('node:test');
 const yaml = require('yaml');
 const { manifest } = require('./helpers/provider-control');
@@ -16,7 +16,7 @@ const {
   API_ADAPTER_ID,
 } = require('../tools/cli/lib/provider-api-adapter');
 
-function fixture(t) {
+function fixture(t, { reasoning = false } = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-api-adapter-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const binding = yaml.parse(
@@ -27,6 +27,7 @@ function fixture(t) {
   binding.provider.limits.context_tokens = 512;
   binding.provider.limits.max_output_tokens = 64;
   binding.transport.max_attempts = 1;
+  if (reasoning) binding.provider.capabilities.push('reasoning');
   const filename = path.join(directory, 'binding.yaml');
   fs.writeFileSync(filename, yaml.stringify(binding));
   const taskId = randomUUID();
@@ -92,9 +93,83 @@ test('real API adapter is lazy, observes selected credential and USD balance, an
   assert.equal(receipt.input_tokens, 4);
   assert.equal(receipt.cost_microusd, null);
   assert.equal(receipt.evidence_sha256.length, 64);
+  assert.equal(receipt.output_text, 'ready');
+  assert.deepEqual(receipt.evidence_ref, {
+    schema_version: 1,
+    kind: 'model_output',
+    sha256: createHash('sha256').update('ready').digest('hex'),
+    bytes: 5,
+  });
   assert.equal(f.calls.length, 2);
   assert.ok(f.calls.every((call) => call.headerMatches));
   assert.ok(!JSON.stringify({ receipt, observation }).includes(f.credential));
+});
+
+test('API adapter retains the streamed answer, and withholds it when it carries the credential or exceeds the cap', async (t) => {
+  const f = fixture(t);
+  const run = () => f.create().adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal });
+  const usage = { choices: [], usage: { prompt_tokens: 4, completion_tokens: 1 } };
+  f.transport.frames = [
+    { choices: [{ delta: { content: 'he' } }] },
+    { choices: [{ delta: { content: 'llo' }, finish_reason: 'stop' }] },
+    usage,
+  ];
+  const kept = await run();
+  assert.equal(kept.output_text, 'hello');
+  f.transport.frames = [{ choices: [{ delta: { content: `leaked AKIA${'ABCDEFGHIJKLMNOP'}` }, finish_reason: 'stop' }] }, usage];
+  const leaked = await run();
+  assert.equal(leaked.evidence_withheld, 'credential_pattern');
+  assert.equal(leaked.output_text, undefined);
+  assert.equal(leaked.evidence_ref, undefined);
+  f.transport.frames = [{ choices: [{ delta: { content: 'x'.repeat(65_537) }, finish_reason: 'stop' }] }, usage];
+  const large = await run();
+  assert.equal(large.evidence_withheld, 'too_large');
+  assert.equal(large.output_text, undefined);
+});
+
+test('API adapter withholds an answer that carries the binding credential, even when the stream splits it', async (t) => {
+  const f = fixture(t);
+  const usage = { choices: [], usage: { prompt_tokens: 4, completion_tokens: 1 } };
+  const half = Math.floor(f.credential.length / 2);
+  // split across two deltas, the broker never sees the value contiguously, only the joined answer holds it
+  f.transport.frames = [
+    { choices: [{ delta: { content: `echo ${f.credential.slice(0, half)}` } }] },
+    { choices: [{ delta: { content: f.credential.slice(half) }, finish_reason: 'stop' }] },
+    usage,
+  ];
+  const receipt = await f.create().adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal });
+  assert.equal(receipt.evidence_withheld, 'credential_pattern');
+  assert.equal(receipt.output_text, undefined);
+  assert.equal(receipt.evidence_ref, undefined);
+});
+
+test('API adapter never retains reasoning deltas, only the answer', async (t) => {
+  const f = fixture(t, { reasoning: true });
+  f.transport.frames = [
+    { choices: [{ delta: { reasoning_content: 'private reasoning' } }] },
+    { choices: [{ delta: { content: 'answer' }, finish_reason: 'stop' }] },
+    { choices: [], usage: { prompt_tokens: 4, completion_tokens: 1 } },
+  ];
+  const receipt = await f.create().adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal });
+  assert.equal(receipt.output_text, 'answer');
+  assert.equal(receipt.evidence_ref.sha256, createHash('sha256').update('answer').digest('hex'));
+  assert.ok(!JSON.stringify(receipt).includes('private reasoning'));
+});
+
+test('API adapter withholds private-key bodies without a marker and keeps legitimate base64', async (t) => {
+  const f = fixture(t);
+  const usage = { choices: [], usage: { prompt_tokens: 4, completion_tokens: 1 } };
+  const run = async (text) => {
+    f.transport.frames = [{ choices: [{ delta: { content: text }, finish_reason: 'stop' }] }, usage];
+    return f.create().adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal });
+  };
+  const key = require('node:crypto').generateKeyPairSync('ed25519').privateKey.export({ type: 'pkcs8', format: 'der' }).toString('base64');
+  const withheld = await run(`key=${key}`);
+  assert.equal(withheld.evidence_withheld, 'credential_pattern');
+  assert.equal(withheld.output_text, undefined);
+  const kept = await run(`digest sha512-${require('node:crypto').randomBytes(64).toString('base64')}`);
+  assert.equal(kept.evidence_withheld, undefined);
+  assert.ok(kept.output_text);
 });
 
 test('API adapter refuses credential and binding drift before network effects', async (t) => {

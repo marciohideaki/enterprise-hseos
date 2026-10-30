@@ -6,6 +6,7 @@ const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
+const spy = require('./fixtures/spawn-env-spy');
 const { startIsolatedTerminal } = require('../packages/agent-isolation-attestation/terminal-executor');
 const { test, mock } = require('node:test');
 const { randomUUID } = require('node:crypto');
@@ -983,4 +984,59 @@ test('structural guard (not behavioural): createResourceGroup takes its pids_max
   assert.ok(pids.some((line) => line.includes('LIMIT_FLOOR')) && pids.some((line) => line.includes('LIMIT_CEILING')));
   for (const line of pids)
     assert.doesNotMatch(line.replaceAll('_', ''), /(?<![\w.])(32|256)(?![\w.])/, `literal range bound: ${line.trim()}`);
+});
+
+// Each scrubbed-environment launch point carries the supervisor token and nothing else. These fail if a point goes
+// back to `env: {}`: the spy records the environment of the real launch.
+const TOKEN_ONLY = { [spy.TOKEN_VAR]: spy.VALID_TOKEN };
+
+test('the profile probe launch carries only the suite orphan token', (context) => {
+  const { policy } = fixture(context, { profile: 'P1' });
+  const launch = prepareIsolatedExecution(policy, ['/usr/bin/python3', '-I', '-c', PROBE]);
+  const { launches } = spy.withToken(() => runProfileProbe(launch));
+  const probe = launches.filter((call) => call.name === 'spawnSync' && call.file === launch.binary);
+  assert.equal(probe.length, 1);
+  assert.deepEqual(probe[0].env, TOKEN_ONLY);
+});
+
+test('the isolated command launch carries only the suite orphan token', async (context) => {
+  const { policy } = fixture(context, { profile: 'P1' });
+  const { launches } = await spy.withTokenAsync(() => runCommand(policy, 'print(1)'));
+  const launcher = launches.filter((call) => call.name === 'spawn' && call.file === '/usr/bin/python3');
+  assert.equal(launcher.length, 1);
+  assert.deepEqual(launcher[0].env, TOKEN_ONLY);
+});
+
+test('the isolated terminal launch carries only the suite orphan token', async (context) => {
+  const spyStart = spy.calls.length;
+  const previous = process.env[spy.TOKEN_VAR];
+  process.env[spy.TOKEN_VAR] = spy.VALID_TOKEN;
+  try {
+    const { terminal } = await terminalFixture(context, 'print("ok")\n');
+    await terminal.completion;
+  } finally {
+    if (previous === undefined) delete process.env[spy.TOKEN_VAR];
+    else process.env[spy.TOKEN_VAR] = previous;
+  }
+  const broker = spy.calls.slice(spyStart).filter((call) => call.name === 'spawn' && call.file === '/usr/bin/python3');
+  assert.equal(broker.length, 1);
+  assert.deepEqual(broker[0].env, TOKEN_ONLY);
+});
+
+test('without a supervisor token, and with a malformed one, the launches keep the exact empty environment', async (context) => {
+  const { policy } = fixture(context, { profile: 'P1' });
+  const launch = prepareIsolatedExecution(policy, ['/usr/bin/python3', '-I', '-c', PROBE]);
+  for (const token of ['', 'not-a-token']) {
+    const { launches } = spy.withToken(() => runProfileProbe(launch), token);
+    assert.deepEqual(launches.find((call) => call.file === launch.binary).env, {});
+  }
+  const previous = process.env[spy.TOKEN_VAR];
+  delete process.env[spy.TOKEN_VAR];
+  try {
+    const start = spy.calls.length;
+    await runCommand(policy, 'print(1)');
+    assert.deepEqual(spy.calls.slice(start).find((call) => call.name === 'spawn' && call.file === '/usr/bin/python3').env, {});
+  } finally {
+    if (previous !== undefined) process.env[spy.TOKEN_VAR] = previous;
+  }
 });

@@ -5,7 +5,7 @@ const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
 const { parseProviderControlManifest, inspectProviderControlManifest } = require('../../lib/provider-control-manifest');
 const { executorOwner, isExecutorOwnerAlive } = require('../../../packages/agent-isolation-attestation/executor');
-const { MAX_EVIDENCE_BYTES, storeEvidence, readEvidence } = require('./campaign-evidence-store');
+const { MAX_EVIDENCE_BYTES, EVIDENCE_RETENTION_DAYS, storeEvidence, readEvidence } = require('./campaign-evidence-store');
 const { sanitizeDiagnostic } = require('./provider-campaign-process');
 
 const integer = z.number().int().nonnegative().safe();
@@ -68,7 +68,7 @@ const receiptSchema = z
       .strict()
       .optional(),
     // Declared non-retention keeps the paid dispatch valid; reads answer CONTROL_CAMPAIGN_EVIDENCE_WITHHELD.
-    evidence_withheld: z.enum(['too_large', 'credential_pattern', 'integrity_mismatch']).optional(),
+    evidence_withheld: z.enum(['too_large', 'credential_pattern', 'integrity_mismatch', 'not_observable']).optional(),
   })
   .strict()
   .refine((value) => !(value.evidence_ref && value.evidence_withheld));
@@ -300,14 +300,24 @@ class ProviderCampaignControl {
         (r.payload.kind === 'reconciled' && r.payload.command_ids.includes(commandId)),
     );
     if (!rejected && (this.active.has(id) || state.unresolved_commands.includes(commandId))) reject('CONTROL_CAMPAIGN_NOT_COMPLETED');
-    const receipt = rows.find((r) => r.payload.kind === 'receipt' && r.payload.command_id === commandId)?.payload.receipt;
+    const receiptRow = rows.find((r) => r.payload.kind === 'receipt' && r.payload.command_id === commandId);
+    const receipt = receiptRow?.payload.receipt;
     const done = rows.some((r) => r.payload.kind === 'done' && r.payload.command_id === commandId);
     if (!receipt || !done || rejected || receipt.status !== 'completed') reject('CONTROL_CAMPAIGN_EVIDENCE_REJECTED');
     if (receipt.evidence_withheld) reject('CONTROL_CAMPAIGN_EVIDENCE_WITHHELD');
     if (!receipt.evidence_ref) reject('CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE');
     const opened = rows.find((r) => r.payload.kind === 'opened').payload;
     if (opened.binding_manifests[reserved.binding_id] !== reserved.manifest_sha256) reject('CONTROL_PROVIDER_BINDING_DRIFT');
-    const text = readEvidence(this.control.state, receipt.evidence_ref);
+    let text;
+    try {
+      text = readEvidence(this.control.state, receipt.evidence_ref);
+    } catch (error) {
+      // A missing artifact past the retention window was pruned on purpose; before it, it is simply gone.
+      const age = this.now() - Date.parse(receiptRow.occurred_at);
+      if (error.code === 'CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE' && age > EVIDENCE_RETENTION_DAYS * 86_400_000)
+        reject('CONTROL_CAMPAIGN_EVIDENCE_EXPIRED');
+      throw error;
+    }
     return {
       schema_version: 1,
       resource_id: id,
@@ -681,7 +691,7 @@ class ProviderCampaignControl {
           max_request_microusd: billing.max_request_microusd,
         });
       if (Boolean(receipt.evidence_ref) !== (outputText !== undefined)) reject('CONTROL_PROVIDER_RECEIPT_INVALID');
-      const stored = receipt.evidence_ref ? storeEvidence(this.control.state, outputText, receipt.evidence_ref) : null;
+      const stored = receipt.evidence_ref ? storeEvidence(this.control.state, outputText, receipt.evidence_ref, { now: this.now() }) : null;
       const result = { resource_id: id, action, receipt };
       this.control.handle.db
         .transaction(() => {

@@ -231,6 +231,66 @@ test('a command that leaves a child alive is killed and reported as an orphan wi
   assert.equal(stillAlive(result.orphans[0].pid), false, 'the orphan must be killed');
 });
 
+// A child launched with a scrubbed environment carries the supervisor token only through orphanTokenEnv().
+const PROFILES = path.join(ROOT, 'packages/agent-isolation-attestation/profiles.js');
+const SCRUBBED_SECONDS = { token: '4712', bare: '4713' };
+
+function scrubbedLeak(seconds, envExpression, pidFile) {
+  const script = `const { orphanTokenEnv } = require(${JSON.stringify(PROFILES)});
+const child = require('node:child_process').spawn('/usr/bin/sleep', ['${seconds}'], { env: ${envExpression}, detached: true, stdio: 'ignore' });
+require('node:fs').writeFileSync(${JSON.stringify(pidFile)}, String(child.pid));
+child.unref();`;
+  return `node -e ${JSON.stringify(script.replaceAll('\n', ' '))}`;
+}
+
+test('orphanTokenEnv carries only a well-formed supervisor token and is empty otherwise', () => {
+  const { orphanTokenEnv } = require(PROFILES);
+  assert.deepEqual(orphanTokenEnv({}), {});
+  assert.deepEqual(orphanTokenEnv({ HSEOS_SUITE_ORPHAN_TOKEN: 'ab12cd34ef56ab12cd34ef56', PATH: '/usr/bin', SECRET: 'x' }), {
+    HSEOS_SUITE_ORPHAN_TOKEN: 'ab12cd34ef56ab12cd34ef56',
+  });
+  for (const bad of [
+    '',
+    'short',
+    'AB12CD34EF56AB12CD34EF56',
+    'ab12cd34ef56ab12cd34ef5z',
+    'ab12cd34ef56ab12cd34ef56\n',
+    'ab12cd34ef56ab12cd34ef56ff',
+  ]) {
+    assert.deepEqual(orphanTokenEnv({ HSEOS_SUITE_ORPHAN_TOKEN: bad }), {}, JSON.stringify(bad));
+  }
+});
+
+test('the helper constant equals the supervisor TOKEN_VAR', async () => {
+  const { TOKEN_VAR } = await import(pathToFileURL(ORPHANS).href);
+  assert.equal(require(PROFILES).ORPHAN_TOKEN_VAR, TOKEN_VAR);
+});
+
+test('a scrubbed-environment child that carries orphanTokenEnv() is detected; a bare env: {} child escapes (documented limit)', async () => {
+  const { runGuarded } = await import(pathToFileURL(ORPHANS).href);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'orphan-scrub-'));
+  const bareFile = path.join(dir, 'bare.pid');
+  const tagged = runGuarded(scrubbedLeak(SCRUBBED_SECONDS.token, 'orphanTokenEnv()', path.join(dir, 'tagged.pid')), {
+    cwd: ROOT,
+    settleMs: 200,
+  });
+  assert.equal(tagged.orphans.length, 1);
+  assert.match(tagged.orphans[0].command, new RegExp(`sleep ${SCRUBBED_SECONDS.token}`));
+  assert.equal(stillAlive(tagged.orphans[0].pid), false);
+  const bare = runGuarded(scrubbedLeak(SCRUBBED_SECONDS.bare, '{}', bareFile), { cwd: ROOT, settleMs: 200 });
+  try {
+    assert.deepEqual(bare.orphans, []);
+  } finally {
+    // the untagged sleep is invisible to the supervisor, so the test reaps the one pid it started
+    try {
+      process.kill(Number(fs.readFileSync(bareFile, 'utf8')), 'SIGKILL');
+    } catch {
+      // already gone
+    }
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('a double-forked setsid orphan, which reparents to init, is still found', async () => {
   const { runGuarded } = await import(pathToFileURL(ORPHANS).href);
   const result = runGuarded(`setsid sleep ${LEAK_SECONDS} </dev/null >/dev/null 2>&1 & exit 0`, { cwd: ROOT, settleMs: 200 });

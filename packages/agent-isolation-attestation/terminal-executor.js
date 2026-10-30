@@ -6,7 +6,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { randomUUID } = require('node:crypto');
 const { prepareIsolatedExecution } = require('./index');
-const { resolveCallLimits, verifiedSeccomp } = require('./profiles');
+const { orphanTokenEnv, resolveCallLimits, verifiedSeccomp } = require('./profiles');
 const { createResourceGroup, removeDrainedGroup, EngineeringIsolationError } = require('./executor');
 
 /** Controller-owned launch. No command or filesystem authority comes from the transport. */
@@ -85,7 +85,7 @@ function startIsolatedTerminal({
       max_output_bytes,
     };
     child = spawn('/usr/bin/python3', ['-I', path.join(__dirname, 'terminal-broker.py'), JSON.stringify(config)], {
-      env: {},
+      env: orphanTokenEnv(),
       stdio: ['pipe', 'pipe', 'ignore', ...fds],
     });
     child.stdin.on('error', () => {});

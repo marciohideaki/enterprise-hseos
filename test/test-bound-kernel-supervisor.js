@@ -10,7 +10,8 @@ const { test } = require('node:test');
 
 const yaml = require('yaml');
 
-const { runSupervisedBoundKernel } = require('../tools/cli/lib/bound-kernel-supervisor');
+const { probeExactSandboxProfile, runSupervisedBoundKernel } = require('../tools/cli/lib/bound-kernel-supervisor');
+const { resolveSandbox } = require('../tools/cli/lib/sandbox');
 const { openExecutionLedgerFileFixture } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
 
 const ROOT = path.join(__dirname, '..');
@@ -357,4 +358,36 @@ test('public candidate CLI fails closed when the real required sandbox doctor is
   assert.equal(result.status, 1);
   assert.match(result.stderr, /BOUND_KERNEL_SANDBOX_UNAVAILABLE/);
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, new RegExp(SECRET));
+});
+
+test('the sandbox readiness probe carries the suite orphan token and nothing else from the parent environment', () => {
+  const previous = process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+  const probe = (token) => {
+    if (token === undefined) delete process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+    else process.env.HSEOS_SUITE_ORPHAN_TOKEN = token;
+    let seen;
+    probeExactSandboxProfile({
+      binaryPath: '/usr/bin/ai-jail',
+      cwd: ROOT,
+      environment: { PATH: '/usr/bin', HSEOS_MODEL_PROVIDER_API_KEY: SECRET },
+      sandbox: resolveSandbox(ROOT).sandbox,
+      spawnSyncImpl: (_binary, _args, options) => {
+        seen = options.env;
+        return { status: 0 };
+      },
+    });
+    return seen;
+  };
+  try {
+    assert.deepEqual(probe('ab12cd34ef56ab12cd34ef56'), {
+      PATH: '/usr/bin',
+      HSEOS_DISABLE_UPDATE_CHECK: '1',
+      HSEOS_SUITE_ORPHAN_TOKEN: 'ab12cd34ef56ab12cd34ef56',
+    });
+    assert.deepEqual(probe(), { PATH: '/usr/bin', HSEOS_DISABLE_UPDATE_CHECK: '1' });
+    assert.deepEqual(probe('not-a-token'), { PATH: '/usr/bin', HSEOS_DISABLE_UPDATE_CHECK: '1' });
+  } finally {
+    if (previous === undefined) delete process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+    else process.env.HSEOS_SUITE_ORPHAN_TOKEN = previous;
+  }
 });

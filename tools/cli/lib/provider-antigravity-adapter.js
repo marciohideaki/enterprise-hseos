@@ -146,6 +146,8 @@ function createAntigravityCampaignAdapter({ manifest, binding: filename, options
             status: 'completed',
             binding_sha256: digest,
             evidence_sha256: engineeringDigest(result),
+            // The SDK client streams the answer into a digest and returns only that: the text is never observable here.
+            evidence_withheld: 'not_observable',
             cost_microusd: 0,
             input_tokens: input,
             output_tokens: output,

@@ -6,6 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 const net = require('node:net');
 const test = require('node:test');
+const spy = require('./fixtures/spawn-env-spy');
 
 const {
   AgentIsolationAttestationError,
@@ -123,6 +124,18 @@ test('main checkout aliases, empty protection, unknown fields, and workspace pro
         }),
       AgentIsolationAttestationError,
     );
+  } finally {
+    fs.rmSync(main, { recursive: true, force: true });
+  }
+});
+
+test('every sandboxed actor launch of the journey carries only the suite orphan token', () => {
+  const { main, policy } = fixture();
+  try {
+    const { launches } = spy.withToken(() => runTransitiveIsolationJourney(policy));
+    const actors = launches.filter((call) => call.name === 'spawnSync' && call.file === policy.backend_binding.path);
+    assert.equal(actors.length, REQUIRED_ACTORS.length);
+    for (const call of actors) assert.deepEqual(call.env, { [spy.TOKEN_VAR]: spy.VALID_TOKEN });
   } finally {
     fs.rmSync(main, { recursive: true, force: true });
   }

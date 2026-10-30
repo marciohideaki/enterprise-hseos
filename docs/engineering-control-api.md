@@ -156,7 +156,11 @@ Leitura governada: `GET /v1/provider-campaigns/{id}/evidence?command_id=<dispatc
 evidence_sha256, bytes, text}`. Erros (409): `CONTROL_CAMPAIGN_NOT_COMPLETED`
 (dispatch em andamento), `CONTROL_CAMPAIGN_EVIDENCE_REJECTED` (incerta, reconciliada
 ou não concluída), `CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE`,
-`CONTROL_CAMPAIGN_EVIDENCE_CORRUPT` (hash/tamanho divergente).
+`CONTROL_CAMPAIGN_EVIDENCE_CORRUPT` (hash/tamanho divergente),
+`CONTROL_CAMPAIGN_EVIDENCE_EXPIRED` (artefato expurgado após os 90 dias de retenção).
+Os adapters API e ACP retêm a saída como os nativos; o Antigravity local declara
+`evidence_withheld:"not_observable"` (o cliente só devolve um digest). A retenção é de 90 dias,
+renovada quando o mesmo conteúdo é retido de novo; o expurgo roda ao gravar um artefato.
 
 Compatibilidade de tipos (SDK TypeScript): `ControlCommand` passou de interface a
 união de `TaskCreateCommand` (com `input: TaskCreateInput`, que tipa `responses_from`)

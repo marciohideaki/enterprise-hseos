@@ -6,7 +6,7 @@ const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { spawn } = require('node:child_process');
 const { prepareIsolatedExecution } = require('./index');
-const { resolveCallLimits, verifiedSeccomp } = require('./profiles');
+const { orphanTokenEnv, resolveCallLimits, verifiedSeccomp } = require('./profiles');
 
 // Trusted launcher joins the already bounded group before any task code starts.
 const LAUNCHER = String.raw`
@@ -237,7 +237,7 @@ async function executeIsolatedCommand({
           ...launch.args,
         ],
         {
-          env: {},
+          env: orphanTokenEnv(),
           stdio: ['ignore', 'pipe', 'pipe', fd, ...(host_node ? [runtimeFd] : [])],
           detached: true,
         },

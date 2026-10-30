@@ -5,8 +5,14 @@
  *   - on retention: the receipt carries `evidence_ref {schema_version:1, kind:'model_output', sha256, bytes}`
  *     and the return value carries `output_text` (stripped before the receipt is parsed);
  *   - when the output is intentionally not retained: the receipt carries `evidence_withheld`
- *     ('too_large' | 'credential_pattern' | 'integrity_mismatch') and no ref or text; the dispatch stays valid;
+ *     ('too_large' | 'credential_pattern' | 'integrity_mismatch' | 'not_observable') and no ref or text; the dispatch
+ *     stays valid. 'not_observable' means the adapter never sees the text (its client only reports a digest);
  *   - an adapter that declares a ref but fails the checks below invalidates the receipt (CONTROL_OUTCOME_UNCERTAIN).
+ * Retention is EVIDENCE_RETENTION_DAYS days from the last time the same content was retained (storeEvidence renews the
+ * mtime on repeated content); pruneEvidence removes what expired and runs from storeEvidence at most once a day per state.
+ * A read of an artifact that is gone after its receipt passed the window answers CONTROL_CAMPAIGN_EVIDENCE_EXPIRED.
+ * Retained text is withheld ('credential_pattern') when it matches containsCredential() or carries a private-key DER/OpenSSH
+ * header followed by key text, even without a BEGIN marker; the broad base64-body heuristic is not applied to it.
  * An artifact written before its receipt transaction commits (crash in between) is an unreferenced, harmless orphan.
  */
 const fs = require('node:fs');
@@ -14,6 +20,13 @@ const path = require('node:path');
 const { createHash, randomUUID } = require('node:crypto');
 
 const MAX_EVIDENCE_BYTES = 65_536;
+const EVIDENCE_RETENTION_DAYS = 90;
+const DAY_MS = 86_400_000;
+// A temporary file older than this is the leftover of a crashed write.
+const ORPHAN_TEMPORARY_MS = DAY_MS;
+const PRUNE_INTERVAL_MS = DAY_MS;
+const ADDRESS = /^[a-f0-9]{64}$/;
+const lastPrune = new Map();
 const DIRECTORY = 'campaign-evidence';
 // Conservative credential shapes; a match withholds the artifact instead of persisting it.
 const CREDENTIAL_PATTERNS = [
@@ -97,6 +110,8 @@ const KEY_HEADER =
   'MI[GH][A-Za-z0-9+/]AgEAMB|MI[GH][A-Za-z0-9+/]AgEBB|MHcCAQEEI|b3BlbnNzaC1rZXktdjE)';
 const ANCHOR_LINE = new RegExp(`^${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}$`);
 const SINGLE_LINE_BODY = new RegExp(`${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}`, 'g');
+// Narrow check for retained output: a private-key DER/OpenSSH header followed by 20+ base64 characters, anywhere in the text.
+const KEY_HEADER_BODY = new RegExp(`${KEY_HEADER}[A-Za-z0-9+/_-]{20,}`);
 const END_ANCHOR = new RegExp(`${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}$`);
 // The last line of a block glued to text or to the `"}` of a JSON value: its base64 head is key text.
 const GLUED_TAIL = /^[A-Za-z0-9+/_-]{16,}={0,2}(?![A-Za-z0-9+/_=-])/;
@@ -205,9 +220,10 @@ function containsCredential(text, known = []) {
 /**
  * Persist model output content-addressed under the control state; the caller's reference must describe the text exactly.
  * Writes go to an exclusive temporary file, are fsynced and renamed, so a crash never leaves a truncated final name.
- * Returns { repaired } when a damaged artifact already occupied the content address and was replaced.
+ * Retaining the same content again renews its retention window. Returns { repaired } when a damaged artifact already
+ * occupied the content address and was replaced.
  */
-function storeEvidence(state, text, ref) {
+function storeEvidence(state, text, ref, { now = Date.now() } = {}) {
   if (typeof text !== 'string') fail('CONTROL_PROVIDER_RECEIPT_INVALID');
   const buffer = Buffer.from(text, 'utf8');
   if (buffer.length > MAX_EVIDENCE_BYTES || buffer.length !== ref.bytes || sha256(buffer) !== ref.sha256 || containsCredential(text))
@@ -215,11 +231,18 @@ function storeEvidence(state, text, ref) {
   const directory = path.join(state, DIRECTORY);
   fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
   const target = path.join(directory, ref.sha256);
+  if (!(now - (lastPrune.get(state) ?? Number.NEGATIVE_INFINITY) < PRUNE_INTERVAL_MS)) {
+    lastPrune.set(state, now);
+    pruneEvidence(state, { now });
+  }
   if (isDirectory(target)) fail('CONTROL_CAMPAIGN_EVIDENCE_CORRUPT');
   let repaired = false;
   if (fs.existsSync(target) || isLink(target)) {
     try {
-      if (readEvidence(state, ref) === text) return { repaired };
+      if (readEvidence(state, ref) === text) {
+        fs.utimesSync(target, now / 1000, now / 1000);
+        return { repaired };
+      }
     } catch (error) {
       if (error.code !== 'CONTROL_CAMPAIGN_EVIDENCE_CORRUPT' && error.code !== 'CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE') throw error;
     }
@@ -243,6 +266,34 @@ function storeEvidence(state, text, ref) {
     throw error;
   }
   return { repaired };
+}
+/**
+ * Removes artifacts whose mtime passed EVIDENCE_RETENTION_DAYS and orphan `.tmp-*` files older than a day. Only regular
+ * files directly inside the store directory are touched: links, directories and unknown names stay.
+ */
+function pruneEvidence(state, { now = Date.now() } = {}) {
+  const directory = path.join(state, DIRECTORY);
+  let names;
+  try {
+    names = fs.readdirSync(directory);
+  } catch {
+    return { removed: 0 };
+  }
+  let removed = 0;
+  for (const name of names) {
+    const limit = name.startsWith('.tmp-') ? ORPHAN_TEMPORARY_MS : ADDRESS.test(name) ? EVIDENCE_RETENTION_DAYS * DAY_MS : null;
+    if (limit === null) continue;
+    try {
+      const filename = path.join(directory, name);
+      const stat = fs.lstatSync(filename);
+      if (!stat.isFile() || now - stat.mtimeMs <= limit) continue;
+      fs.unlinkSync(filename);
+      removed++;
+    } catch {
+      // vanished or not removable: the next pass retries
+    }
+  }
+  return { removed };
 }
 function isDirectory(filename) {
   try {
@@ -281,8 +332,39 @@ function readEvidence(state, ref) {
   }
 }
 
+/** Why retained output must not be persisted; null when the text may be kept, undefined when the worker returned none. */
+function withholdReason(result, secrets) {
+  const { text, text_too_large: tooLarge } = result;
+  if (tooLarge === true) return 'too_large';
+  if (text === undefined) return;
+  if (typeof text !== 'string') return 'integrity_mismatch';
+  if (Buffer.byteLength(text) > MAX_EVIDENCE_BYTES) return 'too_large';
+  if (sha256(Buffer.from(text, 'utf8')) !== result.text_sha256) return 'integrity_mismatch';
+  // The broad multi-line body heuristic stays out of here (base64 is legitimate model output); the header rule is narrow.
+  return containsCredential(text, secrets) || KEY_HEADER_BODY.test(text) ? 'credential_pattern' : null;
+}
+/** Splits a worker result into the attested summary and the receipt fields that retain or withhold the output text. */
+function retainOutput(result, secrets) {
+  const { text, text_too_large: _tooLarge, ...attested } = result;
+  const withheld = withholdReason(result, secrets);
+  const fields =
+    withheld === null
+      ? {
+          evidence_ref: { schema_version: 1, kind: 'model_output', sha256: result.text_sha256, bytes: Buffer.byteLength(text) },
+          output_text: text,
+        }
+      : withheld
+        ? { evidence_withheld: withheld }
+        : {};
+  return { attested, fields };
+}
+
 module.exports = {
   MAX_EVIDENCE_BYTES,
+  EVIDENCE_RETENTION_DAYS,
+  withholdReason,
+  retainOutput,
+  pruneEvidence,
   containsCredential,
   redactKeyBodies,
   redactDiagnosticText,

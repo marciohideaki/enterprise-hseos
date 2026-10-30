@@ -8,6 +8,7 @@ const path = require('node:path');
 const { createHash } = require('node:crypto');
 const zlib = require('node:zlib');
 const { execFileSync } = require('node:child_process');
+const { orphanTokenEnv } = require('../../packages/agent-isolation-attestation/profiles');
 
 const MANIFEST_SCHEMA = 'hseos.toolchain-cache.v1';
 const CACHE_ENV = 'HSEOS_TOOLCHAIN_CACHE';
@@ -182,7 +183,12 @@ function artifactPath(cacheDirectory, artifact) {
 
 // The artifact bytes are read once, hashed, and handed to tar on stdin: what is verified is what is extracted.
 function tar(args, input) {
-  return execFileSync('tar', args, { env: { PATH: '/usr/bin:/bin' }, input, maxBuffer: 16_777_216, stdio: ['pipe', 'pipe', 'ignore'] });
+  return execFileSync('tar', args, {
+    env: { PATH: '/usr/bin:/bin', ...orphanTokenEnv() },
+    input,
+    maxBuffer: 16_777_216,
+    stdio: ['pipe', 'pipe', 'ignore'],
+  });
 }
 
 // CRC-32 (IEEE) computed here: zlib.crc32 only exists from Node 22.2 and the supported range starts at 22.0.
@@ -419,7 +425,7 @@ function writeZipEntry(input, entry, file, mode, { maxBytes = MAX_ZIP_ENTRY_BYTE
   try {
     return Number(
       execFileSync(process.execPath, ['-e', script], {
-        env: { PATH: '/usr/bin:/bin' },
+        env: { PATH: '/usr/bin:/bin', ...orphanTokenEnv() },
         ...(range
           ? { stdio: ['ignore', 'pipe', 'pipe'] }
           : { input: source.read(start, entry.compressed), stdio: ['pipe', 'pipe', 'pipe'] }),
@@ -651,7 +657,7 @@ function installToolchain({
 
 function installedPackageVersion(packageName) {
   return execFileSync('/usr/bin/dpkg-query', ['-W', '-f=${Version}', packageName], {
-    env: { PATH: '/usr/bin:/bin' },
+    env: { PATH: '/usr/bin:/bin', ...orphanTokenEnv() },
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'ignore'],
   }).trim();

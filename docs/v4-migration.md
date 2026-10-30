@@ -244,6 +244,28 @@ fell back to the executor default of 32 processes, which real clients exceed.
   measured), recompute the binding digest and submit the manifest again. To roll
   back, return to the previous runtime.
 
+### Campaign output is retained for 90 days, for every adapter that can observe it
+
+The text a campaign dispatch returns is kept as a content-addressed artifact under
+`<state>/campaign-evidence/` for `EVIDENCE_RETENTION_DAYS = 90` days. Retaining the same
+content again renews the window, and expired artifacts (plus orphan `.tmp-*` files older than a
+day) are pruned when a new artifact is stored, at most once a day per state directory.
+
+- Behaviour: reading an artifact that is gone after its receipt passed 90 days answers
+  `CONTROL_CAMPAIGN_EVIDENCE_EXPIRED` (before, `CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE`, which still
+  means gone inside the window; a damaged artifact stays `CONTROL_CAMPAIGN_EVIDENCE_CORRUPT`).
+  The API and ACP adapters now retain the answer like the native and claude/account ones, with the
+  same credential and 64 KiB checks and the same `evidence_withheld` reasons. The Antigravity local
+  adapter cannot: its SDK client returns only a digest, so its receipts declare the new reason
+  `evidence_withheld: "not_observable"` and reads answer `CONTROL_CAMPAIGN_EVIDENCE_WITHHELD`.
+- Stricter refusal: retained output that carries a private-key DER or OpenSSH header followed by key text is withheld as `credential_pattern` even without a BEGIN marker, for every adapter that retains. Ordinary base64 is still retained.
+- Pinned digests: the artifact digests of the API, ACP and Antigravity adapters change because
+  their files changed; re-pin stored manifests that name the old values.
+- Not affected: receipts already recorded keep their meaning; nothing is rewritten. Dispatches older
+  than 90 days whose artifact was never retained keep answering `UNAVAILABLE` or `WITHHELD`.
+- To adapt: download whatever must outlive 90 days before the window ends. To roll back, return to the
+  previous runtime; artifacts already stored stay readable.
+
 ## `hseos install`: concurrent installs in one directory are refused
 
 Two `install`, `update` or quick-update runs writing the same project directory

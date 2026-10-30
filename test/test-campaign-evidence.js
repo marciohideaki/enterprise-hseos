@@ -501,3 +501,169 @@ test('claude/account output carrying a credential or exceeding the cap is withhe
     assert.equal(receipt.evidence_withheld, reason);
   }
 });
+
+// Retention window: 90 days from the last time the same content was retained.
+const DAY = 86_400_000;
+function retentionStore(t) {
+  const state = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'hseos-evidence-retention-'));
+  t.after(() => fs.rmSync(state, { recursive: true, force: true }));
+  const directory = path.join(state, 'campaign-evidence');
+  fs.mkdirSync(directory, { recursive: true });
+  const NOW = Date.parse('2026-10-30T12:00:00Z');
+  const plant = (name, ageDays, content = 'x') => {
+    const file = path.join(directory, name);
+    fs.writeFileSync(file, content);
+    const at = (NOW - ageDays * DAY) / 1000;
+    fs.utimesSync(file, at, at);
+    return file;
+  };
+  return { state, directory, NOW, plant };
+}
+
+test('pruneEvidence keeps artifacts at 89 days and removes them at 91', (t) => {
+  const { pruneEvidence, EVIDENCE_RETENTION_DAYS } = require('../tools/cli/lib/campaign-evidence-store');
+  assert.equal(EVIDENCE_RETENTION_DAYS, 90);
+  const r = retentionStore(t);
+  const fresh = r.plant('a'.repeat(64), 89);
+  const stale = r.plant('b'.repeat(64), 91);
+  assert.deepEqual(pruneEvidence(r.state, { now: r.NOW }), { removed: 1 });
+  assert.equal(fs.existsSync(fresh), true);
+  assert.equal(fs.existsSync(stale), false);
+  assert.deepEqual(pruneEvidence(path.join(r.state, 'absent'), { now: r.NOW }), { removed: 0 });
+});
+
+test('pruneEvidence removes orphan temporary files after a day, and touches only regular files with store names', (t) => {
+  const { pruneEvidence } = require('../tools/cli/lib/campaign-evidence-store');
+  const r = retentionStore(t);
+  const old = r.plant('.tmp-old', 2);
+  const young = r.plant('.tmp-young', 0.5);
+  const unknown = r.plant('notes.txt', 400);
+  // links and directories under a store name are not followed and not removed, however old
+  const outside = path.join(r.state, 'outside.txt');
+  fs.writeFileSync(outside, 'keep');
+  const outsideTime = (r.NOW - 400 * DAY) / 1000;
+  fs.utimesSync(outside, outsideTime, outsideTime);
+  const link = path.join(r.directory, 'c'.repeat(64));
+  fs.symlinkSync(outside, link);
+  // the link itself is also past the window: only an lstat-based regular-file check keeps it
+  fs.lutimesSync(link, outsideTime, outsideTime);
+  const folder = path.join(r.directory, 'd'.repeat(64));
+  fs.mkdirSync(folder);
+  fs.utimesSync(folder, outsideTime, outsideTime);
+  const tmpLink = path.join(r.directory, '.tmp-link');
+  fs.symlinkSync(outside, tmpLink);
+  assert.deepEqual(pruneEvidence(r.state, { now: r.NOW }), { removed: 1 });
+  assert.equal(fs.existsSync(old), false);
+  for (const kept of [young, unknown, outside, folder]) assert.equal(fs.existsSync(kept), true, kept);
+  assert.equal(fs.lstatSync(link).isSymbolicLink(), true);
+  assert.equal(fs.lstatSync(tmpLink).isSymbolicLink(), true);
+  assert.equal(fs.readFileSync(outside, 'utf8'), 'keep');
+});
+
+test('retaining the same content again renews its window', (t) => {
+  const { storeEvidence, pruneEvidence } = require('../tools/cli/lib/campaign-evidence-store');
+  const r = retentionStore(t);
+  const text = 'plan';
+  const ref = { schema_version: 1, kind: 'model_output', sha256: sha(text), bytes: 4 };
+  const file = r.plant(ref.sha256, 80, text);
+  assert.deepEqual(storeEvidence(r.state, text, ref, { now: r.NOW }), { repaired: false });
+  assert.equal(Math.round((r.NOW - fs.statSync(file).mtimeMs) / 1000), 0);
+  // 80 days later (160 after the first write) the renewed copy is still inside the window; unrenewed it would be gone.
+  assert.deepEqual(pruneEvidence(r.state, { now: r.NOW + 80 * DAY }), { removed: 0 });
+  assert.deepEqual(pruneEvidence(r.state, { now: r.NOW + 91 * DAY }), { removed: 1 });
+});
+
+test('storeEvidence prunes on the real path, at most once a day per state', (t) => {
+  const { storeEvidence } = require('../tools/cli/lib/campaign-evidence-store');
+  const r = retentionStore(t);
+  const stale = r.plant('b'.repeat(64), 91);
+  const text = 'plan';
+  const ref = { schema_version: 1, kind: 'model_output', sha256: sha(text), bytes: 4 };
+  storeEvidence(r.state, text, ref, { now: r.NOW });
+  assert.equal(fs.existsSync(stale), false);
+  assert.equal(fs.readFileSync(path.join(r.directory, ref.sha256), 'utf8'), text);
+  const later = r.plant('e'.repeat(64), 100);
+  storeEvidence(r.state, text, ref, { now: r.NOW + 1000 });
+  assert.equal(fs.existsSync(later), true, 'throttled within a day');
+  storeEvidence(r.state, text, ref, { now: r.NOW + DAY + 1000 });
+  assert.equal(fs.existsSync(later), false);
+});
+
+test('a campaign dispatch prunes expired artifacts and an expired read answers its own code', async (t) => {
+  const f = await setup(t);
+  const store = path.join(f.control.state, 'campaign-evidence');
+  fs.mkdirSync(store, { recursive: true });
+  const old = path.join(store, 'f'.repeat(64));
+  fs.writeFileSync(old, 'old');
+  const at = (Date.now() - 91 * DAY) / 1000;
+  fs.utimesSync(old, at, at);
+  const commandId = await f.dispatch();
+  assert.equal(fs.existsSync(old), false, 'dispatch pruned the expired artifact');
+  const file = evidenceFile(f, commandId);
+  assert.equal(f.campaigns.evidence(f.campaignId, commandId).text, JSON.stringify(PLAN));
+  fs.rmSync(file);
+  const real = f.campaigns.now;
+  t.after(() => {
+    f.campaigns.now = real;
+  });
+  f.campaigns.now = () => Date.now() + 89 * DAY;
+  assert.throws(() => f.campaigns.evidence(f.campaignId, commandId), { code: 'CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE' });
+  f.campaigns.now = () => Date.now() + 91 * DAY;
+  assert.throws(() => f.campaigns.evidence(f.campaignId, commandId), { code: 'CONTROL_CAMPAIGN_EVIDENCE_EXPIRED' });
+  // an artifact that is present but damaged stays corrupt, never expired
+  fs.writeFileSync(file, 'tampered');
+  assert.throws(() => f.campaigns.evidence(f.campaignId, commandId), { code: 'CONTROL_CAMPAIGN_EVIDENCE_CORRUPT' });
+});
+
+test('a campaign that retains output through an adapter which cannot observe it declares not_observable', async (t) => {
+  const f = await setup(t, { respond: () => ({ ...legacy(), evidence_withheld: 'not_observable' }) });
+  const commandId = await f.dispatch();
+  assert.throws(() => f.campaigns.evidence(f.campaignId, commandId), { code: 'CONTROL_CAMPAIGN_EVIDENCE_WITHHELD' });
+});
+
+// Private-key bodies that lost their BEGIN marker: DER/OpenSSH header -> withheld; ordinary base64 -> retained.
+function markerlessKeys() {
+  const { generateKeyPairSync, randomBytes } = require('node:crypto');
+  const der = (type, options, format) =>
+    generateKeyPairSync(type, options).privateKey.export({ type: format, format: 'der' }).toString('base64');
+  const openssh = Buffer.concat([Buffer.from('openssh-key-v1\0'), randomBytes(80)]).toString('base64');
+  return {
+    ed25519: der('ed25519', undefined, 'pkcs8'),
+    'rsa pkcs8': der('rsa', { modulusLength: 1024 }, 'pkcs8'),
+    'rsa pkcs1': der('rsa', { modulusLength: 1024 }, 'pkcs1'),
+    'ec pkcs8': der('ec', { namedCurve: 'P-256' }, 'pkcs8'),
+    'ec sec1': der('ec', { namedCurve: 'P-256' }, 'sec1'),
+    openssh,
+  };
+}
+const wrap = (body, width) => body.match(new RegExp(`.{1,${width}}`, 'g')).join('\n');
+
+test('retained output carrying a markerless private-key body is withheld, ordinary base64 is kept', () => {
+  const { withholdReason, retainOutput } = require('../tools/cli/lib/campaign-evidence-store');
+  const result = (text) => ({ text, text_sha256: sha(text) });
+  for (const [name, body] of Object.entries(markerlessKeys())) {
+    for (const text of [body, `here is the key: ${body} done`, wrap(body, 64), `{"k":"${body}"}`]) {
+      assert.equal(withholdReason(result(text), []), 'credential_pattern', name);
+      const { fields } = retainOutput(result(text), []);
+      assert.deepEqual(fields, { evidence_withheld: 'credential_pattern' }, name);
+    }
+  }
+  const { randomBytes } = require('node:crypto');
+  for (const text of [
+    randomBytes(48).toString('base64'),
+    randomBytes(96).toString('base64'),
+    `integrity sha512-${randomBytes(64).toString('base64')}`,
+    JSON.stringify({ blob: randomBytes(40).toString('base64'), name: 'x' }),
+    wrap(randomBytes(150).toString('base64'), 64),
+  ]) {
+    assert.equal(withholdReason(result(text), []), null, text);
+  }
+});
+
+test('claude/account withholds a markerless private-key body from retention', async (t) => {
+  const f = await setup(t, { respond: await claudeReceipt(t, `key ${markerlessKeys().ed25519}`) });
+  const commandId = await f.dispatch();
+  assert.throws(() => f.campaigns.evidence(f.campaignId, commandId), { code: 'CONTROL_CAMPAIGN_EVIDENCE_WITHHELD' });
+  const receipt = f.campaigns.rows(f.campaignId).find((r) => r.payload.kind === 'receipt').payload.receipt;
+  assert.equal(receipt.evidence_withheld, 'credential_pattern');
+});
