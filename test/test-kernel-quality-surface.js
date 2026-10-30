@@ -94,6 +94,67 @@ test('comparison inventory covers every source family and points to real sources
   }
 });
 
+// `status.operational` is a closed enum. A family is promoted to the pilot value only with evidence that
+// resolves inside the checkout (docs/evolution/operational-revalidation-2026-10-30.md holds the per-family table).
+const OPERATIONAL_VALUES = ['not_authorized', 'pilot_enterprise_hseos_only'];
+
+function operationalProblems(family) {
+  const { operational } = family.status;
+  const problems = [];
+  if (!OPERATIONAL_VALUES.includes(operational)) {
+    problems.push(`${family.id}: operational "${operational}" is not one of ${OPERATIONAL_VALUES.join(', ')}`);
+  }
+  const evidence = family.operational_evidence;
+  if (operational !== 'pilot_enterprise_hseos_only') {
+    if (evidence !== undefined) problems.push(`${family.id}: operational_evidence without a promoted status`);
+    return problems;
+  }
+  if (!Array.isArray(evidence) || evidence.length === 0) {
+    problems.push(`${family.id}: pilot_enterprise_hseos_only requires a non-empty operational_evidence list`);
+    return problems;
+  }
+  for (const reference of evidence) {
+    try {
+      const resolved = fs.realpathSync(path.resolve(root, reference));
+      if (!resolved.startsWith(`${root}${path.sep}`) || !fs.statSync(resolved).isFile()) {
+        problems.push(`${family.id}: operational_evidence "${reference}" is not a file inside the checkout`);
+      }
+    } catch {
+      problems.push(`${family.id}: operational_evidence "${reference}" does not resolve`);
+    }
+  }
+  return problems;
+}
+
+test('operational status is a closed enum and every promoted family cites resolvable evidence', () => {
+  const inventory = JSON.parse(fs.readFileSync(path.join(root, 'docs/evolution/requirements.json'), 'utf8'));
+  assert.deepEqual(
+    inventory.families.flatMap((family) => operationalProblems(family)),
+    [],
+  );
+  const revalidation = fs.readFileSync(path.join(root, 'docs/evolution/operational-revalidation-2026-10-30.md'), 'utf8');
+  for (const family of inventory.families) assert.match(revalidation, new RegExp(`\\| ${family.id}\\s+\\|`), family.id);
+});
+
+test('the operational guard refuses free text, a promotion without evidence and unresolvable evidence', () => {
+  const family = (operational, extra = {}) => ({ id: 'F99', status: { operational }, ...extra });
+  const here = 'docs/evolution/operational-revalidation-2026-10-30.md';
+  assert.deepEqual(operationalProblems(family('not_authorized')), []);
+  assert.deepEqual(operationalProblems(family('pilot_enterprise_hseos_only', { operational_evidence: [here] })), []);
+  for (const [label, candidate] of [
+    ['free text', family('authorized_everywhere')],
+    ['empty value', family('')],
+    ['promotion without evidence', family('pilot_enterprise_hseos_only')],
+    ['promotion with empty evidence', family('pilot_enterprise_hseos_only', { operational_evidence: [] })],
+    ['missing file', family('pilot_enterprise_hseos_only', { operational_evidence: ['docs/evolution/none.md'] })],
+    ['directory', family('pilot_enterprise_hseos_only', { operational_evidence: ['docs/evolution'] })],
+    ['path outside the checkout', family('pilot_enterprise_hseos_only', { operational_evidence: ['../outside'] })],
+    ['evidence on a non-promoted family', family('not_authorized', { operational_evidence: [here] })],
+  ]) {
+    assert.notDeepEqual(operationalProblems(candidate), [], label);
+  }
+});
+
 for (const [wave, script, table] of [
   ['W4', 'check-w4-mutations.js', 'w4-mutation-cases.cjs'],
   ['W5', 'check-w5-mutations.js', 'w5-mutants.cjs'],

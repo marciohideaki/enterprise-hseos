@@ -23,6 +23,8 @@ consumidor real verificado (`real_consumers: not_verified`). Plugins `scaffolded
 
 **Atualização (2026-10-23):** o fechamento da fundação W1–W5 foi concluído e mergeado (PRs #235–#245; ADR-0048 aceito; ledger ativado no `project.db` do `enterprise-hseos`, distribuição global do SHA `795e6540`, hooks, watchdog e contratos ligados, 10 tags no remoto). O texto "nada ativado" dos parágrafos acima descreve os fechamentos de 2026-10-10 e 2026-10-17 e está superado. O mapa por onda canônica, o que ainda falta e o que a W6 exige antes de começar estão em [PLAN — estado consolidado](PLAN.md#estado-consolidado-frente-ao-plano-de-fechamento-da-fundação-2026-10-23). W6–W8 seguem não iniciadas.
 
+**Atualização (2026-10-30):** por decisão do owner, `operational` foi revalidado família por família contra a ativação de 2026-10-22 ([operational-revalidation-2026-10-30](operational-revalidation-2026-10-30.md)). Nenhuma das 27 famílias tem as três provas (componente ativado ligado à implementação, recibo e caminho real de produção no projeto); todas seguem `not_authorized`. O guard do inventário passou a aceitar `pilot_enterprise_hseos_only` por enum fechado e a exigir `operational_evidence` resolvível nas famílias promovidas.
+
 Tudo abaixo desta linha é **histórico**: preserva o que foi afirmado em cada
 checkpoint e não descreve o estado atual.
 
