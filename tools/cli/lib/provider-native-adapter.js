@@ -7,7 +7,7 @@ const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolatio
 const { credentialFingerprint } = require('./provider-api-adapter');
 const { runCampaignProcess } = require('./provider-campaign-process');
 const { createClaudeAccountCampaignAdapter } = require('./provider-claude-account-adapter');
-const { MAX_EVIDENCE_BYTES, containsCredential, evidenceSha256 } = require('./campaign-evidence-store');
+const { retainOutput } = require('./campaign-evidence-store');
 const readers = { codex: require('./delegated-codex-runtime').readBinding, claude: require('./delegated-claude-runtime').readBinding };
 const integer = z.number().int().nonnegative().safe();
 const strictSettingsSchema = z
@@ -45,31 +45,6 @@ function nativeArtifactDigest() {
   return engineeringDigest(files.map((file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')));
 }
 const loadedArtifact = nativeArtifactDigest();
-/** Why retained output must not be persisted; null when the text may be kept, undefined when the worker returned none. */
-function withholdReason(result, secrets) {
-  const { text, text_too_large: tooLarge } = result;
-  if (tooLarge === true) return 'too_large';
-  if (text === undefined) return;
-  if (typeof text !== 'string') return 'integrity_mismatch';
-  if (Buffer.byteLength(text) > MAX_EVIDENCE_BYTES) return 'too_large';
-  if (evidenceSha256(Buffer.from(text, 'utf8')) !== result.text_sha256) return 'integrity_mismatch';
-  return containsCredential(text, secrets) ? 'credential_pattern' : null;
-}
-/** Splits a worker result into the attested summary and the receipt fields that retain or withhold the output text. */
-function retainOutput(result, secrets) {
-  const { text, text_too_large: _tooLarge, ...attested } = result;
-  const withheld = withholdReason(result, secrets);
-  const fields =
-    withheld === null
-      ? {
-          evidence_ref: { schema_version: 1, kind: 'model_output', sha256: result.text_sha256, bytes: Buffer.byteLength(text) },
-          output_text: text,
-        }
-      : withheld
-        ? { evidence_withheld: withheld }
-        : {};
-  return { attested, fields };
-}
 function fail(code) {
   throw Object.assign(new Error(code), { code });
 }

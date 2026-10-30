@@ -7,6 +7,7 @@ const { engineeringDigest } = require('./engineering-task-state');
 const { createNativeCampaignAdapter, nativeArtifactDigest } = require('./provider-native-adapter');
 const { readBinding } = require('./delegated-codex-runtime');
 const { validateRestrictedComposition } = require('../../../packages/runtime-providers/codex-acp-composition');
+const { retainOutput } = require('./campaign-evidence-store');
 const { runCampaignProcess } = require('./provider-campaign-process');
 const files = [
   __filename,
@@ -119,10 +120,13 @@ function createAcpCampaignAdapter({ manifest, binding, options }, { processRunne
         if (!result.completed || result.cancelled || result.effect_boundary_ref !== attestation.evidence_ref)
           fail('CONTROL_OUTCOME_UNCERTAIN');
         const integer = z.number().int().nonnegative().safe();
+        // The text itself is retained by the control layer; the receipt digest keeps covering only the attested summary.
+        const { attested, fields } = retainOutput(result, []);
         return {
           status: 'completed',
           binding_sha256: digest,
-          evidence_sha256: engineeringDigest(result),
+          evidence_sha256: engineeringDigest(attested),
+          ...fields,
           cost_microusd: null,
           ...normalizeAcpUsage(result.usage),
           provider_session_id: z

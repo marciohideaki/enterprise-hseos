@@ -207,6 +207,59 @@ function workerFixture(t) {
     run: require('../tools/cli/lib/provider-acp-worker').main,
   };
 }
+test('ACP campaign retains the answer the worker returns and withholds it when unsafe', async (t) => {
+  const f = adapterFixture(t),
+    a = f.create().adapter;
+  const sha = (value) => createHash('sha256').update(value).digest('hex');
+  const run = (patch) => {
+    Object.assign(f.receipt, { text: undefined, text_too_large: undefined, text_sha256: undefined }, patch);
+    return a.run({ task_id: f.taskId });
+  };
+  const kept = await run({ text: 'plan', text_sha256: sha('plan') });
+  assert.equal(kept.output_text, 'plan');
+  assert.deepEqual(kept.evidence_ref, { schema_version: 1, kind: 'model_output', sha256: sha('plan'), bytes: 4 });
+  const { text: _text, text_too_large: _large, ...summary } = f.receipt;
+  assert.equal(kept.evidence_sha256, engineeringDigest(summary));
+  const secret = 'AKIA' + 'ABCDEFGHIJKLMNOP';
+  const der = require('node:crypto').generateKeyPairSync('ed25519').privateKey.export({ type: 'pkcs8', format: 'der' }).toString('base64');
+  const cases = [
+    [{ text: `key ${secret}`, text_sha256: sha(`key ${secret}`) }, 'credential_pattern'],
+    [{ text: `k ${der}`, text_sha256: sha(`k ${der}`) }, 'credential_pattern'],
+    [{ text_too_large: true, text_sha256: sha('x') }, 'too_large'],
+    [{ text: 'plan', text_sha256: 'b'.repeat(64) }, 'integrity_mismatch'],
+  ];
+  for (const [patch, reason] of cases) {
+    const result = await run(patch);
+    assert.equal(result.evidence_withheld, reason);
+    assert.equal(result.output_text, undefined);
+    assert.equal(result.evidence_ref, undefined);
+  }
+});
+test('worker returns the streamed text, or flags it too large past the retention cap', async (t) => {
+  const f = workerFixture(t);
+  f.setEvents([
+    { event_type: 'runtime.message.delta', payload: { text: 'ab' } },
+    { event_type: 'runtime.message.delta', payload: { text: 'c' } },
+    { event_type: 'runtime.session.completed', payload: {} },
+  ]);
+  const small = await f.run();
+  assert.equal(small.text, 'abc');
+  assert.equal(small.text_too_large, undefined);
+  f.setEvents([
+    { event_type: 'runtime.message.delta', payload: { text: 'x'.repeat(65_537) } },
+    { event_type: 'runtime.message.delta', payload: { text: 'tail' } },
+    { event_type: 'runtime.session.completed', payload: {} },
+  ]);
+  const large = await f.run();
+  assert.equal(large.text, undefined);
+  assert.equal(large.text_too_large, true);
+  assert.equal(
+    large.text_sha256,
+    createHash('sha256')
+      .update('x'.repeat(65_537) + 'tail')
+      .digest('hex'),
+  );
+});
 test('worker joins containment, closes after success/resume/cancel and retains uncertain failures', async (t) => {
   const f = workerFixture(t);
   assert.equal((await f.run()).completed, true);

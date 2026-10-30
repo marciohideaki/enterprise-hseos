@@ -94,11 +94,19 @@ async function main() {
       message: { role: 'user', content: request.prompt },
     });
     const hash = createHash('sha256');
+    // Retention is capped far below what the stream may carry; an oversized answer is hashed but not returned.
+    const chunks = [];
+    let retained = 0;
     let completed = false,
       cancelled = false;
     for await (const event of provider.events({ ...identity, from_sequence: 0 })) {
       if (event.event_type === 'runtime.message.delta') {
         hash.update(event.payload.text);
+        if (retained !== null) {
+          retained += Buffer.byteLength(event.payload.text);
+          if (retained > 65_536) retained = null;
+          else chunks.push(event.payload.text);
+        }
         if (request.cancel_on_output && !cancelled) {
           cancelled = true;
           await provider.cancel({ ...identity, command: 'cancel', reason: 'requested', cascade: false });
@@ -113,6 +121,7 @@ async function main() {
       cancelled,
       usage: peer.usage,
       text_sha256: hash.digest('hex'),
+      ...(retained === null ? { text_too_large: true } : { text: chunks.join('') }),
       provider_session_id: session.runtime_session_id,
       effect_boundary_ref: verified.evidence_ref,
     };

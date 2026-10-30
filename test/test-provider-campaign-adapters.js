@@ -159,6 +159,9 @@ test('native runs return retained model output only when it is bounded, hash-exa
     base('x'.repeat(65_537)),
     base(`key ${f.deps.environment.TEST_PROVIDER_KEY}`),
     base(vectors.RSA_PRIVATE_KEY),
+    base(
+      `k ${require('node:crypto').generateKeyPairSync('ed25519').privateKey.export({ type: 'pkcs8', format: 'der' }).toString('base64')}`,
+    ),
     { ...base('plan'), text: undefined },
   ]) {
     const result = await run(withheld);
@@ -427,7 +430,12 @@ test('Antigravity factory requires a pinned local checkpoint and proves a subord
       return { receipt: { status: 'completed', evidence_sha256: 'a'.repeat(64) } };
     },
   };
-  assert.equal((await adapter.run(input)).cost_microusd, 0);
+  const antigravityReceipt = await adapter.run(input);
+  assert.equal(antigravityReceipt.cost_microusd, 0);
+  // The SDK client returns only a digest of the answer, so retention is declared impossible instead of invented.
+  assert.equal(antigravityReceipt.evidence_withheld, 'not_observable');
+  assert.equal(antigravityReceipt.evidence_ref, undefined);
+  assert.equal(antigravityReceipt.output_text, undefined);
   assert.equal(children, 1);
   await assert.rejects(adapter.run({ ...input, task_id: randomUUID() }), /SCOPE_DENIED/);
   assert.equal(

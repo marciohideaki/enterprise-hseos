@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const { createHash } = require('node:crypto');
 const { z } = require('zod');
 const { CONTRACT_SCHEMA_VERSION } = require('../../../packages/agent-runtime-contracts');
+const { MAX_EVIDENCE_BYTES, retainOutput } = require('./campaign-evidence-store');
 const { engineeringDigest } = require('./engineering-task-state');
 const { readProviderBinding } = require('../../lib/agent-provider-binding');
 const { createEngineeringModel, validateEngineeringBinding } = require('./engineering-model');
@@ -173,6 +174,10 @@ function createApiCampaignAdapter(
           });
         signal.addEventListener('abort', cancel, { once: true });
         const output = createHash('sha256');
+        // Only the answer (content deltas) is retained, and only while it stays within the retention cap.
+        const answer = createHash('sha256');
+        const chunks = [];
+        let answerBytes = 0;
         let bytes = 0,
           usage,
           terminal;
@@ -202,16 +207,29 @@ function createApiCampaignAdapter(
                 fail('CONTROL_PROVIDER_OUTPUT_LIMIT');
               }
               output.update(text);
+              if (event.event_type === 'content.delta') {
+                answer.update(text);
+                if (answerBytes !== null) {
+                  answerBytes += Buffer.byteLength(text);
+                  if (answerBytes > MAX_EVIDENCE_BYTES) answerBytes = null;
+                  else chunks.push(text);
+                }
+              }
             }
             if (event.event_type === 'usage') usage = event.payload;
             if (event.event_type === 'completed' || event.event_type === 'failed') terminal = event;
           }
           if (!usage || terminal?.event_type !== 'completed' || terminal.payload.finish_reason !== 'stop')
             fail('CONTROL_OUTCOME_UNCERTAIN');
+          const { fields } = retainOutput(
+            { text_sha256: answer.digest('hex'), ...(answerBytes === null ? { text_too_large: true } : { text: chunks.join('') }) },
+            [value],
+          );
           return {
             status: 'completed',
             binding_sha256: digest,
             evidence_sha256: engineeringDigest({ task_id, request_id, output_sha256: output.digest('hex'), usage }),
+            ...fields,
             cost_microusd: null,
             input_tokens: usage.input_tokens,
             output_tokens: usage.output_tokens,
