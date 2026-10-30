@@ -97,15 +97,17 @@ The following entries are ADR templates or placeholders for optional activation.
 
 - [ADR-0040 — Disposable engineering execution](ADR-0040-disposable-engineering-execution.md)
 - [ADR-0041 — Engineering executor boundary](ADR-0041-engineering-executor-boundary.md) — candidato bwrap selecionado pelo responsável em 2026-09-24; sem ativação.
-- [ADR-0042 — Kernel v4 e capacidades opcionais](ADR-0042-v4-kernel-and-optional-capabilities.md) — implementação candidata autorizada, ativação separada.
+- [ADR-0042 — Kernel v4 e capacidades opcionais](ADR-0042-v4-kernel-and-optional-capabilities.md) — Accepted (2026-10-30); histórico: implementação candidata autorizada em 2026-09-24; ativação separada.
 
-- [ADR-0043 — Evolução do harness e IDE Code OSS](ADR-0043-harness-evolution.md) — draft; implementação por ondas, certificação e ativação separadas.
-- [ADR-0044 — Contrato de projeto e controle local](ADR-0044-project-engineering-control.md) — draft; W1 candidata, ativação separada.
+- [ADR-0043 — Evolução do harness e IDE Code OSS](ADR-0043-harness-evolution.md) — Accepted (2026-10-30); histórico: draft de 2026-09-25; implementação por ondas, certificação e ativação separadas.
+- [ADR-0044 — Contrato de projeto e controle local](ADR-0044-project-engineering-control.md) — Accepted (2026-10-30); histórico: draft de 2026-09-25; W1 candidata, ativação separada.
 
-- [ADR-0045 — Plugins de execução e jobs duráveis](ADR-0045-execution-plugins-and-durable-jobs.md) — Proposed; implementação candidata W4, ativação separada.
+- [ADR-0045 — Plugins de execução e jobs duráveis](ADR-0045-execution-plugins-and-durable-jobs.md) — Accepted (2026-10-30); histórico: Proposed de 2026-09-27; implementação candidata W4, ativação separada.
 
 - [ADR-0046 — Platform bindings, modos de adoção e autoridade de contratos do ECP](ADR-0046-platform-bindings-and-modes.md) — Accepted (2026-10-01); emenda ADR-0036/0033/0034; implementação e ativação separadas.
 
 - [ADR-0047 — Capacidades de ambiente (runtime no core, distribuição por plugin), autoridade e proveniência de contexto](ADR-0047-environment-capabilities-and-context-authority.md) — Accepted (2026-10-11); design da W5 aprovado no gate G2, ativação separada.
 
 - [ADR-0048 — Critério de ativação do ledger de execução governada e do servidor MCP moderno](ADR-0048-governed-execution-activation-criterion.md) — Accepted (2026-10-22); supersede em parte ADR-0022/0023 (critério de ativação e sunset); ativação separada.
+
+- [ADR-0049 — Fork do Code OSS e política de upstream para a IDE da W6](ADR-0049-code-oss-fork-and-upstream.md) — Proposed (2026-10-30); aguarda aceite do owner; estende ADR-0043; sem código da W6 antes do aceite.

@@ -1,7 +1,7 @@
 # Ciclo de estado dos jobs W4
 
 Estado desta documentação: preparação03c e despacho03d integrados; expansão04a1 em validação.
-ADR-0045 continua Proposed; migrations012–016 são candidatas para fixtures.
+ADR-0045 continuava Proposed neste registro (aceito em 2026-10-30); migrations012–016 são candidatas para fixtures.
 Ativação operacional, publicação e instalação global são decisões separadas.
 
 O ledger do EngineeringControl mantém control_job, control_task, engineering_task e
