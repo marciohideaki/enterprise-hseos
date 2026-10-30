@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const test = require('node:test');
+const spy = require('./fixtures/spawn-env-spy');
 const { fixture } = require('./helpers/engineering-project');
 const {
   projectWorkspaceSnapshot,
@@ -1016,4 +1017,22 @@ test('a project file is read whole up to 262144 characters; four large files at 
   const wide = (name) => ({ [name]: 'é'.repeat(262_144) });
   assert.equal(snapshot({ ...wide('a.js'), ...wide('b.js') })().files.length, 2);
   assert.throws(snapshot({ ...wide('a.js'), ...wide('b.js'), ...wide('c.js') }), { reason: 'PROJECT_FILE_TOO_LARGE', file: 'c.js' });
+});
+
+test('every project git call carries the suite orphan token next to its fixed environment and nothing else', (t) => {
+  const f = fixture(t);
+  const { launches } = spy.withToken(() => projectWorkspaceSnapshot(f.contract));
+  const gits = launches.filter((call) => call.name === 'execFileSync' && call.file === 'git');
+  assert.ok(gits.length >= 2);
+  for (const call of gits) {
+    assert.deepEqual(call.env, {
+      PATH: process.env.PATH,
+      GIT_CONFIG_NOSYSTEM: '1',
+      GIT_CONFIG_GLOBAL: '/dev/null',
+      GIT_ATTR_NOSYSTEM: '1',
+      [spy.TOKEN_VAR]: spy.VALID_TOKEN,
+    });
+  }
+  const bare = spy.withToken(() => projectWorkspaceSnapshot(f.contract), 'not-a-token').launches.filter((call) => call.file === 'git');
+  for (const call of bare) assert.equal(Object.hasOwn(call.env, spy.TOKEN_VAR), false);
 });

@@ -38,7 +38,9 @@ test('confirmed effects pass only prerequisites with fixed commands and cleared 
     ...fixture(t),
     launch(binary, args, options) {
       workspaces.push(options.cwd);
-      assert.deepEqual(Object.keys(options.env).sort(), ['HOME', 'PATH']);
+      // Under the suite supervisor the one extra variable is its orphan token, in its exact format and nothing else.
+      const token = /^[0-9a-f]{24}$/.test(process.env.HSEOS_SUITE_ORPHAN_TOKEN ?? '') ? ['HSEOS_SUITE_ORPHAN_TOKEN'] : [];
+      assert.deepEqual(Object.keys(options.env).sort(), ['HOME', 'PATH', ...token].sort());
       for (const flag of ['--clean', '--lockdown', '--no-network', '--no-inherit-env', '--private-home']) {
         assert.ok(args.includes(flag));
       }
@@ -95,4 +97,34 @@ test('public CLI fails closed against a backend that merely exits zero', (t) => 
   const report = JSON.parse(result.stdout);
   assert.equal(report.status, 'blocked');
   assert.equal(report.ready, false);
+});
+
+test('the probe launch carries the suite orphan token, and only when the parent has a well-formed one', (t) => {
+  const previous = process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+  t.after(() => {
+    if (previous === undefined) delete process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+    else process.env.HSEOS_SUITE_ORPHAN_TOKEN = previous;
+  });
+  const seen = (token) => {
+    if (token === undefined) delete process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+    else process.env.HSEOS_SUITE_ORPHAN_TOKEN = token;
+    const environments = [];
+    checkEngineeringSandbox({
+      ...fixture(t),
+      launch(_binary, _args, options) {
+        environments.push(options.env);
+        return claimedSuccess();
+      },
+    });
+    return environments;
+  };
+  const home = (environment) => ({ ...environment, HOME: '<home>' });
+  const tagged = seen('ab12cd34ef56ab12cd34ef56');
+  assert.ok(tagged.length > 0);
+  for (const environment of tagged) {
+    assert.deepEqual(home(environment), { PATH: '/usr/bin:/bin', HOME: '<home>', HSEOS_SUITE_ORPHAN_TOKEN: 'ab12cd34ef56ab12cd34ef56' });
+  }
+  for (const token of [undefined, 'not-a-token']) {
+    for (const environment of seen(token)) assert.deepEqual(home(environment), { PATH: '/usr/bin:/bin', HOME: '<home>' });
+  }
 });

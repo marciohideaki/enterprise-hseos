@@ -201,3 +201,36 @@ test('a client output limit overrun travels client, worker and runner as the exp
   assert.equal(error.diagnostic.client_limit_tokens, f.m.limits.max_output_tokens);
   assert.equal(f.calls().filter((call) => call.argv.includes('-p')).length, 1, 'not retried');
 });
+
+test('the campaign worker environment is empty, or holds only a well-formed suite orphan token', async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-worker-env-'));
+  const previous = process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+  t.after(() => {
+    fs.rmSync(directory, { recursive: true, force: true });
+    if (previous === undefined) delete process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+    else process.env.HSEOS_SUITE_ORPHAN_TOKEN = previous;
+  });
+  const worker = path.join(directory, 'worker.js');
+  fs.writeFileSync(worker, "require('node:fs').writeFileSync(process.argv[2], JSON.stringify(process.env));\nprocess.exitCode = 1;\n");
+  const environmentFor = async (token) => {
+    if (token === undefined) delete process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+    else process.env.HSEOS_SUITE_ORPHAN_TOKEN = token;
+    const report = path.join(directory, `report-${String(token).replaceAll(/\W/g, '')}.json`);
+    await rejection(
+      runCampaignProcess({
+        args: [worker, report],
+        input: { operation: 'run' },
+        signal: new AbortController().signal,
+        timeout_ms: 5000,
+        pids_max: 64,
+        memory_max_bytes: 536_870_912,
+      }),
+    );
+    // c8 adds NODE_V8_COVERAGE to the environment of every child while measuring coverage.
+    const { NODE_V8_COVERAGE: _coverage, ...environment } = JSON.parse(fs.readFileSync(report, 'utf8'));
+    return environment;
+  };
+  assert.deepEqual(await environmentFor('ab12cd34ef56ab12cd34ef56'), { HSEOS_SUITE_ORPHAN_TOKEN: 'ab12cd34ef56ab12cd34ef56' });
+  assert.deepEqual(await environmentFor(), {});
+  assert.deepEqual(await environmentFor('not-a-token'), {});
+});

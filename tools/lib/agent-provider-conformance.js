@@ -6,6 +6,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const yaml = require('yaml');
 
+const { orphanTokenEnv } = require('../../packages/agent-isolation-attestation/profiles');
 const { ModelProviderManifestSchema, RuntimeProviderManifestSchema, parseContract } = require('../../packages/agent-runtime-contracts');
 const { createAcpRuntimeManifest, createHostedRuntimeManifest } = require('../../packages/runtime-providers');
 const { getEngineeringModelManifest } = require('../cli/lib/engineering-task-runtime');
@@ -469,6 +470,7 @@ function runOpenedSuite(descriptor, filename, root, timeoutMs = DEFAULT_SUITE_TI
       HSEOS_DISABLE_UPDATE_CHECK: '1',
       LANG: 'C.UTF-8',
       LC_ALL: 'C.UTF-8',
+      ...orphanTokenEnv(),
     },
     maxBuffer: 16 * 1024 * 1024,
     // Backstop only: the supervisor enforces the real limit and reports through fd 4.

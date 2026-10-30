@@ -360,3 +360,39 @@ test('ACP campaign refuses native options without pids_max', (t) => {
   f.pin();
   assert.throws(f.create, (error) => error.code === 'CONTROL_PROVIDER_CONFIGURATION_INVALID' && /pids_max/.test(error.message));
 });
+test('launcher carries a well-formed suite orphan token into the codex child and nothing else from its parent', (t) => {
+  const f = fixture(t);
+  const seen = [];
+  t.mock.method(require('node:child_process'), 'spawn', (_binary, _args, options) => {
+    seen.push(options.env);
+    // ChildProcess exposes the EventEmitter contract.
+    // eslint-disable-next-line unicorn/prefer-event-target
+    const child = new EventEmitter();
+    child.kill = t.mock.fn();
+    return child;
+  });
+  t.mock.method(process, 'on', t.mock.fn());
+  t.mock.method(process, 'exit', t.mock.fn());
+  const oldEnv = process.env,
+    oldArgv = process.argv,
+    oldCode = process.exitCode;
+  t.after(() => {
+    process.env = oldEnv;
+    process.argv = oldArgv;
+    process.exitCode = oldCode;
+  });
+  const file = require.resolve('../packages/runtime-providers/codex-acp-launcher');
+  const launch = (token) => {
+    process.env = { HSEOS_ACP_COMPOSITION: f.filename, HOME: f.value.home, CODEX_HOME: f.value.home, PATH: '/usr/bin', UNTRUSTED: 'never' };
+    if (token !== undefined) process.env.HSEOS_SUITE_ORPHAN_TOKEN = token;
+    process.argv = ['node', 'launcher', 'app-server'];
+    delete require.cache[file];
+    require(file);
+    return seen.at(-1);
+  };
+  const base = { HOME: f.value.home, CODEX_HOME: f.value.home, PATH: '/usr/bin' };
+  assert.deepEqual(launch('ab12cd34ef56ab12cd34ef56'), { ...base, HSEOS_SUITE_ORPHAN_TOKEN: 'ab12cd34ef56ab12cd34ef56' });
+  assert.deepEqual(launch(), base);
+  assert.deepEqual(launch('not-a-token'), base);
+  assert.equal(seen.length, 3);
+});

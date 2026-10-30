@@ -10,6 +10,7 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 const { after, test } = require('node:test');
 
+const spy = require('./fixtures/spawn-env-spy');
 const pins = require('../tools/lib/environment-toolchain-pins');
 
 const MODULE = path.join(__dirname, '../tools/lib/environment-toolchain-pins.js');
@@ -407,4 +408,56 @@ test('a zip on disk and the same zip in memory list identically, and a truncated
   assert.throws(() => pins.listZip(pins.fileSource(file)), refusal('ENV_TOOLCHAIN_ARCHIVE_UNSAFE'));
   fs.writeFileSync(file, Buffer.alloc(10));
   assert.throws(() => pins.listZip(pins.fileSource(file)), refusal('ENV_TOOLCHAIN_ARCHIVE_UNSAFE'));
+});
+
+// Every child of the pin helpers carries the supervisor token next to its fixed PATH. Each case fails if its launch
+// point goes back to a bare `{ PATH }`.
+const TOKEN_ENV = { PATH: '/usr/bin:/bin', [spy.TOKEN_VAR]: spy.VALID_TOKEN };
+
+test('the zip inflate child carries the suite orphan token', () => {
+  const target = temp('hseos-token-zip-');
+  // Only a large entry is handed to a child; small ones are inflated in-process.
+  const size = 3 * 1024 * 1024;
+  const { zip, entries } = forgedTable([{ name: 'tool/big.bin', data: Buffer.alloc(size, 7) }]);
+  const { launches } = spy.withToken(() => pins.extractZip(zip, entries, { entry_bytes: size, total_bytes: size }, target));
+  const inflate = launches.filter((call) => call.name === 'execFileSync' && call.file === process.execPath);
+  assert.ok(inflate.length > 0);
+  for (const call of inflate) assert.deepEqual(call.env, TOKEN_ENV);
+});
+
+test('the tar child of a pin verification carries the suite orphan token', () => {
+  const cache = temp('hseos-token-tar-');
+  const source = temp('hseos-token-tar-src-');
+  fs.mkdirSync(path.join(source, 'package'));
+  fs.writeFileSync(path.join(source, 'package', 'LICENSE'), LICENSE);
+  execFileSync('tar', ['-czf', path.join(cache, 'tool.tgz'), '-C', source, 'package']);
+  const bytes = fs.readFileSync(path.join(cache, 'tool.tgz'));
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  const want = {
+    version: '1',
+    artifact: 'tool.tgz',
+    sha256,
+    license: 'MIT',
+    license_file: 'package/LICENSE',
+    license_markers: ['MIT-style'],
+    license_sha256: createHash('sha256').update(LICENSE, 'utf8').digest('hex'),
+  };
+  const manifest = { pins: [{ name: 'tool', version: '1', artifact: 'tool.tgz', sha256, license: 'MIT' }] };
+  const { launches } = spy.withToken(() => pins.verifyPin(cache, 'tool', manifest, { tool: want }));
+  const tars = launches.filter((call) => call.name === 'execFileSync' && call.file === 'tar');
+  assert.equal(tars.length, 1);
+  assert.deepEqual(tars[0].env, TOKEN_ENV);
+});
+
+test('the dpkg-query child of a system pin carries the suite orphan token', () => {
+  const expected = { fake: { system_package: 'dpkg', variants: [{ version: 'none', distro: 'test' }] } };
+  const { launches } = spy.withToken(() => {
+    assert.throws(
+      () => pins.verifySystemPin({ cacheDirectory: temp('hseos-token-dpkg-'), name: 'fake', expected }),
+      refusal('ENV_TOOLCHAIN_SYSTEM_VERSION'),
+    );
+  });
+  const queries = launches.filter((call) => call.file === '/usr/bin/dpkg-query');
+  assert.equal(queries.length, 1);
+  assert.deepEqual(queries[0].env, TOKEN_ENV);
 });

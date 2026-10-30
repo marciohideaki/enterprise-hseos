@@ -223,3 +223,45 @@ test('a suite overrun kills the whole process group, grandchildren included', ()
     fs.rmSync(directory, { recursive: true });
   }
 });
+
+test('the conformance suite child carries a well-formed suite orphan token and none of the parent environment', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-provider-token-'));
+  const previous = { token: process.env.HSEOS_SUITE_ORPHAN_TOKEN, canary: process.env.HSEOS_TOKEN_TEST_CANARY };
+  t.after(() => {
+    fs.rmSync(directory, { recursive: true, force: true });
+    for (const [key, value] of [
+      ['HSEOS_SUITE_ORPHAN_TOKEN', previous.token],
+      ['HSEOS_TOKEN_TEST_CANARY', previous.canary],
+    ]) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  });
+  const filename = path.join(directory, 'suite.js');
+  const report = path.join(directory, 'env.json');
+  fs.writeFileSync(
+    filename,
+    [
+      "'use strict';",
+      "const { test } = require('node:test');",
+      `test('records its environment', () => { require('node:fs').writeFileSync(${JSON.stringify(report)}, JSON.stringify(process.env)); });`,
+      '',
+    ].join('\n'),
+  );
+  process.env.HSEOS_TOKEN_TEST_CANARY = 'must-not-inherit';
+  const childEnvironment = (token) => {
+    if (token === undefined) delete process.env.HSEOS_SUITE_ORPHAN_TOKEN;
+    else process.env.HSEOS_SUITE_ORPHAN_TOKEN = token;
+    const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
+    try {
+      assert.equal(runOpenedSuite(descriptor, filename, directory).status, 0);
+    } finally {
+      fs.closeSync(descriptor);
+    }
+    return JSON.parse(fs.readFileSync(report, 'utf8'));
+  };
+  const tagged = childEnvironment('ab12cd34ef56ab12cd34ef56');
+  assert.equal(tagged.HSEOS_SUITE_ORPHAN_TOKEN, 'ab12cd34ef56ab12cd34ef56');
+  assert.equal(Object.hasOwn(tagged, 'HSEOS_TOKEN_TEST_CANARY'), false);
+  for (const token of [undefined, 'not-a-token']) assert.equal(Object.hasOwn(childEnvironment(token), 'HSEOS_SUITE_ORPHAN_TOKEN'), false);
+});

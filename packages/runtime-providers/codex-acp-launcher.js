@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const { spawn } = require('node:child_process');
 const { validateRestrictedComposition, startupArgs } = require('./codex-acp-composition');
+const { orphanTokenEnv } = require('../agent-isolation-attestation/profiles');
 try {
   if (process.argv.length !== 3 || process.argv[2] !== 'app-server') throw new Error('launch');
   const composition = JSON.parse(fs.readFileSync(process.env.HSEOS_ACP_COMPOSITION, 'utf8'));
@@ -11,7 +12,7 @@ try {
   if (process.env.CODEX_HOME !== composition.home || process.env.HOME !== composition.home) throw new Error('home');
   const child = spawn(composition.binary, startupArgs(config), {
     stdio: 'inherit',
-    env: { HOME: composition.home, CODEX_HOME: composition.home, PATH: process.env.PATH },
+    env: { HOME: composition.home, CODEX_HOME: composition.home, PATH: process.env.PATH, ...orphanTokenEnv() },
     cwd: composition.cwd,
     shell: false,
   });
