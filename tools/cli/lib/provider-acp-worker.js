@@ -6,6 +6,7 @@ const { AcpRuntimeProvider } = require('../../../packages/runtime-providers/acp-
 const { ProcessAcpPeer } = require('../../../packages/runtime-providers/process-acp-peer');
 const { CodexAcpPeer } = require('../../../packages/runtime-providers/codex-acp-peer');
 const { validateRestrictedComposition } = require('../../../packages/runtime-providers/codex-acp-composition');
+const { accountDigest, sameAccountDigest } = require('./campaign-evidence-store');
 const { CONTRACT_SCHEMA_VERSION } = require('../../../packages/agent-runtime-contracts');
 async function main() {
   let input = '';
@@ -22,7 +23,7 @@ async function main() {
     if (
       current.evidence_ref !== verified.evidence_ref ||
       request.inspection.expires_at <= Date.now() ||
-      request.inspection.account_sha256 !== request.account_sha256 ||
+      !sameAccountDigest(request.inspection.account_digest, request.account_digest) ||
       request.inspection.authenticated !== true
     )
       throw new Error('ACP_IDENTITY_EXPIRED');
@@ -43,7 +44,13 @@ async function main() {
       NO_BROWSER: '1',
     },
   });
-  const peer = new CodexAcpPeer({ peer: transport, model: composition.model, verify, account_sha256: request.account_sha256 });
+  const peer = new CodexAcpPeer({
+    peer: transport,
+    model: composition.model,
+    verify,
+    account_digest: request.account_digest,
+    digest_account: (identity) => accountDigest(request.state, identity),
+  });
   const providerId = 'runtime:codex-acp';
   const provider = new AcpRuntimeProvider({
     provider_id: providerId,

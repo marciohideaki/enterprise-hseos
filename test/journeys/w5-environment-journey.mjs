@@ -1369,7 +1369,9 @@ async function main() {
     };
     const { readBinding } = load('tools/cli/lib/provider-claude-account-adapter');
     const binding_sha256 = engineeringDigest({ binding: readBinding(bindingFile), options });
-    const manifestFor = (accountSha) => ({
+    // The account digest is salted with a per-installation key kept in the control state (0600).
+    const keyState = fs.mkdtempSync(path.join(WORK, 'claude-state-'));
+    const manifestFor = (accountDigest) => ({
       schema_version: 1,
       binding_id: 'binding:claude-w5-account',
       binding_sha256,
@@ -1384,7 +1386,8 @@ async function main() {
         mode: 'native_account',
         identity_kind: 'account',
         credential: { name: 'claude-login', source_ref: `file://${home}/.claude` },
-        account_sha256: accountSha,
+        account_sha256: null,
+        ...(accountDigest ? { account_digest: accountDigest } : {}),
         source: 'explicit',
       },
       billing: { kind: 'subscription', currency: 'USD', max_request_microusd: 0 },
@@ -1400,7 +1403,7 @@ async function main() {
     // First pass with a placeholder identity only to read the account digest; inspection runs no inference.
     let probe;
     try {
-      probe = createNativeCampaignAdapter({ manifest: manifestFor('a'.repeat(64)), binding: bindingFile, options });
+      probe = createNativeCampaignAdapter({ manifest: manifestFor(null), binding: bindingFile, options, state: keyState });
     } catch (error) {
       throw new Error(`binding rejected: ${error.code || error.message}`);
     }
@@ -1410,10 +1413,11 @@ async function main() {
     } catch (error) {
       throw new Blocked(`the Claude account is not eligible: ${error.code || error.message}`);
     }
-    const manifest = manifestFor(observed.account_sha256);
-    const configured = createNativeCampaignAdapter({ manifest, binding: bindingFile, options });
+    const manifest = manifestFor(observed.account_digest);
+    const configured = createNativeCampaignAdapter({ manifest, binding: bindingFile, options, state: keyState });
     const reobserved = await configured.adapter.inspect();
-    if (reobserved.account_sha256 !== manifest.authentication.account_sha256) throw new Error('account digest drifted between inspections');
+    if (reobserved.account_digest?.value !== manifest.authentication.account_digest.value)
+      throw new Error('account digest drifted between inspections');
     const { EngineeringControl } = load('tools/cli/lib/engineering-control');
     const authorizationId = randomUUID();
     const deadline = Date.now() + 45 * 60_000;

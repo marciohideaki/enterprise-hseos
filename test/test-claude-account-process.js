@@ -24,13 +24,16 @@ const assertGone = async (pid) => {
   assert.ok([null, 'Z', 'X'].includes(state(pid)), `pid ${pid} is still running (state ${state(pid)}) after the campaign was stopped`);
 };
 const create = (f) =>
-  createNativeCampaignAdapter({ manifest: f.m, binding: f.filename, options: f.settings }, { processRunner: runCampaignProcess });
+  createNativeCampaignAdapter(
+    { manifest: f.m, binding: f.filename, options: f.settings, state: f.controlState },
+    { processRunner: runCampaignProcess },
+  );
 
 test('claude/account inspects and runs inside a resource-limited cgroup', async (t) => {
   const f = setup(t);
   const { adapter } = create(f);
   const observation = await adapter.inspect({ signal: new AbortController().signal });
-  assert.equal(observation.account_sha256, f.m.authentication.account_sha256);
+  assert.deepEqual(observation.account_digest, f.m.authentication.account_digest);
   const result = await adapter.run({ task_id: f.id, signal: new AbortController().signal });
   assert.equal(result.output_tokens, 2);
   assert.equal(result.cost_microusd, null);

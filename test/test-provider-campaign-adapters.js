@@ -12,6 +12,7 @@ const { manifest } = require('./helpers/provider-control');
 const { engineeringDigest } = require('../tools/cli/lib/engineering-task-state');
 const vectors = require('./fixtures/campaign-credential-vectors');
 const { credentialFingerprint } = require('../tools/cli/lib/provider-api-adapter');
+const { accountDigest } = require('../tools/cli/lib/campaign-evidence-store');
 const { createNativeCampaignAdapter, nativeArtifactDigest } = require('../tools/cli/lib/provider-native-adapter');
 const { createAntigravityCampaignAdapter, antigravityArtifactDigest } = require('../tools/cli/lib/provider-antigravity-adapter');
 const { startCampaignModelBridge } = require('../tools/cli/lib/provider-campaign-bridge');
@@ -53,7 +54,8 @@ function native(t, vendor) {
   const credential = randomUUID();
   if (vendor === 'codex') {
     m.authentication.credential.source_ref = `file://${d}/auth.json`;
-    m.authentication.account_sha256 = engineeringDigest({ type: 'chatgpt', email: 'fixture@example.invalid' });
+    m.authentication.account_sha256 = null;
+    m.authentication.account_digest = accountDigest(d, { type: 'chatgpt', email: 'fixture@example.invalid' });
   } else {
     m.authentication.identity_kind = 'credential';
     m.authentication.account_sha256 = null;
@@ -106,7 +108,7 @@ function native(t, vendor) {
     settings,
     filename,
     id,
-    create: () => createNativeCampaignAdapter({ manifest: m, binding: filename, options: settings }, deps),
+    create: () => createNativeCampaignAdapter({ manifest: m, binding: filename, options: settings, state: d }, deps),
   };
 }
 for (const vendor of ['codex', 'claude'])
@@ -115,7 +117,7 @@ for (const vendor of ['codex', 'claude'])
       configured = f.create();
     assert.equal(f.calls.length, 0);
     const observation = await configured.adapter.inspect();
-    assert.equal(observation.account_sha256, f.m.authentication.account_sha256);
+    assert.deepEqual(observation.account_digest, f.m.authentication.account_digest);
     assert.equal(observation.quota_remaining_requests, null);
     const result = await configured.adapter.run({ task_id: f.id, signal: new AbortController().signal });
     assert.equal(result.input_tokens, 5);

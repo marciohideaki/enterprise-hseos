@@ -7,7 +7,7 @@ const { engineeringDigest } = require('./engineering-task-state');
 const { createNativeCampaignAdapter, nativeArtifactDigest } = require('./provider-native-adapter');
 const { readBinding } = require('./delegated-codex-runtime');
 const { validateRestrictedComposition } = require('../../../packages/runtime-providers/codex-acp-composition');
-const { retainOutput } = require('./campaign-evidence-store');
+const { retainOutput, sameAccount } = require('./campaign-evidence-store');
 const { runCampaignProcess } = require('./provider-campaign-process');
 const files = [
   __filename,
@@ -38,7 +38,7 @@ function normalizeAcpUsage(usage) {
     fail('CONTROL_OUTCOME_UNCERTAIN');
   return { input_tokens: input, output_tokens: output };
 }
-function createAcpCampaignAdapter({ manifest, binding, options }, { processRunner = runCampaignProcess } = {}) {
+function createAcpCampaignAdapter({ manifest, binding, options, state }, { processRunner = runCampaignProcess } = {}) {
   const settings = z
     .object({ native_binding: z.string().refine(path.isAbsolute), native_options: z.record(z.string(), z.unknown()) })
     .strict()
@@ -71,6 +71,7 @@ function createAcpCampaignAdapter({ manifest, binding, options }, { processRunne
       },
       binding: settings.native_binding,
       options: settings.native_options,
+      state,
     },
     { processRunner },
   );
@@ -96,17 +97,15 @@ function createAcpCampaignAdapter({ manifest, binding, options }, { processRunne
         if (!task || Buffer.byteLength(task.prompt) > manifest.limits.max_input_tokens || /^\s*[/$]/u.test(task.prompt))
           fail('CONTROL_CAMPAIGN_SCOPE_DENIED');
         const inspection = await inspect({ signal });
-        if (
-          inspection.account_sha256 !== manifest.authentication.account_sha256 ||
-          inspection.quota_windows.some((w) => w.used_percent >= 100)
-        )
+        if (!sameAccount(manifest.authentication, inspection) || inspection.quota_windows.some((w) => w.used_percent >= 100))
           fail('CONTROL_PROVIDER_IDENTITY_UNVERIFIED');
         const result = await processRunner({
           args: [path.join(__dirname, 'provider-acp-worker.js')],
           input: {
             composition_path: binding,
             inspection,
-            account_sha256: manifest.authentication.account_sha256,
+            account_digest: manifest.authentication.account_digest,
+            state,
             prompt: task.prompt,
             resume_session_id,
             max_tokens: manifest.limits.max_input_tokens + manifest.limits.max_output_tokens,

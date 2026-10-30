@@ -3,6 +3,8 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { CodexAcpPeer } = require('../packages/runtime-providers/codex-acp-peer');
 const { restrictedConfig, startupArgs } = require('../packages/runtime-providers/codex-acp-composition');
+const digestOf = (email) => require('node:crypto').createHash('sha256').update(`fixture-key:${email}`).digest('hex');
+const DIGEST = { v: 2, alg: 'hmac-sha256', value: digestOf('fixture@example.test') };
 const init = {
   protocolVersion: 1,
   agentInfo: { name: '@agentclientprotocol/codex-acp', version: '1.13.1' },
@@ -61,7 +63,8 @@ function fixture(overrides = {}) {
     verify: () => {
       if (expire) throw new Error('expired');
     },
-    account_sha256: 'a'.repeat(64),
+    account_digest: { v: 2, alg: 'hmac-sha256', value: digestOf('fixture@example.test') },
+    digest_account: (identity) => ({ v: 2, alg: 'hmac-sha256', value: digestOf(identity.email) }),
   });
   peer.subscribe({
     notification: (m, p) => delivered.push([m, p]),
@@ -130,6 +133,7 @@ test('expiry denies new work while cancellation remains possible; paid auth chan
   assert.deepEqual(f.calls, ['session/cancel']);
   assert.throws(() => f.emit('_auth/status_update', { authStatus: { kind: 'api_key', label: 'API' } }));
   assert.throws(() => f.emit('_auth/status_update', { authStatus: { kind: 'account', account: { email: 'different@example.test' } } }));
+  f.emit('_auth/status_update', { authStatus: { kind: 'account', account: { email: 'fixture@example.test' } } });
 });
 test('startup profile disables tool sources and pins catalog before app-server starts', () => {
   const config = restrictedConfig({ model: 'gpt-6-astra', catalog: '/private/catalog.json' });
@@ -201,8 +205,17 @@ test('private cwd cannot inherit ancestor configuration or tools', (t) => {
 });
 
 test('ACP session lifecycle enforces metadata identities, shape bounds and cancellation-only notifications', async () => {
-  assert.throws(() => new CodexAcpPeer({ peer: {}, model: '', verify() {}, account_sha256: 'a'.repeat(64) }));
-  assert.throws(() => new CodexAcpPeer({ peer: {}, model: 'pinned', verify() {}, account_sha256: 'bad' }));
+  assert.throws(() => new CodexAcpPeer({ peer: {}, model: '', verify() {}, account_digest: DIGEST, digest_account: () => DIGEST }));
+  assert.throws(
+    () =>
+      new CodexAcpPeer({
+        peer: {},
+        model: 'pinned',
+        verify() {},
+        account_digest: { ...DIGEST, value: 'bad' },
+        digest_account: () => DIGEST,
+      }),
+  );
   const f = fixture();
   await f.peer.request('session/load', { sessionId: 'loaded', mcpServers: [] });
   assert.deepEqual(await f.peer.request('session/prompt', { sessionId: 'loaded', prompt: [{ type: 'text', text: 'hello' }] }), {

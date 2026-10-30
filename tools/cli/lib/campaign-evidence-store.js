@@ -17,7 +17,8 @@
  */
 const fs = require('node:fs');
 const path = require('node:path');
-const { createHash, randomUUID } = require('node:crypto');
+const { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } = require('node:crypto');
+const { canonicalJson } = require('../../../packages/agent-session-store');
 
 const MAX_EVIDENCE_BYTES = 65_536;
 const EVIDENCE_RETENTION_DAYS = 90;
@@ -217,6 +218,95 @@ function containsCredential(text, known = []) {
   );
 }
 
+const ACCOUNT_KEY_FILE = 'account-digest.key';
+const ACCOUNT_KEY_BYTES = 32;
+const ACCOUNT_KEY_LINK_WAIT_MS = 200;
+const HEX64 = /^[a-f0-9]{64}$/;
+
+/**
+ * Per-installation key of the v2 account digest: 32 random bytes in the control state, created on first need with 0600
+ * (exclusive temporary file, fsync, then link so a concurrent creator never replaces an existing key). The key is never
+ * logged or put in a receipt. Losing or replacing it makes every v2 digest recorded before unverifiable: there is no rotation.
+ */
+function accountKey(state) {
+  if (typeof state !== 'string' || !path.isAbsolute(state)) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+  const file = path.join(state, ACCOUNT_KEY_FILE);
+  try {
+    if (!fs.statSync(state).isDirectory()) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+  } catch {
+    fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+  }
+  // The creator's temporary name is a second link to the key until it is removed; that window is short, so a reader that
+  // sees it retries for a bounded time. Any other defect, and a link that persists past the deadline, is refused.
+  const read = () => {
+    const deadline = Date.now() + ACCOUNT_KEY_LINK_WAIT_MS;
+    for (let wait = 2; ; wait = Math.min(wait * 2, 32)) {
+      const stat = fs.lstatSync(file);
+      if (!stat.isFile() || stat.size !== ACCOUNT_KEY_BYTES || (stat.mode & 0o077) !== 0) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+      if (stat.nlink === 1) return fs.readFileSync(file);
+      if (Date.now() >= deadline) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, wait);
+    }
+  };
+  try {
+    return read();
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+  const temporary = path.join(state, `.tmp-account-key-${randomUUID()}`);
+  const fd = fs.openSync(temporary, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+  try {
+    fs.fchmodSync(fd, 0o600);
+    fs.writeSync(fd, randomBytes(ACCOUNT_KEY_BYTES));
+    fs.fsyncSync(fd);
+    fs.closeSync(fd);
+    try {
+      fs.linkSync(temporary, file);
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+    }
+  } catch (error) {
+    try {
+      fs.closeSync(fd);
+    } catch {
+      // already closed
+    }
+    throw error;
+  } finally {
+    fs.rmSync(temporary, { force: true });
+  }
+  return read();
+}
+
+/** v2 digest: HMAC-SHA256 under a purpose-derived key, so a dictionary of e-mails cannot reproduce it without the installation key. */
+function accountDigest(state, identity) {
+  const derived = createHmac('sha256', accountKey(state)).update('hseos-campaign-account:account-digest:v2').digest();
+  return { v: 2, alg: 'hmac-sha256', value: createHmac('sha256', derived).update(canonicalJson(identity)).digest('hex') };
+}
+function isAccountDigest(value) {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    Object.keys(value).sort().join(',') === 'alg,v,value' &&
+    value.v === 2 &&
+    value.alg === 'hmac-sha256' &&
+    HEX64.test(value.value)
+  );
+}
+function sameAccountDigest(a, b) {
+  return isAccountDigest(a) && isAccountDigest(b) && timingSafeEqual(Buffer.from(a.value, 'hex'), Buffer.from(b.value, 'hex'));
+}
+/**
+ * Whether an observation names the account a manifest pinned. Digests are compared in the same format on both sides; a
+ * legacy unsalted v1 `account_sha256` is only ever equal to another v1 value, never to a v2 digest (the account is then
+ * unverifiable, not equal).
+ */
+function sameAccount(pinned, observed) {
+  if (pinned.account_digest !== undefined || observed.account_digest !== undefined)
+    return sameAccountDigest(pinned.account_digest, observed.account_digest);
+  return typeof pinned.account_sha256 === 'string' && observed.account_sha256 === pinned.account_sha256;
+}
+
 /**
  * Persist model output content-addressed under the control state; the caller's reference must describe the text exactly.
  * Writes go to an exclusive temporary file, are fsynced and renamed, so a crash never leaves a truncated final name.
@@ -371,4 +461,8 @@ module.exports = {
   storeEvidence,
   readEvidence,
   evidenceSha256: sha256,
+  accountDigest,
+  isAccountDigest,
+  sameAccountDigest,
+  sameAccount,
 };

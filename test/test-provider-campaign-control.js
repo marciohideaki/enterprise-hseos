@@ -16,12 +16,14 @@ async function fixture(t, options = {}) {
     authorizationId = randomUUID(),
     id = randomUUID();
   const value = manifest();
+  options.manifest?.(value);
   let calls = 0;
   const observed = {
     binding_sha256: value.binding_sha256,
     artifact_sha256: value.artifact_sha256,
     provider_version: value.provider_version,
     account_sha256: value.authentication.account_sha256,
+    ...(value.authentication.account_digest ? { account_digest: value.authentication.account_digest } : {}),
     authenticated: true,
     auth_source: 'explicit',
     observed_at: Date.now(),
@@ -125,6 +127,30 @@ test('ambiguous credentials, logout, expired observations and unavailable quota 
   }
   assert.equal(f.calls(), 0);
   assert.equal(f.campaigns.query(f.id).requests, 0);
+});
+
+test('a v2 account digest dispatches only on an equal v2 digest; v1 and v2 are never equal', async (t) => {
+  const pinned = { v: 2, alg: 'hmac-sha256', value: 'd'.repeat(64) };
+  const f = await fixture(t, {
+    manifest: (value) => {
+      value.authentication.account_sha256 = null;
+      value.authentication.account_digest = pinned;
+    },
+  });
+  const run = () => f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId }));
+  const baseline = { ...f.observed };
+  for (const change of [
+    { account_digest: { ...pinned, value: 'e'.repeat(64) } },
+    { account_digest: undefined, account_sha256: pinned.value },
+    { account_digest: undefined, account_sha256: null },
+  ]) {
+    Object.assign(f.observed, baseline, change);
+    await assert.rejects(run(), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+  }
+  assert.equal(f.calls(), 0);
+  Object.assign(f.observed, baseline);
+  await run();
+  assert.equal(f.calls(), 1);
 });
 
 test('receipt loss preserves the reservation and requires current-state reconciliation without retry', async (t) => {

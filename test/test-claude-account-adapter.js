@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const { randomUUID } = require('node:crypto');
 const { test } = require('node:test');
 const { engineeringDigest } = require('../tools/cli/lib/engineering-task-state');
+const { accountDigest } = require('../tools/cli/lib/campaign-evidence-store');
 const { childEnvironment, setup, IDENTITY } = require('./helpers/claude-account');
 
 const signal = () => new AbortController().signal;
@@ -13,7 +14,8 @@ test('claude/account is accepted and inspection exposes a digest, never the iden
   const configured = f.create();
   assert.equal(configured.binding_sha256, f.m.binding_sha256);
   const observation = await configured.adapter.inspect({ signal: signal() });
-  assert.equal(observation.account_sha256, f.m.authentication.account_sha256);
+  assert.deepEqual(observation.account_digest, f.m.authentication.account_digest);
+  assert.equal(observation.account_sha256, null);
   assert.equal(observation.authenticated, true);
   assert.equal(observation.quota_remaining_requests, null);
   assert.equal(observation.quota_windows, undefined);
@@ -59,10 +61,10 @@ test('inspection fails closed unless the login is a subscription account', async
 test('a different account or version is observable and never matches the pinned identity', async (t) => {
   const other = setup(t, { mode: { auth: { loggedIn: true, apiProvider: 'firstParty', ...IDENTITY, email: 'other@example.invalid' } } });
   const observed = await other.create().adapter.inspect({ signal: signal() });
-  assert.notEqual(observed.account_sha256, other.m.authentication.account_sha256);
-  assert.equal(observed.account_sha256, engineeringDigest({ ...IDENTITY, email: 'other@example.invalid' }));
+  assert.notDeepEqual(observed.account_digest, other.m.authentication.account_digest);
+  assert.deepEqual(observed.account_digest, accountDigest(other.controlState, { ...IDENTITY, email: 'other@example.invalid' }));
   const org = setup(t, { mode: { auth: { loggedIn: true, apiProvider: 'firstParty', ...IDENTITY, orgId: 'org-other' } } });
-  assert.notEqual((await org.create().adapter.inspect({ signal: signal() })).account_sha256, org.m.authentication.account_sha256);
+  assert.notDeepEqual((await org.create().adapter.inspect({ signal: signal() })).account_digest, org.m.authentication.account_digest);
   const old = setup(t, { mode: { version: '2.0.0' } });
   await assert.rejects(old.create().adapter.inspect({ signal: signal() }), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
 });
