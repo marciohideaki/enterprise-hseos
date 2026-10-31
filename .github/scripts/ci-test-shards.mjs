@@ -13,7 +13,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeOrphans, loadAllowlist, runGuarded, segmentsOf } from './suite-orphans.mjs';
+import { describeOrphans, describeSegments, loadAllowlist, runGuarded, segmentsOf } from './suite-orphans.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const EXTRA_ITEMS = ['npm run test:kernel-coverage'];
@@ -164,16 +164,21 @@ function verify(count) {
 
 // Runs the segments of one item in order, stopping at the first failure like `&&` would. Each segment is supervised:
 // a descendant still alive when it ends is killed and fails the item, naming the segment and the orphans.
-export function runItem(item, { root = ROOT, allowlist = loadAllowlist(), settleMs } = {}) {
+export function runItem(item, { root = ROOT, allowlist = loadAllowlist(), settleMs, log = console.log } = {}) {
   const scripts = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).scripts;
-  for (const segment of segmentsOf(item, scripts)) {
+  const segments = segmentsOf(item, scripts);
+  for (const [index, segment] of segments.entries()) {
     const result = runGuarded(segment, { cwd: root, allowlist, settleMs, pathPrepend: path.join(root, 'node_modules', '.bin') });
-    if (result.allowed.length > 0) console.log(`allowlisted long-lived processes after: ${segment}`);
+    if (result.allowed.length > 0) log(`allowlisted long-lived processes after: ${segment}`);
     if (result.orphans.length > 0) {
-      console.log(describeOrphans(segment, result.orphans));
+      log(describeOrphans(segment, result.orphans));
+      log(describeSegments(item, segments, index, scripts).join('\n'));
       return { ok: false };
     }
-    if (result.status !== 0) return { ok: false };
+    if (result.status !== 0) {
+      log(describeSegments(item, segments, index, scripts).join('\n'));
+      return { ok: false };
+    }
   }
   return { ok: true };
 }
