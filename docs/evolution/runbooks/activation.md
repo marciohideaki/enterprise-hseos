@@ -141,6 +141,7 @@ A configuração vive em uma seção nova `environment:` de `~/.config/hseos/con
 - raiz do **cache de toolchain** (provisionado pelos pins);
 - **`memory.rules`**: regras de escrita por projeto, com **deny por padrão**;
 - **`memory.operator`**: ator com `kind: operator`, exigido para `memory.delete`;
+- **`memory.write` sem aprovação do runtime** (decisão do owner de 2026-10-21, confirmada em 2026-10-30): o controle é `admitWrite` (deny por padrão) mais a varredura de credencial;
 - **`isolation`**: informativo, uma restrição de valor único. O ambiente da tarefa sempre isola com bwrap (único backend implementado); a chave não escolhe backend, apenas recusa qualquer outro valor;
 - **`toolchain_cache`** deve ser um caminho absoluto, normalizado, sem `..`, de um diretório existente e que não seja symlink (só o componente final é verificado); caso contrário a seção é recusada com `ENGINEERING_ENVIRONMENT_CONFIG_INVALID`. Seção vazia ou chave parecida com `environment` (ex.: `enviroment`) emite aviso no stderr e o host continua ausente.
 
