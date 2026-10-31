@@ -111,3 +111,5 @@ The following entries are ADR templates or placeholders for optional activation.
 - [ADR-0048 — Critério de ativação do ledger de execução governada e do servidor MCP moderno](ADR-0048-governed-execution-activation-criterion.md) — Accepted (2026-10-22); supersede em parte ADR-0022/0023 (critério de ativação e sunset); ativação separada.
 
 - [ADR-0049 — Fork do Code OSS e política de upstream para a IDE da W6](ADR-0049-code-oss-fork-and-upstream.md) — Proposed (2026-10-30); aguarda aceite do owner; estende ADR-0043; sem código da W6 antes do aceite.
+
+- [ADR-0050 — Critério de certificação de bindings de provider e aceite da quarta família](ADR-0050-provider-binding-certification-criterion.md) — Proposed (2026-10-31); aguarda aceite do owner; define níveis L0-L3, o que conta para F08/F17/F18 e a autorização por campanha; não autoriza gasto.
