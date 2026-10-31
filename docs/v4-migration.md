@@ -146,6 +146,14 @@ decisions. Historical events and already admitted contracts stay readable.
   For `computer.act` the prompt shows the action, its arguments and the screenshot digest the service gate binds the
   grant to; the service gate is resolved only after that approval, in the approver's name. The server stays fixture-only
   (`EXECUTION_ACTIVATION_PENDING` otherwise).
+- `computer.act` is refused with `ENV_COMPUTER_IMAGE_APPROVAL_UNSUPPORTED` before any elicitation is opened (owner decision
+  2026-10-30). The elicitation of the modern protocol is a text form with no image part, and the client declares no
+  capability saying it shows the screenshot, so the approval would carry the digest but not what it is a digest of. The
+  default is therefore fail-closed. The operator may accept a digest-only approval explicitly by setting the host member
+  `allow_digest_only_approval: true`; only a literal `true` counts. The override exists only in the host composition in code:
+  there is no key for it in the config file yet (exposing one is a pending owner decision). `computer.start` is refused the
+  same way, since the session it opens could only be acted on through a refused approval. `computer.stop` and
+  `computer.screenshot` need no approval and are not affected. Putting the image in the elicitation is not done: the protocol has no place for it.
 
 ### Activation rollback requires a receipt (audit 2026-10-27)
 

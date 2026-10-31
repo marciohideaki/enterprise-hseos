@@ -136,6 +136,8 @@ Riscos: a troca para o moderno sem o critério (f) quebra o Codex (`initialize` 
 - o gate de aprovação do computer-use (`createApprovalGate`) e as aprovações de exclusão de memória (`createMemoryDeleteApprovals`);
 - o sink do ledger (`createEnvironmentLedgerSink`) e o `ExecutionApprovalStore`.
 
+**Computer-use por MCP exige decisão do operador sobre a imagem (2026-10-30).** A aprovação de `environment.computer.act` mostra o digest do screenshot, não a imagem, e o cliente não declara que a exibe. Por padrão `computer.act` e `computer.start` são recusados com `ENV_COMPUTER_IMAGE_APPROVAL_UNSUPPORTED`, antes de qualquer elicitação. Para aceitar a aprovação só com o digest, a composição do host em código deve declarar `allow_digest_only_approval: true` (apenas o literal `true`). Não há chave no `config.yaml` para isso; expô-la é decisão pendente do owner.
+
 A configuração vive em uma seção nova `environment:` de `~/.config/hseos/config.yaml`:
 
 - raiz do **cache de toolchain** (provisionado pelos pins);
