@@ -72,7 +72,10 @@ async function executionActivationAction(actionName, options) {
     report = { action: 'plan', plan: planExecutionLedgerActivation(databasePath, { adr: options.adr, backupDir: options.backupDir }) };
     if (!report.plan.ready) process.exitCode = 2;
   } else if (actionName === 'apply') {
-    report = { action: 'apply', ...(await activateExecutionLedger(databasePath, { adr: options.adr, backupDir: options.backupDir })) };
+    report = {
+      action: 'apply',
+      ...(await activateExecutionLedger(databasePath, { adr: options.adr, backupDir: options.backupDir, windowPath: options.window })),
+    };
   } else {
     report = {
       action: 'rollback',
@@ -98,6 +101,10 @@ module.exports = {
         ['--db <path>', 'State database to activate or restore (a regular schema-v4 file; never a link)'],
         ['--adr <id>', 'ADR identifier whose status must be Accepted (for example ADR-0048)'],
         ['--backup-dir <dir>', 'Directory that receives the verified pre-activation backup and receipt'],
+        [
+          '--window <path>',
+          'Supervised-window record (operator, stopped_consumers, original_sha256_before, recorded_at) validated and bound in the receipt (apply)',
+        ],
         ['--backup <path>', 'Backup file to restore (rollback)'],
         ['--expected-sha256 <hex>', 'Expected sha256 of the backup file (rollback)'],
         ['--receipt <path>', 'Activation receipt to cross-check the backup against (rollback; default: <backup>.receipt.json)'],

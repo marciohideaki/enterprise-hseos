@@ -102,6 +102,25 @@ Pré-condições:
 
 **Modo por banco** (K4/K2): `user_version` 4 sem tabelas pendentes é o legado; ativado é `user_version` 17 com `application_id` `0x48534f53` ("HSOS"), as tabelas do ledger e `integrity_check` = `ok`, e serve o modo moderno; qualquer outro estado é recusado como `inconsistent`, **sem fallback** para nenhum dos dois modos. O sunset do legado vem de **`HSEOS_MCP_LEGACY_SUNSET`**: sem valor a compat não expira; valor inválido aborta o boot (exit 78 segundo o relato da K4, a reconfirmar). A data só é fixada pelo owner depois da evidência do K1.
 
+**Registro da janela supervisionada** (`apply --window`, decisões (a) e (b) do owner, 2026-10-31):
+
+O operador escreve o registro **antes** do `apply`, em `<state>/activation-window.json` (ao lado do banco) ou em outro caminho explícito, com `original_sha256_before` igual ao `sha256sum` do `project.db` com os consumidores já parados:
+
+```json
+{
+  "operator": "marcio",
+  "stopped_consumers": ["hseos-governance", "hseos-state-tracking", "hseos-swarm"],
+  "original_sha256_before": "<sha256 do project.db antes do apply>",
+  "recorded_at": "2026-11-01T12:00:00.000Z"
+}
+```
+
+1. Parar os consumidores (o sha256 do `project.db` só é calculado depois do aviso de WAL abaixo).
+2. Escrever o JSON acima. `recorded_at` é ISO 8601 **com `Z` ou offset explícito** (data sem fuso é recusada) e estritamente anterior ao instante do `apply`.
+   - **WAL:** o `original_sha256_before` tem de ser o do banco **depois** do checkpoint. Se o `project.db` tiver WAL com dados, o `apply` faz o checkpoint e o sha muda; a janela escrita com o sha de antes é recusada (`EXECUTION_ACTIVATION_WINDOW_INVALID`, sem deixar diretório de backup). Incorpore o WAL ao banco com os consumidores parados (`sqlite3 <state>/project.db 'PRAGMA wal_checkpoint(TRUNCATE)'`) e só então calcule o sha e escreva a janela.
+3. `hseos execution-activation apply --db <path> --adr ADR-0048 --backup-dir <dir> --window <state>/activation-window.json`. A janela é validada **antes** de qualquer escrita; se for inválida o `apply` recusa com `EXECUTION_ACTIVATION_WINDOW_INVALID` e o banco fica intacto.
+4. Conferir no recibo (`<backup>.receipt.json`): `receipt_version: 2` e `window: { path, sha256 }`. O gate cruza esse sha256 com o arquivo da janela; janela alterada depois do `apply` reprova a condição 7. Recibos antigos (sem `receipt_version`/`window`) continuam legíveis e servem ao rollback.
+
 Procedimento (a W8 confirma contra o comando entregue):
 
 0. **1b.0 — seção `environment:` do `~/.config/hseos/config.yaml`** (ver seção 3c). Backup antes (`cp -a ~/.config/hseos/config.yaml "$DIST/host-backup/.config-hseos/pre-step1b/"`), escrita da seção `environment:` (cache de toolchain, `memory.rules`, `memory.operator`, perfis de isolamento) e hash do arquivo antes e depois no receipt. Sem a seção, a verificação de `tools/call` de `environment.*` e `memory.*` falha com `ENV_CAPABILITY_UNAVAILABLE`.

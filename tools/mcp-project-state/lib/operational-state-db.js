@@ -551,10 +551,18 @@ function criterionCondition(id, item, reason) {
   return { id, adr_item: item, met: reason === null, reason };
 }
 
+function parseJsonObject(bytes) {
+  try {
+    const value = JSON.parse(bytes.toString('utf8'));
+    return value !== null && typeof value === 'object' && !Array.isArray(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 function readJsonObject(file) {
   try {
-    const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-    return value !== null && typeof value === 'object' && !Array.isArray(value) ? value : null;
+    return parseJsonObject(fs.readFileSync(file));
   } catch {
     return null;
   }
@@ -579,6 +587,24 @@ function adrCriterionReason(adr, internal) {
   return null;
 }
 
+const RECEIPT_VERSIONS = new Set([1, 2]);
+
+/** Version 1 receipts (no `receipt_version`, no `window`) stay readable; a window needs the version that defines it. */
+function receiptWindowProblem(receipt) {
+  if (receipt.receipt_version !== undefined && !RECEIPT_VERSIONS.has(receipt.receipt_version)) {
+    return 'activation receipt has an unsupported receipt_version';
+  }
+  if (receipt.window === undefined) return null;
+  const { window } = receipt;
+  if (receipt.receipt_version !== 2 || window === null || typeof window !== 'object' || Array.isArray(window)) {
+    return 'activation receipt window is not a version 2 {path, sha256} reference';
+  }
+  if (typeof window.path !== 'string' || window.path === '' || !SHA256_HEX.test(String(window.sha256))) {
+    return 'activation receipt window is not a version 2 {path, sha256} reference';
+  }
+  return null;
+}
+
 function receiptShapeProblem(receipt, activatedVersion) {
   if (!SHA256_HEX.test(String(receipt.original_sha256_before)) || !SHA256_HEX.test(String(receipt.backup_sha256))) {
     return 'activation receipt carries no sha256 for the original database and its backup';
@@ -589,6 +615,8 @@ function receiptShapeProblem(receipt, activatedVersion) {
   }
   if (!Array.isArray(receipt.applied_migrations) || receipt.applied_migrations.length === 0)
     return 'activation receipt applied no migrations';
+  const versionProblem = receiptWindowProblem(receipt);
+  if (versionProblem) return versionProblem;
   const started = typeof receipt.started_at === 'string' ? Date.parse(receipt.started_at) : Number.NaN;
   const finished = typeof receipt.finished_at === 'string' ? Date.parse(receipt.finished_at) : Number.NaN;
   if (Number.isNaN(started) || Number.isNaN(finished) || started > finished) return 'activation receipt has no coherent apply interval';
@@ -651,25 +679,62 @@ function backupReason(receipt) {
   }
 }
 
+const ISO_INSTANT_WITH_ZONE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/;
+
 /** The window record must bind the pre-apply database digest, name who stopped which consumers, and precede the apply. */
-function windowReason(windowPath, receipt) {
-  if (typeof windowPath !== 'string' || !isRegularFile(windowPath)) return 'no supervised-window record was provided';
-  const record = readJsonObject(windowPath);
-  if (!record) return 'supervised-window record is not a JSON object';
-  if (!receipt) return 'supervised-window record cannot be bound without a valid activation receipt';
+function windowRecordProblem(record, originalSha256, startedAt) {
   if (typeof record.operator !== 'string' || record.operator.trim() === '') return 'supervised-window record names no operator';
   const stopped = record.stopped_consumers;
   if (!Array.isArray(stopped) || stopped.length === 0 || stopped.some((name) => typeof name !== 'string' || name.trim() === '')) {
     return 'supervised-window record lists no stopped consumers by name';
   }
-  if (!SHA256_HEX.test(String(record.original_sha256_before)) || record.original_sha256_before !== receipt.original_sha256_before) {
+  if (!SHA256_HEX.test(String(record.original_sha256_before)) || record.original_sha256_before !== originalSha256) {
     return 'supervised-window record is not bound to the database digest in the receipt';
   }
-  const recorded = typeof record.recorded_at === 'string' ? Date.parse(record.recorded_at) : Number.NaN;
-  if (Number.isNaN(recorded) || recorded >= Date.parse(receipt.started_at)) {
-    return 'supervised-window record has no valid instant strictly before the apply started';
+  const stamp = record.recorded_at;
+  const recorded = typeof stamp === 'string' && ISO_INSTANT_WITH_ZONE.test(stamp) ? Date.parse(stamp) : Number.NaN;
+  if (Number.isNaN(recorded) || recorded >= Date.parse(startedAt)) {
+    return 'supervised-window record has no valid ISO 8601 instant with an explicit zone, strictly before the apply started';
   }
   return null;
+}
+
+/**
+ * A receipt that carries `window` binds the window file by digest: the file supplied to the gate (or, without one, the
+ * path the receipt recorded) must still have that digest, so a window rewritten after the apply no longer passes.
+ */
+function windowReason(windowPath, receipt) {
+  const bound = receipt && receipt.window ? receipt.window : null;
+  const file = typeof windowPath === 'string' ? windowPath : bound && bound.path;
+  if (typeof file !== 'string' || !isRegularFile(file)) return 'no supervised-window record was provided';
+  const bytes = fs.readFileSync(file);
+  const record = parseJsonObject(bytes);
+  if (!record) return 'supervised-window record is not a JSON object';
+  if (!receipt) return 'supervised-window record cannot be bound without a valid activation receipt';
+  if (bound && createHash('sha256').update(bytes).digest('hex') !== bound.sha256) {
+    return 'supervised-window record differs from the digest bound in the receipt';
+  }
+  return windowRecordProblem(record, receipt.original_sha256_before, receipt.started_at);
+}
+
+/** Reads and validates the window named at apply. Returns the record and the digest of the exact bytes it was read from. */
+function readApplyWindow(windowPath, originalSha256, startedAt) {
+  const invalid = (reason) =>
+    new ExecutionActivationError('EXECUTION_ACTIVATION_WINDOW_INVALID', `Supervised window ${windowPath}: ${reason}`);
+  const resolved = path.resolve(windowPath);
+  if (!isRegularFile(resolved)) throw invalid('no supervised-window record was provided');
+  const bytes = fs.readFileSync(resolved);
+  let record;
+  try {
+    record = JSON.parse(bytes.toString('utf8'));
+  } catch {
+    throw invalid('supervised-window record is not a JSON object');
+  }
+  if (record === null || typeof record !== 'object' || Array.isArray(record))
+    throw invalid('supervised-window record is not a JSON object');
+  const problem = windowRecordProblem(record, originalSha256, startedAt);
+  if (problem) throw invalid(problem);
+  return { path: resolved, sha256: createHash('sha256').update(bytes).digest('hex') };
 }
 
 /**
@@ -751,7 +816,7 @@ function lockForActivation(databasePath) {
  * Any failure rolls the transaction back and leaves the original database untouched; the backup is kept.
  */
 async function activateExecutionLedger(databasePath, opts = {}) {
-  const { backupDir, now = Date.now, dryRun = false, internal } = opts;
+  const { backupDir, now = Date.now, dryRun = false, internal, windowPath } = opts;
   const { migrationsDirectory } = activationInternals(internal);
   const plan = planExecutionLedgerActivation(databasePath, opts);
   if (dryRun) return { dry_run: true, plan };
@@ -760,7 +825,10 @@ async function activateExecutionLedger(databasePath, opts = {}) {
     throw new ExecutionActivationError(first.code, first.message, { blockers: plan.blockers });
   }
   const startedAt = new Date(now()).toISOString();
-  fs.mkdirSync(path.dirname(plan.backup_path), { recursive: true, mode: 0o700 });
+  // The window is judged before anything is written: an invalid record refuses the apply with the database untouched.
+  const preLockSha256 = windowPath === undefined ? null : sha256File(plan.database_path);
+  const windowRef = windowPath === undefined ? null : readApplyWindow(windowPath, preLockSha256, startedAt);
+  const createdBackupDir = fs.mkdirSync(path.dirname(plan.backup_path), { recursive: true, mode: 0o700 });
   if (fs.existsSync(plan.backup_path)) {
     throw new ExecutionActivationError('EXECUTION_ACTIVATION_BACKUP_EXISTS', `Backup already exists: ${plan.backup_path}`);
   }
@@ -774,6 +842,14 @@ async function activateExecutionLedger(databasePath, opts = {}) {
       throw new ExecutionActivationError('EXECUTION_ACTIVATION_INTEGRITY_FAILED', 'integrity_check failed on the original database');
     }
     const originalSha256 = sha256File(plan.database_path);
+    if (windowRef && originalSha256 !== preLockSha256) {
+      // The checkpoint folded a WAL into the file, so the digest the window binds is stale. Nothing else is written yet.
+      if (createdBackupDir) fs.rmSync(createdBackupDir, { recursive: true, force: true });
+      throw new ExecutionActivationError(
+        'EXECUTION_ACTIVATION_WINDOW_INVALID',
+        'Database changed after the supervised window was validated',
+      );
+    }
     for (const sidecar of [`${plan.database_path}-wal`, `${plan.database_path}-shm`]) {
       if (sidecar.endsWith('-wal') && fs.existsSync(sidecar) && fs.statSync(sidecar).size > 0) {
         throw lockedError(plan.database_path, 'WAL sidecar still holds data after the checkpoint');
@@ -813,6 +889,7 @@ async function activateExecutionLedger(databasePath, opts = {}) {
       throw new ExecutionActivationError('EXECUTION_ACTIVATION_INTEGRITY_FAILED', 'integrity_check failed after the migrations');
     }
     const receipt = {
+      receipt_version: 2,
       adr: plan.adr,
       adr_status: plan.adr_status,
       adr_sha256: plan.adr_sha256,
@@ -827,6 +904,7 @@ async function activateExecutionLedger(databasePath, opts = {}) {
       applied_migrations: applied,
       started_at: startedAt,
       finished_at: new Date(now()).toISOString(),
+      ...(windowRef ? { window: windowRef } : {}),
     };
     fs.writeFileSync(plan.receipt_path, `${JSON.stringify(receipt, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
     try {
@@ -859,6 +937,8 @@ function readReceipt(receiptFile) {
   if (receipt.original_sha256_before !== undefined && !SHA256_HEX.test(String(receipt.original_sha256_before))) {
     throw invalid('original_sha256_before is not a sha256');
   }
+  const windowProblem = receiptWindowProblem(receipt);
+  if (windowProblem) throw invalid(windowProblem);
   return receipt;
 }
 
