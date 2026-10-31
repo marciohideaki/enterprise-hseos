@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { test } = require('node:test');
 const { ESLint } = require('eslint');
@@ -152,6 +153,75 @@ test('the operational guard refuses free text, a promotion without evidence and 
     ['evidence on a non-promoted family', family('not_authorized', { operational_evidence: [here] })],
   ]) {
     assert.notDeepEqual(operationalProblems(candidate), [], label);
+  }
+});
+
+// `status.real_consumers` is a closed enum (ADR-0050, answer 9). The API-campaign value is admitted only with a
+// `real_consumers_evidence` list of files inside the checkout; it states the campaign scope, nothing wider.
+const REAL_CONSUMER_VALUES = ['not_verified', 'verified_installed_local_scope_only', 'verified_api_campaign_scope_only'];
+const API_CAMPAIGN_VALUE = 'verified_api_campaign_scope_only';
+
+function realConsumerProblems(family) {
+  const { real_consumers: value } = family.status;
+  const problems = [];
+  if (!REAL_CONSUMER_VALUES.includes(value)) {
+    problems.push(`${family.id}: real_consumers "${value}" is not one of ${REAL_CONSUMER_VALUES.join(', ')}`);
+  }
+  const evidence = family.real_consumers_evidence;
+  if (value !== API_CAMPAIGN_VALUE) {
+    if (evidence !== undefined) problems.push(`${family.id}: real_consumers_evidence without ${API_CAMPAIGN_VALUE}`);
+    return problems;
+  }
+  if (!Array.isArray(evidence) || evidence.length === 0) {
+    problems.push(`${family.id}: ${API_CAMPAIGN_VALUE} requires a non-empty real_consumers_evidence list`);
+    return problems;
+  }
+  for (const reference of evidence) {
+    try {
+      const resolved = fs.realpathSync(path.resolve(root, reference));
+      if (!resolved.startsWith(`${root}${path.sep}`) || !fs.statSync(resolved).isFile()) {
+        problems.push(`${family.id}: real_consumers_evidence "${reference}" is not a file inside the checkout`);
+      }
+    } catch {
+      problems.push(`${family.id}: real_consumers_evidence "${reference}" does not resolve`);
+    }
+  }
+  return problems;
+}
+
+test('real_consumers is a closed enum and the API campaign value cites resolvable evidence', () => {
+  const inventory = JSON.parse(fs.readFileSync(path.join(root, 'docs/evolution/requirements.json'), 'utf8'));
+  assert.deepEqual(
+    inventory.families.flatMap((family) => realConsumerProblems(family)),
+    [],
+  );
+});
+
+test('the real_consumers guard refuses free text, the API value without evidence and unresolvable evidence', (t) => {
+  const family = (value, extra = {}) => ({ id: 'F99', status: { real_consumers: value }, ...extra });
+  const here = 'docs/evolution/operational-revalidation-2026-10-30.md';
+  const scratch = fs.mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'real-consumers-'));
+  const outsideFile = path.join(scratch, 'receipt.json');
+  fs.writeFileSync(outsideFile, '{}');
+  const outsideRelative = path.relative(root, outsideFile);
+  assert.ok(outsideRelative.startsWith('..'));
+  t.after(() => fs.rmSync(scratch, { recursive: true, force: true }));
+  assert.deepEqual(realConsumerProblems(family('not_verified')), []);
+  assert.deepEqual(realConsumerProblems(family('verified_installed_local_scope_only')), []);
+  assert.deepEqual(realConsumerProblems(family(API_CAMPAIGN_VALUE, { real_consumers_evidence: [here] })), []);
+  for (const [label, candidate] of [
+    ['free text', family('verified_everywhere')],
+    ['empty value', family('')],
+    ['API value without evidence', family(API_CAMPAIGN_VALUE)],
+    ['API value with empty evidence', family(API_CAMPAIGN_VALUE, { real_consumers_evidence: [] })],
+    ['missing file', family(API_CAMPAIGN_VALUE, { real_consumers_evidence: ['docs/evolution/none.md'] })],
+    ['directory', family(API_CAMPAIGN_VALUE, { real_consumers_evidence: ['docs/evolution'] })],
+    ['path outside the checkout', family(API_CAMPAIGN_VALUE, { real_consumers_evidence: ['../outside'] })],
+    ['existing file outside the checkout (relative)', family(API_CAMPAIGN_VALUE, { real_consumers_evidence: [outsideRelative] })],
+    ['existing file outside the checkout (absolute)', family(API_CAMPAIGN_VALUE, { real_consumers_evidence: [outsideFile] })],
+    ['evidence on another value', family('not_verified', { real_consumers_evidence: [here] })],
+  ]) {
+    assert.notDeepEqual(realConsumerProblems(candidate), [], label);
   }
 });
 
