@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createHash, randomUUID } = require('node:crypto');
 const { ClaudeCliDriver } = require('../../../packages/runtime-providers/claude-cli-driver');
-const { engineeringDigest } = require('./engineering-task-state');
+const { accountDigest, sameAccountDigest } = require('./campaign-evidence-store');
 
 const IDENTITY = 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED';
 const QUOTA = 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE';
@@ -11,7 +11,7 @@ const OUTPUT_LIMIT = 'CONTROL_PROVIDER_OUTPUT_LIMIT';
 const refusalByCode = { identity_unverified: IDENTITY, quota_unavailable: QUOTA };
 
 /** Verifies the logged-in subscription identity without ever reading a credential file. */
-async function observeAccount(driver, expectedVersion) {
+async function observeAccount(driver, expectedVersion, state) {
   let report;
   try {
     report = await driver.inspectAccount();
@@ -27,7 +27,7 @@ async function observeAccount(driver, expectedVersion) {
     ![identity.email, identity.orgId, identity.subscriptionType].every((value) => typeof value === 'string' && value.length > 0)
   )
     return { refusal: IDENTITY };
-  return { version: expectedVersion, auth_method: identity.authMethod, account_sha256: engineeringDigest(identity) };
+  return { version: expectedVersion, auth_method: identity.authMethod, account_digest: accountDigest(state, identity) };
 }
 
 async function main(input) {
@@ -36,10 +36,10 @@ async function main(input) {
   fs.writeFileSync(`${config.group}/cgroup.procs`, String(process.pid));
   if (!['inspect', 'run'].includes(config.operation)) throw new Error('invalid operation');
   const driver = new ClaudeCliDriver({ executable: config.binding.executable, cwd: config.binding.cwd, env: config.environment });
-  const account = await observeAccount(driver, config.expected_version);
+  const account = await observeAccount(driver, config.expected_version, config.state);
   if (account.refusal) return account;
   if (config.operation === 'inspect') return account;
-  if (account.account_sha256 !== config.expected_account_sha256) return { refusal: IDENTITY };
+  if (!sameAccountDigest(account.account_digest, config.expected_account_digest)) return { refusal: IDENTITY };
   // A fresh empty directory per run keeps project-level instructions out of reach.
   const cwd = fs.mkdtempSync(path.join(config.binding.cwd, 'run-'));
   const runner = new ClaudeCliDriver({ executable: config.binding.executable, cwd, env: config.environment });

@@ -1,7 +1,5 @@
 'use strict';
 const { z } = require('zod');
-const { createHash } = require('node:crypto');
-const { canonicalJson } = require('../agent-session-store/replay');
 const { RuntimeProviderError } = require('./acp-runtime-provider');
 const text = z.string().min(1).max(4096);
 const meta = z.record(z.string(), z.unknown()).nullish();
@@ -117,10 +115,12 @@ function parse(schema, value) {
 }
 /** Version-specific metadata normalization. No authentication, configuration or tool operations are exposed. */
 class CodexAcpPeer {
-  constructor({ peer, model, verify, account_sha256 }) {
+  constructor({ peer, model, verify, account_digest, digest_account }) {
     if (!peer || typeof verify !== 'function' || !text.safeParse(model).success) deny('ACP profile configuration is invalid');
-    if (!/^[a-f0-9]{64}$/.test(account_sha256)) deny('ACP account identity is required');
-    this.accountSha256 = account_sha256;
+    if (account_digest?.v !== 2 || !/^[a-f0-9]{64}$/.test(account_digest.value) || typeof digest_account !== 'function')
+      deny('ACP account identity is required');
+    this.accountDigest = account_digest;
+    this.digestAccount = digest_account;
     this.peer = peer;
     this.model = model;
     this.verify = verify;
@@ -221,9 +221,7 @@ class CodexAcpPeer {
           );
           if (
             status.authStatus.account?.email &&
-            createHash('sha256')
-              .update(canonicalJson({ type: 'chatgpt', email: status.authStatus.account.email }))
-              .digest('hex') !== this.accountSha256
+            this.digestAccount({ type: 'chatgpt', email: status.authStatus.account.email }).value !== this.accountDigest.value
           )
             deny('ACP account identity changed');
           // Status is advisory; it never substitutes for the host identity/quota verifier.

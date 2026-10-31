@@ -5,6 +5,8 @@ const { IdentifierSchema, SecretReferenceSchema, strictObject, deepFreeze, z } =
 const { canonicalJson } = require('../../packages/agent-session-store');
 
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
+// v2 account digest (HMAC-SHA256 under the installation key); the unsalted v1 `account_sha256` stays readable beside it.
+const accountDigest = strictObject({ v: z.literal(2), alg: z.literal('hmac-sha256'), value: hash });
 const label = z
   .string()
   .min(1)
@@ -50,6 +52,7 @@ const ProviderControlManifestSchema = strictObject({
     mode: z.enum(['native_account', 'api_key', 'local']),
     credential: SecretReferenceSchema.nullable(),
     account_sha256: hash.nullable(),
+    account_digest: accountDigest.optional(),
     identity_kind: z.enum(['account', 'credential', 'local_profile']).optional(),
     credential_sha256: hash.optional(),
     profile_sha256: hash.optional(),
@@ -94,16 +97,28 @@ const ProviderControlManifestSchema = strictObject({
   if (value.billing.kind !== expectedBilling) reject('Billing must match the selected route');
   if (value.route === 'api' && value.billing.max_request_microusd === 0) reject('Metered requests require a finite positive reservation');
   if (value.route !== 'api' && value.billing.max_request_microusd !== 0) reject('Paid credits require an explicit metered route');
-  if (!['credential', 'local_profile'].includes(value.authentication.identity_kind) && value.authentication.account_sha256 === null)
+  if (
+    !['credential', 'local_profile'].includes(value.authentication.identity_kind) &&
+    value.authentication.account_sha256 === null &&
+    !value.authentication.account_digest
+  )
     reject('Account identity must be pinned');
+  if (value.authentication.account_sha256 !== null && value.authentication.account_digest)
+    reject('Account identity must be pinned in one digest format');
   if (
     value.authentication.identity_kind === 'local_profile' &&
-    (value.route !== 'local' || !value.authentication.profile_sha256 || value.authentication.account_sha256 !== null)
+    (value.route !== 'local' ||
+      !value.authentication.profile_sha256 ||
+      value.authentication.account_sha256 !== null ||
+      value.authentication.account_digest)
   )
     reject('Local profile identity requires a pinned artifact profile, not an account');
   if (
     value.authentication.identity_kind === 'credential' &&
-    (value.route !== 'api' || !value.authentication.credential_sha256 || value.authentication.account_sha256 !== null)
+    (value.route !== 'api' ||
+      !value.authentication.credential_sha256 ||
+      value.authentication.account_sha256 !== null ||
+      value.authentication.account_digest)
   )
     reject('Credential identity requires a pinned API credential and does not assert an account');
   if ((value.route === 'local') !== (value.authentication.credential === null)) reject('Credential references must match the route');

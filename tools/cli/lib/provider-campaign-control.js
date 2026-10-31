@@ -5,7 +5,7 @@ const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
 const { parseProviderControlManifest, inspectProviderControlManifest } = require('../../lib/provider-control-manifest');
 const { executorOwner, isExecutorOwnerAlive } = require('../../../packages/agent-isolation-attestation/executor');
-const { MAX_EVIDENCE_BYTES, EVIDENCE_RETENTION_DAYS, storeEvidence, readEvidence } = require('./campaign-evidence-store');
+const { MAX_EVIDENCE_BYTES, EVIDENCE_RETENTION_DAYS, storeEvidence, readEvidence, sameAccount } = require('./campaign-evidence-store');
 const { sanitizeDiagnostic } = require('./provider-campaign-process');
 
 const integer = z.number().int().nonnegative().safe();
@@ -32,6 +32,10 @@ const observationSchema = z
     artifact_sha256: hash,
     provider_version: z.string().min(1).max(160),
     account_sha256: hash.nullable(),
+    account_digest: z
+      .object({ v: z.literal(2), alg: z.literal('hmac-sha256'), value: hash })
+      .strict()
+      .optional(),
     credential_sha256: hash.optional(),
     profile_sha256: hash.optional(),
     authenticated: z.boolean(),
@@ -514,7 +518,7 @@ class ProviderCampaignControl {
           ? observed.credential_sha256 !== manifest.authentication.credential_sha256
           : manifest.authentication.identity_kind === 'local_profile'
             ? observed.profile_sha256 !== manifest.authentication.profile_sha256
-            : observed.account_sha256 !== manifest.authentication.account_sha256)
+            : !sameAccount(manifest.authentication, observed))
       )
         reject('CONTROL_PROVIDER_IDENTITY_UNVERIFIED');
       this.assertFreshObservation(observed);

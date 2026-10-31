@@ -266,6 +266,35 @@ day) are pruned when a new artifact is stored, at most once a day per state dire
 - To adapt: download whatever must outlive 90 days before the window ends. To roll back, return to the
   previous runtime; artifacts already stored stay readable.
 
+### Campaign account digest is salted per installation (v2)
+
+The account a campaign adapter pins used to be `account_sha256 = sha256(canonicalJson(identity))`, with no
+secret input. An e-mail has little entropy, so anyone who could read a manifest or receipt could confirm a
+known e-mail by dictionary. New observations and manifests carry an `account_digest` instead:
+`{ "v": 2, "alg": "hmac-sha256", "value": "<64 hex>" }`, an HMAC-SHA256 of the same canonical identity under a
+key derived (purpose `hseos-campaign-account:account-digest:v2`) from a per-installation key.
+
+- Key: 32 random bytes in `<state>/account-digest.key`, created on first need with mode 0600 (exclusive
+  temporary file, fsync, link; a concurrent creator never replaces an existing key). It is never logged and
+  never part of a receipt, event or diagnostic. An existing key that is not a 32-byte regular file with mode
+  0600 is refused (`CONTROL_PROVIDER_CONFIGURATION_INVALID`), not repaired.
+- Format: a sibling field instead of a new string in `account_sha256`, so receipts and manifests recorded
+  before keep their shape and meaning and nothing is rewritten. `account_sha256` is still accepted (v1, read-only
+  legacy); a manifest pins one format, not both. Adapters emit only v2 (`account_sha256: null` in their
+  observations). The ACP worker and the Codex ACP peer compare the same format on both sides.
+- v1 against v2 is never equal: a manifest still pinned with the unsalted `account_sha256` no longer matches a
+  live observation, so the account is reported as unverifiable (`CONTROL_PROVIDER_IDENTITY_UNVERIFIED`), never as
+  equal. Adapters that build the digest (`codex` native, `claude` account, `codex` ACP) now require the control
+  `state` directory from the factory context.
+- Lost or replaced key: every v2 digest recorded before is no longer verifiable against the same account. There is
+  no automatic rotation; back up `account-digest.key` with the rest of the control state. Digests from another
+  installation are different by design.
+- Pinned digests: the artifact digests of the native, claude/account and ACP adapters change because their files
+  changed; re-pin stored manifests that name the old values.
+- To adapt: re-pin each account manifest once, from a fresh `inspect` (`account_digest` in the observation goes to
+  `authentication.account_digest`, with `account_sha256: null`). To roll back, return to the previous runtime and
+  the v1 pin; v2 values are ignored by it.
+
 ## `hseos install`: concurrent installs in one directory are refused
 
 Two `install`, `update` or quick-update runs writing the same project directory

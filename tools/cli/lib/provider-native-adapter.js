@@ -7,7 +7,7 @@ const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolatio
 const { credentialFingerprint } = require('./provider-api-adapter');
 const { runCampaignProcess } = require('./provider-campaign-process');
 const { createClaudeAccountCampaignAdapter } = require('./provider-claude-account-adapter');
-const { retainOutput } = require('./campaign-evidence-store');
+const { retainOutput, accountDigest } = require('./campaign-evidence-store');
 const readers = { codex: require('./delegated-codex-runtime').readBinding, claude: require('./delegated-claude-runtime').readBinding };
 const integer = z.number().int().nonnegative().safe();
 const strictSettingsSchema = z
@@ -51,14 +51,14 @@ function fail(code) {
 
 /** Official native surfaces under explicit client authority; remote quota remains mandatory. */
 function createNativeCampaignAdapter(
-  { manifest, binding: filename, options },
+  { manifest, binding: filename, options, state },
   { environment = process.env, fetchImpl = globalThis.fetch, processRunner = runCampaignProcess } = {},
 ) {
   const vendor = manifest.vendor;
   if (!Object.hasOwn(readers, vendor)) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
   if (vendor === 'claude' && manifest.route === 'account')
     return createClaudeAccountCampaignAdapter(
-      { manifest, binding: filename, options },
+      { manifest, binding: filename, options, state },
       { processRunner },
       {
         loadedArtifact,
@@ -76,7 +76,7 @@ function createNativeCampaignAdapter(
     manifest.artifact_sha256 !== loadedArtifact ||
     manifest.limits.max_duration_ms > 300_000 ||
     manifest.authentication.source !== 'explicit' ||
-    (vendor === 'codex' ? manifest.route !== 'account' : manifest.route !== 'api')
+    (vendor === 'codex' ? manifest.route !== 'account' || typeof state !== 'string' : manifest.route !== 'api')
   )
     fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
   // Values of every credential the binding or manifest references through the process environment.
@@ -157,7 +157,7 @@ function createNativeCampaignAdapter(
           if (windows.length === 0) fail('CONTROL_PROVIDER_QUOTA_UNAVAILABLE');
           return {
             ...base,
-            account_sha256: engineeringDigest({ type: 'chatgpt', email: report.identity.account.email }),
+            account_digest: accountDigest(state, { type: 'chatgpt', email: report.identity.account.email }),
             quota_windows: windows.map((v) => ({
               used_percent: z.number().min(0).max(100).parse(v.usedPercent),
               resets_at: integer.parse(v.resetsAt) * 1000,

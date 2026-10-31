@@ -11,6 +11,7 @@ const yaml = require('yaml');
 const profile = require('../packages/runtime-providers/codex-acp-profile.json');
 const compositionApi = require('../packages/runtime-providers/codex-acp-composition');
 const { engineeringDigest } = require('../tools/cli/lib/engineering-task-state');
+const { accountDigest } = require('../tools/cli/lib/campaign-evidence-store');
 const { manifest } = require('./helpers/provider-control');
 const sha = (file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 function fixture(t) {
@@ -99,7 +100,8 @@ function adapterFixture(t) {
   const { createAcpCampaignAdapter, acpArtifactDigest } = require('../tools/cli/lib/provider-acp-adapter');
   m.adapter = 'hseos-codex-acp-campaign-v1';
   m.authentication.credential.source_ref = `file://${f.value.auth_source}`;
-  m.authentication.account_sha256 = engineeringDigest({ type: 'chatgpt', email: 'fixture@example.invalid' });
+  m.authentication.account_sha256 = null;
+  m.authentication.account_digest = accountDigest(f.root, { type: 'chatgpt', email: 'fixture@example.invalid' });
   const pin = () => {
     m.artifact_sha256 = acpArtifactDigest();
     m.binding_sha256 = engineeringDigest({
@@ -130,7 +132,7 @@ function adapterFixture(t) {
   const calls = [];
   const create = () =>
     createAcpCampaignAdapter(
-      { manifest: m, binding: f.filename, options },
+      { manifest: m, binding: f.filename, options, state: f.root },
       {
         processRunner: async (args) => {
           calls.push(args);
@@ -178,8 +180,13 @@ function workerFixture(t) {
   const request = {
     group: f.root,
     composition_path: f.filename,
-    account_sha256: 'a'.repeat(64),
-    inspection: { expires_at: Date.now() + 60_000, account_sha256: 'a'.repeat(64), authenticated: true },
+    state: f.root,
+    account_digest: accountDigest(f.root, { type: 'chatgpt', email: 'fixture@example.invalid' }),
+    inspection: {
+      expires_at: Date.now() + 60_000,
+      account_digest: accountDigest(f.root, { type: 'chatgpt', email: 'fixture@example.invalid' }),
+      authenticated: true,
+    },
     max_tokens: 100,
     timeout_ms: 1000,
     prompt: 'READY',
@@ -285,6 +292,21 @@ test('worker joins containment, closes after success/resume/cancel and retains u
   await assert.rejects(f.run(), /ACP_IDENTITY_EXPIRED/);
   f.request.prompt = 'x'.repeat(131_073);
   await assert.rejects(f.run(), /input/);
+});
+test('ACP worker accepts the same salted account and refuses another account, an unsalted digest or a different key', async (t) => {
+  const f = workerFixture(t);
+  assert.equal((await f.run()).completed, true);
+  const other = accountDigest(f.root, { type: 'chatgpt', email: 'other@example.invalid' });
+  f.request.inspection.account_digest = other;
+  await assert.rejects(f.run(), /ACP_IDENTITY_EXPIRED/);
+  // The same hex as an unsalted v1 field never stands in for the v2 digest.
+  f.request.inspection.account_digest = undefined;
+  f.request.inspection.account_sha256 = f.request.account_digest.value;
+  await assert.rejects(f.run(), /ACP_IDENTITY_EXPIRED/);
+  const elsewhere = fs.mkdtempSync(path.join(os.tmpdir(), 'acp-other-install-'));
+  t.after(() => fs.rmSync(elsewhere, { recursive: true, force: true }));
+  f.request.inspection.account_digest = accountDigest(elsewhere, { type: 'chatgpt', email: 'fixture@example.invalid' });
+  await assert.rejects(f.run(), /ACP_IDENTITY_EXPIRED/);
 });
 test('launcher forwards only pinned startup configuration and propagates child failures and termination', (t) => {
   const f = fixture(t),

@@ -7,6 +7,7 @@ const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
 const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolation-attestation/profiles');
 const { runCampaignProcess, sanitizeDiagnostic } = require('./provider-campaign-process');
+const { isAccountDigest } = require('./campaign-evidence-store');
 
 const PROFILE_ID = 'agent-claude-cli-account-candidate';
 const PROVIDER_ID = 'runtime:claude-cli';
@@ -111,7 +112,7 @@ function parseBinding(filename) {
 
 /** Claude by subscription: the owner's own unmodified `claude` binary, headless, under the owner's own login. */
 function createClaudeAccountCampaignAdapter(
-  { manifest, binding: filename, options },
+  { manifest, binding: filename, options, state },
   { processRunner = runCampaignProcess } = {},
   { loadedArtifact, artifactDigest, retainOutput },
 ) {
@@ -128,6 +129,7 @@ function createClaudeAccountCampaignAdapter(
     manifest.limits.max_duration_ms > 300_000 ||
     manifest.authentication.source !== 'explicit' ||
     manifest.authentication.identity_kind === 'credential' ||
+    typeof state !== 'string' ||
     manifest.billing.max_request_microusd !== 0 ||
     // The reference names the login directory only; credential files are never opened by this adapter.
     manifest.authentication.credential?.source_ref !== `file://${configDirectory}`
@@ -158,19 +160,21 @@ function createClaudeAccountCampaignAdapter(
             binding: { executable: binding.executable, cwd: binding.cwd },
             environment,
             expected_version: manifest.provider_version,
+            state,
           },
           signal,
           timeout_ms: 20_000,
           ...profile(),
         });
         if (refusals.has(report.refusal)) fail(report.refusal);
-        if (report.refusal || report.version !== manifest.provider_version || !/^[a-f0-9]{64}$/.test(report.account_sha256 ?? ''))
+        if (report.refusal || report.version !== manifest.provider_version || !isAccountDigest(report.account_digest))
           fail('CONTROL_PROVIDER_IDENTITY_UNVERIFIED');
         return {
           binding_sha256: digest,
           artifact_sha256: loadedArtifact,
           provider_version: manifest.provider_version,
-          account_sha256: report.account_sha256,
+          account_sha256: null,
+          account_digest: report.account_digest,
           authenticated: true,
           auth_source: 'explicit',
           observed_at: Date.now(),
@@ -194,7 +198,8 @@ function createClaudeAccountCampaignAdapter(
             model: settings.model,
             prompt: task.prompt,
             expected_version: manifest.provider_version,
-            expected_account_sha256: manifest.authentication.account_sha256,
+            expected_account_digest: manifest.authentication.account_digest,
+            state,
             persist: settings.persist_sessions === true,
             timeout_ms: Math.floor(manifest.limits.max_duration_ms * 0.9),
             ...(resume_session_id ? { resume_session_id } : {}),

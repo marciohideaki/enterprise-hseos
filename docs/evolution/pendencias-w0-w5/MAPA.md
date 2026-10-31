@@ -50,7 +50,7 @@ store e canal de aprovação humana. Mutantes sem detecção (M18b, N5, `dap_sur
   do CI, 3 execuções do mesmo teste, elicitação sem imagem, `memory.write`, arquivo fora do c8). O registro não diz que o owner os aceitou. (Correção de 2026-10-27: o texto anterior dizia 17.)
 - **Capacidade do pacote (G3), verificado.** `tools` 393 e `packages` 137 arquivos, iguais aos tetos de `test-package-surface.js`; os orçamentos por área
   somam o teto de 1556. Código novo em `tools/` ou `packages/` exige decisão do owner.
-- **Estado operacional.** `requirements.json` marca `operational: not_authorized` em todas as famílias, embora o piloto tenha sido ativado em 2026-10-22.
+- **Estado operacional.** `requirements.json` marca `operational: not_authorized` em todas as famílias, embora o piloto tenha sido ativado em 2026-10-22. Revalidado em 2026-10-30 ([operational-revalidation-2026-10-30](../operational-revalidation-2026-10-30.md)): nenhuma família tem as três provas; todas seguem `not_authorized`, e o enum aceita `pilot_enterprise_hseos_only` com `operational_evidence` obrigatório.
 - **Sunset do legado.** Sem data; a condição do ADR-0048 (Codex em `2026-07-28` sem flag) não foi atendida.
 - **ECP.** `ecp-registry.snapshot.json` e `test/fixtures/ecp-registry/*` ainda citam `Hideaki-Solutions-Core`.
 - **Integrações.** O plano pede quatro integrações comprovadas; há três.
@@ -84,7 +84,7 @@ Lista original em [revalidation-2026-10/STATUS.md](../revalidation-2026-10/STATU
 4. Navegador e computer-use na CLI.
 5. Data do sunset do legado.
 6. Teto do inventário (G3) ou onde fica o código da W6.
-7. O significado de `operational` por família depois da ativação do piloto.
+7. O significado de `operational` por família depois da ativação do piloto. **Decidido em 2026-10-30:** revalidar por família e marcar `pilot_enterprise_hseos_only` só com prova; resultado na §3.
 8. Se os aceites do Commander atribuídos ao owner valem como decisão dele.
 9. Retenção de evidência nos adapters; formato versionado do digest de conta; lista de gates do ensaio de ativação (`g9-zero-legacy-window`) e conjunto do gate de
    cobertura (`.c8-kernel.json`).
@@ -139,7 +139,7 @@ Relatório: [CONFORMIDADE-W0-W5.md](../audit-2026-10-27/CONFORMIDADE-W0-W5.md), 
 | A-04   | Gates de mutação W4 e W5          | T2   | Corrigido em `a6788e01` (feature/audit-fix-w2, PR a abrir)                                                                                                                             |
 | A-05   | Redação de chave (H-9)            | T4   | Corrigido em `16ddc595` (PR #255, aberta, aguardando merge do owner); limites residuais abaixo                                                                                         |
 | A-06   | H-7 decidido sem o owner          | T7   | Decidido pelo owner: fica o `detail.code` (abaixo)                                                                                                                                     |
-| A-07   | Semântica de `operational`        | —    | Com o owner, fora desta run                                                                                                                                                            |
+| A-07   | Semântica de `operational`        | —    | Decidido em 2026-10-30; revalidação feita, nenhuma família promovida                                                                                                                   |
 | A-08   | Falso verde do `swarm-scope`      | T6b  | Corrigido em `df3ed51e` (W3, em revisão)                                                                                                                                               |
 | A-09   | Conjunto do c8                    | —    | Com o owner, fora desta run                                                                                                                                                            |
 | A-10   | Riscos do swarm (TOCTOU)          | T6b  | Corrigido em `df3ed51e` (W3, em revisão), só Linux; o mkdir usa o diretório de runs como base quando ele existe (`runDirBase`), com revalidação por componente e teste                 |
@@ -170,4 +170,4 @@ Relatório: [CONFORMIDADE-W0-W5.md](../audit-2026-10-27/CONFORMIDADE-W0-W5.md), 
 
 ### Segue com o owner, fora desta run
 
-A-07 (semântica de `operational`), A-09 (conjunto do c8), A-16 (`env: {}` no supervisor), A-17 (corpos de PR antigos), A-18 (distribuição global). Os ADRs 0042–0045 foram decididos pelo owner em 2026-10-30 (aceitos).
+Decididos pelo owner em 2026-10-30 (run `20261030-1810-owner-decisions`): A-07 revalidado família por família, nenhuma promovida (F19/F20 dependem de prova de execução no banco real); A-09 em parte corrigido pela #259 (ledger e banco da ativação no gate), o restante em correção; A-16 corrigido pela #259; A-17 (editar os corpos das PRs) e A-18 (reinstalar a distribuição global) em execução. Os ADRs 0042–0045 foram aceitos pelo owner em 2026-10-30 (#258).

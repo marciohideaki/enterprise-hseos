@@ -9,6 +9,7 @@ const { manifest } = require('./provider-control');
 const { engineeringDigest } = require('../../tools/cli/lib/engineering-task-state');
 const { nativeArtifactDigest } = require('../../tools/cli/lib/provider-native-adapter');
 const { readBinding } = require('../../tools/cli/lib/provider-claude-account-adapter');
+const { accountDigest } = require('../../tools/cli/lib/campaign-evidence-store');
 
 const FIXTURE = path.resolve(__dirname, '../fixtures/fake-claude-cli.mjs');
 const IDENTITY = { authMethod: 'claude.ai', email: 'owner@example.invalid', orgId: 'org-fixture', subscriptionType: 'max' };
@@ -38,13 +39,16 @@ function plainRunner(t) {
   };
 }
 
-function setup(t, { mode = {}, run = 'normal' } = {}) {
+function setup(t, { mode = {}, run = 'normal', controlState } = {}) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-claude-account-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const cwd = path.join(home, 'work');
   fs.mkdirSync(cwd);
-  const state = { auth: { loggedIn: true, apiProvider: 'firstParty', ...IDENTITY }, version: '2.1.296', run, ...mode };
-  const writeMode = (patch = {}) => fs.writeFileSync(path.join(home, 'fake-mode.json'), JSON.stringify({ ...state, ...patch }));
+  // The control state holds the per-installation account key; a test may share one across setups to model one installation.
+  const state = controlState ?? fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-claude-state-'));
+  if (!controlState) t.after(() => fs.rmSync(state, { recursive: true, force: true }));
+  const fakeMode = { auth: { loggedIn: true, apiProvider: 'firstParty', ...IDENTITY }, version: '2.1.296', run, ...mode };
+  const writeMode = (patch = {}) => fs.writeFileSync(path.join(home, 'fake-mode.json'), JSON.stringify({ ...fakeMode, ...patch }));
   writeMode();
   const executable = path.join(home, 'claude');
   fs.copyFileSync(FIXTURE, executable);
@@ -70,10 +74,11 @@ function setup(t, { mode = {}, run = 'normal' } = {}) {
   m.artifact_sha256 = nativeArtifactDigest();
   m.binding_sha256 = engineeringDigest({ binding: readBinding(filename), options: settings });
   m.authentication.credential = { name: 'claude-login', source_ref: `file://${home}/.claude` };
-  m.authentication.account_sha256 = engineeringDigest(IDENTITY);
+  m.authentication.account_sha256 = null;
+  m.authentication.account_digest = accountDigest(state, IDENTITY);
   const create = (overrides = {}, wrap = (runner) => runner) =>
     require('../../tools/cli/lib/provider-native-adapter').createNativeCampaignAdapter(
-      { manifest: m, binding: filename, options: settings, ...overrides },
+      { manifest: m, binding: filename, options: settings, state, ...overrides },
       { processRunner: wrap(plainRunner(t)) },
     );
   const calls = () =>
@@ -84,7 +89,7 @@ function setup(t, { mode = {}, run = 'normal' } = {}) {
           .split('\n')
           .map((line) => JSON.parse(line))
       : [];
-  return { home, cwd, executable, id, settings, filename, m, create, writeMode, calls, state };
+  return { home, cwd, executable, id, settings, filename, m, create, writeMode, calls, state: fakeMode, controlState: state };
 }
 /** Node injects NODE_V8_COVERAGE into children under c8; tolerate it only when this very process has it. */
 const childEnvironment = (names) => names.filter((name) => !(name === 'NODE_V8_COVERAGE' && process.env.NODE_V8_COVERAGE !== undefined));
