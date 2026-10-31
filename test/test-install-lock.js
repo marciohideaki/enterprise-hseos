@@ -314,3 +314,156 @@ test('a takeover mutex re-created by another taker while it is judged stale is n
     [],
   );
 });
+
+function holdLock(dir) {
+  fs.writeFileSync(path.join(dir, LOCK_NAME), JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
+}
+
+function runUninstall(dir) {
+  return spawnSync(process.execPath, [CLI, 'uninstall', '--yes', '--directory', dir], {
+    encoding: 'utf8',
+    env: { ...process.env, CI: '' },
+  });
+}
+
+test('uninstall with a live holder is refused with exit 75 and removes nothing', async (t) => {
+  const dir = scratch(t);
+  assert.equal((await run(dir)).status, 0);
+  holdLock(dir);
+  const result = runUninstall(dir);
+  assert.equal(result.status, 75, result.stdout + result.stderr);
+  assert.match(result.stdout + result.stderr, /another hseos install is already running/i);
+  assert.ok(fs.existsSync(path.join(dir, '.hseos')), 'a refused uninstall must not remove the runtime');
+  assert.ok(fs.existsSync(path.join(dir, LOCK_NAME)), 'a refused uninstall must not remove the holder lock');
+});
+
+test('uninstall alone removes the runtime and leaves no lock behind', async (t) => {
+  const dir = scratch(t);
+  assert.equal((await run(dir)).status, 0);
+  const result = runUninstall(dir);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.ok(!fs.existsSync(path.join(dir, '.hseos')));
+  assert.ok(!fs.existsSync(path.join(dir, LOCK_NAME)), 'lock must be released and removed');
+  assert.deepEqual(
+    fs.readdirSync(dir).filter((name) => name.startsWith(LOCK_NAME)),
+    [],
+  );
+});
+
+test('Installer.uninstall takes the lock', async (t) => {
+  const dir = scratch(t);
+  assert.equal((await run(dir)).status, 0);
+  holdLock(dir);
+  await assert.rejects(new Installer().uninstall(dir), (error) => error.code === 'EHSEOS_INSTALL_LOCKED');
+  assert.ok(fs.existsSync(path.join(dir, '.hseos')));
+});
+
+// `hseos init` writes nothing itself: after the prompts it hands off to the install command, so the install lock is what
+// guards it. These tests keep that true.
+async function initWithStubs(dir, t) {
+  const prompts = require('../tools/cli/lib/prompts');
+  const init = require('../tools/cli/commands/init');
+  const saved = {
+    select: prompts.select,
+    note: prompts.note,
+    confirm: prompts.confirm,
+    exit: process.exit,
+    stdin: Object.getOwnPropertyDescriptor(process.stdin, 'isTTY'),
+    stdout: Object.getOwnPropertyDescriptor(process.stdout, 'isTTY'),
+    error: console.error,
+  };
+  t.after(() => {
+    Object.assign(prompts, { select: saved.select, note: saved.note, confirm: saved.confirm });
+    process.exit = saved.exit;
+    console.error = saved.error;
+    for (const [stream, key] of [
+      [process.stdin, 'stdin'],
+      [process.stdout, 'stdout'],
+    ]) {
+      if (saved[key]) Object.defineProperty(stream, 'isTTY', saved[key]);
+      else delete stream.isTTY;
+    }
+  });
+  Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+  Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
+  prompts.select = async (options) => (/HSEOS profile/.test(options.message) ? 'developer' : 'platform');
+  prompts.note = async () => {};
+  // The TTY flags only satisfy init's own interactive check; the install it hands off to must run non-interactively.
+  prompts.confirm = async () => {
+    for (const stream of [process.stdin, process.stdout]) Object.defineProperty(stream, 'isTTY', { value: false, configurable: true });
+    return true;
+  };
+  const exits = [];
+  process.exit = (code) => {
+    exits.push(code);
+    throw Object.assign(new Error(`exit ${code}`), { exitCode: code });
+  };
+  console.error = () => {};
+  try {
+    await init.action({ directory: dir });
+  } catch (error) {
+    if (error.exitCode === undefined) throw error;
+  }
+  return exits;
+}
+
+test('init with a live holder is refused with exit 75 before it installs', async (t) => {
+  const dir = scratch(t);
+  holdLock(dir);
+  const install = require('../tools/cli/commands/install');
+  const originalAction = install.action;
+  let installed = false;
+  install.action = async () => {
+    installed = true;
+  };
+  t.after(() => (install.action = originalAction));
+  const exits = await initWithStubs(dir, t);
+  assert.equal(exits[0], 75, JSON.stringify(exits));
+  assert.equal(installed, false, 'a refused init must not reach the install command');
+  assert.ok(fs.existsSync(path.join(dir, LOCK_NAME)), 'a refused init must not remove the holder lock');
+});
+
+test('init that hands off to install does not block itself (re-entrancy) and leaves no lock', async (t) => {
+  const dir = scratch(t);
+  const install = require('../tools/cli/commands/install');
+  const originalAction = install.action;
+  const seen = {};
+  install.action = async () => {
+    seen.heldDuringInstall = JSON.parse(fs.readFileSync(path.join(dir, LOCK_NAME), 'utf8')).pid === process.pid;
+    // what the installer does inside the install command: it must re-enter, not refuse
+    seen.reentered = await new Installer()._withInstallLock(dir, async () => 'inner');
+  };
+  t.after(() => (install.action = originalAction));
+  const exits = await initWithStubs(dir, t);
+  assert.deepEqual(exits, []);
+  assert.equal(seen.heldDuringInstall, true);
+  assert.equal(seen.reentered, 'inner');
+  assert.ok(!fs.existsSync(path.join(dir, LOCK_NAME)), 'the lock must be released when init finishes');
+});
+
+test('two installers in one process racing for the same directory: one is accepted, the other refused', async (t) => {
+  const dir = scratch(t);
+  let release;
+  const gate = new Promise((resolve) => (release = resolve));
+  const first = new Installer()._withInstallLock(dir, async () => {
+    await gate;
+    return 'first';
+  });
+  const second = new Installer()._withInstallLock(dir, async () => 'second');
+  const [a, b] = await Promise.allSettled([second, (release(), first)]);
+  assert.equal(a.status, 'rejected');
+  assert.equal(a.reason.code, 'EHSEOS_INSTALL_LOCKED');
+  assert.equal(b.status, 'fulfilled');
+  assert.ok(!fs.existsSync(path.join(dir, LOCK_NAME)));
+});
+
+test('a process that calls process.exit() while holding the lock leaves no lock behind', async (t) => {
+  const dir = scratch(t);
+  const script = `
+    const { Installer } = require(${JSON.stringify(path.join(__dirname, '..', 'tools', 'cli', 'installers', 'lib', 'core', 'installer'))});
+    new Installer()._withInstallLock(${JSON.stringify(dir)}, async () => { process.exit(3); });
+  `;
+  const result = spawnSync(process.execPath, ['-e', script], { encoding: 'utf8' });
+  assert.equal(result.status, 3, result.stderr);
+  assert.ok(!fs.existsSync(path.join(dir, LOCK_NAME)), 'the exit listener must release the lock');
+});
