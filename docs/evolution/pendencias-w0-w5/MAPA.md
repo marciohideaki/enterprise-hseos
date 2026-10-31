@@ -199,6 +199,7 @@ Fonte: STATUS da run `20261030-1810-owner-decisions` (`.hseos/runs/dev-squad/202
 | W6   | #263 | `55d3d1aa` | `hseos-owner-decisions-w6` | E7, E8, E9                                                                                                            |
 | W7   | —    | —          | —                          | A12 feita (release `817da40b`); A15 parcial; A18 feita até o limite do protocolo do cliente; sem PR, só ações no host |
 | W8   | #265 | `817da40b` | `hseos-owner-decisions-w8` | E12 (watchdog de liveness no banco ativado)                                                                           |
+| W9   | #266 | `fe878a5f` | `hseos-owner-decisions-w9` | F1 (janela validada no apply e ligada ao recibo v2), F2 (flags de ativação na CLI), F3 (ADR-0050 aceito)              |
 
 CI das PRs #262, #263 e #265: 24/24 no merge; CI completo na master `55d3d1aa` (run 41172438629) verde. As ondas W1–W3 (#258–#260) estão no estado de 2026-10-30, acima.
 
@@ -247,7 +248,24 @@ Plano: `PLAN-3.md` da run `20261030-1810-owner-decisions` (onda W9). As decisõe
 - **(c) Flags no `agent-provider-validate`:** executada na W9 (F2). `--activation-db`, `--activation-receipt`, `--activation-window` e `--activation-adr`.
 - **(d) Override `allow_digest_only_approval` em produção:** mantido desligado. Só registro; o computer-use por MCP segue desligado em produção.
 - **(e) F19 com escopo reduzido:** não reduzir. A F19 segue `not_authorized`. Só registro.
-- **MRTR:** a sondagem de se o Claude Code ou outro cliente instalado negocia `2026-07-28` é feita pelo Commander, sem gasto relevante. Não há resultado registrado aqui.
+- **MRTR com o Claude Code (campanha de 2026-10-31).** O owner liberou o `hseos-state-tracking` na `allowedMcpServers` só durante a campanha. A allowlist foi restaurada por hash ao fim. A campanha rodou numa cópia instantânea do `project.db` ativado e numa config própria, só com `memory.*`; a config global não foi tocada.
+  - **Provado:** o Claude Code 2.1.316 negociou `2026-07-28` e recebeu `memory_write`, `memory_retrieve` e `memory_delete`, que não existem na compatibilidade `2024-11-05`. O custo estimado foi de US$ 0,71 em 2 rodadas `-p`.
+  - **Defeito do HSEOS:** as ferramentas `memory.*` e `environment.*` publicam `inputSchema` aberto (`{type: object, additionalProperties: true}`, em `capabilityToolDescriptors`). Sem tipos, o modelo mandou `scope` e `ttl_seconds` como string, e o servidor recusou com `AGENT_MEMORY_INVALID`. **Decisão do owner:** corrigir numa task da W10, com JSON Schema real por contrato.
+  - **Limite do cliente:** no modo `-p` (headless), o Claude Code não declara `elicitation`. O servidor responde `-32021`, e o cliente mostra "Internal error". Um cliente diagnóstico que declara `elicitation` recebe `input_required` com o pedido de aprovação, então o servidor está correto. **Decisão do owner:** depois da W10, o owner roda a sessão interativa no terminal dele, com a allowlist aberta só nessa janela, e aprova o `memory.delete`. Até lá, o MRTR por consumidor real segue aberto.
+- **ADR-0049 (2026-10-31).** Respostas do owner:
+  - fixar a última tag estável do Code OSS, com rebase mensal e correção de segurança do upstream em até 7 dias;
+  - até 10 patches e 1.500 linhas fora de `extensions/`;
+  - extensões só do Open VSX público, com allowlist de licenças OSI, sem o marketplace da Microsoft;
+  - comparação de build normalizada, com SBOM e hashes;
+  - repositório `marciohideaki/hseos-code` privado, com a evidência da F25-R1 espelhada aqui por recibo;
+  - pacotes tar.gz e .deb, publicados por releases do GitHub e construídos em container fixado por digest;
+  - contingência "só extensão" aceita, mas só com emenda do PLAN se for acionada;
+  - Q13 e Q14 verificadas na fonte antes do aceite.
+    O aceite formal vai na W10.
 - **ADR-0050 aceito (2026-10-31)**, com as 12 respostas: (1) validade do recibo de L2 de 90 dias, além dos gatilhos por mudança; (2) teto padrão da quarta família de 4 requisições, US$ 1,00 e até 45 min, sem aumento sem decisão nova; (3) API Gemini direta com chave própria em `google/gemini-hseos`, chave da NB Eventos proibida; (4) `deterministic` usa `verified_w<N>_scope_only` da onda da prova de L1; (5) `operational` de L3 usa `pilot_enterprise_hseos_only` com `operational_evidence`; (6) teto de US$ 2 de `tools/call` e MRTR por campanha, sem herdar saldo; (7) L2 da F17 só para os bindings oficiais nomeados no PLAN; (8) quarta família liberada para planejamento, execução com autorização própria por campanha; (9) novo valor `verified_api_campaign_scope_only` em `real_consumers`; (10) rota de assinatura avaliada antes de pedir chave de API; (11) L2 padrão = `tools/call` + MRTR, com L2 parcial se o cliente não fala `2026-07-28`; (12) L2 da F17 é geração real com recuperação, sem `tools/call`.
 - **Vocabulário:** `verified_api_campaign_scope_only` é admitido (F3) com guard de enum fechado e `real_consumers_evidence` resolvível. Nenhuma família mudou de status.
 - **Reinstalação da distribuição global:** pelo Commander, depois do merge da W9.
+
+#### Distribuição global após a W9
+
+Reinstalada em 2026-10-31 no SHA `fe878a5f` (master após a W9), com o mesmo procedimento da A12. Tarball sha256 `86026bbc74143a3a907167da93905baead8d797763d3e2e7d0bc8c1d78c9adb7`. Foram repontadas 20 referências, e os 4 serviços `hseos-*` passaram no health check. O watchdog sai com 0 e o pin do `AGENTS.md` global foi atualizado. Recibo em `~/.local/state/hseos/distributions/fe878a5f…/verification.json`. O rollback aponta para o `817da40b`. A restauração do host foi testada em diretório descartável; a reinstalação do CLI anterior não foi executada (NOT VERIFIED).

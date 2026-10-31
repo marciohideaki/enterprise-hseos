@@ -140,3 +140,21 @@ G2 aprovado pelo owner em 2026-10-30 ("Plano aprovado"). Merge das PRs ainda NÃ
 | W9 | F2 flags de ativação no agent-provider-validate | (c) | exec-f2 (Sonnet) | aceita (rodada 1) | `605d7458` | rev-f2 aprovado com ressalvas (bullet antigo do runbook; flags sem `--activation-db` aceitas em silêncio) → corrigido; reconferência aprovada |
 | W9 | F1 janela validada no apply e ligada ao recibo v2 | (a)+(b) | exec-f1 (Sonnet) | aceita (rodada 2) | `2f56a7de` | rev-f1 aprovado com ressalvas (v3 sem window não testado; recusa com WAL deixava diretório; data sem fuso; leitura dupla) → r1; reconferência: o teste de fuso dependia do TZ do host → r2 independente de fuso |
 - 2026-10-31: W9 integrada (`0d64ee86`) sem conflitos; `check:cli` 0 e `verify` OK depois da integração; suíte da onda em execução. Desvio: os executores F1 e F2 relataram que o `verify --shards 6` "não existe". O entrypoint é `node .github/scripts/ci-test-shards.mjs verify --shards 6`; os revisores rodaram o comando e ele passou.
+- 2026-10-31: W9 (#266, `fe878a5f`) mergeada, com tag `hseos-owner-decisions-w9`. CI 24/24; suíte da onda com 4450 testes e 0 falhas.
+- 2026-10-31: distribuição global reinstalada em `fe878a5f`, com tgz sha256 `86026bbc…`.
+  - Os scripts `dist-window.sh`/`dist-rollback.sh` foram parametrizados com sha novo e anterior, e o rollback aponta para `817da40b`.
+  - Os 4 serviços e o watchdog estão ativos, e o pin do AGENTS.md foi atualizado.
+  - A restauração foi testada em diretório descartável; a reinstalação do CLI anterior ficou NOT VERIFIED.
+  - Worktrees, branches e scratch da W9 foram removidos.
+- 2026-10-31: pergunta ao owner sobre liberar o Claude Code na `allowedMcpServers` para a campanha MRTR, e sobre o merge desta PR de registros. Ficou sem resposta.
+  - A allowlist não foi alterada.
+  - Esta PR fica aberta, sem merge, aguardando autorização.
+- 2026-10-31 (owner): resposta "1: Liberado / 2: Autorizado / 3: Questione".
+  - A allowlist foi liberada só para a campanha MRTR, a leitura de menor privilégio, e restaurada por hash. Hash do settings.json antes e depois: `6b38cb6f…`.
+  - Campanha MRTR com o Claude Code 2.1.316 (detalhes no MAPA §8): `2026-07-28` negociado, schema aberto como defeito do HSEOS, headless sem `elicitation`.
+  - Decisões: corrigir o schema na W10; o owner roda a sessão interativa depois; esta PR é mergeada já, atualizada; respostas do ADR-0049 registradas, com aceite depois da verificação na fonte de Q13 e Q14.
+- 2026-10-31 (verificação na fonte, para o ADR-0049):
+  - Code OSS: licença MIT (LICENSE.txt) e ThirdPartyNotices.txt com obrigações de redistribuição.
+  - Termos do VS Marketplace (set/2025): "intended for use only with In-Scope Products and Services".
+  - Open VSX: projeto vendor-neutral da Eclipse Foundation, com instância pública em open-vsx.org. Os termos de uso do open-vsx.org não foram lidos.
+  - OpenVSCode Server: servidor acessado pelo navegador, licença MIT, último release v1.109.5 em 2026-02-20, último push em 2026-09-24, não arquivado.
