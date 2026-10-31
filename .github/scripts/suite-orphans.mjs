@@ -142,3 +142,27 @@ export function segmentsOf(item, scripts) {
   }
   return parts;
 }
+
+// The runner does not capture the c8 output, so it cannot tell a chain stopped by a failing segment from a coverage
+// threshold failure on a complete chain. The note is therefore conditional on the chain having stopped.
+export const KERNEL_COVERAGE_NOTE =
+  'note: if the chain stopped at a failing segment, the coverage of files exercised only by segments that did not run appears as 0% and does not indicate missing tests; a threshold failure with a complete chain is not explained by this note';
+
+// Says which segments of a failed item ran, which one failed and which never started (`&&` stops at the first failure).
+// Message only: it does not change any exit status or threshold. `test:kernel-coverage` runs the whole kernel chain
+// inside one c8 process, so its mass 0% reads like a coverage defect when it is really the segments after the failure.
+export function describeSegments(item, segments, failedIndex, scripts = {}) {
+  const lines = [`SEGMENTS of ${item}:`];
+  for (const [index, segment] of segments.entries()) {
+    const label = index < failedIndex ? 'ran    ' : index === failedIndex ? 'FAILED ' : 'not run';
+    lines.push(`  ${label} ${segment}`);
+  }
+  const wrapped = /\bnpm run ([\w:.-]+)$/.exec(segments[failedIndex] ?? '')?.[1];
+  const inner = wrapped && segments.length === 1 && scripts[wrapped] ? scripts[wrapped].split(' && ').map((part) => part.trim()) : [];
+  if (inner.length > 1) {
+    lines.push(`  inside it, \`npm run ${wrapped}\` runs these in order and stops at the first failing one (named in the log above):`);
+    for (const segment of inner) lines.push(`    ${segment}`);
+  }
+  if (item === 'npm run test:kernel-coverage') lines.push(`  ${KERNEL_COVERAGE_NOTE}`);
+  return lines;
+}

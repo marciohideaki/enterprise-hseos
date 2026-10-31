@@ -43,8 +43,18 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq bubblewrap jq
+          # Network step: up to 3 attempts with 10 s then 30 s of backoff; a persistent failure still fails the step.
+          net_retry() {
+            for delay in 10 30 0; do
+              "$@" && return 0
+              [ "$delay" -gt 0 ] || break
+              echo "retrying in ${delay}s: $*"
+              sleep "$delay"
+            done
+            return 1
+          }
+          net_retry sudo apt-get update -qq
+          net_retry sudo apt-get install -y -qq bubblewrap jq
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Mark workspace as safe for git

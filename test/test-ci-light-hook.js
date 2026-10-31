@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -389,6 +389,165 @@ test('the shard runner fails the item that leaks, names the segment, and stops a
     assert.equal(fs.existsSync(path.join(root, 'after-leak')), false, 'later segments must not run after a leak');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a failed item lists the chain segments that ran, the one that failed and those that did not run', async () => {
+  const { runItem } = await import(pathToFileURL(SHARDS).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'segment-root-'));
+  try {
+    fs.writeFileSync(
+      path.join(root, 'package.json'),
+      JSON.stringify({
+        scripts: {
+          'test:chain': 'echo seg-a && node fail.js && echo seg-c',
+          'test:fine': 'echo one && echo two',
+        },
+      }),
+    );
+    fs.writeFileSync(path.join(root, 'fail.js'), 'process.exit(3);');
+    const lines = [];
+    const log = (line) => lines.push(line);
+    const failed = runItem('npm run test:chain', { root, allowlist: {}, settleMs: 200, log });
+    assert.equal(failed.ok, false, 'the exit status of the item is unchanged by the report');
+    const report = lines.join('\n');
+    assert.match(report, /ran\s+echo seg-a/);
+    assert.match(report, /FAILED\s+node fail\.js/);
+    assert.match(report, /not run\s+echo seg-c/);
+    assert.doesNotMatch(report, /0% and does not indicate/, 'the coverage note belongs to test:kernel-coverage only');
+    lines.length = 0;
+    assert.equal(runItem('npm run test:fine', { root, allowlist: {}, settleMs: 200, log }).ok, true);
+    assert.deepEqual(lines, [], 'a passing item prints no segment report');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a failed test:kernel-coverage explains that the mass 0% is segments that did not run', async () => {
+  const { describeSegments, KERNEL_COVERAGE_NOTE } = await import(pathToFileURL(ORPHANS).href);
+  const scripts = {
+    'test:kernel': 'node --test test/a.js && npm run x && node --test test/c.js',
+    'test:kernel-coverage': 'c8 --config .c8-kernel.json npm run test:kernel',
+  };
+  const text = describeSegments('npm run test:kernel-coverage', ['c8 --config .c8-kernel.json npm run test:kernel'], 0, scripts).join('\n');
+  assert.match(text, /FAILED\s+c8 --config \.c8-kernel\.json npm run test:kernel/);
+  assert.match(text, /npm run x\n\s+node --test test\/c\.js/);
+  assert.match(
+    text,
+    /if the chain stopped at a failing segment, the coverage of files exercised only by segments that did not run appears as 0% and does not indicate missing tests/,
+  );
+  assert.match(text, /threshold failure with a complete chain/);
+  assert.equal(KERNEL_COVERAGE_NOTE.includes('0%'), true);
+});
+
+test('the CI network steps retry with backoff and never retry a digest mismatch', () => {
+  const yaml = require('yaml');
+  const read = (name) => fs.readFileSync(path.join(ROOT, '.github/workflows', name), 'utf8');
+  for (const name of ['ci.yaml', 'standalone-smoke.yaml', 'core-journey.yaml', 'release.yaml']) {
+    const workflow = yaml.parse(read(name));
+    const runs = Object.values(workflow.jobs).flatMap((job) => (job.steps ?? []).map((step) => step.run ?? ''));
+    const apt = runs.filter((run) => run.includes('apt-get'));
+    assert.ok(apt.length > 0, `${name} installs with apt`);
+    for (const run of apt) {
+      assert.match(run, /net_retry\(\)/, name);
+      assert.match(run, /for delay in 10 30 0/, `${name}: at most 3 attempts with growing waits`);
+      for (const line of run.split('\n').filter((l) => /apt-get (update|install)/.test(l))) {
+        assert.match(line, /^\s*net_retry sudo apt-get/, `${name}: ${line.trim()}`);
+      }
+    }
+  }
+  // Execute the function extracted from the workflow, with `sleep` stubbed: a command that always fails must make
+  // net_retry fail after exactly 3 attempts, and one that fails once then passes must succeed.
+  const ciSteps = Object.values(yaml.parse(read('ci.yaml')).jobs).flatMap((job) => job.steps ?? []);
+  const ciRun = ciSteps.map((step) => step.run ?? '').find((run) => run.includes('net_retry()'));
+  const fnStart = ciRun.indexOf('net_retry()');
+  const fn = ciRun.slice(fnStart, ciRun.indexOf('\n}\n', fnStart) + 3);
+  assert.ok(fn.endsWith('}\n'), 'the function body was extracted whole');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'net-retry-'));
+  try {
+    const counter = path.join(dir, 'count');
+    const waits = path.join(dir, 'waits');
+    const exec = (body) => {
+      fs.writeFileSync(counter, '0');
+      fs.writeFileSync(waits, '');
+      const script = `sleep() { echo "$1" >> '${waits}'; }\n${fn}\nattempt() { n=$(($(cat '${counter}') + 1)); echo $n > '${counter}'; ${body}; }\nnet_retry attempt\n`;
+      return spawnSync('bash', ['-eo', 'pipefail', '-c', script], { encoding: 'utf8' });
+    };
+    const always = exec('return 1');
+    assert.notEqual(always.status, 0, 'a persistent failure must still fail the step');
+    assert.equal(fs.readFileSync(counter, 'utf8').trim(), '3');
+    assert.equal(fs.readFileSync(waits, 'utf8').trim().split('\n').join(','), '10,30');
+    const flaky = exec('[ "$n" -ge 2 ]');
+    assert.equal(flaky.status, 0, flaky.stderr);
+    assert.equal(fs.readFileSync(counter, 'utf8').trim(), '2');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  const ci = yaml.parse(read('ci.yaml'));
+  const provision = Object.values(ci.jobs)
+    .flatMap((job) => job.steps ?? [])
+    .find((step) => (step.run ?? '').includes('provision-toolchain-cache.mjs'));
+  assert.equal(provision.name, 'Provision the pinned toolchain cache');
+  assert.doesNotMatch(provision.run, /net_retry/, 'the retry lives in the script, which keeps a digest mismatch fatal');
+});
+
+test('the toolchain provisioner retries a failing download, gives up after 3 and never retries a digest mismatch', async () => {
+  const { download, ATTEMPTS, BACKOFF_MS } = await import(
+    pathToFileURL(path.join(ROOT, '.github/scripts/provision-toolchain-cache.mjs')).href
+  );
+  const crypto = require('node:crypto');
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'provision-'));
+  const body = Buffer.from('pinned artifact');
+  const pin = { artifact: 'x/y', sha256: crypto.createHash('sha256').update(body).digest('hex'), size_bytes: body.length };
+  const respond = (buffer, status = 200) => ({ ok: status === 200, status, arrayBuffer: async () => buffer });
+  const run = async (responses, target, overridePin = pin) => {
+    const waits = [];
+    let calls = 0;
+    const fetchImpl = async () => {
+      const next = responses[calls];
+      calls += 1;
+      if (next instanceof Error) throw next;
+      return next;
+    };
+    const originalLog = console.log;
+    console.log = () => {};
+    try {
+      const outcome = await download('https://example.invalid/a', overridePin, target, {
+        fetchImpl,
+        wait: async (ms) => waits.push(ms),
+      }).then(
+        (digest) => ({ digest }),
+        (error) => ({ error }),
+      );
+      return { ...outcome, calls, waits };
+    } finally {
+      console.log = originalLog;
+    }
+  };
+  try {
+    assert.equal(ATTEMPTS, 3);
+    assert.deepEqual(BACKOFF_MS, [10_000, 30_000]);
+    assert.equal(BACKOFF_MS.length, ATTEMPTS - 1, 'one wait between attempts, none unused');
+    const flaky = await run([respond(null, 403), respond(body)], path.join(directory, 'flaky'));
+    assert.equal(flaky.digest, pin.sha256);
+    assert.equal(flaky.calls, 2);
+    assert.deepEqual(flaky.waits, [10_000]);
+    assert.ok(fs.existsSync(path.join(directory, 'flaky')));
+    const down = await run([new Error('ECONNRESET'), respond(null, 503), new Error('ETIMEDOUT')], path.join(directory, 'down'));
+    assert.match(down.error.message, /failed after 3 attempts \(ETIMEDOUT\)/);
+    assert.equal(down.calls, 3);
+    assert.deepEqual(down.waits, [10_000, 30_000]);
+    assert.equal(fs.existsSync(path.join(directory, 'down')), false);
+    const wrong = await run([respond(Buffer.from('tampered artifact')), respond(body)], path.join(directory, 'wrong'), {
+      ...pin,
+      size_bytes: undefined,
+    });
+    assert.match(wrong.error.message, /does not match the pin .*\(not retried\)/);
+    assert.equal(wrong.calls, 1, 'a digest mismatch is not retried');
+    assert.deepEqual(wrong.waits, []);
+    assert.equal(fs.existsSync(path.join(directory, 'wrong')), false);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
   }
 });
 
