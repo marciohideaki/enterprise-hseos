@@ -1250,3 +1250,232 @@ test('a receipt written by hand with no backup at all, elsewhere, or with incohe
   fs.symlinkSync(activation.receipt_path, link);
   assert.ok(unmet(verifyActivationCriterion(databasePath, { ...options, receiptPath: link })).includes('database_authorized'));
 });
+
+// Supervised window bound at apply (decisions (a) and (b), 2026-10-31).
+async function windowApplyFixture(t, patch = {}) {
+  const sandbox = makeSandbox(t);
+  const databasePath = makeV4Database(sandbox.root);
+  const original = sha256(databasePath);
+  const windowPath = path.join(sandbox.root, 'activation-window.json');
+  const record = {
+    operator: 'owner',
+    stopped_consumers: ['hseos-state-tracking', 'hseos-swarm'],
+    original_sha256_before: original,
+    recorded_at: '2026-10-22T11:59:00.000Z',
+    ...patch,
+  };
+  fs.writeFileSync(windowPath, JSON.stringify(record));
+  const apply = () =>
+    activateExecutionLedger(databasePath, {
+      adr: 'ADR-0048',
+      backupDir: sandbox.backups,
+      now: NOW,
+      internal: sandbox.internal,
+      windowPath,
+    });
+  return { sandbox, databasePath, original, windowPath, apply };
+}
+
+test('apply with a valid window binds window path and sha256 in a version 2 receipt and satisfies condition 7', async (t) => {
+  const { sandbox, databasePath, windowPath, apply } = await windowApplyFixture(t);
+  const activation = await apply();
+  assert.equal(activation.receipt.receipt_version, 2);
+  assert.deepEqual(activation.receipt.window, { path: windowPath, sha256: sha256(windowPath) });
+  assert.deepEqual(JSON.parse(fs.readFileSync(activation.receipt_path, 'utf8')).window, activation.receipt.window);
+  const options = { adr: 'ADR-0048', receiptPath: activation.receipt_path, internal: sandbox.internal };
+  const verdict = verifyActivationCriterion(databasePath, { ...options, windowPath });
+  assert.deepEqual(unmet(verdict), []);
+  assert.equal(verdict.satisfied, false);
+  const bound = verifyActivationCriterion(databasePath, options);
+  assert.deepEqual(unmet(bound), []);
+  assert.deepEqual(
+    bound.conditions.filter((condition) => !condition.met).map((condition) => condition.id),
+    NOT_VERIFIABLE,
+  );
+});
+
+test('apply without a window still works, writes no window and leaves condition 7 pending with its reason', async (t) => {
+  const sandbox = makeSandbox(t);
+  const databasePath = makeV4Database(sandbox.root);
+  const activation = await activateExecutionLedger(databasePath, {
+    adr: 'ADR-0048',
+    backupDir: sandbox.backups,
+    now: NOW,
+    internal: sandbox.internal,
+  });
+  assert.equal('window' in activation.receipt, false);
+  const verdict = verifyActivationCriterion(databasePath, {
+    adr: 'ADR-0048',
+    receiptPath: activation.receipt_path,
+    internal: sandbox.internal,
+  });
+  assert.deepEqual(unmet(verdict), ['supervised_window']);
+  assert.match(verdict.conditions.find((condition) => condition.id === 'supervised_window').reason, /no supervised-window record/);
+});
+
+test('apply refuses an invalid window with EXECUTION_ACTIVATION_WINDOW_INVALID and leaves the database and disk untouched', async (t) => {
+  for (const patch of [
+    { operator: ' ' },
+    { operator: undefined },
+    { stopped_consumers: [] },
+    { stopped_consumers: undefined },
+    { original_sha256_before: '0'.repeat(64) },
+    { original_sha256_before: 'zz' },
+    { recorded_at: '2026-10-22T12:00:01.000Z' },
+    { recorded_at: '2026-10-22T12:00:00.000Z' },
+    { recorded_at: 'not a date' },
+  ]) {
+    const { sandbox, databasePath, original, apply } = await windowApplyFixture(t, patch);
+    await rejectsWithCode(apply, 'EXECUTION_ACTIVATION_WINDOW_INVALID');
+    assert.equal(sha256(databasePath), original, JSON.stringify(patch));
+    assert.equal(fs.existsSync(sandbox.backups), false, JSON.stringify(patch));
+  }
+});
+
+// Dates far before the apply in every host zone, so only the format rule can refuse them (not the ordering rule).
+const ZONELESS_RECORDED_AT = ['2000-01-01T00:00:00', '2000-01-01 00:00:00Z', '2000-01-01', '2000-01-01T00:00:00+0000'];
+
+test('apply refuses a recorded_at without an explicit ISO 8601 zone by the format rule, in any host timezone', async (t) => {
+  for (const recorded_at of ZONELESS_RECORDED_AT) {
+    const { sandbox, databasePath, original, apply } = await windowApplyFixture(t, { recorded_at });
+    await assert.rejects(apply, (error) => {
+      assert.equal(error.code, 'EXECUTION_ACTIVATION_WINDOW_INVALID');
+      assert.match(error.message, /valid ISO 8601 instant with an explicit zone/, recorded_at);
+      return true;
+    });
+    assert.equal(sha256(databasePath), original);
+    assert.equal(fs.existsSync(sandbox.backups), false);
+  }
+});
+
+test('apply refuses a missing or non-object window file', async (t) => {
+  const { databasePath, original, windowPath, apply } = await windowApplyFixture(t);
+  fs.writeFileSync(windowPath, '[]');
+  await rejectsWithCode(apply, 'EXECUTION_ACTIVATION_WINDOW_INVALID');
+  fs.rmSync(windowPath);
+  await rejectsWithCode(apply, 'EXECUTION_ACTIVATION_WINDOW_INVALID');
+  assert.equal(sha256(databasePath), original);
+});
+
+test('a window altered after the apply fails condition 7, even when it is the one supplied to the gate', async (t) => {
+  const { sandbox, databasePath, windowPath, apply } = await windowApplyFixture(t);
+  const activation = await apply();
+  const options = { adr: 'ADR-0048', receiptPath: activation.receipt_path, windowPath, internal: sandbox.internal };
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), []);
+  fs.writeFileSync(windowPath, JSON.stringify({ ...JSON.parse(fs.readFileSync(windowPath, 'utf8')), operator: 'someone-else' }));
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), ['supervised_window']);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, { ...options, windowPath: undefined })), ['supervised_window']);
+  fs.rmSync(windowPath);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, { ...options, windowPath: undefined })), ['supervised_window']);
+});
+
+test('a receipt window with a malformed shape or an unknown receipt_version is refused', async (t) => {
+  const { sandbox, databasePath, windowPath, apply } = await windowApplyFixture(t);
+  const activation = await apply();
+  const receipt = JSON.parse(fs.readFileSync(activation.receipt_path, 'utf8'));
+  const options = { adr: 'ADR-0048', receiptPath: activation.receipt_path, windowPath, internal: sandbox.internal };
+  for (const patch of [
+    { window: { path: windowPath } },
+    { window: { path: 1, sha256: 'a'.repeat(64) } },
+    { window: 'x' },
+    { receipt_version: 3 },
+    { receipt_version: 3, window: undefined },
+    { receipt_version: 0, window: undefined },
+    { receipt_version: '2', window: undefined },
+  ]) {
+    fs.writeFileSync(activation.receipt_path, JSON.stringify({ ...receipt, ...patch }));
+    assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('database_authorized'), JSON.stringify(patch));
+    await rejectsWithCode(
+      restoreExecutionLedgerBackup(databasePath, { backupPath: activation.backup_path, expectedSha256: receipt.backup_sha256 }),
+      'EXECUTION_ACTIVATION_RECEIPT_INVALID',
+    );
+  }
+});
+
+test('rollback works with a version 2 receipt and with a version 1 receipt that has no window', async (t) => {
+  const { databasePath, windowPath, apply } = await windowApplyFixture(t);
+  const activation = await apply();
+  const v1 = { ...activation.receipt };
+  delete v1.window;
+  delete v1.receipt_version;
+  fs.writeFileSync(activation.receipt_path, JSON.stringify(v1));
+  const restored = await restoreExecutionLedgerBackup(databasePath, {
+    backupPath: activation.backup_path,
+    expectedSha256: activation.receipt.backup_sha256,
+    now: NOW,
+  });
+  assert.equal(restored.receipt_verified, true);
+  assert.equal(sha256(databasePath), activation.receipt.original_sha256_before);
+  assert.ok(fs.existsSync(windowPath));
+});
+
+test('the CLI apply accepts --window and records it; an invalid window exits non-zero without touching the database', async (t) => {
+  const { sandbox, databasePath, original, windowPath } = await windowApplyFixture(t, { recorded_at: '2020-01-01T00:00:00.000Z' });
+  const bad = path.join(sandbox.root, 'bad-window.json');
+  fs.writeFileSync(
+    bad,
+    JSON.stringify({ operator: '', stopped_consumers: ['x'], original_sha256_before: original, recorded_at: '2020-01-01T00:00:00.000Z' }),
+  );
+  const base = ['apply', '--db', databasePath, '--adr', 'ADR-0048', '--backup-dir', sandbox.backups, '--json'];
+  const refused = runActivationCli(sandbox.root, ...base, '--window', bad);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /EXECUTION_ACTIVATION_WINDOW_INVALID/);
+  assert.equal(sha256(databasePath), original);
+  const applied = runActivationCli(sandbox.root, ...base, '--window', windowPath);
+  assert.equal(applied.status, 0, applied.stderr);
+  const report = JSON.parse(applied.stdout);
+  assert.equal(report.receipt.receipt_version, 2);
+  assert.deepEqual(report.receipt.window, { path: windowPath, sha256: sha256(windowPath) });
+});
+
+test('apply accepts an explicit offset, and the gate rejects a recorded_at without a zone', async (t) => {
+  const { sandbox, databasePath, windowPath, apply } = await windowApplyFixture(t, { recorded_at: '2026-10-22T08:59:00.000-03:00' });
+  const activation = await apply();
+  const options = { adr: 'ADR-0048', receiptPath: activation.receipt_path, windowPath, internal: sandbox.internal };
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), []);
+  for (const recorded_at of ZONELESS_RECORDED_AT) {
+    const zoneless = await activatedCriterionFixture(t, { window: { recorded_at } });
+    const verdict = verifyActivationCriterion(zoneless.databasePath, zoneless.options);
+    assert.deepEqual(unmet(verdict), ['supervised_window'], recorded_at);
+    assert.match(verdict.conditions.find((condition) => condition.id === 'supervised_window').reason, /explicit zone/, recorded_at);
+  }
+});
+
+test('a window bound to the pre-checkpoint digest of a WAL database is refused and leaves no backup directory behind', async (t) => {
+  const sandbox = makeSandbox(t);
+  const source = makeV4Database(sandbox.root, 'source.db');
+  const holder = new Database(source);
+  holder.pragma('journal_mode = WAL');
+  holder.pragma('wal_autocheckpoint = 0');
+  holder.prepare("INSERT INTO state (key, value) VALUES ('wal-row', 'only in the WAL')").run();
+  // Snapshot the file pair while the writer is still open, so the copy keeps a WAL that holds data.
+  const databasePath = path.join(sandbox.root, 'state', 'project.db');
+  fs.copyFileSync(source, databasePath);
+  fs.copyFileSync(`${source}-wal`, `${databasePath}-wal`);
+  holder.close();
+  assert.ok(fs.statSync(`${databasePath}-wal`).size > 0);
+  const windowPath = path.join(sandbox.root, 'activation-window.json');
+  fs.writeFileSync(
+    windowPath,
+    JSON.stringify({
+      operator: 'owner',
+      stopped_consumers: ['hseos-swarm'],
+      original_sha256_before: sha256(databasePath),
+      recorded_at: '2026-10-22T11:59:00.000Z',
+    }),
+  );
+  const before = dumpOperational(databasePath);
+  await rejectsWithCode(
+    activateExecutionLedger(databasePath, {
+      adr: 'ADR-0048',
+      backupDir: sandbox.backups,
+      now: NOW,
+      internal: sandbox.internal,
+      windowPath,
+    }),
+    'EXECUTION_ACTIVATION_WINDOW_INVALID',
+  );
+  assert.equal(fs.existsSync(sandbox.backups), false);
+  assert.equal(userVersion(databasePath), OPERATIONAL_SCHEMA_VERSION);
+  assert.deepEqual(dumpOperational(databasePath), before);
+});

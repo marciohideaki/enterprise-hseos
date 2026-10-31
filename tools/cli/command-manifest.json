@@ -93,7 +93,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "13049859bd6ffd5698e2134a1d202604dd5dddaed027566bd8a17445c6ea66ff"
+      "source_sha256": "6aa221551b480f79237065e4be076bc4596b98f5abbef0d1e6aadcb56ee1cf79"
     },
     {
       "filename": "agent-activation-rehearsal.js",
@@ -111,6 +111,10 @@
         [
           "--backup-dir <dir>",
           "Directory that receives the verified pre-activation backup and receipt"
+        ],
+        [
+          "--window <path>",
+          "Supervised-window record (operator, stopped_consumers, original_sha256_before, recorded_at) validated and bound in the receipt (apply)"
         ],
         [
           "--backup <path>",
@@ -134,7 +138,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "13049859bd6ffd5698e2134a1d202604dd5dddaed027566bd8a17445c6ea66ff",
+      "source_sha256": "6aa221551b480f79237065e4be076bc4596b98f5abbef0d1e6aadcb56ee1cf79",
       "companion": "execution-activation"
     },
     {

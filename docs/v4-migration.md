@@ -166,6 +166,10 @@ The rollback of the execution-ledger activation no longer skips the receipt cros
 
 Scripts that ran the rollback with only `--backup` must now pass `--receipt` or `--allow-missing-receipt`. See `docs/evolution/runbooks/activation.md`.
 
+### Activation window bound at apply (owner decision 2026-10-31)
+
+`hseos execution-activation apply` accepts `--window <path>`: the supervised-window record (`operator`, `stopped_consumers`, `original_sha256_before`, `recorded_at`) is validated before any write, an invalid one refuses with `EXECUTION_ACTIVATION_WINDOW_INVALID`, and a valid one is recorded in the receipt as `window: { path, sha256 }` with `receipt_version: 2`. Receipts without `window` (version 1) stay valid for rollback. See `docs/evolution/runbooks/activation.md`.
+
 ### Context floor for `max_tokens` (H-4)
 
 New task admissions refuse a `limits.max_tokens` that cannot hold the first model request, with the stable
