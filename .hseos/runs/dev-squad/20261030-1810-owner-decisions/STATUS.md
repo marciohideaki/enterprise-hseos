@@ -123,3 +123,20 @@ G2 aprovado pelo owner em 2026-10-30 ("Plano aprovado"). Merge das PRs ainda NÃ
   - MRTR não exercitável: o Codex negocia `2024-11-05`, e as ferramentas com aprovação só existem no `2026-07-28`.
   - Achados: a política padrão do `codex exec` bloqueia MCP; o modelo inventou um resultado.
 - 2026-10-31: MAPA §8 atualizado com W8, A12 e A18.
+- 2026-10-31 (owner, AskUserQuestion): decisões tomadas.
+  - (a) JSON do operador.
+  - (b) Referência no recibo.
+  - (c) Flags na CLI.
+  - (d) Override de computer-use mantido desligado.
+  - (e) F19 não reduzida.
+  - MRTR: sondar o Claude Code.
+  - ADR-0050: 12 respostas e aceite.
+  - Execução: "Nova onda agora", com reinstalação. O plano está em `PLAN-3.md`.
+- 2026-10-31 (MRTR, sondagem do Commander):
+  - Bloqueio: a `allowedMcpServers` do `~/.claude/settings.json` do owner só permite `axon`, `playwright` e `playwright-remote`. Um servidor de sondagem foi bloqueado ("blocked by enterprise policy"). A política não foi contornada.
+  - Inspeção estática do Claude Code 2.1.316: há cliente da era `2026-07-28` (sonda `server/discover`, input requests).
+  - Exercitar o MRTR com ele exige decisão do owner: incluir `hseos-state-tracking` na allowlist e habilitar `memory.*` no project-state.
+| W9 | F3 ADR-0050 aceito + vocabulário real_consumers | owner 2026-10-31 | exec-f3 (Sonnet) | aceita (rodada 1) | `cb30add0` | rev-f3 PASS-WITH-NOTES (contenção da evidência sem teste; respostas 8 e 10 só na lista) → corrigido; reconferência PASS |
+| W9 | F2 flags de ativação no agent-provider-validate | (c) | exec-f2 (Sonnet) | aceita (rodada 1) | `605d7458` | rev-f2 aprovado com ressalvas (bullet antigo do runbook; flags sem `--activation-db` aceitas em silêncio) → corrigido; reconferência aprovada |
+| W9 | F1 janela validada no apply e ligada ao recibo v2 | (a)+(b) | exec-f1 (Sonnet) | aceita (rodada 2) | `2f56a7de` | rev-f1 aprovado com ressalvas (v3 sem window não testado; recusa com WAL deixava diretório; data sem fuso; leitura dupla) → r1; reconferência: o teste de fuso dependia do TZ do host → r2 independente de fuso |
+- 2026-10-31: W9 integrada (`0d64ee86`) sem conflitos; `check:cli` 0 e `verify` OK depois da integração; suíte da onda em execução. Desvio: os executores F1 e F2 relataram que o `verify --shards 6` "não existe". O entrypoint é `node .github/scripts/ci-test-shards.mjs verify --shards 6`; os revisores rodaram o comando e ele passou.
