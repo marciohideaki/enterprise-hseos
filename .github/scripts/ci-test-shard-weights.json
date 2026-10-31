@@ -1,6 +1,6 @@
 {
   "npm run test:engineering-task": 697,
-  "npm run test:kernel-coverage": 680,
+  "npm run test:kernel-coverage": 920,
   "npm run test:agent-provider-conformance": 97,
   "npm run test:provider-control": 65,
   "npm run test:terminals": 37,
