@@ -222,8 +222,10 @@ function openLivenessDb(directory, { write = false } = {}) {
     const Database = require('better-sqlite3');
     return new Database(dbPath, { readonly: true });
   }
-  const { openOperationalStateDatabase } = require('../mcp-project-state/lib/operational-state-db');
-  const db = openOperationalStateDatabase(dbPath);
+  const { openOperationalStateDatabase, resolveGovernedExecutionMode } = require('../mcp-project-state/lib/operational-state-db');
+  // An activated database (ADR-0048) opens through the governed path the modern servers use; a v4 one keeps the
+  // legacy opener, and an intermediate or unmarked one still throws EXECUTION_ACTIVATION_PENDING from the classifier.
+  const db = openOperationalStateDatabase(dbPath, resolveGovernedExecutionMode(dbPath).mode === 'modern' ? { openActivated: true } : {});
   try {
     ensureLivenessSchema(db);
     assertLivenessSchema(db);
