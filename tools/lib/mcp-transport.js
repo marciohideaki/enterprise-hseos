@@ -62,12 +62,34 @@ const CLIENT_SAFE_ERROR_CODES = new Set([
   'PROJECT_STATE_ARGUMENT_REQUIRED',
 ]);
 
+// A filesystem path never reaches the client. EXECUTION_ACTIVATION_* errors embed database, backup and receipt paths, so
+// their message is replaced by a fixed one; for the other allowed codes the paths are redacted as a safety net (quoted
+// paths, file:// URLs, UNC and drive paths with spaces, POSIX paths). The full message always stays on stderr.
+const PATH_PATTERNS = [
+  /(["'`])(?:file:\/\/)?(?:[A-Za-z]:\\|\\\\|\/)[^\r\n]*?\1/g,
+  /file:\/\/\S+/gi,
+  /\\\\[^\s\\'"`<>]+\\[^\r\n'"`<>]*/g,
+  /(?<![\w.-])[A-Za-z]:\\[^\r\n'"`<>|]*/g,
+  /(?<![\w.-])\/[^\s'"`<>:;,)\]]+[\\/][^\s'"`<>:;,)\]]*/g,
+];
+const EXECUTION_ACTIVATION_PREFIX = 'EXECUTION_ACTIVATION_';
+
+function redactPaths(message) {
+  return PATH_PATTERNS.reduce((text, pattern) => text.replaceAll(pattern, '<path>'), message);
+}
+
 function clientMessage(error, fallback) {
   const code = error && error.code;
   const authored =
     typeof code === 'string' &&
     (CLIENT_SAFE_ERROR_CODES.has(code) || CLIENT_SAFE_ERROR_CODE_PREFIXES.some((prefix) => code.startsWith(prefix)));
-  if (authored && typeof error.message === 'string') return error.message;
+  if (authored && typeof error.message === 'string') {
+    const redacted = code.startsWith(EXECUTION_ACTIVATION_PREFIX)
+      ? `${code}: execution activation refused; the detail is in the operator log`
+      : redactPaths(error.message);
+    if (redacted !== error.message) process.stderr.write(`[mcp] ${fallback.toLowerCase()}: ${error.message}\n`);
+    return redacted;
+  }
   process.stderr.write(`[mcp] ${fallback.toLowerCase()}: ${error && error.stack ? error.stack : String(error)}\n`);
   return null;
 }
