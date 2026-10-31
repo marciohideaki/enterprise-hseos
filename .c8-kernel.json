@@ -96,7 +96,13 @@
     "packages/agent-environment/computer-contract.js",
     "packages/agent-environment/computer.js",
     "packages/agent-environment/computer-host.js",
-    "tools/cli/lib/environment-approval.js"
+    "tools/cli/lib/environment-approval.js",
+    "tools/lib/governed-execution/native-mcp-adapters.js",
+    "tools/lib/governed-execution/entrypoint-adapters.js",
+    "packages/model-providers/index.js",
+    "packages/runtime-providers/index.js",
+    "packages/adapter-sdk/index.js",
+    "tools/cli/lib/capability-catalog.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],

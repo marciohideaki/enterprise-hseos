@@ -63,3 +63,9 @@ marcar `status.operational = "pilot_enterprise_hseos_only"` e listar os arquivos
 `test/test-kernel-quality-surface.js` aceita `status.operational` apenas em `not_authorized` e `pilot_enterprise_hseos_only` (enum
 fechado). Toda família promovida precisa de `operational_evidence`, lista não vazia de arquivos que resolvem dentro do
 checkout; `operational_evidence` em família não promovida é recusado. O teste também exige uma linha por família neste documento.
+
+## Atualização 2026-10-31
+
+O `project.db` real foi lido (cópia instantânea, só leitura) para F19 e F20. F19 tem 10428 eventos pós-ativação, mas só de uma
+varredura de sistema; F20 não tem `tools/call` de cliente. Ambas permanecem `not_authorized`. Ver
+`operational-evidence-f19-f20-2026-10-31.md`.
