@@ -79,14 +79,14 @@ Lista original em [revalidation-2026-10/STATUS.md](../revalidation-2026-10/STATU
 ## 5. Decisões que dependem do owner
 
 1. Decidido em 2026-10-30: os ADRs 0042, 0043, 0044 e 0045 foram aceitos pelo owner; a Decision 0006 do ECP está Accepted (§1).
-2. O que certifica um binding (F08, F17, F18) e quando a quarta família roda, com credencial e teto.
-3. `tools/call` e MRTR do Codex (login e gasto); liberação da reserva de US$ 9.
-4. Navegador e computer-use na CLI.
-5. Data do sunset do legado.
-6. Teto do inventário (G3) ou onde fica o código da W6.
+2. O que certifica um binding (F08, F17, F18) e quando a quarta família roda, com credencial e teto. **Decidido em 2026-10-30:** o critério de certificação será proposto (W6/E8).
+3. `tools/call` e MRTR do Codex (login e gasto); liberação da reserva de US$ 9. **Decidido em 2026-10-30:** serão exercitados com cliente real, com o login do owner e teto de US$ 2 (W7); a reserva de US$ 9 segue retida até a reconciliação nessa campanha.
+4. Navegador e computer-use na CLI. **Decidido em 2026-10-30:** adiados.
+5. Data do sunset do legado. **Decidido em 2026-10-30:** continua sem data (ADR-0048).
+6. Teto do inventário (G3) ou onde fica o código da W6. **Decidido em 2026-10-30:** o teto sobe pelo número medido no fechamento da onda que precisar de arquivo novo em `tools/` ou `packages/`. O ADR-0049 continua Proposed até o owner responder as 14 questões.
 7. O significado de `operational` por família depois da ativação do piloto. **Decidido em 2026-10-30:** revalidar por família e marcar `pilot_enterprise_hseos_only` só com prova; resultado na §3.
-8. Se os aceites do Commander atribuídos ao owner valem como decisão dele.
-9. Retenção de evidência nos adapters; formato versionado do digest de conta; lista de gates do ensaio de ativação (`g9-zero-legacy-window`) e conjunto do gate de
+8. Se os aceites do Commander atribuídos ao owner valem como decisão dele. **Decidido em 2026-10-30:** itens 5, 11, 16 e 19 aceitos, 23 confirmado; 4, 15 e 24 com destino próprio; registro em [w5/STATUS](../w5/STATUS.md), "Aceites do owner (2026-10-30)".
+9. Retenção de evidência nos adapters; formato versionado do digest de conta; lista de gates do ensaio de ativação (`g9-zero-legacy-window`, a alinhar ao ADR-0048 em W5/E6 por decisão de 2026-10-30) e conjunto do gate de
    cobertura (`.c8-kernel.json`).
 10. macOS e Windows (W7) e tag nova do ECP: dependem de terceiros ou de infraestrutura.
 
@@ -129,7 +129,7 @@ Executada sem decisão do owner (M-8 e M-10, PR #253). Cada task teve revisão c
 
 ## 8. Auditoria de conformidade 2026-10-27 e correções
 
-Relatório: [CONFORMIDADE-W0-W5.md](../audit-2026-10-27/CONFORMIDADE-W0-W5.md), sobre `f96c6e9c`. Correção pela run `audit-fixes` (dev-squad). Commits por task: T1 `5ca358ad`, T3 `cc7a11e5`, T4 `16ddc595` (PR #255, W1); T2 `a6788e01`, T5 `b7cd77a5`, T6a `3970dd7f` (W2, PR a abrir); T6b `df3ed51e` (W3, em revisão); T7 (esta task, docs). Nenhum item abaixo está mergeado: "corrigido" quer dizer commit na branch indicada. O número das PRs da W2 e da W3 entra no fechamento da run.
+Relatório: [CONFORMIDADE-W0-W5.md](../audit-2026-10-27/CONFORMIDADE-W0-W5.md), sobre `f96c6e9c`. Reauditoria de 2026-10-30: [REAUDITORIA-2026-10-30.md](../audit-2026-10-27/REAUDITORIA-2026-10-30.md). Correção pela run `audit-fixes` (dev-squad). Commits por task: T1 `5ca358ad`, T3 `cc7a11e5`, T4 `16ddc595` (PR #255, W1); T2 `a6788e01`, T5 `b7cd77a5`, T6a `3970dd7f` (W2, PR a abrir); T6b `df3ed51e` (W3, em revisão); T7 (esta task, docs). Nenhum item desta tabela original estava mergeado em 2026-10-27: "corrigido" quer dizer commit na branch indicada. O estado atual está em "Estado em 2026-10-30". O número das PRs da W2 e da W3 entra no fechamento da run.
 
 | Achado | Tema                              | Task | Estado                                                                                                                                                                                 |
 | ------ | --------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -153,6 +153,22 @@ Relatório: [CONFORMIDADE-W0-W5.md](../audit-2026-10-27/CONFORMIDADE-W0-W5.md), 
 | A-18   | Distribuição global               | —    | Com o owner, fora desta run                                                                                                                                                            |
 | A-19   | Contagem de aceites (MAPA §3)     | T7   | Corrigido nesta task (§3; sem merge)                                                                                                                                                   |
 | A-20   | Rastreabilidade W3 e W4           | T7   | Tratado: STATUS das runs antigas atualizados nesta task (commit desta task, ainda sem merge). Resíduo: rastro legível por máquina de W3 e W4 e handoffs/logs ausentes nas runs antigas |
+
+### Estado em 2026-10-30
+
+Atualização do estado dos achados após as PRs #258, #259 e #260 e as decisões do owner da mesma data. "Corrigido em <PR>" só vale para o que está mergeado.
+
+| Achado | Estado                                                             |
+| ------ | ------------------------------------------------------------------ |
+| A-16   | corrigido pela #259                                                |
+| A-09   | parcial pela #259; o restante vai para W6/E7                       |
+| A-07   | revalidado pela #260; F19/F20 dependem da leitura do banco (W6/E9) |
+| A-17   | corpos das PRs #186–#195 e #197 editados em 2026-10-30             |
+| A-05   | W5/E4                                                              |
+| A-15   | W4/E3                                                              |
+| A-18   | reinstalação W7                                                    |
+| N-1    | W4/E3                                                              |
+| N-3    | aviso do c8, W4/E2                                                 |
 
 ### Decisões do owner (2026-10-27)
 

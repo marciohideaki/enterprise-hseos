@@ -536,3 +536,16 @@ Nenhum dos itens abaixo é reaberto por este registro; cada um continua aceito p
 Os plugins seguem `scaffolded` (C12), `real_consumers: not_verified` para F14, F15 e F20, e a ativação (hooks, timer, contratos, tags, distribuição) segue não executada e dependente de autorização.
 
 > Superado em 2026-10-22: a última frase de "Resíduos anteriores que seguem como estão" ("a ativação ... segue não executada") descreve o fechamento de 2026-10-21. A janela de ativação do piloto foi executada em 2026-10-22 (ver [PLAN — estado consolidado](../PLAN.md)); plugins seguem `scaffolded` e nada foi publicado. Pendências atuais em [pendencias-w0-w5/MAPA.md](../pendencias-w0-w5/MAPA.md).
+
+### Aceites do owner (2026-10-30)
+
+Decisões do owner sobre os resíduos do registro acima, tomadas na run `20261030-1810-owner-decisions`. Os itens originais não são reescritos; este bloco os complementa.
+
+- **Item 4 (corpo PEM sem marcador):** em correção (W5/E4); aceite residual a confirmar após a correção. O aceite do owner vale só para o que não for seguro corrigir.
+- **Item 5 (trecho de entrada em `JSON.parse`):** aceito pelo owner em 2026-10-30.
+- **Item 11 (CSP sem leitura de violação no console):** aceito pelo owner em 2026-10-30.
+- **Item 15 (falhas de infra do CI):** corrigido pela W4/E2 (PR da W4, a mergear; retry no CI).
+- **Item 16 (`test-engineering-task-runtime.js` roda 3 vezes):** aceito pelo owner em 2026-10-30.
+- **Item 19 (elicitação sem a imagem):** aceito pelo owner em 2026-10-30, com task de recusa quando o cliente não suportar imagem (W5/E5).
+- **Item 23 (`memory.write` sem aprovação do runtime):** decisão de 2026-10-21 confirmada pelo owner em 2026-10-30.
+- **Item 24 (`agent-environment/index.js` fora do c8):** resolvido pela decisão de incluir o arquivo no gate (#259).
