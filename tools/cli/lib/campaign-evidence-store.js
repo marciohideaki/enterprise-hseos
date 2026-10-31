@@ -88,11 +88,23 @@ const LOOSE_KEY_END = /-----END [A-Z ]*PRIVATE KEY-----/;
 // contain these headers. A header that ends its line opens a block, so the following lines of a wrapped body go too, and
 // the glued last line of a block (base64 of 16+ characters followed by text or `"}`) is taken as the block tail.
 // A literal `\n` (JSON-escaped text) separates lines like a real newline.
+// A private-key header on the FIRST line of a block also opens it when the lines are short (16 to 32 columns, 2 to 4 lines
+// or more): the header may span the first lines, the 20 characters after it may sit on the next ones, and every following
+// base64 line of 16+ characters goes, up to a padded line, a glued last line or one bare token no longer than the line
+// before it. The header list includes encrypted PKCS8 (the PBES2 `EncryptedPrivateKeyInfo` prefix); X.509 certificates and
+// SPKI public keys do not carry it. Without a header the three-line minimum applies. Retained output uses the same rule.
 // Trade-off, fail-closed per block: only the matching lines are replaced by a short marker and the rest of the text (the
 // real cause of the error) is kept, but legitimate text of the same shape is lost as well: the output of `base64`, a
-// wrapped data URI, three lines of mixed base64url tokens or of base64 hashes. Known limits: two-line bodies without a
-// recognised header and lines under 40 characters (other than a block tail) are not covered; interleaved text breaks a
-// block; a glued last line under 16 characters stays; an encrypted PKCS8 key or a one-line body of a format not listed
+// wrapped data URI, three lines of mixed base64url tokens or of base64 hashes, and what follows a key block on its own line:
+// after an anchored block the rule also absorbs a base64-like line of 16+ characters (a UUID, a 40-character hash) and then
+// one bare token no longer than the line before it, so up to two lines of diagnostic text after a key are lost (fail-closed).
+// A body serialized as a JSON array is read as rows when a header opens a block in the result; an array of digests is kept.
+// Log prefixes: see LINE_PREFIX. Unbounded stderr goes through redactDiagnosticTail (key bodies over the whole text, scan of
+// the last characters only).
+// Known limits: two-line bodies without a recognised header and lines under 40 characters (other than a block tail or a
+// header-anchored body) are not covered; interleaved text breaks a block; a glued last line under 16 characters stays unless
+// punctuation closes it; wraps under 16 columns; an encrypted key whose PBES2 prefix has the 3-byte length form (over 64 KB)
+// or another cipher container; a one-line body of a format not listed
 // above is not recognised. The heuristic is NOT applied to containsCredential()
 // (retained model output, where base64 is legitimate and a false positive would drop evidence); diagnostic texts call
 // redactDiagnosticText() instead.
@@ -101,14 +113,21 @@ const TAIL_LINE = /^[A-Za-z0-9+/_-]{16,}={0,2}$/;
 // A fragment must look like key text (8+ characters with a digit or upper case), not like a word such as `oops`.
 const PARTIAL_LINE = /^(?=.*[0-9A-Z])[A-Za-z0-9+/_-]{8,}$/;
 const HEX_ONLY = /^[0-9a-fA-F]+$/;
-const LINE_PREFIX = /^(?:\[[A-Za-z0-9 _.:-]{1,24}\]|[A-Za-z]{3,12}:|\d{4}-\d{2}-\d{2}[T ][\d:.]+Z?)\s*/;
+const LOG_LEVEL = String.raw`(?:ERROR|WARN|WARNING|INFO|DEBUG|TRACE|FATAL)\b:?`;
+// Common log prefixes, one or more in a row: `[stderr]`, `[pid 123]`, `stderr:`, `stderr |`, an ISO timestamp (alone or followed
+// by a level, `2026-10-30T12:00:00Z ERROR `) and a bare level. Free text is not a prefix.
+const LINE_PREFIX = new RegExp(
+  `^(?:(?:\\[[A-Za-z0-9 _.:-]{1,24}\\]|[A-Za-z]{3,12}:|[A-Za-z]{3,12} \\||\\d{4}-\\d{2}-\\d{2}[T ][\\d:.]+Z?|${LOG_LEVEL})\\s*)+`,
+);
 const MIN_BODY_LINES = 3;
 // DER headers of private keys, as base64: PKCS8 Ed25519/X25519 (`MC4CAQAwBQYDK2V`), PKCS8 RSA, PKCS1 RSA, PKCS8 EC, SEC1 EC
 // (P-256 uses the short length form, `MHcCAQEE`), and the OpenSSH envelope (`openssh-key-v1`). The wildcard spans carry
 // the length bytes of the structure. Public keys (SPKI) start differently and are not matched.
 const KEY_HEADER =
   '(?:MC4CAQAwBQYDK2V[a-z]|MII[A-Za-z0-9+/]{3}IBADANBgkqhkiG9w0BAQEFAASC|MII[A-Za-z0-9+/]{3}IBAAK|' +
-  'MI[GH][A-Za-z0-9+/]AgEAMB|MI[GH][A-Za-z0-9+/]AgEBB|MHcCAQEEI|b3BlbnNzaC1rZXktdjE)';
+  'MI[GH][A-Za-z0-9+/]AgEAMB|MI[GH][A-Za-z0-9+/]AgEBB|MHcCAQEEI|b3BlbnNzaC1rZXktdjE|' +
+  // Encrypted PKCS8 (EncryptedPrivateKeyInfo, PBES2 OID), one prefix per length form: `30 81 xx` and `30 82 xx xx`.
+  'MI[GH][A-Za-z0-9+/]M[E-H][A-Za-z0-9+/]GCSqGSIb3DQEFDT|MII[A-Za-z0-9+/]{2}[DTjz]B[A-Za-z0-9+/]BgkqhkiG9w0BBQ0w)';
 const ANCHOR_LINE = new RegExp(`^${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}$`);
 const SINGLE_LINE_BODY = new RegExp(`${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}`, 'g');
 // Narrow check for retained output: a private-key DER/OpenSSH header followed by 20+ base64 characters, anywhere in the text.
@@ -116,6 +135,76 @@ const KEY_HEADER_BODY = new RegExp(`${KEY_HEADER}[A-Za-z0-9+/_-]{20,}`);
 const END_ANCHOR = new RegExp(`${KEY_HEADER}[A-Za-z0-9+/_-]{20,}={0,2}$`);
 // The last line of a block glued to text or to the `"}` of a JSON value: its base64 head is key text.
 const GLUED_TAIL = /^[A-Za-z0-9+/_-]{16,}={0,2}(?![A-Za-z0-9+/_=-])/;
+
+// A wrapped body whose lines are shorter than the header (16 to 32 columns) carries the header across a line break. The
+// block opens at a line whose trailing base64 run starts a header, and the 20 characters after it may sit on the next lines.
+const HEADER_WINDOW = 64;
+const HEADER_LOOKAHEAD = 4;
+const JSON_CLOSED_TAIL = /^([A-Za-z0-9+/_-]+={0,2})(?=["'}\],])/;
+const SHORT_LAST_LINE = /^[A-Za-z0-9+/_-]{1,15}={0,2}$/;
+function trailingRun(raw) {
+  const line = raw.trimEnd();
+  let start = line.length;
+  while (start > 0 && /[A-Za-z0-9+/_=-]/.test(line[start - 1])) start--;
+  return { trail: line.slice(start), start };
+}
+// The base64 head of a continuation line (after a log prefix); `rest` is what follows a glued last line.
+function bodyHead(raw) {
+  const line = raw.trim().replace(LINE_PREFIX, '');
+  if (TAIL_LINE.test(line)) return { head: line, rest: '' };
+  const glued = GLUED_TAIL.exec(line);
+  if (glued && keyText(glued[0])) return { head: glued[0], rest: line.slice(glued[0].length) };
+  // A short remainder closed by JSON punctuation (`Zg=="}`): a quote, brace, bracket or comma, not a space.
+  const closed = JSON_CLOSED_TAIL.exec(line);
+  return closed ? { head: closed[1], rest: line.slice(closed[1].length) } : null;
+}
+/** Block anchored on a private-key header that does not fit in its first line: { end, lead, rest } or null. */
+function anchoredBlock(lines, index) {
+  const { trail, start } = trailingRun(lines[index]);
+  if (trail.length < 4) return null;
+  let joined = trail;
+  let end = index;
+  let found = KEY_HEADER_BODY.test(trail);
+  for (let next = index + 1; !found && next < lines.length && next <= index + HEADER_LOOKAHEAD; next++) {
+    const part = bodyHead(lines[next]);
+    if (!part) return null;
+    joined += part.head.slice(0, HEADER_WINDOW);
+    end = next;
+    const match = KEY_HEADER_BODY.exec(joined);
+    if (match && match.index < trail.length) {
+      found = true;
+      break;
+    }
+    if (part.rest) return null;
+  }
+  if (!found) return null;
+  const lead = lines[index].slice(0, start + KEY_HEADER_BODY.exec(joined).index);
+  let rest = bodyHead(lines[end])?.rest ?? '';
+  while (!rest && !lines[end].trimEnd().endsWith('=') && end + 1 < lines.length) {
+    const part = bodyHead(lines[end + 1]);
+    if (part) {
+      end += 1;
+      rest = part.rest;
+    } else {
+      // The remainder of the wrap: one bare token no longer than the line before it. A word that follows a key block on a line
+      // of its own goes with it (the anchor makes the block certain, and a remainder cannot be told from a word).
+      const last = lines[end + 1].trim().replace(LINE_PREFIX, '');
+      const before = lines[end].trim().replace(LINE_PREFIX, '').length;
+      if (SHORT_LAST_LINE.test(last) && last.length <= before) end += 1;
+      break;
+    }
+  }
+  // A header and its body on one line, with no continuation, is the single-line rule's.
+  return end === index ? null : { end, lead, rest };
+}
+function anchoredIn(text) {
+  const lines = text.split('\n');
+  return lines.some((_, index) => anchoredBlock(lines, index) !== null);
+}
+function hasAnchoredBlock(text) {
+  const normalized = text.replaceAll(String.raw`\n`, '\n');
+  return anchoredIn(normalized) || anchoredIn(jsonRows(normalized));
+}
 
 const keyText = (text) => (/[A-Z]/.test(text) && /[a-z]/.test(text)) || /[0-9]/.test(text);
 const mixed = (line) => /[A-Z]/.test(line) && /[a-z]/.test(line) && /[0-9]/.test(line);
@@ -147,9 +236,18 @@ function classify(raw) {
  * to the block. Returns the text unchanged when nothing matched.
  */
 function redactKeyBodies(text) {
-  const normalized = text.replaceAll(String.raw`\n`, '\n');
+  const normalized = unquoteJsonRows(text.replaceAll(String.raw`\n`, '\n'));
   const redacted = redactLines(normalized);
   return redacted === normalized ? text : redacted;
+}
+// A body serialized as a JSON array (`["row1","row2"]`, or one quoted row per line) is read as plain rows, but only when a
+// private-key header opens a block in the result: arrays of quoted digests stay as they were.
+const QUOTED_ROW_SEPARATOR = /([A-Za-z0-9+/_=-]{16})["']\s*,\s*["'](?=[A-Za-z0-9+/_=-]{4,}["'])/g;
+const QUOTED_ROW_LINE = /^([ \t]*)["']([A-Za-z0-9+/_=-]{4,})["'],?[ \t]*$/gm;
+const jsonRows = (text) => text.replaceAll(QUOTED_ROW_LINE, '$1$2').replaceAll(QUOTED_ROW_SEPARATOR, '$1\n');
+function unquoteJsonRows(text) {
+  const rows = jsonRows(text);
+  return rows !== text && anchoredIn(rows) ? rows : text;
 }
 function redactLines(text) {
   const lines = text.split('\n');
@@ -172,7 +270,18 @@ function redactLines(text) {
     anchored = false;
     lead = '';
   };
+  let skipTo = -1;
   for (const [index, raw] of lines.entries()) {
+    if (index <= skipTo) continue;
+    const block = anchoredBlock(lines, index);
+    if (block) {
+      flush();
+      const count = block.end - index + 1;
+      out.push(`${block.lead}<withheld: key body, ${count} lines>`);
+      if (block.rest) out.push(block.rest);
+      skipTo = block.end;
+      continue;
+    }
     let kind = classify(raw);
     const ending = kind?.anchor ? null : END_ANCHOR.exec(raw.trimEnd());
     if (ending) kind = { kind: 'full', padded: raw.trimEnd().endsWith('='), anchor: true, lead: raw.slice(0, ending.index) };
@@ -199,6 +308,26 @@ function redactLines(text) {
 }
 
 /** Text for a diagnostic or an error message: null when it carries a credential shape, else with key bodies replaced. */
+/**
+ * For text that arrives without a bound (git stderr, a 1 to 4 MB buffer): key bodies are replaced over the WHOLE text (the
+ * rule is linear, and a cut first would leave a headerless remainder of a short wrapped body), then only the last `cap`
+ * characters of the result (from its first whole line) are scanned for credential shapes, because that scan is superlinear on some inputs.
+ */
+function redactDiagnosticTail(text, cap) {
+  const redacted = redactKeyBodies(text);
+  let tail = redacted;
+  if (redacted.length > cap) {
+    // A cut can leave the end of a marked token (`ghp_…`, `password=…`) without its marker, which the scan cannot see: the
+    // partial first line goes, and a tail with no whole line is withheld rather than returned as a fragment.
+    tail = redacted.slice(-cap);
+    if (redacted[redacted.length - cap - 1] !== '\n') {
+      const newline = tail.indexOf('\n');
+      if (newline === -1) return null;
+      tail = tail.slice(newline + 1);
+    }
+  }
+  return containsCredential(tail) || LOOSE_KEY_END.test(tail) ? null : tail;
+}
 function redactDiagnosticText(text) {
   if (containsCredential(text) || LOOSE_KEY_END.test(text)) return null;
   return redactKeyBodies(text);
@@ -431,7 +560,7 @@ function withholdReason(result, secrets) {
   if (Buffer.byteLength(text) > MAX_EVIDENCE_BYTES) return 'too_large';
   if (sha256(Buffer.from(text, 'utf8')) !== result.text_sha256) return 'integrity_mismatch';
   // The broad multi-line body heuristic stays out of here (base64 is legitimate model output); the header rule is narrow.
-  return containsCredential(text, secrets) || KEY_HEADER_BODY.test(text) ? 'credential_pattern' : null;
+  return containsCredential(text, secrets) || KEY_HEADER_BODY.test(text) || hasAnchoredBlock(text) ? 'credential_pattern' : null;
 }
 /** Splits a worker result into the attested summary and the receipt fields that retain or withhold the output text. */
 function retainOutput(result, secrets) {
@@ -458,6 +587,7 @@ module.exports = {
   containsCredential,
   redactKeyBodies,
   redactDiagnosticText,
+  redactDiagnosticTail,
   storeEvidence,
   readEvidence,
   evidenceSha256: sha256,

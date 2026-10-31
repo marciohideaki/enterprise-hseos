@@ -298,6 +298,65 @@ class Installer {
   }
 
   /**
+   * Called with the takeover mutex held. Removes the lock only if it is the very file judged dead here, so it works from
+   * positive evidence: the lock is moved aside only after a read under the mutex returned a parsed pid that is not running
+   * (or an unreadable file older than the grace period), bracketed by two stats that agree on inode and mtime. An absent
+   * lock, at the stat or at the read, is never evidence of anything (another taker may have removed the dead one, or a
+   * holder may have released normally, and a new install may have linked its live lock since): we touch nothing and the
+   * caller loops. The rename is atomic; what was moved is re-checked (same inode and mtime, pid still dead) and, if it is
+   * not what was judged, linked back (link fails if someone re-created the lock) and we yield.
+   * Why the residual is acceptable: a lock whose holder is dead is released by nobody and replaced only by a taker that
+   * holds this mutex, so the file cannot change between the two stats and the rename unless two takers hold the mutex at
+   * once (a mutex stale for 10 s taken over while its owner still runs), the same residual accepted in acquireTakeover.
+   * A live holder's lock is never moved: it is only moved after a read that showed a dead pid.
+   */
+  async _discardDeadLock(lockFile) {
+    const judgeDead = async (file, seen) => {
+      let text;
+      try {
+        text = await fs.readFile(file, 'utf8');
+      } catch {
+        return false; // absent or unreadable: no evidence
+      }
+      let pid = null;
+      try {
+        pid = JSON.parse(text).pid;
+      } catch {
+        return Date.now() - seen.mtimeMs >= 2000; // half-written or hand-made: dead once past the grace period
+      }
+      return Number.isInteger(pid) && pid > 0 && !isProcessAlive(pid);
+    };
+    const same = (a, b) => a.ino === b.ino && a.mtimeMs === b.mtimeMs;
+    let seen;
+    try {
+      seen = await fs.stat(lockFile);
+      if (!(await judgeDead(lockFile, seen))) return;
+      if (!same(seen, await fs.stat(lockFile))) return;
+    } catch {
+      return; // absent
+    }
+    const aside = `${lockFile}.stale.${process.pid}.${Math.random().toString(36).slice(2, 10)}`;
+    try {
+      await fs.rename(lockFile, aside);
+    } catch (error) {
+      if (error.code === 'ENOENT') return; // gone meanwhile
+      throw error;
+    }
+    let discard = false;
+    try {
+      const moved = await fs.stat(aside);
+      discard = same(moved, seen) && (await judgeDead(aside, moved));
+    } catch {
+      // cannot tell what was moved: treat it as not judged dead
+    }
+    try {
+      if (!discard) await createLockFile(aside, lockFile).catch(() => {});
+    } finally {
+      await fs.remove(aside);
+    }
+  }
+
+  /**
    * Serialises installs that write the same project directory. The lock is `<dir>/.hseos-install.lock` (JSON with the
    * holder pid). It is created with link() from a finished temp file, so it appears atomically and complete, and
    * fails with EEXIST while another install holds it. A second install is refused (EHSEOS_INSTALL_LOCKED), not
@@ -335,9 +394,7 @@ class Installer {
         }
         if (await acquireTakeover(takeover)) {
           try {
-            // Re-read under the mutex: the lock may have been replaced by a live holder since the first read.
-            const again = await readLockHolder(lockFile);
-            if (!again.alive) await fs.remove(lockFile);
+            await this._discardDeadLock(lockFile);
           } finally {
             await fs.remove(takeover);
           }

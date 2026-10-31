@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -16,6 +17,7 @@ const {
   readProviderBinding,
   validateProviderEnvironment,
 } = require('../tools/lib/agent-provider-binding');
+const { activateExecutionLedger, openOperationalStateDatabase } = require('../tools/mcp-project-state/lib/operational-state-db');
 
 const ROOT = path.join(__dirname, '..');
 const EXAMPLE = path.join(ROOT, '.agents', 'activation', 'provider-bindings', 'openai-compatible.example.yaml');
@@ -140,8 +142,63 @@ test('probe resolves the exact reference at dispatch and returns only normalized
   assert.deepEqual(report.evidence.provider_probe.normalized_events, ['content.delta', 'usage', 'completed']);
   assert.equal(report.evidence.provider_probe.finish_reason, 'stop');
   assert.doesNotMatch(JSON.stringify(report), new RegExp(SECRET));
-  assert.ok(report.remaining_gates.includes('g9-zero-legacy-window'));
+  assert.ok(report.remaining_gates.includes('g9-adr0048-activation-criterion'));
+  assert.ok(!report.remaining_gates.includes('g9-zero-legacy-window'));
+  assert.equal(report.evidence.activation_criterion.satisfied, false);
   assert.ok(report.remaining_gates.includes('explicit-human-cutover'));
+});
+
+test('activation criterion gate stays listed even when every verifiable condition is proven', async (t) => {
+  const { filename, directory } = fixture(t);
+  const decisions = path.join(directory, 'decisions');
+  fs.mkdirSync(decisions);
+  fs.writeFileSync(path.join(decisions, 'ADR-0048-criterion.md'), '# ADR-0048: criterion\n\n## Status\n\nAccepted — 2026-10-22\n');
+  const databasePath = path.join(directory, 'state', 'project.db');
+  openOperationalStateDatabase(databasePath).close();
+  const original = createHash('sha256').update(fs.readFileSync(databasePath)).digest('hex');
+  const internal = { decisionsDirectory: decisions };
+  const applied = await activateExecutionLedger(databasePath, {
+    adr: 'ADR-0048',
+    backupDir: path.join(directory, 'backups'),
+    now: () => Date.parse('2026-10-22T12:00:00.000Z'),
+    internal,
+  });
+  const windowPath = path.join(directory, 'window.json');
+  fs.writeFileSync(
+    windowPath,
+    JSON.stringify({
+      operator: 'owner',
+      stopped_consumers: ['hseos-state-tracking'],
+      original_sha256_before: original,
+      recorded_at: '2026-10-22T11:59:00.000Z',
+    }),
+  );
+  const validate = (activation) =>
+    validateProviderEnvironment({
+      bindingPath: filename,
+      repositoryRoot: ROOT,
+      probe: false,
+      environment: {},
+      sandbox_check: sandbox(true),
+      activation,
+    });
+  const pending = await validate({ databasePath, adr: 'ADR-0048', receiptPath: applied.receipt_path, internal });
+  assert.ok(pending.remaining_gates.includes('g9-adr0048-activation-criterion'));
+  const satisfied = await validate({ databasePath, adr: 'ADR-0048', receiptPath: applied.receipt_path, windowPath, internal });
+  const criterion = satisfied.evidence.activation_criterion;
+  assert.deepEqual(
+    criterion.conditions.filter((condition) => condition.met).map((condition) => condition.id),
+    ['adr_accepted', 'database_authorized', 'backup_integrity', 'supervised_window'],
+  );
+  assert.equal(criterion.satisfied, false);
+  assert.ok(
+    criterion.conditions
+      .filter((condition) => !condition.met)
+      .every((condition) => condition.reason.startsWith('não verificável pelo ensaio: ')),
+  );
+  assert.ok(satisfied.remaining_gates.includes('g9-adr0048-activation-criterion'));
+  assert.ok(satisfied.remaining_gates.includes('explicit-human-cutover'));
+  assert.equal(satisfied.activation_authorized, false);
 });
 
 test('required sandbox blocks probe before secret resolution or network dispatch', async (t) => {

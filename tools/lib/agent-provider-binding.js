@@ -18,6 +18,7 @@ const {
 const { ModelProviderError, ModelProviderRegistry, OpenAICompatibleModelProvider } = require('../../packages/model-providers');
 const { CANDIDATE_PROFILE, checkRequiredSandbox, readCandidateManifest } = require('./agentic-activation-rehearsal');
 const { canonicalJson } = require('../../packages/agent-session-store');
+const { ACTIVATION_CRITERION_GATE, verifyActivationCriterion } = require('../mcp-project-state/lib/operational-state-db');
 
 const REFERENCE_PATTERN = /^(?:secret|env|file|vault|keychain):\/\/[^\s]+$/;
 const ENV_NAME_PATTERN = /^[A-Z_][A-Z0-9_]*$/;
@@ -256,6 +257,7 @@ async function validateProviderEnvironment({
   resolvers,
   fetch_impl,
   sandbox_check,
+  activation = {},
 }) {
   const candidate = readCandidateManifest(path.resolve(repositoryRoot));
   const loaded = readProviderBinding(bindingPath);
@@ -288,6 +290,7 @@ async function validateProviderEnvironment({
     const assembly = createBoundModelProvider({ binding, environment, resolvers, fetch_impl });
     providerProbe = await probeBoundProvider(assembly);
   }
+  const criterion = verifyActivationCriterion(activation.databasePath, activation);
   const providerEnvironmentReady = configuration.ready && sandbox.ready && providerProbe.ready;
   return Object.freeze({
     schema_version: '1.0',
@@ -297,11 +300,11 @@ async function validateProviderEnvironment({
     operational_activation: false,
     activation_authorized: false,
     ready_for_g9_gate: providerEnvironmentReady,
-    evidence: { configuration, sandbox, provider_probe: providerProbe },
+    evidence: { configuration, sandbox, provider_probe: providerProbe, activation_criterion: criterion },
     remaining_gates: [
       ...(sandbox.ready ? [] : ['required-sandbox-runtime']),
       ...(providerProbe.ready ? [] : ['provider-environment-probe']),
-      'g9-zero-legacy-window',
+      ...(criterion.satisfied ? [] : [ACTIVATION_CRITERION_GATE]),
       'final-stable-audit',
       'explicit-human-cutover',
     ],

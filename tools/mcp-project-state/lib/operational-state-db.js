@@ -530,6 +530,171 @@ function planExecutionLedgerActivation(databasePath, opts = {}) {
   };
 }
 
+const ACTIVATION_CRITERION_GATE = 'g9-adr0048-activation-criterion';
+
+// ADR-0048 item -> condition. Verified from evidence on disk: Decision 6 (adr_accepted, database_authorized), 2(b2)
+// (backup_integrity) and 7 (supervised_window). The rest is evidence a human archives and the rehearsal cannot check:
+// it stays pending, always, so the gate is never satisfied by less than the whole criterion.
+const UNVERIFIABLE_CRITERION = Object.freeze([
+  ['contract_suites_on_activated_db', '2(a)', 'the modern-server contract suites passing over an existing activated database'],
+  ['rehearsal_evidence_archived', '2(b)', 'archived evidence that the rehearsal on a copy concluded (it cannot attest to itself)'],
+  ['modern_journey_counts', '2(c)', 'archived modern journey with tool counts checked against the expected catalog'],
+  ['real_client_proof', '2(d)', 'archived tools/list and tools/call proof with the installed Codex and the negotiated protocol version'],
+  ['legacy_inside_modern_compat', '2(e)', 'evidence that legacy-inside-modern compatibility stays active'],
+  ['legacy_initialize_revisions', '2(f)', 'evidence that the legacy initialize revisions are negotiated without running approval tools'],
+  ['data_loss_acknowledgement', '5', 'the owner acknowledgement of the loss of post-activation writes, declared before the apply'],
+  ['single_writer_proof', '7', 'the green single-writer invariant test and the frozen legacy writes before the apply'],
+  ['reregistration_list', '7', 'the closed nominal list of clients, CLIs and hooks re-registered on the modern server'],
+]);
+
+function criterionCondition(id, item, reason) {
+  return { id, adr_item: item, met: reason === null, reason };
+}
+
+function readJsonObject(file) {
+  try {
+    const value = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return value !== null && typeof value === 'object' && !Array.isArray(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function isRegularFile(file) {
+  try {
+    const link = fs.lstatSync(file);
+    return link.isFile() && !link.isSymbolicLink();
+  } catch {
+    return false;
+  }
+}
+
+function adrCriterionReason(adr, internal) {
+  const { decisionsDirectory } = activationInternals(internal);
+  const criterion = internal && internal.criterionAdrs ? internal.criterionAdrs : ACTIVATION_CRITERION_ADRS;
+  if (!criterion.includes(adr)) return `${adr} does not define the activation criterion`;
+  const record = readAdr(adr, decisionsDirectory);
+  if (!record) return `${adr} was not found in the decisions directory`;
+  if (record.statusLines.length !== 1 || !isAcceptedStatusLine(record.statusLines[0])) return `${adr} is not unambiguously Accepted`;
+  return null;
+}
+
+function receiptShapeProblem(receipt, activatedVersion) {
+  if (!SHA256_HEX.test(String(receipt.original_sha256_before)) || !SHA256_HEX.test(String(receipt.backup_sha256))) {
+    return 'activation receipt carries no sha256 for the original database and its backup';
+  }
+  if (typeof receipt.backup_path !== 'string' || receipt.backup_path === '') return 'activation receipt names no backup';
+  if (receipt.user_version_before !== OPERATIONAL_SCHEMA_VERSION || receipt.user_version_after !== activatedVersion) {
+    return 'activation receipt versions disagree with the activated database';
+  }
+  if (!Array.isArray(receipt.applied_migrations) || receipt.applied_migrations.length === 0)
+    return 'activation receipt applied no migrations';
+  const started = typeof receipt.started_at === 'string' ? Date.parse(receipt.started_at) : Number.NaN;
+  const finished = typeof receipt.finished_at === 'string' ? Date.parse(receipt.finished_at) : Number.NaN;
+  if (Number.isNaN(started) || Number.isNaN(finished) || started > finished) return 'activation receipt has no coherent apply interval';
+  return null;
+}
+
+/**
+ * The database must carry the activation marker and the receipt must be the one the apply writes beside its backup,
+ * for this very file and at the version the database now has. A hand-made file that skips any of that does not pass.
+ */
+function loadApplyReceipt(databasePath, adr, receiptPath) {
+  if (typeof databasePath !== 'string' || !fs.existsSync(databasePath)) return { reason: 'no database to inspect' };
+  let activatedVersion;
+  let db;
+  try {
+    db = new Database(path.resolve(databasePath), { readonly: true, fileMustExist: true });
+    const classification = classifyExecutionActivation(db);
+    if (classification.state !== 'activated') return { reason: 'database is not activated through the apply command' };
+    activatedVersion = classification.user_version;
+  } catch (error) {
+    return { reason: `database cannot be classified as activated: ${error.message}` };
+  } finally {
+    if (db) db.close();
+  }
+  if (typeof receiptPath !== 'string' || !isRegularFile(receiptPath)) return { reason: 'no activation receipt was provided' };
+  const receipt = readJsonObject(receiptPath);
+  if (!receipt) return { reason: 'activation receipt is not a JSON object' };
+  if (receipt.adr !== adr || receipt.adr_status !== 'Accepted') {
+    return { reason: `activation receipt was not written by an apply of ${adr} Accepted` };
+  }
+  if (typeof receipt.database_path !== 'string' || !fs.existsSync(receipt.database_path)) {
+    return { reason: 'activation receipt names no existing database' };
+  }
+  if (fs.realpathSync(receipt.database_path) !== fs.realpathSync(databasePath))
+    return { reason: 'activation receipt belongs to another database' };
+  const shape = receiptShapeProblem(receipt, activatedVersion);
+  if (shape) return { reason: shape };
+  if (path.resolve(receiptPath) !== `${path.resolve(receipt.backup_path)}.receipt.json`) {
+    return { reason: 'activation receipt is not at the path the apply writes, beside its backup' };
+  }
+  return { receipt, reason: null };
+}
+
+/** 2(b2): the backup the receipt names exists, has the recorded digest, is the original database and passes integrity_check. */
+function backupReason(receipt) {
+  if (!receipt) return 'backup cannot be verified without a valid activation receipt';
+  if (!isRegularFile(receipt.backup_path)) return 'the backup named by the receipt does not exist as a regular file';
+  const digest = sha256File(receipt.backup_path);
+  if (digest !== receipt.backup_sha256 || digest !== receipt.original_sha256_before) {
+    return 'the backup sha256 differs from the digest recorded in the receipt';
+  }
+  try {
+    return withVerificationCopy(receipt.backup_path, (copy) => {
+      if (integrityCheck(copy) !== 'ok') return 'integrity_check failed on the backup';
+      if (copy.pragma('user_version', { simple: true }) !== OPERATIONAL_SCHEMA_VERSION) return 'the backup is not a schema-v4 database';
+      return null;
+    });
+  } catch (error) {
+    return `the backup cannot be opened: ${error.message}`;
+  }
+}
+
+/** The window record must bind the pre-apply database digest, name who stopped which consumers, and precede the apply. */
+function windowReason(windowPath, receipt) {
+  if (typeof windowPath !== 'string' || !isRegularFile(windowPath)) return 'no supervised-window record was provided';
+  const record = readJsonObject(windowPath);
+  if (!record) return 'supervised-window record is not a JSON object';
+  if (!receipt) return 'supervised-window record cannot be bound without a valid activation receipt';
+  if (typeof record.operator !== 'string' || record.operator.trim() === '') return 'supervised-window record names no operator';
+  const stopped = record.stopped_consumers;
+  if (!Array.isArray(stopped) || stopped.length === 0 || stopped.some((name) => typeof name !== 'string' || name.trim() === '')) {
+    return 'supervised-window record lists no stopped consumers by name';
+  }
+  if (!SHA256_HEX.test(String(record.original_sha256_before)) || record.original_sha256_before !== receipt.original_sha256_before) {
+    return 'supervised-window record is not bound to the database digest in the receipt';
+  }
+  const recorded = typeof record.recorded_at === 'string' ? Date.parse(record.recorded_at) : Number.NaN;
+  if (Number.isNaN(recorded) || recorded >= Date.parse(receipt.started_at)) {
+    return 'supervised-window record has no valid instant strictly before the apply started';
+  }
+  return null;
+}
+
+/**
+ * Read-only check of the ADR-0048 activation criterion for one database. Each condition carries the ADR item it
+ * answers; the gate is satisfied only when every one is met. The items a rehearsal cannot verify are always pending
+ * with a reason, so today the gate never closes on its own: a missing proof is never inferred. Never writes and never
+ * throws on missing evidence. `inspectDatabase: false` skips opening the database (the rehearsal must not touch the
+ * live file) and leaves the authorization pending. `backupPath` names the default receipt (`<backup>.receipt.json`).
+ */
+function verifyActivationCriterion(databasePath, opts = {}) {
+  const { adr = 'ADR-0048', backupPath, windowPath, internal, inspectDatabase = true } = opts;
+  const receiptPath = opts.receiptPath || (typeof backupPath === 'string' ? `${backupPath}.receipt.json` : undefined);
+  const loaded = inspectDatabase
+    ? loadApplyReceipt(databasePath, adr, receiptPath)
+    : { reason: 'database not inspected: a pre-activation rehearsal can only prove authorization on the activated database' };
+  const conditions = [
+    criterionCondition('adr_accepted', '6', adrCriterionReason(adr, internal)),
+    criterionCondition('database_authorized', '1, 6', loaded.reason),
+    criterionCondition('backup_integrity', '2(b2)', backupReason(loaded.receipt)),
+    criterionCondition('supervised_window', '7', windowReason(windowPath, loaded.receipt)),
+    ...UNVERIFIABLE_CRITERION.map(([id, item, missing]) => criterionCondition(id, item, `não verificável pelo ensaio: ${missing}`)),
+  ];
+  return { gate: ACTIVATION_CRITERION_GATE, satisfied: conditions.every((condition) => condition.met), adr, conditions };
+}
+
 /**
  * The commit of the code that is running. Only a checkout rooted exactly at REPOSITORY_ROOT answers for it: an
  * immutable release has no .git, and git would otherwise resolve an unrelated ancestor repository. A release directory
@@ -831,6 +996,7 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
 }
 
 module.exports = {
+  ACTIVATION_CRITERION_GATE,
   activateExecutionLedger,
   assertOperationalSchemaBoundary,
   assertPendingFixturePath,
@@ -842,4 +1008,5 @@ module.exports = {
   planExecutionLedgerActivation,
   resolveGovernedExecutionMode,
   restoreExecutionLedgerBackup,
+  verifyActivationCriterion,
 };

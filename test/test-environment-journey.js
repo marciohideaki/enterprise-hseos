@@ -278,6 +278,7 @@ async function withServer(fn) {
           });
           return {
             project_id: 'alpha',
+            allow_digest_only_approval: true,
             lsp: {
               async run(input) {
                 calls.push(['lsp', input]);

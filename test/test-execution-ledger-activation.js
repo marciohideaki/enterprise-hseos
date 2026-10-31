@@ -18,6 +18,7 @@ const {
   openOperationalStateDatabase,
   planExecutionLedgerActivation,
   restoreExecutionLedgerBackup,
+  verifyActivationCriterion,
 } = require('../tools/mcp-project-state/lib/operational-state-db');
 
 const ACTIVATED_VERSION = 17;
@@ -1021,4 +1022,231 @@ test('rollback leaves no SQLite sidecars next to the restored database and repor
   });
   assert.deepEqual(fs.readdirSync(path.dirname(databasePath)).sort(), ['project.db', 'project.db.activated-20261022T120000Z']);
   assert.equal(restored.post_activation_writes_preserved_at, restored.preserved_activated_path);
+});
+
+async function activatedCriterionFixture(t, { window = {} } = {}) {
+  const sandbox = makeSandbox(t);
+  const databasePath = makeV4Database(sandbox.root);
+  const original = sha256(databasePath);
+  const activation = await activateExecutionLedger(databasePath, {
+    adr: 'ADR-0048',
+    backupDir: sandbox.backups,
+    now: NOW,
+    internal: sandbox.internal,
+  });
+  const windowPath = path.join(sandbox.root, 'window.json');
+  fs.writeFileSync(
+    windowPath,
+    JSON.stringify({
+      operator: 'owner',
+      stopped_consumers: ['hseos-state-tracking', 'hseos-swarm'],
+      original_sha256_before: original,
+      recorded_at: '2026-10-22T11:59:00.000Z',
+      ...window,
+    }),
+  );
+  return {
+    sandbox,
+    databasePath,
+    activation,
+    windowPath,
+    options: { adr: 'ADR-0048', receiptPath: activation.receipt_path, windowPath, internal: sandbox.internal },
+  };
+}
+
+const NOT_VERIFIABLE = [
+  'contract_suites_on_activated_db',
+  'rehearsal_evidence_archived',
+  'modern_journey_counts',
+  'real_client_proof',
+  'legacy_inside_modern_compat',
+  'legacy_initialize_revisions',
+  'data_loss_acknowledgement',
+  'single_writer_proof',
+  'reregistration_list',
+];
+
+/** Unmet conditions the rehearsal can verify; the NOT_VERIFIABLE ones are asserted separately and are always unmet. */
+function unmet(verdict) {
+  return verdict.conditions
+    .filter((condition) => !condition.met && !NOT_VERIFIABLE.includes(condition.id))
+    .map((condition) => condition.id);
+}
+
+test('with every verifiable condition met the gate still waits for the criterion items a rehearsal cannot check', async (t) => {
+  const { databasePath, options } = await activatedCriterionFixture(t);
+  const verdict = verifyActivationCriterion(databasePath, options);
+  assert.equal(verdict.gate, 'g9-adr0048-activation-criterion');
+  assert.deepEqual(unmet(verdict), []);
+  assert.equal(verdict.satisfied, false);
+  const pending = verdict.conditions.filter((condition) => !condition.met).map((condition) => condition.id);
+  assert.deepEqual(pending, NOT_VERIFIABLE);
+  for (const condition of verdict.conditions.filter((entry) => NOT_VERIFIABLE.includes(entry.id))) {
+    assert.match(condition.reason, /^não verificável pelo ensaio: .+/);
+    assert.ok(condition.adr_item);
+  }
+});
+
+test('activation criterion stays pending with a reason when no proof exists', async (t) => {
+  const sandbox = makeSandbox(t);
+  const databasePath = makeV4Database(sandbox.root);
+  const verdict = verifyActivationCriterion(databasePath, { internal: sandbox.internal });
+  assert.equal(verdict.satisfied, false);
+  assert.deepEqual(unmet(verdict), ['database_authorized', 'backup_integrity', 'supervised_window']);
+  for (const condition of verdict.conditions.filter((entry) => !entry.met)) assert.ok(condition.reason.length > 0);
+  assert.equal(verifyActivationCriterion(undefined, {}).satisfied, false);
+});
+
+test('activation criterion stays pending when exactly one condition is missing', async (t) => {
+  const fixture = await activatedCriterionFixture(t);
+  const { databasePath, options, sandbox, windowPath } = fixture;
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, { ...options, adr: 'ADR-0047' })), [
+    'adr_accepted',
+    'database_authorized',
+    'backup_integrity',
+    'supervised_window',
+  ]);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, { ...options, windowPath: undefined })), ['supervised_window']);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, { ...options, receiptPath: undefined })), [
+    'database_authorized',
+    'backup_integrity',
+    'supervised_window',
+  ]);
+  const byBackup = { ...options, receiptPath: undefined, backupPath: fixture.activation.backup_path };
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, byBackup)), []);
+  const proposed = { ...options, internal: { ...sandbox.internal, decisionsDirectory: path.join(sandbox.root, 'none') } };
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, proposed)), ['adr_accepted']);
+  fs.writeFileSync(path.join(sandbox.decisions, 'ADR-0048-criterion.md'), '# ADR-0048\n\n## Status\n\nProposed — 2026-10-22\n');
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), ['adr_accepted']);
+  fs.writeFileSync(windowPath, '[]');
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), ['adr_accepted', 'supervised_window']);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, { ...options, inspectDatabase: false })), [
+    'adr_accepted',
+    'database_authorized',
+    'backup_integrity',
+    'supervised_window',
+  ]);
+});
+
+test('activation criterion rejects a window that is unbound, anonymous, empty or recorded after the apply', async (t) => {
+  for (const window of [
+    { original_sha256_before: '0'.repeat(64) },
+    { original_sha256_before: 'zz' },
+    { operator: ' ' },
+    { stopped_consumers: [] },
+    { stopped_consumers: ['ok', ''] },
+    { recorded_at: '2026-10-22T12:00:01.000Z' },
+    { recorded_at: 'not a date' },
+    { recorded_at: '2026-10-22T12:00:00.000Z' },
+    { recorded_at: 1 },
+    { recorded_at: Date.parse('2026-10-22T11:00:00.000Z') },
+  ]) {
+    const { databasePath, options } = await activatedCriterionFixture(t, { window });
+    assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), ['supervised_window'], JSON.stringify(window));
+  }
+});
+
+test('activation criterion rejects a receipt of another database, another ADR or a plain v4 database', async (t) => {
+  const { sandbox, databasePath, options, activation } = await activatedCriterionFixture(t);
+  const receipt = JSON.parse(fs.readFileSync(activation.receipt_path, 'utf8'));
+  const write = (patch) => fs.writeFileSync(activation.receipt_path, JSON.stringify({ ...receipt, ...patch }));
+  write({ adr: 'ADR-9001' });
+  assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('database_authorized'));
+  write({ database_path: path.join(sandbox.root, 'missing.db') });
+  assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('database_authorized'));
+  write({ database_path: makeV4Database(sandbox.root, 'other.db') });
+  assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('database_authorized'));
+  write({ database_path: undefined });
+  assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('database_authorized'));
+  fs.writeFileSync(activation.receipt_path, '[]');
+  assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('database_authorized'));
+  fs.writeFileSync(activation.receipt_path, '{not json');
+  assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('database_authorized'));
+  const garbage = path.join(sandbox.root, 'garbage.db');
+  fs.writeFileSync(garbage, 'this is not a sqlite database');
+  assert.ok(unmet(verifyActivationCriterion(garbage, options)).includes('database_authorized'));
+  write({});
+  assert.ok(unmet(verifyActivationCriterion(makeV4Database(sandbox.root, 'plain.db'), options)).includes('database_authorized'));
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), []);
+});
+
+test('a hand-made receipt cannot stand in for the apply: no backup, deleted backup or tampered backup keep it pending', async (t) => {
+  const { sandbox, databasePath, options, activation } = await activatedCriterionFixture(t);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), []);
+
+  // Tampered backup: the digest in the receipt no longer matches.
+  const original = fs.readFileSync(activation.backup_path);
+  fs.appendFileSync(activation.backup_path, Buffer.from('tampered'));
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), ['backup_integrity']);
+
+  // A backup with the right digest that is not a healthy v4 database (digest recomputed in a forged receipt).
+  const receipt = JSON.parse(fs.readFileSync(activation.receipt_path, 'utf8'));
+  fs.writeFileSync(activation.backup_path, 'not a sqlite database');
+  const garbageSha = sha256(activation.backup_path);
+  fs.writeFileSync(activation.receipt_path, JSON.stringify({ ...receipt, backup_sha256: garbageSha, original_sha256_before: garbageSha }));
+  assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('backup_integrity'));
+  fs.writeFileSync(activation.receipt_path, JSON.stringify(receipt));
+
+  // A readable backup whose pages are damaged, with a receipt that records the damaged digest.
+  const damaged = Buffer.from(original);
+  damaged.fill(0xff, 4096 * 2, 4096 * 3);
+  fs.writeFileSync(activation.backup_path, damaged);
+  const damagedSha = sha256(activation.backup_path);
+  fs.writeFileSync(activation.receipt_path, JSON.stringify({ ...receipt, backup_sha256: damagedSha, original_sha256_before: damagedSha }));
+  const damagedVerdict = verifyActivationCriterion(databasePath, options);
+  assert.match(
+    damagedVerdict.conditions.find((condition) => condition.id === 'backup_integrity').reason,
+    /integrity_check failed|cannot be opened/,
+  );
+  fs.writeFileSync(activation.receipt_path, JSON.stringify(receipt));
+
+  // Deleted backup.
+  fs.rmSync(activation.backup_path);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), ['backup_integrity']);
+
+  // Backup restored to a symlink is refused as well.
+  const elsewhere = path.join(sandbox.root, 'elsewhere.db');
+  fs.writeFileSync(elsewhere, original);
+  fs.symlinkSync(elsewhere, activation.backup_path);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), ['backup_integrity']);
+  fs.rmSync(activation.backup_path);
+  fs.copyFileSync(elsewhere, activation.backup_path);
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, options)), []);
+});
+
+test('a receipt written by hand with no backup at all, elsewhere, or with incoherent fields never passes', async (t) => {
+  const { sandbox, databasePath, options, activation } = await activatedCriterionFixture(t);
+  const receipt = JSON.parse(fs.readFileSync(activation.receipt_path, 'utf8'));
+  const forged = (patch, name = 'forged.receipt.json') => {
+    const file = path.join(sandbox.root, name);
+    fs.writeFileSync(file, JSON.stringify({ ...receipt, ...patch }));
+    return { ...options, receiptPath: file };
+  };
+  // No backup anywhere: the receipt sits at the path of the backup it invents.
+  const invented = path.join(sandbox.root, 'invented-backup.db');
+  fs.writeFileSync(`${invented}.receipt.json`, JSON.stringify({ ...receipt, backup_path: invented }));
+  assert.deepEqual(unmet(verifyActivationCriterion(databasePath, { ...options, receiptPath: `${invented}.receipt.json` })), [
+    'backup_integrity',
+  ]);
+  // A real backup but a receipt that is not beside it.
+  assert.ok(unmet(verifyActivationCriterion(databasePath, forged({}))).includes('database_authorized'));
+  // Fields that the apply always writes coherently.
+  for (const [index, patch] of [
+    { user_version_after: 5 },
+    { user_version_before: 17 },
+    { applied_migrations: [] },
+    { original_sha256_before: 'abc' },
+    { backup_path: '' },
+    { started_at: '2026-10-22T13:00:00.000Z' },
+    { finished_at: 'never' },
+  ].entries()) {
+    const file = activation.receipt_path;
+    fs.writeFileSync(file, JSON.stringify({ ...receipt, ...patch }));
+    assert.ok(unmet(verifyActivationCriterion(databasePath, options)).includes('database_authorized'), `patch ${index}`);
+  }
+  fs.writeFileSync(activation.receipt_path, JSON.stringify(receipt));
+  // A symlinked receipt is not followed.
+  const link = path.join(sandbox.root, 'link.receipt.json');
+  fs.symlinkSync(activation.receipt_path, link);
+  assert.ok(unmet(verifyActivationCriterion(databasePath, { ...options, receiptPath: link })).includes('database_authorized'));
 });

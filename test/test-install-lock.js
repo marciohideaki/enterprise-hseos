@@ -187,6 +187,144 @@ test('racing takeovers of a dead holder lock never put two processes in the crit
   }
 });
 
+// Deterministic replay of the takeover race: a taker holding the mutex must never remove or move a lock that a third
+// install created after the stale check. `interleave` picks the point where the other install acts:
+//   absent    the dead lock vanishes before the taker reads it; a live lock is linked just before an unconditional remove
+//   released  a live lock is released normally before the read, and another live lock is linked before the rename
+//   replace   the dead lock is swapped for a live one before the rename
+//   swap      the dead lock is swapped for ANOTHER dead lock (different inode) before the rename
+//   asidefail stat of the moved-aside file fails once after a successful rename
+async function takeoverWithInterleave(t, interleave) {
+  const dir = scratch(t);
+  const lock = path.join(dir, LOCK_NAME);
+  const deadBody = () => JSON.stringify({ pid: deadPid(), startedAt: new Date().toISOString() });
+  fs.writeFileSync(lock, deadBody());
+  const liveBody = JSON.stringify({ pid: process.pid, startedAt: 'live-taker' });
+  const plantLive = () => {
+    const temp = `${lock}.live-taker`;
+    fs.writeFileSync(temp, liveBody);
+    fs.linkSync(temp, lock);
+    fs.unlinkSync(temp);
+  };
+  const isLive = () => fs.existsSync(lock) && fs.readFileSync(lock, 'utf8') === liveBody;
+  const fsExtra = require('fs-extra');
+  const real = {
+    readFile: fsExtra.readFile,
+    stat: fsExtra.stat,
+    remove: fsExtra.remove,
+    rename: fsExtra.rename,
+    writeFile: fsExtra.writeFile,
+  };
+  const state = { armed: false, deleted: false, removedLive: false, movedLive: false, planted: false, renames: 0, statFailed: false };
+  fsExtra.writeFile = (file, ...rest) => {
+    if (String(file).endsWith('.takeover')) state.armed = true;
+    return real.writeFile.call(fsExtra, file, ...rest);
+  };
+  const dropDeadLock = (file, viaStat) => {
+    if (state.armed && !state.deleted && file === lock && (interleave === 'absent' || (interleave === 'released' && !viaStat))) {
+      state.deleted = true;
+      fs.unlinkSync(lock); // the other taker removed the dead lock / the holder released it before we looked
+    }
+  };
+  fsExtra.readFile = async (file, ...rest) => {
+    dropDeadLock(file);
+    return real.readFile.call(fsExtra, file, ...rest);
+  };
+  fsExtra.stat = async (file, ...rest) => {
+    dropDeadLock(file, true);
+    if (interleave === 'asidefail' && !state.statFailed && String(file).includes('.stale.')) {
+      state.statFailed = true;
+      throw Object.assign(new Error('i/o error'), { code: 'EIO' });
+    }
+    return real.stat.call(fsExtra, file, ...rest);
+  };
+  fsExtra.rename = async (from, to, ...rest) => {
+    if (state.armed && from === lock) {
+      state.renames += 1;
+      if (interleave === 'released' && !state.planted) {
+        state.planted = true;
+        plantLive();
+      }
+      if (interleave === 'replace' && !state.planted) {
+        state.planted = true;
+        fs.unlinkSync(lock);
+        plantLive();
+      }
+      if (interleave === 'swap' && !state.planted) {
+        state.planted = true;
+        const temp = `${lock}.swap`;
+        fs.writeFileSync(temp, deadBody());
+        fs.utimesSync(temp, new Date(Date.now() - 60_000), new Date(Date.now() - 60_000));
+        fs.renameSync(temp, lock); // new inode, new mtime, still a dead pid
+      }
+      if (isLive()) state.movedLive = true;
+    }
+    return real.rename.call(fsExtra, from, to, ...rest);
+  };
+  fsExtra.remove = async (file, ...rest) => {
+    if (file === lock) {
+      if (interleave === 'absent' && !state.planted) {
+        state.planted = true;
+        plantLive(); // the other install links its live lock just before an unconditional remove
+      }
+      if (isLive()) state.removedLive = true;
+    }
+    return real.remove.call(fsExtra, file, ...rest);
+  };
+  let outcome;
+  try {
+    outcome = await new Installer()._withInstallLock(dir, async () => 'entered').catch((error) => error.code);
+  } finally {
+    Object.assign(fsExtra, real);
+  }
+  return { outcome, state, lock, liveBody, dir };
+}
+
+test('a taker that finds the lock gone never removes a live lock created right after', async (t) => {
+  const { outcome, state } = await takeoverWithInterleave(t, 'absent');
+  assert.equal(state.removedLive, false, 'the live lock of the other install was removed');
+  assert.equal(outcome, 'entered', 'with the lock gone the taker simply creates its own');
+});
+
+test('a taker whose read finds the lock released never moves the live lock linked right after', async (t) => {
+  const { outcome, state } = await takeoverWithInterleave(t, 'released');
+  assert.equal(state.movedLive, false, 'the live lock of the other install was moved aside');
+  assert.equal(state.removedLive, false);
+  assert.equal(state.renames, 0, 'nothing is moved without a dead pid read under the mutex');
+  assert.ok(outcome === 'entered' || outcome === 'EHSEOS_INSTALL_LOCKED', String(outcome));
+});
+
+test('a taker whose dead lock was replaced by a live one puts it back and yields', async (t) => {
+  const { outcome, state, lock, liveBody, dir } = await takeoverWithInterleave(t, 'replace');
+  assert.equal(outcome, 'EHSEOS_INSTALL_LOCKED');
+  assert.equal(state.removedLive, false);
+  assert.equal(fs.readFileSync(lock, 'utf8'), liveBody, 'the live lock must survive');
+  assert.deepEqual(
+    fs.readdirSync(dir).filter((n) => n.includes('.stale.')),
+    [],
+    'no aside file left behind',
+  );
+});
+
+// Only the inode/mtime check tells these apart: both files name a dead pid. A taker that moved a file other than the one
+// it judged hands it back and re-judges (a second rename) instead of discarding it.
+test('a taker whose dead lock was swapped for another dead lock hands it back instead of discarding it', async (t) => {
+  const { outcome, state } = await takeoverWithInterleave(t, 'swap');
+  assert.equal(state.renames, 2, 'the swapped file must be returned and judged again, not discarded');
+  assert.equal(outcome, 'entered');
+});
+
+test('a taker that cannot stat what it moved aside links it back instead of deleting it blindly', async (t) => {
+  const { outcome, state, dir } = await takeoverWithInterleave(t, 'asidefail');
+  assert.equal(state.statFailed, true);
+  assert.equal(state.renames, 2, 'the moved file was returned and judged again');
+  assert.equal(outcome, 'entered');
+  assert.deepEqual(
+    fs.readdirSync(dir).filter((n) => n.includes('.stale.')),
+    [],
+  );
+});
+
 test('release leaves a lock that another install took over after a manual removal', async (t) => {
   const dir = scratch(t);
   const other = JSON.stringify({ pid: process.pid + 1, startedAt: new Date().toISOString() });
@@ -444,16 +582,28 @@ test('init that hands off to install does not block itself (re-entrancy) and lea
 test('two installers in one process racing for the same directory: one is accepted, the other refused', async (t) => {
   const dir = scratch(t);
   let release;
+  let entered;
+  const acquired = new Promise((resolve) => (entered = resolve));
   const gate = new Promise((resolve) => (release = resolve));
   const first = new Installer()._withInstallLock(dir, async () => {
+    entered();
     await gate;
     return 'first';
   });
-  const second = new Installer()._withInstallLock(dir, async () => 'second');
-  const [a, b] = await Promise.allSettled([second, (release(), first)]);
-  assert.equal(a.status, 'rejected');
-  assert.equal(a.reason.code, 'EHSEOS_INSTALL_LOCKED');
-  assert.equal(b.status, 'fulfilled');
+  // the second installer only races once the first demonstrably holds the lock
+  await acquired;
+  const second = await new Installer()
+    ._withInstallLock(dir, async () => 'second')
+    .then(
+      (value) => ({ status: 'fulfilled', value }),
+      (error) => ({ status: 'rejected', reason: error }),
+    );
+  release();
+  assert.equal(second.status, 'rejected');
+  assert.equal(second.reason.code, 'EHSEOS_INSTALL_LOCKED');
+  assert.equal(await first, 'first');
+  assert.ok(!fs.existsSync(path.join(dir, LOCK_NAME)));
+  assert.equal(await new Installer()._withInstallLock(dir, async () => 'third'), 'third');
   assert.ok(!fs.existsSync(path.join(dir, LOCK_NAME)));
 });
 
