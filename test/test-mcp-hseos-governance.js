@@ -493,6 +493,7 @@ async function runCapabilityProviderTests() {
             return {
               ...fakeServices(calls, wiring),
               project_id: 'alpha',
+              allow_digest_only_approval: true,
               memory: memoryHost(wiring, memoryOverrides),
               ...hostOverrides,
             };
@@ -809,6 +810,7 @@ async function runCapabilityProviderTests() {
               : (wiring) => ({
                   ...fakeServices(calls, wiring),
                   project_id: 'alpha',
+                  allow_digest_only_approval: true,
                   memory: memoryHost(wiring),
                   ...hostOptions,
                 }),
@@ -893,6 +895,53 @@ async function runCapabilityProviderTests() {
       const act = calls.find((c) => c[0] === 'act');
       assert.equal(act[3].approval_id, approve[1]);
       assert.deepEqual(act[2], { action: 'click', button: 1, x: 10, y: 10 });
+    });
+  });
+
+  await it('capability MCP: computer.act is refused before anyone is asked when the approval would be digest-only, unless the operator allows it explicitly', async () => {
+    const stable = async (hostOptions) => {
+      await withServer(hostOptions, async ({ call, calls }) => {
+        const refused = await call('environment.computer.act', CLICK, { _meta: { 'io.hseos/idempotencyKey': 'img-1' } });
+        assert.notEqual(refused.result?.resultType, 'input_required', 'no elicitation is opened without the image');
+        assert.equal(refused.result.structuredContent.ok, false, JSON.stringify(refused));
+        assert.equal(refused.result.structuredContent.error.code, 'ENV_COMPUTER_IMAGE_APPROVAL_UNSUPPORTED');
+        for (const kind of ['requestApproval', 'approve', 'act'])
+          assert.equal(
+            calls.some((c) => c[0] === kind),
+            false,
+            kind,
+          );
+      });
+    };
+    // Default (fail-closed), and only a literal true opens the override.
+    await stable({ allow_digest_only_approval: undefined });
+    await stable({ allow_digest_only_approval: false });
+    await stable({ allow_digest_only_approval: 'true' });
+    await stable({ allow_digest_only_approval: 1 });
+  });
+
+  await it('capability MCP: computer.start is refused too without the override, and asks for approval with it', async () => {
+    const START = { target: { command: '/usr/bin/xterm' } };
+    await withServer({ allow_digest_only_approval: undefined }, async ({ call, calls }) => {
+      const refused = await call('environment.computer.start', START, { _meta: { 'io.hseos/idempotencyKey': 'st-1' } });
+      assert.notEqual(refused.result?.resultType, 'input_required', JSON.stringify(refused));
+      assert.equal(refused.result.structuredContent.error.code, 'ENV_COMPUTER_IMAGE_APPROVAL_UNSUPPORTED');
+      assert.equal(
+        calls.some((c) => c[0] === 'start'),
+        false,
+      );
+    });
+    await withServer({}, async ({ call }) => {
+      const asked = await call('environment.computer.start', START, { _meta: { 'io.hseos/idempotencyKey': 'st-2' } });
+      assert.equal(asked.result.resultType, 'input_required', JSON.stringify(asked));
+    });
+  });
+
+  await it('capability MCP: computer.stop and the screenshot need no approval and are not refused for the missing image', async () => {
+    await withServer({ allow_digest_only_approval: undefined }, async ({ call, calls }) => {
+      const stop = await call('environment.computer.stop', { session_id: 'session-1' });
+      assert.equal(stop.result.structuredContent.ok, true, JSON.stringify(stop));
+      assert.ok(calls.some((c) => c[0] === 'stop'));
     });
   });
 

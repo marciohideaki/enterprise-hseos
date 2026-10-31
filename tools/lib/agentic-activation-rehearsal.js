@@ -16,7 +16,11 @@ const { databaseFingerprint, snapshotTables } = require('./compatibility-audit')
 const { createLiveSnapshot } = require('./compatibility-observation');
 const { runMigrations } = require('../mcp-project-state/lib/migrations');
 const { assertStableReadOnlyDatabase } = require('../mcp-project-state/lib/mcp-legacy-usage-store');
-const { assertOperationalSchemaBoundary } = require('../mcp-project-state/lib/operational-state-db');
+const {
+  ACTIVATION_CRITERION_GATE,
+  assertOperationalSchemaBoundary,
+  verifyActivationCriterion,
+} = require('../mcp-project-state/lib/operational-state-db');
 
 const CANDIDATE_PROFILE = 'agent-openai-compatible-candidate';
 const CANDIDATE_MANIFEST = path.join('.agents', 'activation', `${CANDIDATE_PROFILE}.yaml`);
@@ -94,7 +98,7 @@ function readCandidateManifest(repositoryRoot) {
     'migration-and-rollback-rehearsal',
     'required-sandbox-readiness',
     'provider-environment-validation',
-    'g9-zero-legacy-window',
+    ACTIVATION_CRITERION_GATE,
     'explicit-human-cutover',
   ];
   if (JSON.stringify(manifest.activation.requires) !== JSON.stringify(requiredGates)) {
@@ -272,7 +276,13 @@ async function prepareRehearsalSource(source, allowLiveSnapshot) {
   };
 }
 
-async function runActivationRehearsal({ databasePath, repositoryRoot, environment = process.env, allowLiveSnapshot = false }) {
+async function runActivationRehearsal({
+  databasePath,
+  repositoryRoot,
+  environment = process.env,
+  allowLiveSnapshot = false,
+  activation = {},
+}) {
   const source = path.resolve(databasePath);
   const root = path.resolve(repositoryRoot);
   const sourceFilesBefore = databaseFingerprint(source);
@@ -324,6 +334,8 @@ async function runActivationRehearsal({ databasePath, repositoryRoot, environmen
     const candidateManifest = readCandidateManifest(root);
     const profile = await certifyCandidateProfile(root);
     const sandbox = checkRequiredSandbox(candidateManifest, environment);
+    // The rehearsal never opens the live database again, so the authorization it can see is always pending.
+    const criterion = verifyActivationCriterion(source, { ...activation, inspectDatabase: false });
     const sourceFilesAfter = databaseFingerprint(source);
     const sourceUnchanged = JSON.stringify(sourceFilesBefore) === JSON.stringify(sourceFilesAfter);
     const migrationReady =
@@ -365,6 +377,7 @@ async function runActivationRehearsal({ databasePath, repositoryRoot, environmen
         },
         profile,
         sandbox,
+        activation_criterion: criterion,
         operational_source: {
           unchanged: sourceUnchanged,
           mode: rehearsalSource.mode,
@@ -375,7 +388,7 @@ async function runActivationRehearsal({ databasePath, repositoryRoot, environmen
       remaining_gates: [
         ...(sandbox.ready ? [] : ['required-sandbox-runtime']),
         'provider-environment-validation',
-        'g9-zero-legacy-window',
+        ...(criterion.satisfied ? [] : [ACTIVATION_CRITERION_GATE]),
         'explicit-human-cutover',
       ],
     });

@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const yaml = require('yaml');
-const { redactDiagnosticText } = require('./campaign-evidence-store');
+const { redactDiagnosticTail } = require('./campaign-evidence-store');
 const { readYaml, assertObject, assertExactKeys, assertStringList } = require('./capability-catalog');
 
 const PLATFORM_MODES = ['platform', 'hybrid', 'local'];
@@ -35,9 +35,12 @@ const DATE = /^([0-9]{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
 const STACK_ROOTS = ['src', 'apps', 'services'];
 const MAX_SCAN_ENTRIES = 500;
 
-// git stderr reaches error messages and findings: key material and credential shapes never do.
+// git stderr reaches error messages and findings: key material and credential shapes never do. It arrives with a 1 to 4 MB
+// buffer, and the credential scan is superlinear on some inputs: key bodies are replaced over the whole text, then only the
+// last STDERR_SCAN_CHARS are kept and scanned (the cause of a git failure is at the end, as in the campaign process).
+const STDERR_SCAN_CHARS = 4096;
 function safeStderr(error) {
-  return redactDiagnosticText(String(error.stderr || error.message).trim()) ?? '[redacted: credential-like content]';
+  return redactDiagnosticTail(String(error.stderr || error.message).trim(), STDERR_SCAN_CHARS) ?? '[redacted: credential-like content]';
 }
 
 function modeStrength(mode) {

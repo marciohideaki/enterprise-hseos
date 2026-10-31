@@ -133,6 +133,8 @@ function outputContract() {
   });
 }
 
+const COMPUTER_IMAGE_APPROVAL_UNSUPPORTED = 'ENV_COMPUTER_IMAGE_APPROVAL_UNSUPPORTED';
+
 function capabilityUnavailable(tool, cause) {
   // Nothing was attempted, so the outcome is a plain failure and not an uncertain mutation.
   return new GovernedRefusalError(ENV_CAPABILITY_UNAVAILABLE, `${tool} is unavailable: ${cause}`);
@@ -165,7 +167,9 @@ const HOST_SERVICES = Object.freeze({
   browser: ['run'],
   computer: ['start', 'screenshot', 'requestApproval', 'act', 'stop'],
 });
-const HOST_MEMBERS = new Set([...Object.keys(HOST_SERVICES), 'approvals', 'project_id', 'memory']);
+// `allow_digest_only_approval` is the operator's explicit override (environment.computer.allow_digest_only_approval): only a literal
+// true lets a computer action be put to a person with the screenshot digest alone.
+const HOST_MEMBERS = new Set([...Object.keys(HOST_SERVICES), 'approvals', 'project_id', 'memory', 'allow_digest_only_approval']);
 
 /** Fails loudly when the host a builder returned lacks what its own members need. Returns the host. */
 function validateEnvironmentHost(host) {
@@ -212,6 +216,19 @@ function createCapabilityApprovals({ host, normalize, tools = new Map() }) {
   const pending = new Map();
   // The runtime hands a provider the contract-normalized input (defaults filled); both sides compare that one form.
   const canonical = (tool, input) => stable(normalize(tool, input));
+  // The elicitation of the modern protocol is a text form: it cannot carry the screenshot, and the client declares nothing
+  // that says it shows one. Without a person who saw the image the approval would be blind, so it is refused before anyone
+  // is asked, unless the operator accepted a digest-only approval explicitly (only a literal true).
+  const refuseBlindComputerApproval = () => {
+    if (host.allow_digest_only_approval === true) return;
+    throw Object.assign(
+      refusal(
+        COMPUTER_IMAGE_APPROVAL_UNSUPPORTED,
+        'the approval would show the screenshot digest but not the image; the operator must set allow_digest_only_approval on the host to accept that',
+      ),
+      { preApprovalRefusal: true },
+    );
+  };
   return Object.freeze({
     describe(request, operationId) {
       // A tool may declare a deterministic, side-effect-free `preflight(input)`: scope and input that can never succeed are
@@ -225,8 +242,13 @@ function createCapabilityApprovals({ host, normalize, tools = new Map() }) {
           throw error;
         }
       }
+      if (request.tool === 'environment.computer.start' && host?.computer) {
+        // The session it opens could only be acted on through an approval that is refused below, so it is not asked for either.
+        refuseBlindComputerApproval();
+      }
       if (request.tool === 'environment.computer.act') {
         if (!host?.computer) throw capabilityUnavailable(request.tool, 'the host has no computer');
+        refuseBlindComputerApproval();
         const { session_id: sessionId, ...action } = normalize(request.tool, request.input);
         const asked = host.computer.requestApproval(sessionId, action);
         if (asked.status !== 'pending') {
