@@ -444,16 +444,28 @@ test('init that hands off to install does not block itself (re-entrancy) and lea
 test('two installers in one process racing for the same directory: one is accepted, the other refused', async (t) => {
   const dir = scratch(t);
   let release;
+  let entered;
+  const acquired = new Promise((resolve) => (entered = resolve));
   const gate = new Promise((resolve) => (release = resolve));
   const first = new Installer()._withInstallLock(dir, async () => {
+    entered();
     await gate;
     return 'first';
   });
-  const second = new Installer()._withInstallLock(dir, async () => 'second');
-  const [a, b] = await Promise.allSettled([second, (release(), first)]);
-  assert.equal(a.status, 'rejected');
-  assert.equal(a.reason.code, 'EHSEOS_INSTALL_LOCKED');
-  assert.equal(b.status, 'fulfilled');
+  // the second installer only races once the first demonstrably holds the lock
+  await acquired;
+  const second = await new Installer()
+    ._withInstallLock(dir, async () => 'second')
+    .then(
+      (value) => ({ status: 'fulfilled', value }),
+      (error) => ({ status: 'rejected', reason: error }),
+    );
+  release();
+  assert.equal(second.status, 'rejected');
+  assert.equal(second.reason.code, 'EHSEOS_INSTALL_LOCKED');
+  assert.equal(await first, 'first');
+  assert.ok(!fs.existsSync(path.join(dir, LOCK_NAME)));
+  assert.equal(await new Installer()._withInstallLock(dir, async () => 'third'), 'third');
   assert.ok(!fs.existsSync(path.join(dir, LOCK_NAME)));
 });
 
