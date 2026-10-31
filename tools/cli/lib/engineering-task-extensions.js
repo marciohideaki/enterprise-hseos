@@ -204,8 +204,10 @@ function refuseCall(code, message) {
   throw error;
 }
 
-function environmentSchemaJson(name) {
-  return { type: 'object', description: `Input of ${name}, validated by its governed contract.`, additionalProperties: true };
+// The model sees the contract's own published input schema; an open object would hide the types (the campaign defect).
+function environmentSchemaJson(contract) {
+  if (!contract.input_json_schema) reject('ENVIRONMENT_CAPABILITY_SCHEMA_MISSING');
+  return contract.input_json_schema;
 }
 
 /**
@@ -367,7 +369,7 @@ function createEnvironmentBundles({
       definition: {
         name,
         description: `Governed ${family} capability ${name}. Declared by the task contract; the host owns approvals, toolchains and sessions.`,
-        input_schema: environmentSchemaJson(name),
+        input_schema: environmentSchemaJson(contract),
         governance_ref: governanceRef(name),
       },
       provider: {

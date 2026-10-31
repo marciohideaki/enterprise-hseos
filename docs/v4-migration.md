@@ -155,6 +155,22 @@ decisions. Historical events and already admitted contracts stay readable.
   same way, since the session it opens could only be acted on through a refused approval. `computer.stop` and
   `computer.screenshot` need no approval and are not affected. Putting the image in the elicitation is not done: the protocol has no place for it.
 
+### Capability tools publish their real input schema (owner decision 2026-10-31)
+
+- `environment.lsp.*`, `environment.dap.run`, `environment.browser.run`, `environment.computer.*` and
+  `memory.{write,retrieve,delete}` used to publish `{ type: 'object', additionalProperties: true }` as `inputSchema`, so a
+  client could not know the types. A real client sent `scope` as a JSON string and `ttl_seconds` as a string and got
+  `AGENT_MEMORY_INVALID`. Each contract now carries a JSON Schema 2020-12 of its input (`input_json_schema` in
+  `tools/lib/governed-execution/contract-registry.js`) and `tools/list` publishes it, with the properties, types, required
+  fields, enums and bounds.
+- The programmatic validator stays the source of truth and still runs on every call. The schema does not state what a type
+  check cannot (file extension against language, origin against trust, byte lengths, the first browser step being a goto);
+  `test/test-capability-input-schemas.js` compares both on valid and invalid inputs and pins those gaps.
+- Behaviour change: a call whose arguments have the wrong type (an object sent as a string, an integer sent as a string) is
+  now refused by the MCP adapter with `-32602` ("Tool arguments do not match inputSchema") before the governed runtime sees it,
+  instead of `AGENT_MEMORY_INVALID` or the per-capability code. A contract without a published schema fails loudly when the
+  tool list is built; there is no fallback to the open object.
+
 ### Activation rollback requires a receipt (audit 2026-10-27)
 
 The rollback of the execution-ledger activation no longer skips the receipt cross-check when the receipt is missing.

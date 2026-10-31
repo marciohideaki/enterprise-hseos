@@ -730,7 +730,7 @@ async function advertisedWith(t, isolationProbe) {
       },
     },
   });
-  return { names: new Set(listed.result.tools.map((tool) => tool.name)), logs, prepared };
+  return { names: new Set(listed.result.tools.map((tool) => tool.name)), tools: listed.result.tools, logs, prepared };
 }
 
 const MEMORY_TOOLS = ['memory.write', 'memory.retrieve', 'memory.delete'];
@@ -744,6 +744,24 @@ test('K9: without a delegated cgroup lsp and dap are omitted from tools/list, me
   assert.ok(line, logs.join('\n'));
   assert.match(line, /delegated cgroup/);
   assert.match(line, /systemd-run --user -p Delegate=yes/);
+});
+
+test('G1: the advertised capability tools carry real input schemas, not the open object', async (t) => {
+  const { tools } = await advertisedWith(t, AVAILABLE);
+  const byName = new Map(tools.map((tool) => [tool.name, tool]));
+  for (const name of ['environment.lsp.hover', 'environment.dap.run', ...MEMORY_TOOLS]) {
+    const schema = byName.get(name)?.inputSchema;
+    assert.ok(schema, name);
+    assert.equal(schema.$schema, 'https://json-schema.org/draft/2020-12/schema', name);
+    assert.notEqual(schema.additionalProperties, true, `${name} must not publish the open schema`);
+    assert.ok(schema.properties && Object.keys(schema.properties).length > 0, `${name} must publish its properties`);
+  }
+  const write = byName.get('memory.write').inputSchema;
+  assert.equal(write.properties.scope.type, 'object');
+  assert.equal(write.properties.ttl_seconds.type, 'integer');
+  assert.deepEqual(write.properties.classification.enum, ['public', 'internal']);
+  for (const forbidden of ['created_at', 'write_policy_ref']) assert.ok(!(forbidden in write.properties), forbidden);
+  assert.equal(write.additionalProperties, false);
 });
 
 test('K9: without bwrap lsp and dap are omitted with the bwrap cause, memory stays', async (t) => {
