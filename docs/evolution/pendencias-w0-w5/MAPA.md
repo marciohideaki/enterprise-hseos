@@ -261,7 +261,7 @@ Plano: `PLAN-3.md` da run `20261030-1810-owner-decisions` (onda W9). As decisõe
   - pacotes tar.gz e .deb, publicados por releases do GitHub e construídos em container fixado por digest;
   - contingência "só extensão" aceita, mas só com emenda do PLAN se for acionada;
   - Q13 e Q14 verificadas na fonte antes do aceite.
-    O aceite formal vai na W10.
+    Aceito na W10 (G2), com os fatos de Q13/Q14 verificados na fonte.
 - **ADR-0050 aceito (2026-10-31)**, com as 12 respostas: (1) validade do recibo de L2 de 90 dias, além dos gatilhos por mudança; (2) teto padrão da quarta família de 4 requisições, US$ 1,00 e até 45 min, sem aumento sem decisão nova; (3) API Gemini direta com chave própria em `google/gemini-hseos`, chave da NB Eventos proibida; (4) `deterministic` usa `verified_w<N>_scope_only` da onda da prova de L1; (5) `operational` de L3 usa `pilot_enterprise_hseos_only` com `operational_evidence`; (6) teto de US$ 2 de `tools/call` e MRTR por campanha, sem herdar saldo; (7) L2 da F17 só para os bindings oficiais nomeados no PLAN; (8) quarta família liberada para planejamento, execução com autorização própria por campanha; (9) novo valor `verified_api_campaign_scope_only` em `real_consumers`; (10) rota de assinatura avaliada antes de pedir chave de API; (11) L2 padrão = `tools/call` + MRTR, com L2 parcial se o cliente não fala `2026-07-28`; (12) L2 da F17 é geração real com recuperação, sem `tools/call`.
 - **Vocabulário:** `verified_api_campaign_scope_only` é admitido (F3) com guard de enum fechado e `real_consumers_evidence` resolvível. Nenhuma família mudou de status.
 - **Reinstalação da distribuição global:** pelo Commander, depois do merge da W9.
