@@ -93,7 +93,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "13049859bd6ffd5698e2134a1d202604dd5dddaed027566bd8a17445c6ea66ff"
+      "source_sha256": "6aa221551b480f79237065e4be076bc4596b98f5abbef0d1e6aadcb56ee1cf79"
     },
     {
       "filename": "agent-activation-rehearsal.js",
@@ -111,6 +111,10 @@
         [
           "--backup-dir <dir>",
           "Directory that receives the verified pre-activation backup and receipt"
+        ],
+        [
+          "--window <path>",
+          "Supervised-window record (operator, stopped_consumers, original_sha256_before, recorded_at) validated and bound in the receipt (apply)"
         ],
         [
           "--backup <path>",
@@ -134,7 +138,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "13049859bd6ffd5698e2134a1d202604dd5dddaed027566bd8a17445c6ea66ff",
+      "source_sha256": "6aa221551b480f79237065e4be076bc4596b98f5abbef0d1e6aadcb56ee1cf79",
       "companion": "execution-activation"
     },
     {
@@ -205,6 +209,22 @@
           "Resolve the declared secret and contact the provider after required sandbox checks pass"
         ],
         [
+          "--activation-db <path>",
+          "Activated project database to check against the ADR activation criterion (read-only)"
+        ],
+        [
+          "--activation-receipt <path>",
+          "Activation receipt written beside the backup by the apply command"
+        ],
+        [
+          "--activation-window <path>",
+          "Supervised-window record (operator, stopped consumers, database digest)"
+        ],
+        [
+          "--activation-adr <id>",
+          "ADR that defines the activation criterion, format ADR-NNNN (default: ADR-0048)"
+        ],
+        [
           "--json",
           "Output machine-readable JSON"
         ],
@@ -214,7 +234,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "8c9b46dd4db64a599e3fc8fe84b381c763d611cf0b623a7dbd6d132cf120da91"
+      "source_sha256": "39c4260ab29e1cda7e3b1510c8c6ed5a3abdc36a7e893fac1ac61f45cbd3bfb0"
     },
     {
       "filename": "agent.js",
