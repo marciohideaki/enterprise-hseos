@@ -235,11 +235,19 @@ Na #262, o CI falhou no shard 5/6 em `test-install-lock.js:444`, teste de corrid
 - **Watchdog `hseos-liveness-watch`.** Corrigido na W8 (E12, #265). Depois da reinstalação, o ciclo sai com 0 e o timer está ativo.
 - **A18: MRTR e sunset.** O Codex 0.166.0 não fala `2026-07-28`, e pelo ADR-0048 isso impede o sunset do legado enquanto ele for cliente registrado. O critério de consumidor real para MRTR segue aberto. Dois achados de cliente: o `codex exec` bloqueia `tools/call` de MCP com a política padrão (`never`) sem override por ferramenta, e o modelo relatou um resultado inventado para uma chamada que falhou.
 - **A15.** Removido: `w0-8-governance-clock` (2 commits equivalentes por patch na master, limpo; head `d2a01588`). Mantidos, porque não está provado que o conteúdo está na master: `harness-*` (5; sem PR e com arquivos que diferem da master), `dg27-scope` (PR #220 aberta), `aew-graph-source-2b4d6f3` (usado por sessões do vortex-events) e os worktrees com mudanças não commitadas (hseos-evolution-w0..w3, v4-consolidation, plan-w4-w8, w5-live-t1, legacy-code-review-skill, harness-private-executor).
-- **Decisões abertas ao owner.**
-  - (a) Formato do registro da janela supervisionada para o g9: JSON escrito pelo operador antes do `apply`, com `operator`, `stopped_consumers`, `original_sha256_before` e `recorded_at` < `started_at`, e o caminho dele.
-  - (b) Se o `apply` passa a gravar a janela no recibo, o que toca o K2.
-  - (c) Se entram as flags `--activation-db/--activation-receipt/--activation-window/--activation-adr` no `agent-provider-validate`; sem elas, o gate fica sempre pendente pela CLI.
-  - (d) Ligar o override `allow_digest_only_approval` à configuração de produção (`~/.config/hseos/config.yaml`, `environment.computer`); sem isso, o computer-use por MCP fica desligado em produção.
-  - (e) Promover a F19 com escopo reduzido a "ledger e projeção", o que redefine a família.
-- **Questões dos ADRs.** 14 questões do ADR-0049 (Code OSS, Proposed) e 12 do ADR-0050 (critério de bindings, Proposed).
+- **Questões dos ADRs.** 14 questões do ADR-0049 (Code OSS, Proposed). As 12 do ADR-0050 foram respondidas em 2026-10-31 (ver abaixo).
 - **Outros.** F19 e F20 seguem `not_authorized`; a classificação de `test:agent-provider-conformance` na W3 como instabilidade por carga é provisória; o guard de 200 ms do `test:capability-intake-guard` falhou uma vez sob carga na suíte da W5 (870 ms) e passou isolado.
+
+#### Decisões do owner (2026-10-31)
+
+Plano: `PLAN-3.md` da run `20261030-1810-owner-decisions` (onda W9). As decisões (a)-(e) eram as abertas da seção "Pendentes" acima.
+
+- **(a) Janela supervisionada:** executada na W9 (F1). JSON do operador com `operator`, `stopped_consumers[]`, `original_sha256_before` e `recorded_at` anterior a `started_at`, ao lado do recibo; o `apply` o valida.
+- **(b) Referência da janela no recibo:** executada na W9 (F1). O `apply` grava `window: {path, sha256}` no recibo, com versão nova do formato; recibos antigos continuam legíveis e o gate cruza recibo e janela.
+- **(c) Flags no `agent-provider-validate`:** executada na W9 (F2). `--activation-db`, `--activation-receipt`, `--activation-window` e `--activation-adr`.
+- **(d) Override `allow_digest_only_approval` em produção:** mantido desligado. Só registro; o computer-use por MCP segue desligado em produção.
+- **(e) F19 com escopo reduzido:** não reduzir. A F19 segue `not_authorized`. Só registro.
+- **MRTR:** a sondagem de se o Claude Code ou outro cliente instalado negocia `2026-07-28` é feita pelo Commander, sem gasto relevante. Não há resultado registrado aqui.
+- **ADR-0050 aceito (2026-10-31)**, com as 12 respostas: (1) validade do recibo de L2 de 90 dias, além dos gatilhos por mudança; (2) teto padrão da quarta família de 4 requisições, US$ 1,00 e até 45 min, sem aumento sem decisão nova; (3) API Gemini direta com chave própria em `google/gemini-hseos`, chave da NB Eventos proibida; (4) `deterministic` usa `verified_w<N>_scope_only` da onda da prova de L1; (5) `operational` de L3 usa `pilot_enterprise_hseos_only` com `operational_evidence`; (6) teto de US$ 2 de `tools/call` e MRTR por campanha, sem herdar saldo; (7) L2 da F17 só para os bindings oficiais nomeados no PLAN; (8) quarta família liberada para planejamento, execução com autorização própria por campanha; (9) novo valor `verified_api_campaign_scope_only` em `real_consumers`; (10) rota de assinatura avaliada antes de pedir chave de API; (11) L2 padrão = `tools/call` + MRTR, com L2 parcial se o cliente não fala `2026-07-28`; (12) L2 da F17 é geração real com recuperação, sem `tools/call`.
+- **Vocabulário:** `verified_api_campaign_scope_only` é admitido (F3) com guard de enum fechado e `real_consumers_evidence` resolvível. Nenhuma família mudou de status.
+- **Reinstalação da distribuição global:** pelo Commander, depois do merge da W9.
