@@ -213,6 +213,8 @@ systemctl --user daemon-reload
 systemctl --user enable --now hseos-liveness-watch.timer
 ```
 
+Banco ativado (ADR-0048, schema v17): o watchdog grava `as_liveness_events` abrindo o `project.db` pelo caminho governado (`openActivated`), o mesmo dos servidores MCP modernos. Banco v4 continua pelo abridor legado; banco em estado intermediário ou sem o marcador de ativação segue recusado com `EXECUTION_ACTIVATION_PENDING`.
+
 Verificação: `systemctl --user list-timers | grep hseos` (próxima execução em até 120 s); `systemctl --user start hseos-liveness-watch.service && journalctl --user -u hseos-liveness-watch.service -n 20` (um ciclo, exit 0); `env $P hseos liveness check --json --directory <projeto>`; `<projeto>/.hseos/state/liveness/` com os arquivos do watchdog (nome do diretório vem de `LIVENESS_DIR_PARTS`, `tools/lib/agent-liveness.js:45`). Intervalo `OnUnitActiveSec=120s`, `Nice=10`, `DBUS_SESSION_BUS_ADDRESS` fixado no unit.
 
 Não verificados na W5 (resíduo LV2, `docs/evolution/w5/STATUS.md:112`): systemd real, `notify-send` e sessões reais; escalonamento falha com aviso, e `escalations.jsonl` é o registro durável (`tools/lib/agent-liveness.js:871`). Este passo é a primeira verificação real; registrar o resultado.
