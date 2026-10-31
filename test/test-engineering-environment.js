@@ -517,6 +517,27 @@ test('the bundles are the registry contracts, one unique provider each, and only
   assert.deepEqual(subset.names, ['memory.retrieve']);
 });
 
+test('the schema handed to the model is the contract input schema, with properties (never the open object)', () => {
+  const { ENVIRONMENT_CAPABILITIES } = require('../tools/cli/lib/engineering-task-contract');
+  const { ExecutionContractRegistry, registerCapabilityContractStubs } = require('../tools/lib/governed-execution/contract-registry');
+  const real = new Map(registerCapabilityContractStubs(new ExecutionContractRegistry()).map((contract) => [contract.name, contract]));
+  const set = createEnvironmentBundles({
+    capabilities: ENVIRONMENT_CAPABILITIES,
+    ledgerSink: () => {},
+    approvalGate: createApprovalGate(),
+  });
+  assert.equal(set.bundles.length, ENVIRONMENT_CAPABILITIES.length);
+  for (const bundle of set.bundles) {
+    const schema = bundle.definition.input_schema;
+    assert.deepEqual(schema, real.get(bundle.definition.name).input_json_schema, bundle.definition.name);
+    assert.notEqual(schema.additionalProperties, true, bundle.definition.name);
+    assert.ok(Object.keys(schema.properties || {}).length > 0, `${bundle.definition.name} hands the model no properties`);
+  }
+  const write = bundleOf(set, 'memory.write').definition.input_schema;
+  assert.equal(write.properties.scope.type, 'object');
+  assert.equal(write.properties.ttl_seconds.type, 'integer');
+});
+
 test('memory tools without a host store are unavailable, not silently empty', async () => {
   const set = createEnvironmentBundles({
     capabilities: MEMORY,
