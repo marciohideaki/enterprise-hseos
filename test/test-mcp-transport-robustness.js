@@ -294,6 +294,53 @@ async function runW504Tests() {
     }
   });
 
+  async function clientSees(code, message) {
+    const stderrOriginal = process.stderr.write;
+    const captured = [];
+    process.stderr.write = (chunk) => (captured.push(String(chunk)), true);
+    try {
+      const handler = createMessageHandler({
+        serverInfo: { name: 't', version: '1' },
+        tools: [{ name: 'boom', description: 'd', inputSchema: { type: 'object' } }],
+        callTool: async () => {
+          throw Object.assign(new Error(message), { code });
+        },
+      });
+      const response = await handler({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'boom', arguments: {} } });
+      return { client: response.error.message, stderr: captured.join('') };
+    } finally {
+      process.stderr.write = stderrOriginal;
+    }
+  }
+
+  await it('transport: an EXECUTION_ACTIVATION error reaches the client as its code and a fixed message, never a path', async () => {
+    const dbPath = '/home/someone/project/.hseos/state/project.db';
+    const message = `Execution activation is pending for ${dbPath}: run it first (see C:\\Users\\x\\db.sqlite)`;
+    const { client, stderr } = await clientSees('EXECUTION_ACTIVATION_PENDING', message);
+    assert.equal(client, 'EXECUTION_ACTIVATION_PENDING: execution activation refused; the detail is in the operator log');
+    assert.ok(stderr.includes(dbPath), 'the full detail must go to stderr');
+    const spaced = await clientSees('EXECUTION_ACTIVATION_DB_NOT_FOUND', 'Database does not exist: /home/my user/x/s.db');
+    assert.ok(!spaced.client.includes('user/x'), spaced.client);
+  });
+
+  await it('transport: paths in other allowed codes are redacted in every format, authored text stays intact', async () => {
+    const cases = [
+      ['posix', 'failed at /home/a/b/c.db now', 'failed at <path> now'],
+      ['posix quoted with space', 'cannot read "/home/my user/x/s.db" today', 'cannot read <path> today'],
+      ['posix single quoted with space', "cannot read '/home/my user/x/s.db'.", 'cannot read <path>.'],
+      ['windows with space', String.raw`cannot read C:\Program Files\App\db.sqlite`, 'cannot read <path>'],
+      ['windows quoted', String.raw`cannot read "C:\Program Files\App\db.sqlite" today`, 'cannot read <path> today'],
+      ['unc', String.raw`cannot read \\server\share\dir\db.sqlite`, 'cannot read <path>'],
+      ['file url', 'cannot read file:///home/a/b.db now', 'cannot read <path> now'],
+      ['authored', 'Task not found: t-1 (and/or a/b ratio 1/2)', 'Task not found: t-1 (and/or a/b ratio 1/2)'],
+    ];
+    for (const [name, input, expected] of cases) {
+      const { client, stderr } = await clientSees('AXON_UNAVAILABLE', input);
+      assert.equal(client, expected, name);
+      if (input !== expected) assert.ok(stderr.includes(input), `${name}: full message on stderr`);
+    }
+  });
+
   await it('transport: a legacy HTTP body above the limit is refused with 413 and the server survives', async () => {
     assert.equal(MAX_HTTP_BODY_BYTES, 1_048_576);
     const handled = [];

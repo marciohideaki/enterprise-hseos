@@ -117,29 +117,33 @@ module.exports = {
         }
       }
 
-      // Phase 1: IDE integrations
-      if (removeIdeConfigs) {
-        const s = await prompts.spinner();
-        s.start('Removing IDE integrations...');
-        await installer.uninstallIdeConfigs(projectDir, existingInstall, { silent: true });
-        s.stop(`Removed IDE integrations (${ides || 'none'})`);
-      }
+      // The phases write and remove project files, so they run under the install lock (a lock file left by this
+      // process is released before the process exits; it lives in the project directory, outside the removed folder).
+      await installer._withInstallLock(projectDir, async () => {
+        // Phase 1: IDE integrations
+        if (removeIdeConfigs) {
+          const s = await prompts.spinner();
+          s.start('Removing IDE integrations...');
+          await installer.uninstallIdeConfigs(projectDir, existingInstall, { silent: true });
+          s.stop(`Removed IDE integrations (${ides || 'none'})`);
+        }
 
-      // Phase 2: User artifacts
-      if (removeOutputFolder) {
-        const s = await prompts.spinner();
-        s.start(`Removing user artifacts (${outputFolder}/)...`);
-        await installer.uninstallOutputFolder(projectDir, outputFolder);
-        s.stop('User artifacts removed');
-      }
+        // Phase 2: User artifacts
+        if (removeOutputFolder) {
+          const s = await prompts.spinner();
+          s.start(`Removing user artifacts (${outputFolder}/)...`);
+          await installer.uninstallOutputFolder(projectDir, outputFolder);
+          s.stop('User artifacts removed');
+        }
 
-      // Phase 3: HSEOS modules & data (last — other phases may need _hseos/)
-      if (removeModules) {
-        const s = await prompts.spinner();
-        s.start(`Removing HSEOS modules & data (${installer.hseosFolderName}/)...`);
-        await installer.uninstallModules(projectDir);
-        s.stop('Modules & data removed');
-      }
+        // Phase 3: HSEOS modules & data (last — other phases may need _hseos/)
+        if (removeModules) {
+          const s = await prompts.spinner();
+          s.start(`Removing HSEOS modules & data (${installer.hseosFolderName}/)...`);
+          await installer.uninstallModules(projectDir);
+          s.stop('Modules & data removed');
+        }
+      });
 
       const summary = [];
       if (removeIdeConfigs) summary.push('IDE integrations cleaned');
@@ -153,6 +157,10 @@ module.exports = {
 
       process.exit(0);
     } catch (error) {
+      if (error && error.code === 'EHSEOS_INSTALL_LOCKED') {
+        console.error(error.message);
+        process.exit(75);
+      }
       try {
         const errorMessage = error instanceof Error ? error.message : String(error);
         await prompts.log.error(`Uninstall failed: ${errorMessage}`);
