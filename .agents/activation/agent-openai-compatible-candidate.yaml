@@ -26,5 +26,5 @@ activation:
     - migration-and-rollback-rehearsal
     - required-sandbox-readiness
     - provider-environment-validation
-    - g9-zero-legacy-window
+    - g9-adr0048-activation-criterion
     - explicit-human-cutover

@@ -88,7 +88,15 @@ test('rehearsal migrates and discards a private candidate, restores v4 and leave
     assert.equal(report.evidence.sandbox.ready, false);
     assert.ok(report.remaining_gates.includes('required-sandbox-runtime'));
     assert.ok(report.remaining_gates.includes('provider-environment-validation'));
-    assert.ok(report.remaining_gates.includes('g9-zero-legacy-window'));
+    assert.ok(report.remaining_gates.includes('g9-adr0048-activation-criterion'));
+    assert.ok(!report.remaining_gates.includes('g9-zero-legacy-window'));
+    assert.equal(report.evidence.activation_criterion.satisfied, false);
+    const criterion = report.evidence.activation_criterion;
+    assert.deepEqual(
+      criterion.conditions.filter((condition) => condition.met).map((condition) => condition.id),
+      ['adr_accepted'],
+    );
+    assert.ok(criterion.conditions.every((condition) => condition.met || condition.reason.length > 0));
     assert.ok(report.remaining_gates.includes('explicit-human-cutover'));
   } finally {
     fixture.cleanup();
