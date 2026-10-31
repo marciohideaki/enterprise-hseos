@@ -1,4 +1,5 @@
 const path = require('node:path');
+const { AsyncLocalStorage } = require('node:async_hooks');
 const { PROJECT_STATE_ENTRIES, INSTALL_IN_PROGRESS_FILE } = require('./project-state');
 const fs = require('fs-extra');
 const { Detector } = require('./detector');
@@ -20,6 +21,8 @@ const prompts = require('../../../lib/prompts');
 const { HSEOS_FOLDER_NAME } = require('../ide/shared/path-utils');
 
 const INSTALL_LOCK_FILE = '.hseos-install.lock';
+// Directories whose install lock the current async call chain already holds (re-entrancy is per call chain, not per process).
+const heldInstallLocks = new AsyncLocalStorage();
 
 function isProcessAlive(pid) {
   try {
@@ -305,8 +308,7 @@ class Installer {
    */
   async _withInstallLock(directory, work) {
     const projectDir = path.resolve(directory);
-    this._heldInstallLocks = this._heldInstallLocks || new Set();
-    if (this._heldInstallLocks.has(projectDir)) return work();
+    if (heldInstallLocks.getStore()?.has(projectDir)) return work();
     const lockFile = path.join(projectDir, INSTALL_LOCK_FILE);
     const takeover = `${lockFile}.takeover`;
     // The lock file lives in projectDir, so the directory must exist before the lock; a refusal can therefore leave a directory
@@ -346,9 +348,7 @@ class Installer {
     } finally {
       await fs.remove(temp);
     }
-    this._heldInstallLocks.add(projectDir);
     const release = () => {
-      this._heldInstallLocks.delete(projectDir);
       try {
         // Only remove a lock that is still ours: it may have been deleted by hand and re-created by another install.
         if (JSON.parse(fs.readFileSync(lockFile, 'utf8')).pid === process.pid) fs.removeSync(lockFile);
@@ -363,10 +363,13 @@ class Installer {
       process.kill(process.pid, signal);
     };
     for (const name of signals) process.once(name, onSignal);
+    // A command that ends the process with process.exit() while holding the lock must not leave it behind.
+    process.once('exit', release);
     try {
-      return await work();
+      return await heldInstallLocks.run(new Set([...(heldInstallLocks.getStore() || []), projectDir]), work);
     } finally {
       for (const name of signals) process.removeListener(name, onSignal);
+      process.removeListener('exit', release);
       release();
     }
   }
@@ -1903,6 +1906,10 @@ class Installer {
    * @returns {Object} Result with success status and removed components
    */
   async uninstall(directory, options = {}) {
+    return this._withInstallLock(directory, () => this._uninstall(directory, options));
+  }
+
+  async _uninstall(directory, options = {}) {
     const projectDir = path.resolve(directory);
     const { hseosDir } = await this.findHseosDir(projectDir);
 

@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const prompts = require('../lib/prompts');
+const { Installer } = require('../installers/lib/core/installer');
 const { getProjectRoot } = require('../lib/project-root');
 const { loadCapabilityCatalog, resolveCapabilityPlan } = require('../lib/capability-catalog');
 const { PLATFORM_MODES, checkModeRef, detectStacks, modeStrength } = require('../lib/platform-bindings');
@@ -81,7 +82,19 @@ module.exports = {
       return;
     }
 
-    return require('./install').action({ directory, profile, platformMode, ...(modeRef ? { modeRef } : {}) });
+    // init writes only through the install command, which re-enters this lock; holding it here refuses a concurrent
+    // install or uninstall before the operator answers the install prompts.
+    try {
+      return await new Installer()._withInstallLock(directory, () =>
+        require('./install').action({ directory, profile, platformMode, ...(modeRef ? { modeRef } : {}) }),
+      );
+    } catch (error) {
+      if (error && error.code === 'EHSEOS_INSTALL_LOCKED') {
+        console.error(`error: ${error.message}`);
+        process.exit(75);
+      }
+      throw error;
+    }
   },
   summarizePlan,
 };
