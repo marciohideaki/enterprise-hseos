@@ -312,3 +312,196 @@ test('every branch of probeStderr and evidenceMessage', () => {
   assert.equal(sessionEvidence.evidenceMessage(`bad ${key}`), 'bad <withheld: key body, 1 line>');
   assert.equal(sessionEvidence.evidenceMessage('Authorization: Bearer ' + 'a1B2'.repeat(10)), '[redacted: credential-like content]');
 });
+
+// Short wrapped bodies (2 to 4 lines, or 16 to 32 columns) and encrypted PKCS8: anchored on the private-key header, which may
+// itself be split across the first lines.
+const { withholdReason } = require('../tools/cli/lib/campaign-evidence-store');
+const encrypted = (type, options = {}) =>
+  generateKeyPairSync(type, options)
+    .privateKey.export({ type: 'pkcs8', format: 'pem', cipher: 'aes-256-cbc', passphrase: 'x' })
+    .split('\n')
+    .filter((line) => line && !line.startsWith('-----'))
+    .join('');
+const shortKeys = () => ({
+  ...privateKeys(),
+  'ed25519 encrypted': encrypted('ed25519'),
+  'rsa-2048 encrypted': encrypted('rsa', { modulusLength: 2048 }),
+  'rsa-4096 encrypted': encrypted('rsa', { modulusLength: 4096 }),
+  'p256 encrypted': encrypted('ec', { namedCurve: 'prime256v1' }),
+  'p521 encrypted': encrypted('ec', { namedCurve: 'secp521r1' }),
+});
+const prefixes = ['', '[stderr] ', '2026-10-23T21:00:00.123Z '];
+const leakedRows = (output, rows) => rows.some((r) => r.length >= 12 && output.includes(r));
+const retained = (text) => withholdReason({ text, text_sha256: createHash('sha256').update(text).digest('hex') }, []);
+
+for (const [name, key] of Object.entries(shortKeys())) {
+  test(`${name}: a body wrapped at 16, 24 or 32 columns is withheld in diagnostics, stderr and retention`, () => {
+    for (const width of [16, 24, 32, Math.ceil(key.length / 2), Math.ceil(key.length / 3), Math.ceil(key.length / 4)]) {
+      if (width < 16) continue;
+      const rows = wrap(key, width);
+      for (const prefix of prefixes) {
+        const text = `worker failed:\n${rows.map((r) => prefix + r).join('\n')}\nExit 1`;
+        const out = clipText(text, 100_000);
+        assert.equal(leakedRows(out, rows), false, `clipText ${width} ${prefix}`);
+        assert.match(out, /^worker failed:\n.*<withheld: key body, \d+ lines>\nExit 1$/s);
+        assert.equal(leakedRows(JSON.stringify(sanitizeDiagnostic({ stderr: text })), rows), false, 'sanitizeDiagnostic');
+        assert.equal(leakedRows(safeStderr({ stderr: text }), rows), false, 'safeStderr');
+        assert.equal(retained(text), 'credential_pattern', `retention ${width} ${prefix}`);
+      }
+      const escaped = `{"error":"boom\\n${rows.join(String.raw`\n`)}"}`;
+      assert.equal(leakedRows(clipText(escaped, 100_000), rows), false, 'literal backslash-n');
+      assert.equal(retained(escaped), 'credential_pattern', 'retention, literal backslash-n');
+    }
+  });
+}
+
+test('an encrypted PKCS8 key on one line is withheld in place', () => {
+  const key = encrypted('rsa', { modulusLength: 2048 });
+  assert.equal(clipText(`bad ${key} done`), 'bad <withheld: key body, 1 line> done');
+  assert.equal(retained(`bad ${key}`), 'credential_pattern');
+});
+
+test('a short body that ends on a padded line shorter than 16 characters is withheld whole', () => {
+  const key = der(generateKeyPairSync('ed25519').privateKey, 'pkcs8').slice(0, 59) + 'AbC=';
+  const rows = wrap(key, 24);
+  assert.equal(rows.at(-1).length < 16, true);
+  assert.equal(clipText(rows.join('\n')), '<withheld: key body, 3 lines>');
+});
+
+test('the last line of a short body glued to JSON closing text is withheld, the text kept', () => {
+  const key = der(generateKeyPairSync('ed25519').privateKey, 'pkcs8');
+  const rows = wrap(key, 32);
+  const out = clipText(`${rows.slice(0, -1).join(String.raw`\n`)}${String.raw`\n`}${rows.at(-1)}"}`);
+  assert.equal(leakedRows(out, rows), false);
+  assert.match(out, /"\}$/);
+});
+
+test('short wrapped text without a private-key header is kept', () => {
+  const spki = der(generateKeyPairSync('ed25519').publicKey, 'spki');
+  const cert = `MIIC${row(80)}`;
+  const samples = [
+    wrap(row(64), 24).join('\n'),
+    wrap(row(64), 32).join('\n'),
+    [row(32), row(32), row(32)].join('\n'),
+    [row(20), row(20), row(20), row(20)].join('\n'),
+    wrap(spki, 16).join('\n'),
+    wrap(spki, 24).join('\n'),
+    wrap(cert, 24).join('\n'),
+    wrap(`MIIDdzCCAl+gAwIBAgIUa${row(120)}`, 32).join('\n'),
+    wrap(`MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC${row(60)}`, 24).join('\n'),
+    wrap(`sha512-${row(86)}`, 32).join('\n'),
+  ];
+  for (const sample of samples) {
+    assert.equal(clipText(sample, 100_000), sample);
+    assert.equal(retained(sample), null);
+  }
+});
+
+test('a short block with interleaved text or a loose digest line is not taken as a key', () => {
+  const key = der(generateKeyPairSync('ed25519').privateKey, 'pkcs8');
+  const rows = wrap(key, 16);
+  const text = `${rows[0]}\nerror: boom\n${rows[1]}`;
+  assert.equal(clipText(text), text);
+});
+
+// Round 1 of the review: log prefixes without a colon, bodies serialized as JSON arrays, and the stderr cap.
+const logPrefixes = [
+  '2026-10-30T12:00:00Z ERROR ',
+  '2026-10-30 12:00:00.123 WARN ',
+  '[pid 123] ',
+  'stderr | ',
+  '[pid 7] ERROR: ',
+  'ERROR ',
+];
+test('log prefixes with a level, without a colon or with a pipe do not hide a key body', () => {
+  const keys = {
+    ed25519: der(generateKeyPairSync('ed25519').privateKey, 'pkcs8'),
+    rsa: der(generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey, 'pkcs8'),
+  };
+  for (const key of Object.values(keys))
+    for (const prefix of logPrefixes)
+      for (const width of [16, 24, 32, 64]) {
+        const rows = wrap(key, width);
+        const text = `before\n${rows.map((r) => prefix + r).join('\n')}\nExit 1`;
+        assert.equal(leakedRows(clipText(text, 100_000), rows), false, `${prefix} ${width}`);
+        assert.equal(retained(text), 'credential_pattern');
+      }
+  const rows = [row(64), row(64), row(64)];
+  const headerless = rows.map((r) => `2026-10-30T12:00:00Z ERROR ${r}`);
+  assert.equal(clipText(headerless.join('\n')), marker(3));
+});
+
+test('free text is not a log prefix: a sentence before headerless short base64 stays', () => {
+  const text = `the service answered with ${row(32)}\n${row(32)}\nfailed to parse ${row(32)}`;
+  assert.equal(clipText(text), text);
+  const prefixed = `ERROR ${row(32)}\nERROR ${row(32)}`;
+  assert.equal(clipText(prefixed), prefixed);
+});
+
+test('a key body serialized as a JSON array is withheld, an array of digests is kept', () => {
+  const key = der(generateKeyPairSync('ed25519').privateKey, 'pkcs8');
+  const rsa = der(generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey, 'pkcs8');
+  for (const [name, k] of [
+    ['ed25519', key],
+    ['rsa', rsa],
+  ])
+    for (const width of [16, 24, 32, 64]) {
+      const rows = wrap(k, width);
+      const serial = [
+        JSON.stringify(rows),
+        JSON.stringify(rows, null, 2),
+        `{"stderr":${JSON.stringify(rows)},"code":1}`,
+        rows.map((r) => `"${r}",`).join('\n'),
+      ];
+      for (const text of serial) {
+        assert.equal(leakedRows(clipText(text, 100_000), rows), false, `${name} ${width} ${text.slice(0, 12)}`);
+        assert.equal(retained(text), 'credential_pattern');
+      }
+    }
+  const digests = JSON.stringify([`sha512-${row(86)}`, `sha512-${row(86)}`, `sha512-${row(86)}`]);
+  assert.equal(clipText(digests, 100_000), digests);
+  const bare = JSON.stringify([row(44), row(44), row(44), row(44)]);
+  assert.equal(clipText(bare, 100_000), bare);
+  assert.equal(retained(bare), null);
+});
+
+test('safeStderr and probeStderr cap the scanned text: 1 MB of a-- ends fast and a key at the end is still withheld', () => {
+  const key = der(generateKeyPairSync('ed25519').privateKey, 'pkcs8');
+  const noise = 'a-'.repeat(512 * 1024);
+  const started = process.hrtime.bigint();
+  assert.equal(typeof safeStderr({ stderr: noise }), 'string');
+  assert.equal(typeof sessionEvidence.probeStderr(noise), 'string');
+  assert.ok(Number(process.hrtime.bigint() - started) / 1e9 < 1);
+  const withKey = safeStderr({ stderr: `${noise}\nfatal: ${key}` });
+  assert.equal(exposes(withKey, key), false);
+  const rows = wrap(key, 24);
+  assert.equal(leakedRows(safeStderr({ stderr: `${noise}\n${rows.join('\n')}` }), rows), false);
+  assert.equal(exposes(sessionEvidence.probeStderr(`${noise}\n${key}`), key), false);
+});
+
+test('a credential token that crosses the cap is never returned as a marker-less suffix', () => {
+  const cap = 4096;
+  const secrets = [`ghp_${row(36)}`, `sk-${row(40)}`, `password=${row(20)}`, `Bearer ${row(30)}`];
+  for (const secret of secrets)
+    for (const offset of [0, 1, 2, 3, 4, 5, 8, 12, secret.length - 8, secret.length - 1]) {
+      const before = 'x'.repeat(cap - secret.length + offset - 1);
+      const stderr = `${before}${secret}\nfatal: the tail that stays\n`;
+      const out = safeStderr({ stderr });
+      const value = secret.slice(secret.length > 20 ? 6 : 0).slice(-12);
+      assert.equal(out.includes(value), false, `${secret.slice(0, 6)} ${offset}`);
+      assert.equal(sessionEvidence.probeStderr(stderr).includes(value), false);
+    }
+});
+
+test('a cut tail keeps whole lines and drops the partial first line; a single long line is withheld', () => {
+  const lines = Array.from({ length: 400 }, (_, i) => `line ${i} of the failure output`);
+  const out = safeStderr({ stderr: lines.join('\n') });
+  assert.ok(out.length <= 4096);
+  assert.match(out, /^line \d+ of the failure output(\n|$)/);
+  assert.equal(out.endsWith('line 399 of the failure output'), true);
+  assert.equal(safeStderr({ stderr: 'y'.repeat(6000) }), '[redacted: credential-like content]');
+  assert.equal(
+    safeStderr({ stderr: `${'z'.repeat(10)}\n${lines.slice(0, 3).join('\n')}` }),
+    `${'z'.repeat(10)}\n${lines.slice(0, 3).join('\n')}`,
+  );
+});

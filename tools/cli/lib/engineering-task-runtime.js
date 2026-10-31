@@ -29,7 +29,7 @@ const { attestEngineeringVerifier, verifyEngineeringTask } = require('./engineer
 const { materializeStoreLinks, pinStoreMount, verifyPnpmStoreMount } = require('./engineering-workspace');
 const { EngineeringTaskState, engineeringDigest } = require('./engineering-task-state');
 const { evaluatePermissionLattice } = require('../../../packages/agent-policy-lattice');
-const { redactDiagnosticText } = require('./campaign-evidence-store');
+const { redactDiagnosticText, redactDiagnosticTail } = require('./campaign-evidence-store');
 const { accountSessionTokens } = require('../../../packages/agent-context/token-counter');
 
 const MANIFEST = 'engineering-task.json';
@@ -530,8 +530,10 @@ async function attestExecutor(policy, deadline) {
 }
 
 // The probe stderr reaches an error message: key material is redacted before the cut, so the cut cannot split a body.
+// Key bodies are replaced over the whole text, then only the last 4096 characters are scanned (the credential scan is
+// superlinear on some inputs).
 function probeStderr(stderr) {
-  return (redactDiagnosticText(stderr.trim()) ?? '[redacted: credential-like content]').slice(0, 200);
+  return (redactDiagnosticTail(stderr.trim(), 4096) ?? '[redacted: credential-like content]').slice(0, 200);
 }
 
 function createEngineeringTaskWorkspace(handle, created, id) {
