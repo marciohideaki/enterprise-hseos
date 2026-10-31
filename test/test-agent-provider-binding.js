@@ -292,3 +292,121 @@ test('CLI validates configuration without loading the declared environment secre
   assert.equal(report.evidence.configuration.secret_values_loaded, false);
   assert.doesNotMatch(result.stdout, new RegExp(SECRET));
 });
+
+function activatedEvidence(t) {
+  const { directory } = fixture(t);
+  const decisions = path.join(directory, 'decisions');
+  fs.mkdirSync(decisions);
+  fs.writeFileSync(path.join(decisions, 'ADR-0048-criterion.md'), '# ADR-0048: criterion\n\n## Status\n\nAccepted — 2026-10-22\n');
+  const databasePath = path.join(directory, 'state', 'project.db');
+  openOperationalStateDatabase(databasePath).close();
+  const original = createHash('sha256').update(fs.readFileSync(databasePath)).digest('hex');
+  return activateExecutionLedger(databasePath, {
+    adr: 'ADR-0048',
+    backupDir: path.join(directory, 'backups'),
+    now: () => Date.parse('2026-10-22T12:00:00.000Z'),
+    internal: { decisionsDirectory: decisions },
+  }).then((applied) => {
+    const windowPath = path.join(directory, 'window.json');
+    fs.writeFileSync(
+      windowPath,
+      JSON.stringify({
+        operator: 'owner',
+        stopped_consumers: ['hseos-state-tracking'],
+        original_sha256_before: original,
+        recorded_at: '2026-10-22T11:59:00.000Z',
+      }),
+    );
+    return { directory, databasePath, receiptPath: applied.receipt_path, windowPath };
+  });
+}
+
+function runValidateCli(extra) {
+  return spawnSync(
+    process.execPath,
+    [
+      path.join(ROOT, 'tools', 'cli', 'hseos-cli.js'),
+      'agent-provider-validate',
+      '--binding',
+      EXAMPLE,
+      '--repository',
+      ROOT,
+      '--json',
+      ...extra,
+    ],
+    { cwd: ROOT, encoding: 'utf8', env: { PATH: process.env.PATH, HSEOS_DISABLE_UPDATE_CHECK: '1' } },
+  );
+}
+
+function metIds(report) {
+  return report.evidence.activation_criterion.conditions.filter((condition) => condition.met).map((condition) => condition.id);
+}
+
+test('CLI without activation flags leaves the activation criterion pending with the explicit reason', () => {
+  const result = runValidateCli([]);
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(metIds(report), ['adr_accepted']);
+  const database = report.evidence.activation_criterion.conditions.find((condition) => condition.id === 'database_authorized');
+  assert.equal(database.reason, 'no database to inspect');
+  assert.ok(report.remaining_gates.includes('g9-adr0048-activation-criterion'));
+  assert.equal(report.evidence.activation_inputs.database, null);
+});
+
+test('CLI activation flags evaluate the criterion against the activated database', async (t) => {
+  const { databasePath, receiptPath, windowPath } = await activatedEvidence(t);
+  const withoutWindow = JSON.parse(runValidateCli(['--activation-db', databasePath, '--activation-receipt', receiptPath]).stdout);
+  assert.deepEqual(metIds(withoutWindow), ['adr_accepted', 'database_authorized', 'backup_integrity']);
+  const result = runValidateCli([
+    '--activation-db',
+    databasePath,
+    '--activation-receipt',
+    receiptPath,
+    '--activation-window',
+    windowPath,
+    '--activation-adr',
+    'ADR-0048',
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(metIds(report), ['adr_accepted', 'database_authorized', 'backup_integrity', 'supervised_window']);
+  assert.equal(report.evidence.activation_criterion.satisfied, false);
+  assert.ok(report.remaining_gates.includes('g9-adr0048-activation-criterion'));
+  assert.equal(report.activation_authorized, false);
+  assert.deepEqual(report.evidence.activation_inputs, {
+    database: 'project.db',
+    receipt: path.basename(receiptPath),
+    window: 'window.json',
+    adr: 'ADR-0048',
+  });
+  assert.ok(!result.stdout.includes(path.dirname(databasePath)));
+});
+
+test('CLI refuses a missing activation path and a malformed ADR identifier without a stack', async (t) => {
+  const { databasePath } = await activatedEvidence(t);
+  for (const flag of ['--activation-db', '--activation-receipt', '--activation-window']) {
+    const result = runValidateCli([flag, path.join(path.dirname(databasePath), 'does-not-exist')]);
+    assert.notEqual(result.status, 0, flag);
+    assert.match(result.stderr, new RegExp(`${flag} .*does not exist`), flag);
+    assert.doesNotMatch(result.stderr, /\n\s+at /, flag);
+  }
+  for (const adr of ['ADR-48', 'adr-0048', 'ADR-0048/../x', '../ADR-0048']) {
+    const result = runValidateCli(['--activation-adr', adr]);
+    assert.notEqual(result.status, 0, adr);
+    assert.match(result.stderr, /--activation-adr must match ADR-NNNN/, adr);
+  }
+});
+
+test('CLI refuses activation receipt or window without the activation database', async (t) => {
+  const { receiptPath, windowPath } = await activatedEvidence(t);
+  for (const flags of [
+    ['--activation-receipt', receiptPath],
+    ['--activation-window', windowPath],
+  ]) {
+    const result = runValidateCli(flags);
+    assert.notEqual(result.status, 0, flags[0]);
+    assert.match(result.stderr, /require --activation-db/, flags[0]);
+    assert.doesNotMatch(result.stderr, /\n\s+at /, flags[0]);
+  }
+  assert.equal(runValidateCli(['--activation-adr', 'ADR-0048']).status, 0);
+});

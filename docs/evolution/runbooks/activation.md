@@ -96,7 +96,7 @@ Pré-condições:
   - **Verificadas a partir de evidência em disco:** `adr_accepted` (Decision 6, parser do `plan`/`apply`); `database_authorized` (Decision 1 e 6: banco com o marcador de ativação, `classifyExecutionActivation` = `activated`, e recibo do `apply` no caminho que o `apply` grava, `<backup>.receipt.json`, para esse arquivo, com versões, intervalo e migrações coerentes); `backup_integrity` (2(b2): o backup do recibo existe como arquivo regular, tem o sha256 registrado, é o banco original, passa `integrity_check` e está em `user_version` 4); `supervised_window` (item 7: registro do operador com `operator`, `stopped_consumers` nominais, `original_sha256_before` igual ao do recibo e `recorded_at` estritamente anterior ao `started_at` do recibo).
   - **Sempre pendentes (evidência humana arquivada):** `contract_suites_on_activated_db` (2(a)), `rehearsal_evidence_archived` (2(b)), `modern_journey_counts` (2(c)), `real_client_proof` (2(d)), `legacy_inside_modern_compat` (2(e)), `legacy_initialize_revisions` (2(f)), `data_loss_acknowledgement` (Decision 5), `single_writer_proof` e `reregistration_list` (item 7). Hoje o gate, portanto, não fecha sozinho; o `explicit-human-cutover` continua sendo o passo humano.
   - O ensaio roda em cópia pré-ativação e não reabre o banco real (`inspectDatabase: false`), então `database_authorized`, `backup_integrity` e `supervised_window` ficam pendentes nele; só o binding, com `activation: { databasePath, receiptPath | backupPath, windowPath }`, avalia o banco ativado.
-  - **Decisão do owner, ainda aberta:** o formato oficial do registro da janela supervisionada (quem o escreve, onde fica, se o `apply` o exige ou gera) e as flags de CLI que o informam. Este gate **não** cria schema nem CLI para isso: o formato acima é só o que o verificador lê hoje, e a CLI reporta o gate sempre pendente.
+  - **Decisão do owner (2026-10-31):** o registro da janela supervisionada é o JSON escrito pelo operador, no formato que o verificador lê (ver a seção "Registro da janela supervisionada"). A CLI informa as evidências pelas flags `--activation-db`, `--activation-receipt`, `--activation-window` e `--activation-adr`, descritas na seção 3e; sem elas, o gate fica pendente com o motivo explícito.
   - O `g9-zero-legacy-window` continua legível em registros antigos (`_graph/**`, evidências do K3/K7), que não são reescritos.
 - **Consumidores a re-registrar** (lista nominal, a fechar na hora): no `~/.codex/config.toml`, `hseos-governance`, `hseos-state-tracking` (project-state) e `hseos-swarm`, que apontam para o `project.db` do enterprise-hseos via `HSEOS_STATE_DB`; `hseos-axon-bridge` está desabilitado e não usa o `project.db`. O `~/.claude.json` só tem `axon` e `playwright` (nenhum servidor HSEOS). **Não verificados:** `.mcp.json` por projeto, hooks e CLIs que abram o banco. Depois da ativação o servidor legado **recusa** o banco ativado, com mensagem que manda re-registrar o servidor no release governado, então todos precisam trocar antes do `apply`.
 
@@ -184,6 +184,29 @@ Servidor MCP `project-state` (banco ativado), mesma seção, com estas particula
 - **NOT_EXERCISED:** nenhuma `tools/call environment.*` foi feita por cliente real (Codex ou Claude Code). A omissão sem cgroup e a presença com cgroup estão provadas por teste do próprio servidor (`test/test-mcp-environment-host.js`), não por cliente.
 
 **Sem a seção `environment:` o host fica ausente** e o comportamento atual se mantém: `ENV_CAPABILITY_UNAVAILABLE` no servidor MCP e `ENGINEERING_ENVIRONMENT_HOST_REQUIRED` na CLI. A seção é escrita no passo 1b.0, com backup e rollback: ela só vale com o banco ativado (memória durável no `project.db`); na CLI sem banco ativado a memória usa o ledger da tarefa, com aviso. Pré-condição de segurança: o `agent run` admite o contrato (K6) antes de montar o host. A seção não carrega segredo, e este runbook não os manuseia.
+
+## 3e. Avaliar o critério pela CLI (`agent-provider-validate`, decisão do owner de 2026-10-31)
+
+O gate `g9-adr0048-activation-criterion` passa a ser avaliado pela CLI com quatro flags opcionais, todas somente leitura:
+
+| Flag                          | Entrada do critério                                                   |
+| ----------------------------- | --------------------------------------------------------------------- |
+| `--activation-db <path>`      | banco ativado a inspecionar (`databasePath`)                          |
+| `--activation-receipt <path>` | recibo do `apply`, no caminho `<backup>.receipt.json` (`receiptPath`) |
+| `--activation-window <path>`  | registro da janela supervisionada (`windowPath`)                      |
+| `--activation-adr <id>`       | ADR do critério, formato `ADR-NNNN` (padrão `ADR-0048`)               |
+
+```bash
+hseos agent-provider-validate --binding <binding.yaml> --json \
+  --activation-db <project.db> --activation-receipt <backup>.receipt.json --activation-window <window.json>
+```
+
+- Sem as flags nada muda: o gate fica pendente com o motivo explícito (por exemplo `no database to inspect`).
+- Caminho que não é um arquivo existente, ou ADR fora de `ADR-NNNN`, é recusado com mensagem curta e exit diferente de zero, sem stack.
+- O backup não tem flag: o verificador usa o `backup_path` registrado no recibo.
+- O relatório JSON traz `evidence.activation_inputs` com apenas o nome dos arquivos usados (nunca o caminho completo) e o ADR efetivo.
+- As condições sempre pendentes (`não verificável pelo ensaio`) continuam pendentes: mesmo com tudo provado, o gate segue em `remaining_gates` e `activation_authorized` permanece `false`.
+- Para a CLI nunca apontar o `project.db` real fora da janela supervisionada: o banco é aberto somente leitura, mas a janela do passo 1b é quem autoriza tocá-lo.
 
 ## 4. Passo 2 — hooks Codex com `trusted_hash`
 
