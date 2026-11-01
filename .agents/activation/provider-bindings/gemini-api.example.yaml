@@ -1,0 +1,41 @@
+# Declaração L0 (ADR-0050, seção 1) do binding da quarta família: API Gemini direta.
+# Somente declaração documentada. Não é carregada por nenhum adapter: o validador
+# atual (tools/lib/agent-provider-binding.js) aceita só o adapter openai-compatible-sse
+# e o esquema é estrito, então este arquivo é recusado por ele até a task B1.
+# Valores marcados "a confirmar na campanha" não são verificáveis agora e nunca são presumidos.
+schema_version: "1.0"
+binding_id: provider-binding:gemini-api-example
+adapter: a confirmar na campanha
+provider:
+  provider_id: model:gemini-api
+  provider_version: a confirmar na campanha
+  client:
+    name: a confirmar na campanha
+    version: a confirmar na campanha
+  sdk:
+    name: a confirmar na campanha
+    version: a confirmar na campanha
+  model: a confirmar na campanha
+  endpoint: a confirmar na campanha
+  route: api
+  auth:
+    mode: api_key
+    subscription_route_evaluated: a confirmar na campanha
+    subscription_token_used_as_api: false
+  secret_refs:
+    - name: api-key
+      source_ref: secret://google/gemini-hseos
+  billing:
+    kind: measured
+    plan: a confirmar na campanha
+    per_request_reserve_microusd: a confirmar na campanha
+  quota:
+    status: unknown
+    note: cota desconhecida nunca é ilimitada; observar na campanha ou registrar exceção auditada
+  budget_default:
+    max_requests: 4
+    max_cost_microusd: 1000000
+    max_window_minutes: 45
+activation:
+  operational: false
+  authorized: false
