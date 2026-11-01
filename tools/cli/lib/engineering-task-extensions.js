@@ -593,7 +593,13 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
       // A query that looks like a credential is never used to search: nothing leaves, nothing is found.
       memorySources = deepFreeze(
         wantsMemory && !containsCredential(query)
-          ? await require('./memory-context-source').collectMemorySources({ store: memory.store, project_id: host.project_id, query })
+          ? await require('./memory-context-source').collectMemorySources({
+              store: memory.store,
+              project_id: host.project_id,
+              query,
+              // Untrusted memory (every note an agent wrote over MCP) enters only by this host decision, never the model's.
+              include_untrusted: memory.include_untrusted === true,
+            })
           : [],
       );
     },
