@@ -192,14 +192,15 @@ Decididos pelo owner em 2026-10-30 (run `20261030-1810-owner-decisions`): A-07 r
 
 Fonte: STATUS da run `20261030-1810-owner-decisions` (`.hseos/runs/dev-squad/20261030-1810-owner-decisions/STATUS.md`, versionado no commit dos registros). A numeração A1–A19 é a do PLAN-2 da mesma run; o "A-17" do STATUS (corpos de PR) é o A13 do PLAN-2. Os SHAs de task abaixo são dos commits das branches de task, anteriores ao squash.
 
-| Onda | PR   | Merge      | Tag                        | Tasks                                                                                                                 |
-| ---- | ---- | ---------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| W4   | #261 | `e6239c2a` | `hseos-owner-decisions-w4` | E1, E2, E3                                                                                                            |
-| W5   | #262 | `75b472e0` | `hseos-owner-decisions-w5` | E4, E5, E6; E10 e E11 nasceram da falha do CI da própria #262                                                         |
-| W6   | #263 | `55d3d1aa` | `hseos-owner-decisions-w6` | E7, E8, E9                                                                                                            |
-| W7   | —    | —          | —                          | A12 feita (release `817da40b`); A15 parcial; A18 feita até o limite do protocolo do cliente; sem PR, só ações no host |
-| W8   | #265 | `817da40b` | `hseos-owner-decisions-w8` | E12 (watchdog de liveness no banco ativado)                                                                           |
-| W9   | #266 | `fe878a5f` | `hseos-owner-decisions-w9` | F1 (janela validada no apply e ligada ao recibo v2), F2 (flags de ativação na CLI), F3 (ADR-0050 aceito)              |
+| Onda | PR   | Merge      | Tag                         | Tasks                                                                                                                 |
+| ---- | ---- | ---------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| W4   | #261 | `e6239c2a` | `hseos-owner-decisions-w4`  | E1, E2, E3                                                                                                            |
+| W5   | #262 | `75b472e0` | `hseos-owner-decisions-w5`  | E4, E5, E6; E10 e E11 nasceram da falha do CI da própria #262                                                         |
+| W6   | #263 | `55d3d1aa` | `hseos-owner-decisions-w6`  | E7, E8, E9                                                                                                            |
+| W7   | —    | —          | —                           | A12 feita (release `817da40b`); A15 parcial; A18 feita até o limite do protocolo do cliente; sem PR, só ações no host |
+| W8   | #265 | `817da40b` | `hseos-owner-decisions-w8`  | E12 (watchdog de liveness no banco ativado)                                                                           |
+| W9   | #266 | `fe878a5f` | `hseos-owner-decisions-w9`  | F1 (janela validada no apply e ligada ao recibo v2), F2 (flags de ativação na CLI), F3 (ADR-0050 aceito)              |
+| W10  | #268 | `2d2da31f` | `hseos-owner-decisions-w10` | G1 (JSON Schema real nas ferramentas de capability), G2 (ADR-0049 aceito)                                             |
 
 CI das PRs #262, #263 e #265: 24/24 no merge; CI completo na master `55d3d1aa` (run 41172438629) verde. As ondas W1–W3 (#258–#260) estão no estado de 2026-10-30, acima.
 
@@ -252,6 +253,7 @@ Plano: `PLAN-3.md` da run `20261030-1810-owner-decisions` (onda W9). As decisõe
   - **Provado:** o Claude Code 2.1.316 negociou `2026-07-28` e recebeu `memory_write`, `memory_retrieve` e `memory_delete`, que não existem na compatibilidade `2024-11-05`. O custo estimado foi de US$ 0,71 em 2 rodadas `-p`.
   - **Defeito do HSEOS:** as ferramentas `memory.*` e `environment.*` publicam `inputSchema` aberto (`{type: object, additionalProperties: true}`, em `capabilityToolDescriptors`). Sem tipos, o modelo mandou `scope` e `ttl_seconds` como string, e o servidor recusou com `AGENT_MEMORY_INVALID`. **Decisão do owner:** corrigir numa task da W10, com JSON Schema real por contrato.
   - **Limite do cliente:** no modo `-p` (headless), o Claude Code não declara `elicitation`. O servidor responde `-32021`, e o cliente mostra "Internal error". Um cliente diagnóstico que declara `elicitation` recebe `input_required` com o pedido de aprovação, então o servidor está correto. **Decisão do owner:** depois da W10, o owner roda a sessão interativa no terminal dele, com a allowlist aberta só nessa janela, e aprova o `memory.delete`. Até lá, o MRTR por consumidor real segue aberto.
+  - **Resultado (2026-10-31, depois da W10, distribuição em `2d2da31f`): MRTR por consumidor real PROVADO.** Na sessão interativa do owner, o Claude Code 2.1.316 fez `memory.write` (`ok: true`). Em seguida fez `memory.delete`, e o servidor emitiu `input_required`. O owner confirmou que viu o pedido de aprovação e aprovou. O resultado foi `deleted: true`, com aprovação `authorizer: human` registrada e consumida uma única vez no ledger da cópia. Recibo: `logs/MRTR-CLAUDE.md` da run. A allowlist foi restaurada por hash. O Codex segue sem `2026-07-28` (A18).
 - **ADR-0049 (2026-10-31).** Respostas do owner:
   - fixar a última tag estável do Code OSS, com rebase mensal e correção de segurança do upstream em até 7 dias;
   - até 10 patches e 1.500 linhas fora de `extensions/`;
