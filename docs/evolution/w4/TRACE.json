@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "wave": "W4",
+  "description": "Rastro legível por máquina de promessa a requisito, teste e recibo (A-20). Validado por test/test-evolution-trace.js; tests: [] significa que não há teste dedicado vinculado.",
+  "entries": [
+    {
+      "id": "W4-FR01",
+      "promise": {
+        "text": "Todo plugin deve declarar identidade, versão, compatibilidade e capacidades",
+        "source": ".specs/features/harness-w4/spec.md:21"
+      },
+      "requirements": ["F04-R1", "F22-R1"],
+      "tests": [
+        {
+          "file": "test/test-execution-plugin-manifest.js",
+          "name": "manifest rejects unknown versions, extra fields, unbounded limits and ambiguous compatibility"
+        },
+        {
+          "file": "test/test-execution-plugin-manifest.js",
+          "name": "content and descriptor are rechecked after admission"
+        },
+        {
+          "file": "test/test-tool-runtime.js"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        },
+        {
+          "kind": "commit",
+          "sha": "feee73c"
+        }
+      ],
+      "status": "delivered",
+      "note": "Vínculo de arquivos conforme w4/evidence/final/traceability.md (FR01)."
+    },
+    {
+      "id": "W4-FR02",
+      "promise": {
+        "text": "Um consumidor de cada tipo (ferramenta, provider, contexto) deve ser instalável",
+        "source": ".specs/features/harness-w4/spec.md:22"
+      },
+      "requirements": ["F22-R1"],
+      "tests": [
+        {
+          "file": "test/test-execution-plugin-runtime.js",
+          "name": "external code executes only from a read-only isolated snapshot with request-bound output"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/real/verification-receipt.json"
+        },
+        {
+          "kind": "commit",
+          "sha": "00e2881"
+        }
+      ],
+      "status": "delivered",
+      "note": "Consumidores reais instalados fora do checkout (STATUS.md:535-537)."
+    },
+    {
+      "id": "W4-FR03",
+      "promise": {
+        "text": "Jobs devem persistir identidade, dependências, ownership, estado e reservas",
+        "source": ".specs/features/harness-w4/spec.md:23"
+      },
+      "requirements": ["F06-R1"],
+      "tests": [
+        {
+          "file": "test/test-job-control.js",
+          "name": "job creation is data only, durable, temporally eligible and replayable"
+        },
+        {
+          "file": "test/test-job-recovery.js",
+          "name": "two real controllers contend once; expired lease cannot steal a living owner"
+        },
+        {
+          "file": "test/test-job-faults.js",
+          "name": "intent without confirmed outcome is uncertain and never automatically dispatched twice"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/real/verification-receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W4-FR04",
+      "promise": {
+        "text": "DAG deve rejeitar ciclos e dependências inválidas",
+        "source": ".specs/features/harness-w4/spec.md:24"
+      },
+      "requirements": ["F12-R1"],
+      "tests": [
+        {
+          "file": "test/test-workflow-expansion.js",
+          "name": "expansion rejects ${variant} without events or effects"
+        },
+        {
+          "file": "test/test-engineering-workflow-runtime.js",
+          "name": "workflow validation rejects cycles and aggregate oversubscription before creating state"
+        },
+        {
+          "file": "test/test-job-faults.js",
+          "name": "baseline drift after an accepted predecessor invalidates the unstarted dependent after drain"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W4-FR05",
+      "promise": {
+        "text": "Cancelamento transitivo idempotente deve atingir processos",
+        "source": ".specs/features/harness-w4/spec.md:25"
+      },
+      "requirements": ["F12-R1"],
+      "tests": [
+        {
+          "file": "test/test-job-recovery.js",
+          "name": "reconciliation proves drain of an actual descendant surviving the controller death"
+        },
+        {
+          "file": "test/test-execution-plugin-runtime.js",
+          "name": "cancellation drains a plugin and a detached descendant; parent exit also drains descendants"
+        },
+        {
+          "file": "test/test-job-faults.js",
+          "name": "a failed predecessor cancels its queued dependent without materializing it"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/real/verification-receipt.json"
+        }
+      ],
+      "status": "delivered",
+      "note": "O ensaio real cancelou só um job enfileirado; a drenagem de processos é provada pela matriz determinística (STATUS.md:540-541)."
+    },
+    {
+      "id": "W4-FR06",
+      "promise": {
+        "text": "Reserva, débito e liberação devem usar o orçamento composto existente",
+        "source": ".specs/features/harness-w4/spec.md:26"
+      },
+      "requirements": ["F13-R1"],
+      "tests": [
+        {
+          "file": "test/test-job-campaign.js",
+          "name": "campaign requires reciprocal authorization and keeps an uncertain reservation committed"
+        },
+        {
+          "file": "test/test-job-faults.js",
+          "name": "intent without confirmed outcome is uncertain and never automatically dispatched twice"
+        },
+        {
+          "file": "test/test-workflow-reservations.js",
+          "name": "revision enforces original resource, duration and child limits"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/real/verification-receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W4-FR07",
+      "promise": {
+        "text": "Perfis devem resolver dependências e incompatibilidades",
+        "source": ".specs/features/harness-w4/spec.md:27"
+      },
+      "requirements": ["F21-R1"],
+      "tests": [
+        {
+          "file": "test/test-execution-plugin-install.js",
+          "name": "upgrade and rollback retain old bytes and the original execution selection"
+        },
+        {
+          "file": "test/test-execution-plugin-install.js",
+          "name": "help and fresh command import leave an unselected execution plugin inert"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/real/verification-receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W4-FR08",
+      "promise": {
+        "text": "CLI/API/SDK devem observar as mesmas identidades, sequências, reservas e resultados",
+        "source": ".specs/features/harness-w4/spec.md:28"
+      },
+      "requirements": ["F19-R1"],
+      "tests": [
+        {
+          "file": "test/test-job-surfaces.js",
+          "name": "CLI, JavaScript and Python share job state, command replay and event cursors"
+        },
+        {
+          "file": "test/test-job-surfaces.js",
+          "name": "job HTTP keeps authentication, strict commands and cursor boundaries"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W4-REAL-CODEX",
+      "promise": {
+        "text": "O segundo concluiu com recibo e sem incerteza.",
+        "source": "docs/evolution/w4/STATUS.md:546"
+      },
+      "requirements": [],
+      "tests": [],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/real/verification-receipt.json"
+        }
+      ],
+      "status": "partial",
+      "note": "O primeiro despacho teve recibo rejeitado (STATUS.md:544); sem saldo para novos despachos; consumidor real mínimo."
+    },
+    {
+      "id": "W4-SUITE",
+      "promise": {
+        "text": "zero falhas/skips",
+        "source": "docs/evolution/w4/STATUS.md:562"
+      },
+      "requirements": [],
+      "tests": [],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/final/verification-receipt.json"
+        }
+      ],
+      "status": "delivered",
+      "note": "Suítes integrais Node 22/24 registradas no recibo final; não há teste único."
+    },
+    {
+      "id": "W4-MUTANTS",
+      "promise": {
+        "text": "A matriz W4 rejeitou 18/18 mutantes",
+        "source": "docs/evolution/w4/STATUS.md:564"
+      },
+      "requirements": [],
+      "tests": [],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/final/verification-receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w4/evidence/deterministic/verification-receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W4-FOURTH",
+      "promise": {
+        "text": "quarta família somente",
+        "source": "docs/evolution/w4/PLAN.md:29"
+      },
+      "requirements": [],
+      "tests": [],
+      "evidence": [],
+      "status": "not_delivered",
+      "note": "Adiada para depois de todas as fases por decisão do proprietário."
+    }
+  ]
+}
