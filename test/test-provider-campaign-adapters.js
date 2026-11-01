@@ -587,3 +587,139 @@ test('native adapter keeps accepting and refusing explicit pids_max values', (t)
     assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   }
 });
+
+const AMBIENT_CREDENTIALS = ['OPENAI_API_KEY', 'CODEX_API_KEY', 'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'];
+for (const vendor of ['codex', 'claude'])
+  test(`L1 F08-R1 ${vendor} native binding: an ambient credential never overlays the declared one`, async (t) => {
+    const f = native(t, vendor);
+    const state = path.dirname(f.filename);
+    for (const name of AMBIENT_CREDENTIALS) f.deps.environment[name] = `ambient-${name}`;
+    const configured = f.create();
+    await configured.adapter.inspect();
+    await configured.adapter.run({ task_id: f.id, signal: new AbortController().signal });
+    const runs = f.calls.filter((call) => call.input.operation === 'run');
+    assert.equal(runs.length, 1);
+    for (const call of f.calls) {
+      const names = Object.keys(call.input.environment).sort();
+      assert.deepEqual(
+        names,
+        vendor === 'codex' ? ['CODEX_HOME', 'HOME', 'PATH'] : ['ANTHROPIC_API_KEY', 'CLAUDE_CODE_MAX_OUTPUT_TOKENS', 'HOME', 'PATH'],
+      );
+      assert.ok(!JSON.stringify(call.input.environment).includes('ambient-'));
+    }
+    // A competing credential placed in the declared environment is a configuration error, not an override.
+    for (const name of AMBIENT_CREDENTIALS) {
+      const options = { ...f.settings, environment: { ...f.settings.environment, [name]: 'override' } };
+      assert.throws(
+        () => createNativeCampaignAdapter({ manifest: f.m, binding: f.filename, options, state }, f.deps),
+        { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' },
+        name,
+      );
+    }
+    // Schema layer alone: with the binding digest re-pinned over the loosened options, the strict environment schema still refuses.
+    const reader = require(`../tools/cli/lib/delegated-${vendor}-runtime`).readBinding;
+    for (const name of AMBIENT_CREDENTIALS) {
+      const options = { ...f.settings, environment: { ...f.settings.environment, [name]: 'override' } };
+      const pinned = { ...f.m, binding_sha256: engineeringDigest({ binding: reader(f.filename), options }) };
+      assert.throws(
+        () => createNativeCampaignAdapter({ manifest: pinned, binding: f.filename, options, state }, f.deps),
+        /Unrecognized key/,
+        name,
+      );
+    }
+    if (vendor === 'claude') {
+      // Swapping the declared key for an ambient one is identity drift, refused before any network or process effect.
+      const before = f.calls.length;
+      f.deps.environment.TEST_PROVIDER_KEY = f.deps.environment.OPENAI_API_KEY;
+      await assert.rejects(configured.adapter.inspect(), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+      await assert.rejects(configured.adapter.run({ task_id: f.id, signal: new AbortController().signal }), {
+        code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED',
+      });
+      assert.equal(f.calls.length, before);
+    } else {
+      // The login location is pinned by the binding digest: a different CODEX_HOME than the declared auth file is refused.
+      const options = { ...f.settings, environment: { ...f.settings.environment, CODEX_HOME: path.join(state, 'other') } };
+      assert.throws(() => createNativeCampaignAdapter({ manifest: f.m, binding: f.filename, options, state }, f.deps), {
+        code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID',
+      });
+    }
+  });
+test('L1 F08-R1 codex native binding: a silent switch from subscription to paid or unlimited credits blocks before dispatch', async (t) => {
+  const f = native(t, 'codex');
+  const a = f.create().adapter;
+  const credits = f.report.quota.rateLimits.credits;
+  for (const patch of [{ hasCredits: true }, { unlimited: true }, { hasCredits: true, unlimited: true }, { hasCredits: undefined }]) {
+    f.report.quota.rateLimits.credits = { ...credits, ...patch };
+    await assert.rejects(a.inspect(), { code: 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE' }, JSON.stringify(patch));
+  }
+  f.report.quota.rateLimits.credits = credits;
+  f.report.quota.rateLimits.rateLimitReachedType = 'rate_limit_reached';
+  await assert.rejects(a.inspect(), { code: 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE' });
+  delete f.report.quota.rateLimits.rateLimitReachedType;
+  f.report.identity.account.type = 'apikey';
+  await assert.rejects(a.inspect(), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+  assert.equal(f.calls.filter((call) => call.input.operation === 'run').length, 0);
+});
+test('L1 F08-R1 F18-R1 antigravity local binding: credential and billing do not apply, ambient credentials are not forwarded', async (t) => {
+  const d = temporary(t);
+  const config = {
+    python: fs.realpathSync('/usr/bin/python3'),
+    checkpoint: path.join(d, 'model.litertlm'),
+    sdk_module: path.join(d, '__init__.py'),
+    scratch: d,
+    subordinate_binding_id: 'binding:model',
+    max_model_calls: 2,
+    pids_max: 256,
+    tasks: { [randomUUID()]: { prompt: 'Call the campaign model tool.' } },
+  };
+  fs.writeFileSync(config.checkpoint, 'fixture only');
+  fs.writeFileSync(config.sdk_module, '');
+  const file = path.join(d, 'binding.json');
+  fs.writeFileSync(file, JSON.stringify(config));
+  const artifacts = [config.python, config.checkpoint, config.sdk_module].map((p) =>
+    createHash('sha256').update(fs.readFileSync(p)).digest('hex'),
+  );
+  const m = manifest('antigravity', 'local', 'client');
+  m.adapter = 'hseos-antigravity-campaign-v1';
+  m.artifact_sha256 = antigravityArtifactDigest();
+  m.authentication.identity_kind = 'local_profile';
+  m.authentication.account_sha256 = null;
+  m.authentication.profile_sha256 = engineeringDigest(artifacts);
+  m.binding_sha256 = engineeringDigest({ config, artifacts });
+  const inputs = [];
+  for (const name of AMBIENT_CREDENTIALS) process.env[name] = `ambient-${name}`;
+  t.after(() => {
+    for (const name of AMBIENT_CREDENTIALS) delete process.env[name];
+  });
+  const processRunner = async (call) => {
+    inputs.push(call);
+    return { sdk_version: m.provider_version };
+  };
+  const adapter = createAntigravityCampaignAdapter({ manifest: m, binding: file, options: {} }, { processRunner }).adapter;
+  const observed = await adapter.inspect();
+  assert.equal(observed.competing_credentials, false);
+  assert.equal(observed.account_sha256, null);
+  assert.equal(observed.profile_sha256, m.authentication.profile_sha256);
+  assert.ok(!JSON.stringify(inputs).includes('ambient-'));
+  // A credential-bearing identity is not a local profile: the adapter refuses it instead of accepting an API route.
+  assert.throws(
+    () =>
+      createAntigravityCampaignAdapter(
+        { manifest: { ...m, authentication: { ...m.authentication, identity_kind: 'credential' } }, binding: file, options: {} },
+        { processRunner },
+      ),
+    { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' },
+  );
+});
+
+test('L1 F08-R1 claude native binding: the SDK budget cap is the manifest reservation and a reported SDK cost is never trusted as billing', async (t) => {
+  const f = native(t, 'claude');
+  const a = f.create().adapter;
+  await a.inspect();
+  const result = await a.run({ task_id: f.id, signal: new AbortController().signal });
+  const run = f.calls.find((call) => call.input.operation === 'run');
+  // The SDK is capped at the reservation the campaign charges, so a model-side cost change cannot exceed it silently.
+  assert.equal(run.input.budget_microusd, f.m.billing.max_request_microusd);
+  // total_cost_usd (an SDK estimate, here 0.0001) never becomes the receipt cost: the control layer charges the reservation.
+  assert.equal(result.cost_microusd, null);
+});

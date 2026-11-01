@@ -259,3 +259,44 @@ test('cache reads and cache creation stay part of the input total of the receipt
   const receipt = await f.create().adapter.run({ task_id: f.id, signal: signal() });
   assert.equal(receipt.input_tokens, 1005, 'direct 5 + cache read 600 + cache creation 400');
 });
+
+test('L1 F08-R1 F18-R1 claude account binding: ambient credentials never overlay the login and cannot be declared', async (t) => {
+  const ambient = ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL', 'OPENAI_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN'];
+  for (const name of ambient) process.env[name] = `ambient-${name}`;
+  t.after(() => {
+    for (const name of ambient) delete process.env[name];
+  });
+  const f = setup(t);
+  await f.create().adapter.inspect({ signal: signal() });
+  await f.create().adapter.run({ task_id: f.id, signal: signal() });
+  const calls = f.calls();
+  assert.ok(calls.length >= 2);
+  for (const call of calls)
+    assert.ok(childEnvironment(call.env).every((name) => ['HOME', 'PATH', 'CLAUDE_CODE_MAX_OUTPUT_TOKENS'].includes(name)));
+  for (const name of ambient) {
+    const settings = { ...f.settings, environment: { ...f.settings.environment, [name]: 'override' } };
+    assert.throws(() => f.create({ options: settings }), { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' }, name);
+  }
+  // Schema layer alone: with the binding digest re-pinned over the loosened options, the strict environment schema still refuses.
+  const { readBinding } = require('../tools/cli/lib/provider-claude-account-adapter');
+  for (const name of ambient) {
+    const settings = { ...f.settings, environment: { ...f.settings.environment, [name]: 'override' } };
+    const manifest = { ...f.m, binding_sha256: engineeringDigest({ binding: readBinding(f.filename), options: settings }) };
+    assert.throws(() => f.create({ manifest, options: settings }), /Unrecognized key/, name);
+  }
+});
+
+test('L1 F08-R1 F18-R1 claude account binding: a silent switch from the subscription to API billing blocks the run', async (t) => {
+  const f = setup(t);
+  const configured = f.create().adapter;
+  await configured.inspect({ signal: signal() });
+  // The login flips to an API key after a clean inspection: the run re-observes and refuses before any prompt is sent.
+  f.writeMode({ auth: { loggedIn: true, apiProvider: 'firstParty', ...IDENTITY, authMethod: 'api_key' } });
+  await assert.rejects(configured.run({ task_id: f.id, signal: signal() }), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+  f.writeMode({ auth: { loggedIn: true, apiProvider: 'vertex', ...IDENTITY } });
+  await assert.rejects(configured.run({ task_id: f.id, signal: signal() }), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+  assert.equal(f.calls().filter((call) => call.argv.includes('-p')).length, 0);
+  // The client starting on a billed key source is refused even when the login still looks like a subscription.
+  const g = setup(t, { run: 'api_key' });
+  await assert.rejects(g.create().adapter.run({ task_id: g.id, signal: signal() }), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+});
