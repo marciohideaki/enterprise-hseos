@@ -80,6 +80,17 @@ module.exports = {
             session_resume: false,
             real_conformance: 'not_certified',
           },
+          {
+            adapter: api.API_ADAPTER_ID,
+            version: api.API_ADAPTER_VERSION,
+            artifact_sha256: api.adapterArtifactDigest(),
+            vendor: 'gemini',
+            route: 'api',
+            provider_kind: 'model',
+            identity_kind: 'credential',
+            session_resume: false,
+            real_conformance: 'not_certified',
+          },
           ...['codex', 'claude'].map((vendor) => ({
             adapter: `hseos-${vendor}-campaign-v1`,
             vendor,
@@ -100,7 +111,7 @@ module.exports = {
           },
         ],
         pending_campaign_adapters: [],
-        pending_real_conformance: ['codex', 'claude', 'deepseek', 'antigravity'],
+        pending_real_conformance: ['codex', 'claude', 'deepseek', 'gemini', 'antigravity'],
       };
       process.stdout.write(JSON.stringify(result) + '\n');
       return result;

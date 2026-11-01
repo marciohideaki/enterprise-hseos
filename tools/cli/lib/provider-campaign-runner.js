@@ -2,6 +2,8 @@
 const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
 const vendors = ['codex', 'claude', 'deepseek', 'antigravity'];
+// Vendors admitted only in a single-binding pilot; they never count toward the four-family coverage.
+const pilotVendors = new Set(['gemini']);
 const uuid = z.string().uuid();
 const planSchema = z
   .object({
@@ -33,7 +35,11 @@ async function runProviderCampaign(client, rawPlan) {
     if (!bindings.has(step.binding_id)) bindings.set(step.binding_id, await client.bindingInspect(step.binding_id));
   }
   const covered = [...new Set([...bindings.values()].map((binding) => binding.vendor))].sort();
-  if (covered.some((vendor) => !vendors.includes(vendor))) fail('CONTROL_CAMPAIGN_VENDOR_UNKNOWN');
+  if (covered.some((vendor) => !vendors.includes(vendor) && !pilotVendors.has(vendor))) fail('CONTROL_CAMPAIGN_VENDOR_UNKNOWN');
+  if (covered.some((vendor) => pilotVendors.has(vendor))) {
+    if (plan.scope !== 'pilot') fail('CONTROL_CAMPAIGN_VENDOR_UNKNOWN');
+    if (bindings.size !== 1) fail('CONTROL_CAMPAIGN_PILOT_SCOPE_INVALID');
+  }
   if (plan.scope === 'four-family' && vendors.some((vendor) => !covered.includes(vendor))) fail('CONTROL_CAMPAIGN_COVERAGE_INCOMPLETE');
   const command = (commandId, action, input, expectedSequence) => ({
     schema_version: 1,
