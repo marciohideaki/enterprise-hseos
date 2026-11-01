@@ -670,4 +670,6 @@ module.exports = {
   ContextBudgetError,
   INSTRUCTION_TIERS,
   PRECEDENCE_PREAMBLE,
+  instructionMessage,
+  quotedData,
 };

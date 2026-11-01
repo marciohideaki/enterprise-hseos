@@ -82,23 +82,29 @@ a distinct `detail.code` (`docs/engineering-control-api.md`).
   approval yet and is recorded here for review.
 - Context floor (H-4): admission also refuses `limits.max_tokens` below `minimumMaxTokens(contract, reserve)` with
   `ENGINEERING_MAX_TOKENS_BELOW_FLOOR`; the message names the minimum and the received value. The floor is the
-  output reserve plus what the context assembler certainly counts as input: the precedence preamble, both
-  instructions, the protected-criteria block and the first user turn (both built from the contract), the request
-  parameters and the native tool schemas of a schema 1 task (1853, measured). The reserve is the one the runtime
+  output reserve plus the first request measured as the session accounting books it for a step that reports no usage
+  (the canonical request the runtime builds: framed messages, parameters, the schemas
+  of the native tools, which depend on the contract (command ids, paths), the tools of the declared environment
+  capabilities, and the envelope with the provider and model names). The
+  figure follows the digits of `max_tokens`, which the criteria quote. The reserve is the one the runtime
   sends, `effectiveOutputReserve(cap)` = `min(8192, provider cap)`, shared by both, so admission uses the exact
   cap wherever it is resolved: a scripted model has none (reserve 8192); `agent run --binding` and the control API
   `create` with a `binding_id` or a `plugin_model` check again after the binding or the plugin pin is resolved
   (`admitCreation`), with that cap; control `create_workflow` tasks are scripted (a task binding is refused), so they
-  use 8192. The only checks that still assume the smallest reserve a provider can impose (1; floor 3712 for
-  `addition.json`) are `validate-task` without a model source, which runs nothing, and the structural pre-read of
+  use 8192. The only checks that still assume the smallest reserve a provider can impose (1; floor 4724 for
+  `addition.json`, and the shortest provider and model names a request can carry) are `validate-task` without a model
+  source, which runs nothing, and the structural pre-read of
   `agent run`, which `runEngineeringTask` repeats with the exact cap. Below the floor the first request cannot be
   assembled and the session used to end in `session-failed:internal_error` with no cause.
-  The floor is a lower bound, so a value above it can still fail opaquely. Measured by bisection (first request
-  assembles from floor + margin): schema 1 `addition.json`, caps 96, 256, 1024, 2048 and 8192: margin 752 to 753
-  tokens (per-message framing); schema 2 project fixture with a plugin model of cap 8192: margin 2359 tokens (framing
-  plus the schema 2 tool schemas the floor does not count). Extensions, environment tools and memory add context
-  the floor does not count either, and their residual was not measured. A run can also stop with
-  `session-budget-exceeded` when later requests do not fit; that failure already names its numbers. The floor is
+  The floor is exact for the first model step (debt 18): measured by bisection, the smallest `max_tokens` that
+  starts the first step and ends the session without passing its own budget is the floor itself (12962 for
+  `addition.json`, 15151 for the schema 2 project fixture), and one below it is refused at admission with the minimum.
+  The first step of a turn is projected from the session's other usage plus its own request and reserve, because the
+  session accounting already books that request's input and reserve until a step exists; later steps re-send the grown context and need more, as a correction round does. Context that only exists at run time
+  (memory a capability retrieves, tools and sources of plugin extensions) is not in the floor; if it overflows, the
+  session ends as `session-budget-exceeded` (`error_code` `budget_exceeded`, with the assembler's message), never as
+  `session-failed:internal_error`. A run can also stop with `session-budget-exceeded` when later requests do not fit;
+  that failure already names its numbers. The floor is
   checked before `requireExecutableAcceptance`, so a contract with both problems reports the floor first. Contracts
   already admitted, replays, recovery and `readEngineeringTask` without admission are not re-checked; `job expand`
   re-evaluates the whole workflow with admission, so an older task with a low `max_tokens` blocks the expansion, as

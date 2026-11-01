@@ -161,4 +161,45 @@ function inspectProviderControlManifest(value, bindingSha256) {
   });
 }
 
-module.exports = { ROUTES, ProviderControlManifestSchema, parseProviderControlManifest, inspectProviderControlManifest };
+function refuse(code, message) {
+  const error = new Error(message);
+  error.code = code;
+  throw error;
+}
+
+/** The backend a request actually reached must be the declared one; any divergence or missing observation refuses. */
+function assertEffectiveBackend(declared, effective) {
+  const modelDeclared = declared?.model !== undefined;
+  if (
+    typeof declared?.origin !== 'string' ||
+    (modelDeclared && typeof declared.model !== 'string') ||
+    effective?.origin !== declared.origin ||
+    (modelDeclared && effective?.model !== declared.model)
+  )
+    refuse('CONTROL_PROVIDER_BACKEND_DIVERGED', 'The effective backend differs from the declared binding');
+  return deepFreeze({ origin: declared.origin, ...(modelDeclared ? { model: declared.model } : {}) });
+}
+
+/** Only the declared credential source counts; a second source holding a value is a conflict, never a fallback. */
+function selectDeclaredCredential(manifest, candidates) {
+  const declared = parseProviderControlManifest(manifest).authentication.credential?.source_ref ?? null;
+  const present = Object.entries(candidates ?? {}).filter(([, value]) => typeof value === 'string' && value.length > 0);
+  const others = present.some(([source]) => source !== declared);
+  if (declared === null) {
+    if (others) refuse('CONTROL_PROVIDER_CREDENTIAL_CONFLICT', 'A local binding declares no credential source');
+    return null;
+  }
+  const value = present.find(([source]) => source === declared)?.[1];
+  if (value === undefined) refuse('CONTROL_PROVIDER_IDENTITY_UNVERIFIED', 'The declared credential source did not resolve');
+  if (others) refuse('CONTROL_PROVIDER_CREDENTIAL_CONFLICT', 'A credential source other than the declared one is present');
+  return value;
+}
+
+module.exports = {
+  ROUTES,
+  ProviderControlManifestSchema,
+  assertEffectiveBackend,
+  parseProviderControlManifest,
+  inspectProviderControlManifest,
+  selectDeclaredCredential,
+};

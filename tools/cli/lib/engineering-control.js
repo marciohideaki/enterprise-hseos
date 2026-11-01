@@ -360,7 +360,11 @@ class EngineeringControl {
           )
         : undefined;
       // The cap the runtime will reserve is known now: hold the contract to the exact floor, not the smallest-reserve one.
-      if (admission && binding) requireContextFloor(contract, binding.provider.limits.max_output_tokens);
+      if (admission && binding)
+        requireContextFloor(contract, binding.provider.limits.max_output_tokens, {
+          provider_id: binding.provider.provider_id,
+          model: binding.provider.model,
+        });
       let selection, pluginModel;
       if (input.extension_ids?.length || input.plugin_model) {
         selection = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(this.extensionCatalog, [
@@ -387,7 +391,11 @@ class EngineeringControl {
           });
           pluginModel = model.pin;
           await model.close();
-          if (admission) requireContextFloor(contract, pluginModel.provider_manifest.limits.max_output_tokens);
+          if (admission)
+            requireContextFloor(contract, pluginModel.provider_manifest.limits.max_output_tokens, {
+              provider_id: pluginModel.provider_manifest.provider_id,
+              model: pluginModel.model,
+            });
         }
       }
       return {

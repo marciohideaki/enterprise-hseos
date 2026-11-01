@@ -190,18 +190,27 @@ Scripts that ran the rollback with only `--backup` must now pass `--receipt` or 
 
 New task admissions refuse a `limits.max_tokens` that cannot hold the first model request, with the stable
 `detail.code` `ENGINEERING_MAX_TOKENS_BELOW_FLOOR`. The message names the minimum and the received value
-(for the `addition.json` task with the default 8192 output reserve: minimum 11903; a provider with a smaller
+(for the `addition.json` task with the default 8192 output reserve: minimum 12962; a provider with a smaller
 output cap lowers it). Before, such a task was admitted and ended in `session-failed:internal_error` with a
-generic message, because the context overflow is not one of the runtime's normalized failure codes
-(`packages/agent-runtime/runtime.js`, unchanged). Raise `max_tokens` to at least the reported minimum.
+generic message, because the context overflow was not one of the runtime's normalized failure codes.
+Since debt 18 the minimum is exact: it is measured on the request the runtime builds (framed messages, the schemas
+of the contract's native tools, the declared environment capabilities, the parameters and the envelope),
+so no `max_tokens` at or above it fails to assemble the first request or to start the first step. Memory a capability retrieves and the tools
+or sources of plugin extensions exist only at run time and are not in the minimum. A context overflow that
+reaches the runtime anyway (a replayed contract, run-time memory or extensions) now ends as
+`session-budget-exceeded` (`error_code` `budget_exceeded`, with the assembler's message), never as
+`session-failed:internal_error`. Raise `max_tokens` to at least the reported minimum.
 The control API checks the exact cap of the binding or plugin model it resolves; only `validate-task` without a
-model source and the structural pre-read of `agent run` assume the smallest possible reserve (3712 for
+model source and the structural pre-read of `agent run` assume the smallest possible reserve (4724 for
 `addition.json`), and `agent run` repeats the check with the exact cap.
 
-The minimum is a lower bound, not a guarantee: a value just above it can still end in the generic failure.
-Measured margins above the minimum: 752 to 753 tokens for the schema 1 `addition.json` task (caps 96 to 8192),
-2359 tokens for the schema 2 project fixture with a plugin model of cap 8192; extensions and environment tools were
-not measured. Later requests must also fit and report `session-budget-exceeded` (with its numbers) when they do
+The minimum is exact for the first model step: a value at or above it starts the first step and the session, with
+no usage reported by the provider, does not pass its own budget; one below it is refused. The minimum counts the
+canonical request the session accounting books (so it includes the provider and model names the request carries:
+a binding or plugin model is measured with its own, an unknown source with the shortest possible). The first step of a
+turn is projected from the session's other usage plus its own request and reserve, instead of counting the assembled
+request twice. Later requests re-send the grown context and
+must also fit; they report `session-budget-exceeded` (with its numbers) when they do
 not. Contracts already admitted, replays, job claim and recovery, and a plain `readEngineeringTask` are not
 re-checked; `job expand` does re-check, like the W5-10b rules. No field, type or schema version changes.
 
@@ -349,3 +358,12 @@ could interleave their writes to the manifest. They now take an exclusive lock,
 - To adapt: scripts that start several installs in one directory must run them
   one after the other, or treat exit 75 as "try again". To roll back, return to
   the previous runtime.
+
+### Provider campaigns refuse a second credential source and a diverging backend (F17 L1)
+
+Two refusal codes were added to the provider campaign admission, before any model request is dispatched or budget reserved:
+
+- `CONTROL_PROVIDER_CREDENTIAL_CONFLICT`: the API campaign adapter takes the credential only from the source the binding declares (for example `env://HSEOS_MODEL_PROVIDER_API_KEY`). If the vendor's own ambient API-key environment variable (the one named by `VENDOR_AMBIENT_KEY` in `tools/cli/lib/provider-api-adapter.js`) is also set with a value and is not the declared source, the run is refused. There is no fallback between the two, and equal values still conflict.
+- `CONTROL_PROVIDER_BACKEND_DIVERGED`: the origin the adapter actually reached differs from the origin declared by the binding (`declared_backend`), or the adapter reported none.
+
+What to adapt: an operator or CI job that exports the vendor's global API key now stops at admission when the declared credential has another name. Either `unset` that variable for the campaign (`env -u <VARIABLE> ...`), or declare the credential in the binding with that variable's name (`env://<VARIABLE>`). To roll back, return to the previous runtime.

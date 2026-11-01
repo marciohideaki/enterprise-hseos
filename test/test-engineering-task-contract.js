@@ -821,7 +821,7 @@ test('validate-task still accepts admitted v1 and v2 contracts (K6)', async (t) 
 });
 
 // H-4: a max_tokens that cannot hold the first model request is refused at admission with its minimum, not left to
-// end as session-failed:internal_error. The floor is a lower bound derived from the request the runtime really builds.
+// end as session-failed:internal_error. The floor is measured on the request the runtime really builds (debt 18).
 const withMaxTokens = (value, mutate) => {
   const contract = fixture();
   contract.limits.max_tokens = value;
@@ -840,11 +840,11 @@ const admissionError = (contract) => {
 test('admission refuses a max_tokens below the context floor, citing the minimum and the received value (H-4)', () => {
   const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
   const floor = minimumMaxTokens(fixture());
-  // Pinned on purpose: a change to the instructions, the tool floor or the reserve must be a conscious update here, checked
+  // Pinned on purpose: a change to the instructions, the tool schemas or the reserve must be a conscious update here, checked
   // against the assembled request by the runtime test.
-  assert.equal(floor, 11_903);
-  assert.equal(admissionError(withMaxTokens(11_902))?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
-  assert.equal(admissionError(withMaxTokens(11_903)), null);
+  assert.equal(floor, 12_962);
+  assert.equal(admissionError(withMaxTokens(12_961))?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admissionError(withMaxTokens(12_962)), null);
   const refused = admissionError(withMaxTokens(floor - 1));
   assert.equal(refused?.code, 'ENGINEERING_TASK_CONTRACT_INVALID', 'the compatibility category is kept');
   assert.equal(refused.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
@@ -904,7 +904,13 @@ test('admission keeps accepting the shipped examples and the fixture (H-4)', () 
 // takes the smallest reserve the provider schema allows (a positive integer), so no contract that can run is refused.
 const admitWith = (value, outputCap) => {
   try {
-    parseEngineeringTask(withMaxTokens(value), { admission: true, outputCap });
+    // A numeric cap is the one of a known model source, whose provider and model names the floor counts too.
+    const { SCRIPTED_MODEL } = require('../tools/cli/lib/engineering-task-contract');
+    parseEngineeringTask(withMaxTokens(value), {
+      admission: true,
+      outputCap,
+      model: typeof outputCap === 'number' ? SCRIPTED_MODEL : undefined,
+    });
     return null;
   } catch (error) {
     return error;
@@ -916,18 +922,18 @@ test('the floor follows the provider output cap the admission knows, and never r
   const floorFor = (reserve) => minimumMaxTokens(fixture(), reserve);
   for (const cap of [2048, 1024, 256, 96]) {
     const floor = floorFor(cap);
-    assert.ok(floor < 11_903, `a cap of ${cap} lowers the floor: ${floor}`);
+    assert.ok(floor < 12_962, `a cap of ${cap} lowers the floor: ${floor}`);
     assert.equal(admitWith(floor, cap), null, `cap ${cap}: exactly the effective minimum ${floor} is admitted`);
     const refused = admitWith(floor - 1, cap);
     assert.equal(refused?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR', `cap ${cap}: one below is refused`);
     assert.ok(refused.message.includes(`minimum ${floor}`) && refused.message.includes(`max_tokens ${floor - 1}`), refused.message);
   }
   // A cap above 8192 is capped by the runtime reserve; null means no provider cap (scripted model).
-  assert.equal(admitWith(11_903, 65_536), null);
-  assert.equal(admitWith(11_902, 65_536)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
-  assert.equal(admitWith(11_902, null)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admitWith(12_962, 65_536), null);
+  assert.equal(admitWith(12_961, 65_536)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
+  assert.equal(admitWith(12_961, null)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');
   // Unknown cap (binding or plugin model chosen later): the safe floor assumes the smallest possible reserve.
-  const safe = floorFor(1);
+  const safe = minimumMaxTokens(fixture(), 1, { provider_id: 'x', model: 'x' });
   assert.ok(safe < floorFor(96));
   assert.equal(admitWith(safe), null);
   assert.equal(admitWith(safe - 1)?.reason, 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR');

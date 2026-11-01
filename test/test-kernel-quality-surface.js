@@ -30,6 +30,56 @@ test('every authored package source is linted with correctness rules enabled', a
   assert.ok(result.messages.some((message) => message.ruleId === 'no-undef'));
 });
 
+function expandGlob(pattern) {
+  const base = pattern.slice(0, pattern.search(/[*]/) === -1 ? undefined : pattern.search(/[*]/));
+  const dir = base.endsWith('/') ? base : path.dirname(base);
+  const source = pattern
+    .replaceAll('.', String.raw`\.`)
+    .replaceAll('**/', '\u0000')
+    .replaceAll('*', '[^/]*')
+    .replaceAll('\u0000', '(?:.*/)?');
+  const matcher = new RegExp(`^${source}$`);
+  const found = fs.existsSync(path.join(root, pattern))
+    ? [pattern]
+    : fs
+        .readdirSync(path.join(root, dir), { recursive: true })
+        .map((name) => `${dir}/${name}`.replaceAll(path.sep, '/').replaceAll(/\/{2,}/g, '/'))
+        .filter((name) => matcher.test(name));
+  assert.ok(found.length > 0, `kernel include matches no file: ${pattern}`);
+  return found;
+}
+
+test('undefined globals are detected on every kernel coverage surface', async () => {
+  const eslint = new ESLint({ cwd: root });
+  const config = JSON.parse(fs.readFileSync(path.join(root, '.c8-kernel.json'), 'utf8'));
+  const files = config.include.flatMap((pattern) => expandGlob(pattern));
+  assert.ok(files.length >= config.include.length);
+  const probed = new Set();
+  for (const name of files) {
+    const filePath = path.join(root, name);
+    const resolved = await eslint.calculateConfigForFile(filePath);
+    for (const rule of ['no-undef', 'no-unreachable']) {
+      assert.equal(resolved.rules[rule][0], 2, `${name}: ${rule}`);
+    }
+    // one live probe per top-level surface and extension, on a real kernel path
+    const surface = `${name.split('/').slice(0, 2).join('/')}|${path.extname(name)}`;
+    if (probed.has(surface)) continue;
+    probed.add(surface);
+    const [result] = await eslint.lintText('missingKernelAuthority();\n', { filePath });
+    assert.ok(
+      result.messages.some((message) => message.ruleId === 'no-undef'),
+      `${name}: undefined variable not detected`,
+    );
+  }
+  for (const extension of ['.js', '.cjs', '.mjs']) {
+    assert.ok(
+      [...probed].some((surface) => surface.endsWith(`|${extension}`)),
+      `no ${extension} surface probed`,
+    );
+  }
+  assert.ok([...probed].some((surface) => surface.startsWith('tools/')));
+});
+
 test('coverage counts unexecuted critical files and enforces per-file 90/80', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, '.c8-kernel.json'), 'utf8'));
   assert.equal(config.all, true);
@@ -222,6 +272,109 @@ test('the real_consumers guard refuses free text, the API value without evidence
     ['evidence on another value', family('not_verified', { real_consumers_evidence: [here] })],
   ]) {
     assert.notDeepEqual(realConsumerProblems(candidate), [], label);
+  }
+});
+
+// `status.deterministic` is a closed enum (ADR-0050, answer 4): `not_verified_for_evolution` or
+// `verified_w<N>_scope_only`, N in 0..8 (the wave range of the PLAN). A promotion made from now on must cite a
+// `deterministic_evidence` list of files inside the checkout. The families below were promoted before the axis had an
+// evidence field; they are accepted as legacy with their ids and values pinned (no evidence is invented for them), so
+// no new family, and no legacy family on a different wave, enters without evidence.
+const DETERMINISTIC_NOT_VERIFIED = 'not_verified_for_evolution';
+const DETERMINISTIC_VERIFIED = /^verified_w([0-8])_scope_only$/;
+const LEGACY_DETERMINISTIC = {
+  F01: 'verified_w2_scope_only',
+  F02: 'verified_w1_scope_only',
+  F03: 'verified_w1_scope_only',
+  F04: 'verified_w4_scope_only',
+  F05: 'verified_w1_scope_only',
+  F06: 'verified_w4_scope_only',
+  F09: 'verified_w1_scope_only',
+  F10: 'verified_w1_scope_only',
+  F11: 'verified_w2_scope_only',
+  F12: 'verified_w4_scope_only',
+  F13: 'verified_w4_scope_only',
+  F14: 'verified_w5_scope_only',
+  F15: 'verified_w5_scope_only',
+  F16: 'verified_w2_scope_only',
+  F19: 'verified_w1_scope_only',
+  F20: 'verified_w5_scope_only',
+  F21: 'verified_w4_scope_only',
+  F22: 'verified_w4_scope_only',
+};
+
+function deterministicProblems(family) {
+  const { deterministic: value } = family.status;
+  const problems = [];
+  const verified = typeof value === 'string' && DETERMINISTIC_VERIFIED.test(value);
+  if (value !== DETERMINISTIC_NOT_VERIFIED && !verified) {
+    problems.push(`${family.id}: deterministic "${value}" is not ${DETERMINISTIC_NOT_VERIFIED} or verified_w<0-8>_scope_only`);
+  }
+  const evidence = family.deterministic_evidence;
+  if (!verified) {
+    if (evidence !== undefined) problems.push(`${family.id}: deterministic_evidence without a verified status`);
+    return problems;
+  }
+  if (evidence === undefined && LEGACY_DETERMINISTIC[family.id] === value) return problems;
+  if (!Array.isArray(evidence) || evidence.length === 0) {
+    problems.push(`${family.id}: ${value} requires a non-empty deterministic_evidence list`);
+    return problems;
+  }
+  for (const reference of evidence) {
+    try {
+      const resolved = fs.realpathSync(path.resolve(root, reference));
+      if (!resolved.startsWith(`${root}${path.sep}`) || !fs.statSync(resolved).isFile()) {
+        problems.push(`${family.id}: deterministic_evidence "${reference}" is not a file inside the checkout`);
+      }
+    } catch {
+      problems.push(`${family.id}: deterministic_evidence "${reference}" does not resolve`);
+    }
+  }
+  return problems;
+}
+
+test('deterministic is a closed enum and only the pinned legacy families lack evidence', () => {
+  const inventory = JSON.parse(fs.readFileSync(path.join(root, 'docs/evolution/requirements.json'), 'utf8'));
+  assert.deepEqual(
+    inventory.families.flatMap((family) => deterministicProblems(family)),
+    [],
+  );
+  const promoted = inventory.families.filter((family) => family.status.deterministic !== 'not_verified_for_evolution');
+  const unevidenced = promoted.filter((family) => family.deterministic_evidence === undefined);
+  assert.deepEqual(Object.fromEntries(unevidenced.map((family) => [family.id, family.status.deterministic])), LEGACY_DETERMINISTIC);
+});
+
+test('the deterministic guard refuses free text, out-of-range waves, new promotions without evidence and bad evidence', (t) => {
+  const family = (value, extra = {}, id = 'F99') => ({ id, status: { deterministic: value }, ...extra });
+  const here = 'docs/evolution/operational-revalidation-2026-10-30.md';
+  const scratch = fs.mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'deterministic-'));
+  const outsideFile = path.join(scratch, 'receipt.json');
+  fs.writeFileSync(outsideFile, '{}');
+  const outsideRelative = path.relative(root, outsideFile);
+  assert.ok(outsideRelative.startsWith('..'));
+  t.after(() => fs.rmSync(scratch, { recursive: true, force: true }));
+  assert.deepEqual(deterministicProblems(family('not_verified_for_evolution')), []);
+  assert.deepEqual(deterministicProblems(family('verified_w0_scope_only', { deterministic_evidence: [here] })), []);
+  assert.deepEqual(deterministicProblems(family('verified_w8_scope_only', { deterministic_evidence: [here] })), []);
+  const [legacyId, legacyValue] = Object.entries(LEGACY_DETERMINISTIC)[0];
+  assert.deepEqual(deterministicProblems(family(legacyValue, {}, legacyId)), []);
+  for (const [label, candidate] of [
+    ['free text', family('verified_everywhere')],
+    ['empty value', family('')],
+    ['wave out of range', family('verified_w9_scope_only', { deterministic_evidence: [here] })],
+    ['unpadded-wave variant', family('verified_w08_scope_only', { deterministic_evidence: [here] })],
+    ['trailing text', family('verified_w1_scope_only_extra', { deterministic_evidence: [here] })],
+    ['new promotion without evidence', family('verified_w1_scope_only')],
+    ['new promotion with empty evidence', family('verified_w1_scope_only', { deterministic_evidence: [] })],
+    ['legacy family re-promoted to another wave', family('verified_w8_scope_only', {}, legacyId)],
+    ['missing file', family('verified_w1_scope_only', { deterministic_evidence: ['docs/evolution/none.md'] })],
+    ['directory', family('verified_w1_scope_only', { deterministic_evidence: ['docs/evolution'] })],
+    ['path outside the checkout', family('verified_w1_scope_only', { deterministic_evidence: ['../outside'] })],
+    ['existing file outside the checkout (relative)', family('verified_w1_scope_only', { deterministic_evidence: [outsideRelative] })],
+    ['existing file outside the checkout (absolute)', family('verified_w1_scope_only', { deterministic_evidence: [outsideFile] })],
+    ['evidence on a non-promoted family', family('not_verified_for_evolution', { deterministic_evidence: [here] })],
+  ]) {
+    assert.notDeepEqual(deterministicProblems(candidate), [], label);
   }
 });
 

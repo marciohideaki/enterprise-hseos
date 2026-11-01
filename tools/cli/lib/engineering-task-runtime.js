@@ -18,6 +18,7 @@ const { createExecutionLedgerFileFixture, openExecutionLedgerFileFixture } = req
 const { assembleTemporaryKernel } = require('./temporary-kernel-assembly');
 const {
   CONSTITUTION_INSTRUCTION,
+  SCRIPTED_MODEL,
   effectiveOutputReserve,
   projectInstruction,
   protectedCriteriaContent,
@@ -35,7 +36,6 @@ const { accountSessionTokens } = require('../../../packages/agent-context/token-
 const MANIFEST = 'engineering-task.json';
 // Tool calls of one task run one at a time; the environment approval handoff relies on it.
 const TASK_MAX_CONCURRENCY = 1;
-const MODEL = 'model:engineering-scripted';
 const { createTaskExtensions, taskContextReservations, createTaskEnvironment, taskMemoryQuery } = require('./engineering-task-extensions');
 const responsesSchema = z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64);
 
@@ -73,7 +73,7 @@ function getEngineeringModelManifest() {
   return {
     schema_version: 1,
     provider_type: 'model',
-    provider_id: MODEL,
+    provider_id: SCRIPTED_MODEL.provider_id,
     provider_version: '1.0.0',
     models: ['engineering/fixture'],
     capabilities: ['text_generation', 'streaming', 'tool_calls', 'usage', 'cancellation'],
@@ -562,8 +562,9 @@ function engineeringSessionSpec(created, id, parentSessionId = null) {
     policy_ref: 'policy://engineering/v1',
     execution: {
       mode: 'kernel',
-      model_provider_id: created.plugin_model?.provider_manifest.provider_id || created.binding?.provider.provider_id || MODEL,
-      model: created.plugin_model?.model || created.binding?.provider.model || 'engineering/fixture',
+      model_provider_id:
+        created.plugin_model?.provider_manifest.provider_id || created.binding?.provider.provider_id || SCRIPTED_MODEL.provider_id,
+      model: created.plugin_model?.model || created.binding?.provider.model || SCRIPTED_MODEL.model,
     },
     limits: { ...contract.limits, max_tool_calls: contract.limits.max_tool_calls - taskContextReservations(created.extensions) },
     metadata: {
@@ -606,7 +607,8 @@ async function runEngineeringTask({
     : undefined;
   // The provider cap is known for a scripted model (none) and a binding; a plugin model is resolved after admission.
   const outputCap = scriptedResponses ? null : binding ? binding.provider.limits.max_output_tokens : undefined;
-  const { contract, sha256 } = readEngineeringTask(taskContract, { admission, outputCap });
+  const model = binding ? { provider_id: binding.provider.provider_id, model: binding.provider.model } : undefined;
+  const { contract, sha256 } = readEngineeringTask(taskContract, { admission, outputCap, model });
   const responses = scriptedResponses ? readResponses(scriptedResponses) : [];
   const pinned = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(
     extensionCatalog,

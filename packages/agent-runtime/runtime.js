@@ -70,7 +70,8 @@ function normalizedFailure(error) {
     'tool_failed',
     'internal_error',
   ]);
-  const candidate = error?.error_code || error?.code;
+  // The context assembler refuses a request that does not fit the session budget; that is an exhausted budget, not a defect.
+  const candidate = error?.code === 'AGENT_CONTEXT_BUDGET_EXCEEDED' ? 'budget_exceeded' : error?.error_code || error?.code;
   return {
     error_code: allowed.has(candidate) ? candidate : 'internal_error',
     message: allowed.has(candidate) && typeof error?.message === 'string' ? error.message.slice(0, 4096) : 'agent runtime failed',
@@ -498,7 +499,11 @@ class AgentRuntime {
   #startStep(state, turn, request, sourceEventIds, active) {
     const index = turn.model_steps.length;
     const stepId = stableId('step', state.session_id, turn.turn_id, index);
-    const used = tokenUsage(state);
+    // The first step of a turn sends the request the assembler just admitted. Until a step exists the session accounting
+    // already books that request (`turn.budget`: its input and its reserve), so counting it again here would ask for it
+    // twice: the first step is projected from the other turns plus the request and reserve measured below.
+    const used =
+      index === 0 && turn.budget ? accountSessionTokens(state, { excluded_turn_id: turn.turn_id }).total_tokens : tokenUsage(state);
     const requestBytes = Buffer.byteLength(canonicalJson(request), 'utf8');
     const reserve = request.parameters.max_output_tokens;
     const projected = used + requestBytes + reserve;

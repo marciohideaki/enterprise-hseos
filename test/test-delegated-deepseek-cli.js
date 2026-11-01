@@ -213,3 +213,70 @@ test('public supervisor rejects ACP assets outside the sandboxed project', async
     /entrypoint must be inside the sandboxed project/,
   );
 });
+
+const AMBIENT = {
+  OPENAI_API_KEY: 'ambient-openai-fixture',
+  ANTHROPIC_API_KEY: 'ambient-anthropic-fixture',
+  DEEPSEEK_BASE_URL: 'https://ambient.invalid',
+  DEEPSEEK_API_KEY_OVERRIDE: 'ambient-override-fixture',
+};
+
+test('L1 F08-R1 F18-R1 deepseek-acp bindings: an ambient credential never substitutes or accompanies the declared secret', async (t) => {
+  const project = fixture(t);
+  let launches = 0;
+  const spawnImpl = () => void (launches += 1);
+  // The declared secret is absent: no ambient key stands in for it, and nothing is launched.
+  await assert.rejects(
+    () =>
+      runSupervisedDelegatedDeepSeek(
+        { binding: project.binding, projectDir: project.directory, environment: { PATH: process.env.PATH, ...AMBIENT } },
+        { readinessCheck: readiness(), spawnImpl },
+      ),
+    { code: 'DELEGATED_DEEPSEEK_SECRET_UNAVAILABLE' },
+  );
+  assert.equal(launches, 0);
+  // The secret is present next to ambient credentials: the sandboxed child receives the declared names only.
+  let childEnvironment;
+  const result = await runSupervisedDelegatedDeepSeek(
+    {
+      binding: project.binding,
+      projectDir: project.directory,
+      environment: { PATH: process.env.PATH, DEEPSEEK_API_KEY: SECRET, ...AMBIENT },
+    },
+    {
+      readinessCheck: readiness(),
+      spawnImpl(binary, args, options) {
+        childEnvironment = options.env;
+        return spawn(binary, args, { ...options, env: { ...options.env, TMPDIR: os.tmpdir() } });
+      },
+    },
+  );
+  try {
+    assert.deepEqual(Object.keys(childEnvironment).sort(), ['DEEPSEEK_API_KEY', 'HSEOS_DISABLE_UPDATE_CHECK', 'PATH']);
+    assert.ok(!JSON.stringify(childEnvironment).includes('ambient-'));
+    assert.doesNotMatch(JSON.stringify(result), /ambient-/);
+  } finally {
+    cleanupState(result.state);
+  }
+});
+
+test('L1 F18-R1 deepseek-acp-tool-free binding: redirecting the composition to another credential route is refused before any launch', async (t) => {
+  const project = fixture(t);
+  let launches = 0;
+  const source = fs.readFileSync(project.composition, 'utf8');
+  assert.match(source, /apiKeyEnv: DEEPSEEK_API_KEY/);
+  fs.writeFileSync(project.composition, source.replace('apiKeyEnv: DEEPSEEK_API_KEY', 'apiKeyEnv: OPENAI_API_KEY'));
+  await assert.rejects(
+    () =>
+      runSupervisedDelegatedDeepSeek(
+        {
+          binding: project.binding,
+          projectDir: project.directory,
+          environment: { PATH: process.env.PATH, DEEPSEEK_API_KEY: SECRET, OPENAI_API_KEY: AMBIENT.OPENAI_API_KEY },
+        },
+        { readinessCheck: readiness(), spawnImpl: () => void (launches += 1) },
+      ),
+    (error) => !String(error.message).includes(SECRET) && !String(error.message).includes(AMBIENT.OPENAI_API_KEY),
+  );
+  assert.equal(launches, 0);
+});

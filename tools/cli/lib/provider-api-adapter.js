@@ -7,6 +7,7 @@ const { CONTRACT_SCHEMA_VERSION } = require('../../../packages/agent-runtime-con
 const { MAX_EVIDENCE_BYTES, retainOutput } = require('./campaign-evidence-store');
 const { engineeringDigest } = require('./engineering-task-state');
 const { readProviderBinding } = require('../../lib/agent-provider-binding');
+const { selectDeclaredCredential } = require('../../lib/provider-control-manifest');
 const { createEngineeringModel, validateEngineeringBinding } = require('./engineering-model');
 
 const API_ADAPTER_ID = 'hseos-api-campaign-v1';
@@ -36,6 +37,8 @@ function adapterArtifactDigest() {
   return engineeringDigest(artifactFiles.map((file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')));
 }
 const loadedArtifact = adapterArtifactDigest();
+const VENDOR_AMBIENT_KEY = 'DEEPSEEK_API_KEY';
+const BALANCE_URL = 'https://api.deepseek.com/user/balance';
 function credentialFingerprint(value) {
   return createHash('sha256').update('hseos-provider-credential-v1\0').update(value).digest('hex');
 }
@@ -94,18 +97,22 @@ function createApiCampaignAdapter(
     )
       fail('CONTROL_PROVIDER_BINDING_DRIFT');
     if (settings.pricing.valid_until < Date.now() + manifest.limits.max_duration_ms) fail('CONTROL_PROVIDER_PRICING_EXPIRED');
-    const value = Object.hasOwn(environment, name) ? environment[name] : undefined;
-    if (typeof value !== 'string' || !value || credentialFingerprint(value) !== manifest.authentication.credential_sha256)
-      fail('CONTROL_PROVIDER_IDENTITY_UNVERIFIED');
+    // Only the declared source may supply the credential; the vendor's ambient key is a refused competitor, never a fallback.
+    const value = selectDeclaredCredential(manifest, {
+      [reference]: Object.hasOwn(environment, name) ? environment[name] : undefined,
+      ...(name === VENDOR_AMBIENT_KEY ? {} : { [`env://${VENDOR_AMBIENT_KEY}`]: environment[VENDOR_AMBIENT_KEY] }),
+    });
+    if (credentialFingerprint(value) !== manifest.authentication.credential_sha256) fail('CONTROL_PROVIDER_IDENTITY_UNVERIFIED');
     return value;
   }
   return {
     binding_sha256: digest,
+    declared_backend: { origin: new URL(binding.provider.base_url).origin },
     adapter: {
       async inspect({ signal = new AbortController().signal } = {}) {
         try {
           const value = verify();
-          const response = await fetchImpl('https://api.deepseek.com/user/balance', {
+          const response = await fetchImpl(BALANCE_URL, {
             method: 'GET',
             redirect: 'error',
             headers: { authorization: `Bearer ${value}`, accept: 'application/json' },
@@ -141,12 +148,16 @@ function createApiCampaignAdapter(
             quota_remaining_requests: null,
             quota_available_microusd: available,
             competing_credentials: false,
+            effective_backend: { origin: new URL(BALANCE_URL).origin },
           };
         } catch (error) {
           if (
-            ['CONTROL_PROVIDER_BINDING_DRIFT', 'CONTROL_PROVIDER_PRICING_EXPIRED', 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED'].includes(
-              error.code,
-            )
+            [
+              'CONTROL_PROVIDER_BINDING_DRIFT',
+              'CONTROL_PROVIDER_PRICING_EXPIRED',
+              'CONTROL_PROVIDER_IDENTITY_UNVERIFIED',
+              'CONTROL_PROVIDER_CREDENTIAL_CONFLICT',
+            ].includes(error.code)
           )
             fail(error.code);
           fail('CONTROL_PROVIDER_OBSERVATION_UNAVAILABLE');

@@ -285,3 +285,99 @@ test('API adapter and campaign integrate credential admission, monetary quota an
   assert.deepEqual(state.unresolved_commands, []);
   assert.equal(f.calls.length, 2);
 });
+
+test('L1 F08-R1 openai-compatible binding: an ambient credential never overlays the declared secret ref', async (t) => {
+  const f = fixture(t);
+  const ambient = f.environment.OPENAI_API_KEY;
+  assert.notEqual(ambient, f.credential);
+  const { adapter } = f.create();
+  await adapter.inspect();
+  await adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal });
+  assert.ok(f.calls.length >= 2);
+  assert.ok(
+    f.calls.every((call) => call.headerMatches),
+    'every request carries the declared credential only',
+  );
+  // Only the declared reference may be resolved: replacing it by the ambient value is identity drift before any egress.
+  const before = f.calls.length;
+  f.environment.HSEOS_MODEL_PROVIDER_API_KEY = ambient;
+  await assert.rejects(adapter.inspect(), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+  await assert.rejects(adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal }), {
+    code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED',
+  });
+  delete f.environment.HSEOS_MODEL_PROVIDER_API_KEY;
+  await assert.rejects(adapter.inspect(), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+  assert.equal(f.calls.length, before);
+});
+
+test('L1 F08-R1 openai-compatible binding: a silent change of price, balance or reservation blocks dispatch', async (t) => {
+  const f = fixture(t);
+  // A price edited without re-pinning the binding digest is refused at configuration.
+  f.options.pricing.input_microusd_per_million *= 2;
+  assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
+  // A re-pinned higher price no longer fits the manifest reservation.
+  f.value.binding_sha256 = engineeringDigest({ binding: f.binding, options: f.options });
+  assert.throws(f.create, { code: 'CONTROL_CAMPAIGN_BUDGET_EXHAUSTED' });
+  f.options.pricing.input_microusd_per_million /= 2;
+  f.value.binding_sha256 = engineeringDigest({ binding: f.binding, options: f.options });
+  // The account turning unfunded is observed as zero available money, never as the previous balance.
+  const { adapter } = f.create();
+  assert.ok((await adapter.inspect()).quota_available_microusd > 0);
+  f.transport.balance = { is_available: false, balance_infos: [{ currency: 'USD', total_balance: '10' }] };
+  assert.equal((await adapter.inspect()).quota_available_microusd, 0);
+  assert.equal(f.calls.filter((call) => !call.url.endsWith('/user/balance')).length, 0);
+});
+
+async function campaignFor(t, f, override = {}) {
+  const { EngineeringControl } = require('../tools/cli/lib/engineering-control');
+  const authorizationId = randomUUID(),
+    campaignId = randomUUID();
+  const control = new EngineeringControl({
+    providerBindings: { [f.value.binding_id]: { ...f.create(), manifest: f.value, ...override } },
+    providerAuthorizations: {
+      [authorizationId]: {
+        max_requests: 1,
+        max_cost_microusd: 1000,
+        deadline: Date.now() + 60_000,
+        binding_ids: [f.value.binding_id],
+        task_ids: [f.taskId],
+      },
+    },
+  });
+  t.after(() => {
+    control.close();
+    control.handle.cleanup();
+  });
+  const service = control.providerCampaigns;
+  const command = (action, input) => ({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: campaignId,
+    expected_sequence: service.rows(campaignId).length,
+    action,
+    input,
+  });
+  await service.execute(command('create', { authorization_id: authorizationId }));
+  return () => service.execute(command('run', { binding_id: f.value.binding_id, task_id: f.taskId }));
+}
+
+test('production campaign refuses a second credential source before any network effect', async (t) => {
+  const f = fixture(t);
+  f.environment.DEEPSEEK_API_KEY = randomUUID();
+  const run = await campaignFor(t, f);
+  await assert.rejects(run(), { code: 'CONTROL_PROVIDER_CREDENTIAL_CONFLICT' });
+  assert.equal(f.calls.length, 0);
+  delete f.environment.DEEPSEEK_API_KEY;
+  await run();
+  assert.equal(f.calls.length, 2);
+});
+
+test('production campaign refuses an effective backend that differs from the declared one', async (t) => {
+  const f = fixture(t);
+  for (const declared_backend of [{ origin: 'https://other.example.invalid' }, { origin: 'http://api.deepseek.com' }]) {
+    const run = await campaignFor(t, f, { declared_backend });
+    await assert.rejects(run(), { code: 'CONTROL_PROVIDER_BACKEND_DIVERGED' });
+  }
+  assert.equal(f.calls.length, 2, 'only the balance probes ran; no model request was dispatched');
+  assert.ok(f.calls.every((call) => call.url.endsWith('/user/balance')));
+});

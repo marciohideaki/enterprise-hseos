@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "wave": "W3",
+  "description": "Rastro legível por máquina de promessa a requisito, teste e recibo (A-20). Validado por test/test-evolution-trace.js; tests: [] significa que não há teste dedicado vinculado.",
+  "entries": [
+    {
+      "id": "W3-FR01",
+      "promise": {
+        "text": "manifesto versionado e estrito por binding",
+        "source": ".specs/features/harness-w3/spec.md:17"
+      },
+      "requirements": ["F17-R1"],
+      "tests": [
+        {
+          "file": "test/test-provider-control-manifest.js",
+          "name": "route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed"
+        },
+        {
+          "file": "test/test-provider-control-manifest.js",
+          "name": "binding drift is rejected and declared control evidence does not certify a real journey"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/prototype/receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/final-matrix/receipt.json"
+        }
+      ],
+      "status": "delivered",
+      "note": "CLOSEOUT.md:12 agrupa FR01-FR06 como implementados."
+    },
+    {
+      "id": "W3-FR02",
+      "promise": {
+        "text": "catálogo classifica conta/assinatura, API e local",
+        "source": ".specs/features/harness-w3/spec.md:21"
+      },
+      "requirements": ["F17-R1"],
+      "tests": [
+        {
+          "file": "test/test-provider-control-manifest.js",
+          "name": "official routes distinguish native accounts, API and local bindings without claiming certification"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/final-matrix/receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W3-FR03",
+      "promise": {
+        "text": "admissão exige binding fixado, evidência da identidade/credencial",
+        "source": ".specs/features/harness-w3/spec.md:24"
+      },
+      "requirements": ["F17-R1"],
+      "tests": [
+        {
+          "file": "test/test-provider-campaign-control.js",
+          "name": "ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch"
+        },
+        {
+          "file": "test/test-provider-api-adapter.js",
+          "name": "API adapter refuses credential and binding drift before network effects"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/final-matrix/receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W3-FR04",
+      "promise": {
+        "text": "consumo é acumulado duravelmente por campanha/tarefa",
+        "source": ".specs/features/harness-w3/spec.md:28"
+      },
+      "requirements": ["F17-R1"],
+      "tests": [
+        {
+          "file": "test/test-provider-campaign-control.js",
+          "name": "campaign reserves before dispatch, replays receipts and preserves consumption after reopening"
+        },
+        {
+          "file": "test/test-provider-campaign-control.js",
+          "name": "receipt loss preserves the reservation and requires current-state reconciliation without retry"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/final-matrix/receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W3-FR05",
+      "promise": {
+        "text": "expor a mesma inspeção/admissão/consulta por CLI/API/SDK",
+        "source": ".specs/features/harness-w3/spec.md:31"
+      },
+      "requirements": ["F17-R1"],
+      "tests": [
+        {
+          "file": "test/test-provider-campaign-control.js",
+          "name": "HTTP and SDK campaign commands share authentication, cursors and durable budget"
+        },
+        {
+          "file": "test/test-control-sdk-types.js"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/final-matrix/receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W3-FR06",
+      "promise": {
+        "text": "completar integração Antigravity por superfície oficial",
+        "source": ".specs/features/harness-w3/spec.md:33"
+      },
+      "requirements": ["F18-R1"],
+      "tests": [
+        {
+          "file": "test/test-antigravity-client.js"
+        },
+        {
+          "file": "test/test-provider-campaign-adapters.js",
+          "name": "Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred"
+        },
+        {
+          "file": "test/test-control-configuration.js",
+          "name": "loader preserves legacy configuration and constructs only registered lazy adapters"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/real-campaigns-resume/receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W3-FR07-CURRENT",
+      "promise": {
+        "text": "ACP/Codex e Claude com recuperação real",
+        "source": "docs/evolution/w3/CLOSEOUT.md:13"
+      },
+      "requirements": ["F18-R1"],
+      "tests": [
+        {
+          "file": "test/test-acp-campaign-boundaries.js",
+          "name": "ACP campaign re-inspects identity before every effect and preserves resume and usage"
+        },
+        {
+          "file": "test/test-claude-agent-sdk-driver.js",
+          "name": "a fresh driver finds an existing transcript and resumes the exact session id"
+        },
+        {
+          "file": "test/test-provider-campaign-runner.js",
+          "name": "runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/real-campaigns-resume/receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/integral-revalidation/receipt.json"
+        }
+      ],
+      "status": "delivered",
+      "note": "Antigravity local também reexercitado; Gemini API não foi exercitada (STATUS.md:19)."
+    },
+    {
+      "id": "W3-FR07-FOURTH",
+      "promise": {
+        "text": "Quarta família, por instrução explícita na spec",
+        "source": "docs/evolution/w3/CLOSEOUT.md:14"
+      },
+      "requirements": ["F18-R1"],
+      "tests": [],
+      "evidence": [],
+      "status": "not_delivered",
+      "note": "Diferida pelo proprietário; CLOSEOUT.md:42 nega que as quatro famílias reais estejam concluídas."
+    },
+    {
+      "id": "W3-FR08",
+      "promise": {
+        "text": "cobertura integral dos 56 arquivos ≥ 90/80 em ambos",
+        "source": "docs/evolution/w3/CLOSEOUT.md:15"
+      },
+      "requirements": [],
+      "tests": [
+        {
+          "file": "test/test-kernel-quality-surface.js"
+        },
+        {
+          "file": "test/test-provider-campaign-control.js",
+          "name": "ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/final-matrix/receipt.json"
+        },
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/integral-revalidation/receipt.json"
+        }
+      ],
+      "status": "delivered",
+      "note": "A matriz integral não é um teste único; o vínculo a arquivos é indicativo, o recibo é a prova."
+    },
+    {
+      "id": "W3-INSTALL",
+      "promise": {
+        "text": "64/64 por runtime",
+        "source": "docs/evolution/w3/CLOSEOUT.md:16"
+      },
+      "requirements": [],
+      "tests": [],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/installed-consumer/receipt.json"
+        }
+      ],
+      "status": "delivered",
+      "note": "Consumidor instalado fora do checkout: sem teste de unidade dedicado, a prova é o recibo."
+    },
+    {
+      "id": "W3-BUDGET",
+      "promise": {
+        "text": "reservas US$ 9, saldo US$ 1",
+        "source": "docs/evolution/w3/CLOSEOUT.md:17"
+      },
+      "requirements": ["F17-R1"],
+      "tests": [
+        {
+          "file": "test/test-provider-campaign-control.js",
+          "name": "a request ceiling holds even when prior attempts report zero charge"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/real-campaigns-resume/receipt.json"
+        }
+      ],
+      "status": "delivered"
+    },
+    {
+      "id": "W3-F08",
+      "promise": {
+        "text": "Segredos não entram em prompts, workspace, logs ou artefatos.",
+        "source": "docs/evolution/requirements.json:196"
+      },
+      "requirements": ["F08-R1"],
+      "tests": [
+        {
+          "file": "test/test-provider-egress-broker.js"
+        },
+        {
+          "file": "test/test-provider-api-adapter.js",
+          "name": "API adapter withholds an answer that carries the binding credential, even when the stream splits it"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "receipt",
+          "path": "docs/evolution/w3/evidence/final-matrix/receipt.json"
+        }
+      ],
+      "status": "partial",
+      "note": "requirements.json mantém F08 como not_verified para consumidores reais; só o escopo determinístico tem teste."
+    }
+  ]
+}

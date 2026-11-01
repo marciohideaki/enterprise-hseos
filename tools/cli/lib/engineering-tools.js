@@ -87,6 +87,70 @@ function changedRegion(before, after) {
   return { before_start: prefix + 1, before_end: before.length - suffix, after_start: prefix + 1, after_end: after.length - suffix };
 }
 
+const nativeToolNames = (contract) => (contract.schema_version === 2 ? NAMES : LEGACY_NAMES);
+
+/** Input schemas of the native tools, in tool order. They depend only on the contract, so the admission floor can measure them. */
+function nativeToolInputs(contract) {
+  const lineNumber = z.number().optional();
+  const inputs = [
+    contract.schema_version === 2
+      ? z.object({ path: z.enum(contract.scope.read), start_line: lineNumber, end_line: lineNumber }).strict()
+      : z.object({ path: z.enum(contract.scope.read) }).strict(),
+    z
+      .object({
+        path: z.enum(contract.scope.write),
+        expected_sha256: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .nullable(),
+        content: z.string().max(contract.max_artifact_bytes),
+      })
+      .strict(),
+    z.object({ id: z.enum(contract.commands.map((entry) => entry.id)) }).strict(),
+    z
+      .object({
+        cause: z.string().trim().min(1).max(2048),
+        correction: z.string().trim().min(1).max(2048),
+        requirement_ids: z
+          .array(z.enum(contract.requirements.map((entry) => entry.id)))
+          .min(1)
+          .max(contract.requirements.length),
+        files_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+      })
+      .strict(),
+  ];
+  if (contract.schema_version === 2) {
+    inputs.push(
+      z.object({ text: z.string().min(1).max(1024), limit: z.number().int().min(1).max(100) }).strict(),
+      z
+        .object({
+          path: z.enum(contract.scope.write),
+          expected_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+          before: z.string().min(1).max(contract.max_artifact_bytes),
+          after: z.string().max(contract.max_artifact_bytes),
+          // Narrows `before` to these lines when the same text occurs elsewhere in the file.
+          within: z.object({ start_line: z.number(), end_line: z.number() }).strict().optional(),
+        })
+        .strict(),
+      z.object({ path: z.enum(contract.scope.read).optional(), start_line: lineNumber, end_line: lineNumber }).strict(),
+    );
+  }
+  return inputs;
+}
+
+/** The tool entries the model is given for a contract (what the context assembler counts as tools). */
+function nativeToolDefinitions(contract) {
+  const inputs = nativeToolInputs(contract);
+  return nativeToolNames(contract).map((name, index) => ({
+    name,
+    description: `Scoped disposable task operation: ${name}`,
+    // Serialize to public JSON: Zod also exposes non-JSON standard-schema functions.
+    // eslint-disable-next-line unicorn/prefer-structured-clone
+    input_schema: JSON.parse(JSON.stringify(z.toJSONSchema(inputs[index]))),
+    governance_ref: governanceRef(name),
+  }));
+}
+
 function createEngineeringTools({ directory, contract: inputContract, policy, deadline, onDiagnosis }) {
   const contract = parseEngineeringTask(inputContract);
   const workspace = path.join(directory, 'workspace');
@@ -227,34 +291,8 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     }
     return outcome;
   };
-  const lineNumber = z.number().optional();
-  const inputs = [
-    contract.schema_version === 2
-      ? z.object({ path: z.enum(contract.scope.read), start_line: lineNumber, end_line: lineNumber }).strict()
-      : z.object({ path: z.enum(contract.scope.read) }).strict(),
-    z
-      .object({
-        path: z.enum(contract.scope.write),
-        expected_sha256: z
-          .string()
-          .regex(/^[a-f0-9]{64}$/)
-          .nullable(),
-        content: z.string().max(contract.max_artifact_bytes),
-      })
-      .strict(),
-    z.object({ id: z.enum(contract.commands.map((entry) => entry.id)) }).strict(),
-    z
-      .object({
-        cause: z.string().trim().min(1).max(2048),
-        correction: z.string().trim().min(1).max(2048),
-        requirement_ids: z
-          .array(z.enum(contract.requirements.map((entry) => entry.id)))
-          .min(1)
-          .max(contract.requirements.length),
-        files_sha256: z.string().regex(/^[a-f0-9]{64}$/),
-      })
-      .strict(),
-  ];
+  const inputs = nativeToolInputs(contract);
+  const definitions = nativeToolDefinitions(contract);
   const handlers = [
     contract.schema_version === 2 ? readRange : (value) => read(value.path),
     write,
@@ -265,22 +303,8 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
       return onDiagnosis(value, files);
     },
   ];
-  const names = contract.schema_version === 2 ? NAMES : LEGACY_NAMES;
+  const names = nativeToolNames(contract);
   if (contract.schema_version === 2) {
-    inputs.push(
-      z.object({ text: z.string().min(1).max(1024), limit: z.number().int().min(1).max(100) }).strict(),
-      z
-        .object({
-          path: z.enum(contract.scope.write),
-          expected_sha256: z.string().regex(/^[a-f0-9]{64}$/),
-          before: z.string().min(1).max(contract.max_artifact_bytes),
-          after: z.string().max(contract.max_artifact_bytes),
-          // Narrows `before` to these lines when the same text occurs elsewhere in the file.
-          within: z.object({ start_line: z.number(), end_line: z.number() }).strict().optional(),
-        })
-        .strict(),
-      z.object({ path: z.enum(contract.scope.read).optional(), start_line: lineNumber, end_line: lineNumber }).strict(),
-    );
     handlers.push(
       ({ text, limit }) => {
         // The answer is held to the read window, so a search over a large file cannot carry the file back in matches.
@@ -394,14 +418,7 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
       input_schema: { version: 1, safeParse: inputs[index].safeParse.bind(inputs[index]) },
       output_schema: { version: 1, safeParse: z.record(z.string(), z.unknown()).safeParse },
     },
-    definition: {
-      name,
-      description: `Scoped disposable task operation: ${name}`,
-      // Serialize to public JSON: Zod also exposes non-JSON standard-schema functions.
-      // eslint-disable-next-line unicorn/prefer-structured-clone
-      input_schema: JSON.parse(JSON.stringify(z.toJSONSchema(inputs[index]))),
-      governance_ref: governanceRef(name),
-    },
+    definition: definitions[index],
     provider: {
       async execute(value, context) {
         if (Date.now() >= deadline) throw new EngineeringToolError('Task duration budget exhausted');
@@ -422,4 +439,4 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
   };
 }
 
-module.exports = { EngineeringToolError, ENGINEERING_TOOL_NAMES: NAMES, createEngineeringTools };
+module.exports = { EngineeringToolError, ENGINEERING_TOOL_NAMES: NAMES, createEngineeringTools, nativeToolDefinitions };

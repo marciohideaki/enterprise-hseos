@@ -886,3 +886,51 @@ test('an input total that only overruns because of cached tokens is refused, and
   const fits = await outcome(995);
   assert.equal(fits.result.receipt.input_tokens, 1000);
 });
+
+for (const [vendor, route] of [
+  ['codex', 'account'],
+  ['claude', 'account'],
+  ['antigravity', 'local'],
+]) {
+  test(`L1 F08-R1 F18-R1 silent billing change: a ${vendor}/${route} receipt that carries any cost is refused and the cost stays charged`, async (t) => {
+    const f = await fixture(t, {
+      manifest: (value) => Object.assign(value, manifest(vendor, route, 'client')),
+      run: async () => ({ ...receiptOf(f), cost_microusd: 1 }),
+      maxCost: 5000,
+    });
+    assert.equal(f.configured.manifest.billing.max_request_microusd, 0);
+    const error = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+      () => null,
+      (error_) => error_,
+    );
+    assert.equal(error.code, 'CONTROL_OUTCOME_UNCERTAIN');
+    assert.deepEqual(error.diagnostic, {
+      code: 'CONTROL_PROVIDER_RECEIPT_INVALID',
+      reason: 'cost_over_request_limit',
+      cost_microusd: 1,
+      max_request_microusd: 0,
+    });
+    assert.equal(f.campaigns.query(f.id).committed_microusd, 1);
+  });
+}
+
+test('L1 F08-R1 silent billing change: a claude/api receipt above the metered reservation is refused and the cost stays charged', async (t) => {
+  const f = await fixture(t, {
+    manifest: (value) => Object.assign(value, manifest('claude', 'api', 'client')),
+    run: async () => ({ ...receiptOf(f), cost_microusd: 1001 }),
+    maxCost: 5000,
+  });
+  assert.equal(f.configured.manifest.billing.kind, 'metered');
+  const error = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+    () => null,
+    (error_) => error_,
+  );
+  assert.equal(error.code, 'CONTROL_OUTCOME_UNCERTAIN');
+  assert.deepEqual(error.diagnostic, {
+    code: 'CONTROL_PROVIDER_RECEIPT_INVALID',
+    reason: 'cost_over_request_limit',
+    cost_microusd: 1001,
+    max_request_microusd: 1000,
+  });
+  assert.equal(f.campaigns.query(f.id).committed_microusd, 1001);
+});

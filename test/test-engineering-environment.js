@@ -843,6 +843,27 @@ test('the memory in the context is deterministic: same memory, same blocks, same
   assert.notEqual(digest(first.result), digest(other.result));
 });
 
+// Debt 18: the admission floor counts the tools of the declared capabilities; the memory a task retrieves only exists at run time.
+test('the admission floor counts the declared environment tools and leaves out the retrieved memory', async (t) => {
+  const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+  const requested = ['environment.lsp.hover', 'memory.retrieve'];
+  const assembled = async (seed) => {
+    const env = memoryHost();
+    for (const entry of seed) env.store.write(env.entry(entry), { rules: ALLOW, actor: OPERATOR });
+    const f = project(t, requested, { limits: { max_tokens: 30_000 } });
+    const result = await execute(t, f, [], { ...env.host, factories: { lsp: lspFactory([]) } });
+    const { budget, request } = contextOf(result);
+    const booked = Buffer.byteLength(require('../packages/agent-session-store').canonicalJson(request), 'utf8');
+    return { floor: minimumMaxTokens(f.contract), required: budget.reserved_output_tokens + booked, contract: f.contract };
+  };
+  const bare = await assembled([]);
+  assert.equal(bare.floor, bare.required, 'with no memory entry the floor is the request the session books');
+  const bareWithout = minimumMaxTokens({ ...bare.contract, environment: undefined });
+  assert.ok(bare.floor > bareWithout, 'the declared capabilities add their tools to the floor');
+  const withMemory = await assembled([{ memory_id: 'note-1', content: NOTE }]);
+  assert.ok(withMemory.required > withMemory.floor, 'retrieved memory is run-time context beyond the floor');
+});
+
 // ---------------------------------------------------------------------------------------------------------------
 // Review round 1: the approver sees the content, an unconfigured family fails loudly, a failing ledger fails closed.
 // ---------------------------------------------------------------------------------------------------------------
