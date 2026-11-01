@@ -12,6 +12,7 @@ const {
   z,
 } = require('../../../packages/agent-runtime-contracts');
 const { canonicalJson } = require('../../../packages/agent-session-store');
+const { instructionMessage, quotedData } = require('../../../packages/agent-context/context-assembler');
 const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolation-attestation/profiles');
 
 const MAX_BYTES = 1_048_576;
@@ -245,14 +246,8 @@ const protectedCriteriaContent = (contract) =>
     commands: contract.commands,
     limits: contract.limits,
   });
-/**
- * Tokens of the four native tool schemas of a schema 1 task (engineering.command, .diagnose, .read, .write), measured
- * with the conservative UTF-8 byte counter on `addition.json` (1853). Schema 2 and extensions only add tools, so this
- * stays a lower bound; test-engineering-task-runtime.js compares it with the assembled request.
- */
-const NATIVE_TOOLS_MIN_TOKENS = 1853;
 // The assembler counts canonical JSON of each part with a UTF-8 byte counter: quotes and escapes of the text count too.
-const jsonBytes = (value) => Buffer.byteLength(JSON.stringify(value), 'utf8');
+const jsonBytes = (value) => Buffer.byteLength(canonicalJson(value), 'utf8');
 
 /**
  * The output the runtime reserves on a model request: `OUTPUT_RESERVE_TOKENS`, or the provider's own cap when that is
@@ -261,37 +256,87 @@ const jsonBytes = (value) => Buffer.byteLength(JSON.stringify(value), 'utf8');
 const effectiveOutputReserve = (providerCap) => Math.min(OUTPUT_RESERVE_TOKENS, providerCap || OUTPUT_RESERVE_TOKENS);
 // A provider cap is a positive integer (`max_output_tokens`), so 1 is the smallest reserve any provider can impose.
 const SMALLEST_OUTPUT_RESERVE_TOKENS = 1;
+// The provider and model name of a scripted task, shared with the runtime; an unknown source cannot have shorter ones.
+const SCRIPTED_MODEL = Object.freeze({ provider_id: 'model:engineering-scripted', model: 'engineering/fixture' });
+const SHORTEST_MODEL = Object.freeze({ provider_id: 'x', model: 'x' });
 
 /**
- * Lower bound of `limits.max_tokens` for the first model request: the reserved output plus what the assembler is certain
- * to count as input (preamble, instructions, the contract data it must read twice, parameters, native tools). It leaves
- * out the per-message framing, so a contract at the floor can still be a few hundred tokens short. The assembler
- * overflows for sure below it when `reserve` is the reserve the request really carries (schema 1, native tools only;
- * schema 2 and extensions add tools the floor does not count). The value of `max_tokens` itself is not part of the floor.
+ * Tool entries the first model request carries for this contract: the native tools, whose schemas depend on the
+ * contract (command ids, paths), and the declared environment capabilities. Tools that a plugin extension brings, and
+ * the memory sources a capability retrieves, only exist at run time; the runtime reports an overflow they cause as
+ * `session-budget-exceeded`, never as an internal error.
  */
-function minimumMaxTokens(contract, reserve = OUTPUT_RESERVE_TOKENS) {
-  const withoutBudget = { ...contract, limits: { ...contract.limits, max_tokens: 0 } };
-  const parameters = { max_output_tokens: reserve, temperature: null, stop: [] };
-  return (
-    reserve +
-    NATIVE_TOOLS_MIN_TOKENS +
-    jsonBytes(parameters) +
-    jsonBytes(CONTEXT_PRECEDENCE_PREAMBLE) +
-    jsonBytes(CONSTITUTION_INSTRUCTION) +
-    jsonBytes(projectInstruction(contract)) +
-    jsonBytes(protectedCriteriaContent(withoutBudget)) +
-    jsonBytes(taskTurnContent(contract))
+function requestTools(contract) {
+  const { nativeToolDefinitions } = require('./engineering-tools');
+  const environment = contract.schema_version === 2 ? [...new Set(contract.environment?.capabilities || [])] : [];
+  // The environment module is only needed when capabilities are declared, so structural validation stays light.
+  const environmentTool = environment.length > 0 ? require('./engineering-task-extensions').environmentToolDefinition : null;
+  return [...nativeToolDefinitions(contract), ...environment.map((name) => environmentTool(name))].sort((left, right) =>
+    left.name < right.name ? -1 : left.name > right.name ? 1 : 0,
   );
+}
+
+// Bytes of the first model request as the session accounting books it: the canonical request the runtime builds.
+function requestBytes(contract_, reserve, model) {
+  const criteria = {
+    source_ref: `task-contract://${createHash('sha256').update(canonicalJson(contract_)).digest('hex')}/protected-criteria`,
+    classification: 'internal',
+    content: protectedCriteriaContent(contract_),
+  };
+  const declared = { declared: true, authority: 'data', provenance: { origin: 'config', trust: 'untrusted' } };
+  const messages = [
+    { role: 'system', content: CONTEXT_PRECEDENCE_PREAMBLE },
+    instructionMessage('constitution', { source_ref: 'policy://engineering/v1', content: CONSTITUTION_INSTRUCTION }),
+    instructionMessage('project', { source_ref: 'profile://engineering/candidate', content: projectInstruction(contract_) }),
+    quotedData('RUNTIME_DATA', criteria, declared),
+    { role: 'user', content: taskTurnContent(contract_) },
+  ];
+  const parameters = { max_output_tokens: reserve, temperature: null, stop: [] };
+  // The session accounting books the whole canonical request of a step that reported no usage, not only the assembler's
+  // input: identifiers and model names included. The runtime builds these ids from a random uuid (36 characters) and a
+  // 40-character digest, so their length is known here.
+  const uuid = '0'.repeat(36);
+  return jsonBytes({
+    schema_version: 1,
+    request_id: `request:${'0'.repeat(40)}`,
+    session_id: `session:${uuid}`,
+    turn_id: `turn:${uuid}`,
+    provider_id: model.provider_id,
+    model: model.model,
+    messages,
+    tools: requestTools(contract_),
+    parameters,
+  });
+}
+
+/**
+ * Minimum of `limits.max_tokens` for the first model request: the reserved output plus the canonical request, measured on
+ * the package the runtime builds (framed messages, the contract's tools, parameters and the envelope with the model
+ * identity). With this much the first step starts and, even when the provider reports no usage, the session accounting
+ * (request plus reserve) does not pass the budget. A `max_tokens` below it is refused at admission with the number that
+ * works. `reserve` is the reserve the request carries. The minimum follows the digits of `max_tokens` itself, which the
+ * protected criteria quote. `model` is the provider and model name the request carries.
+ */
+function minimumMaxTokens(contract, reserve = OUTPUT_RESERVE_TOKENS, model = SCRIPTED_MODEL) {
+  // The protected-criteria message carries `limits.max_tokens` as text, so the request is a few bytes longer for a longer
+  // number. The minimum is the smallest value whose own digits fit: first d with request(d digits) + reserve below 10^d.
+  // It always ends: the request is bounded by the contract size (at most 1 MiB), while 10^digits grows without bound.
+  for (let digits = 1; ; digits += 1) {
+    const lowest = 10 ** (digits - 1);
+    const needed = reserve + requestBytes({ ...contract, limits: { ...contract.limits, max_tokens: lowest } }, reserve, model);
+    if (needed < 10 ** digits) return Math.max(needed, lowest);
+  }
 }
 
 /**
  * `outputCap` is the provider's `max_output_tokens` when the caller knows the model source (`null`: a scripted model with
  * no cap); `undefined` means the provider is chosen later (a binding id or a plugin model), so the floor assumes the
- * smallest possible reserve and only refuses what no provider could run.
+ * smallest possible reserve and only refuses what no provider could run. `model` is the `{ provider_id, model }` the request
+ * will carry; a scripted model has a fixed one, and an unknown source takes the shortest names a request can have.
  */
-function requireContextFloor(contract, outputCap) {
+function requireContextFloor(contract, outputCap, model = outputCap === null ? SCRIPTED_MODEL : SHORTEST_MODEL) {
   const reserve = outputCap === undefined ? SMALLEST_OUTPUT_RESERVE_TOKENS : effectiveOutputReserve(outputCap);
-  const minimum = minimumMaxTokens(contract, reserve);
+  const minimum = minimumMaxTokens(contract, reserve, model);
   const received = contract.limits.max_tokens;
   requireCondition(
     received >= minimum,
@@ -409,7 +454,7 @@ function requireCheckLinks(contract) {
   }
 }
 
-function parseEngineeringTask(value, { admission = false, outputCap } = {}) {
+function parseEngineeringTask(value, { admission = false, outputCap, model } = {}) {
   const parsed = versionedSchema.safeParse(value);
   requireCondition(parsed.success, 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
   const contract = parsed.data;
@@ -478,7 +523,7 @@ function parseEngineeringTask(value, { admission = false, outputCap } = {}) {
   for (const item of contract.commands) requireCondition(readPaths.has(item.entrypoint), 'ENGINEERING_COMMAND_ENTRYPOINT_UNREADABLE');
   requireCondition(Object.values(contract.limits).every(Number.isSafeInteger), 'ENGINEERING_LIMITS_INVALID');
   requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0, 'ENGINEERING_CHILDREN_NOT_ALLOWED');
-  if (admission) requireContextFloor(contract, outputCap);
+  if (admission) requireContextFloor(contract, outputCap, model);
   if (contract.schema_version === 2) {
     if (contract.environment) {
       const declared = unique(contract.environment.capabilities, 'ENGINEERING_ENVIRONMENT_INVALID');
@@ -532,7 +577,7 @@ function parseEngineeringTask(value, { admission = false, outputCap } = {}) {
   return deepFreeze(contract);
 }
 
-function readEngineeringTask(filename, { admission = false, outputCap } = {}) {
+function readEngineeringTask(filename, { admission = false, outputCap, model } = {}) {
   let fd;
   try {
     fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
@@ -552,9 +597,9 @@ function readEngineeringTask(filename, { admission = false, outputCap } = {}) {
         !current.isSymbolicLink(),
     );
     const raw = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, bytes)));
-    let contract = parseEngineeringTask(raw, { admission, outputCap });
+    let contract = parseEngineeringTask(raw, { admission, outputCap, model });
     if (contract.schema_version === 2)
-      contract = parseEngineeringTask(require('./engineering-workspace').hydrateProjectTask(contract), { admission, outputCap });
+      contract = parseEngineeringTask(require('./engineering-workspace').hydrateProjectTask(contract), { admission, outputCap, model });
     return deepFreeze({ contract, sha256: sha(canonicalJson(contract)) });
   } catch (error) {
     // An admitting read surfaces the curated refusal cause; a plain read keeps the generic reason.
@@ -566,11 +611,11 @@ function readEngineeringTask(filename, { admission = false, outputCap } = {}) {
 }
 
 module.exports = {
+  SCRIPTED_MODEL,
   CONSTITUTION_INSTRUCTION,
   ENVIRONMENT_CAPABILITIES,
   EngineeringTaskContractError,
   effectiveOutputReserve,
-  NATIVE_TOOLS_MIN_TOKENS,
   OUTPUT_RESERVE_TOKENS,
   PROJECT_LIMITS,
   PROTECTED_CONFIG_FILES,
