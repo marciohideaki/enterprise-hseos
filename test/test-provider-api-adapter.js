@@ -381,3 +381,25 @@ test('production campaign refuses an effective backend that differs from the dec
   assert.equal(f.calls.length, 2, 'only the balance probes ran; no model request was dispatched');
   assert.ok(f.calls.every((call) => call.url.endsWith('/user/balance')));
 });
+
+test('the official OpenAI API route has no balance endpoint: nothing is requested and no quota is reported', async (t) => {
+  const f = fixture(t);
+  f.binding.provider.base_url = 'https://api.openai.com/v1';
+  fs.writeFileSync(f.filename, yaml.stringify(f.binding));
+  f.value.vendor = 'openai';
+  f.value.binding_sha256 = engineeringDigest({ binding: f.binding, options: f.options });
+  // The vendor's own ambient key is a refused competitor of the declared source.
+  await assert.rejects(f.create().adapter.inspect(), { code: 'CONTROL_PROVIDER_CREDENTIAL_CONFLICT' });
+  delete f.environment.OPENAI_API_KEY;
+  const observation = await f.create().adapter.inspect();
+  assert.equal(f.calls.length, 0, 'no balance request is made');
+  assert.equal(observation.quota_available_microusd, undefined, 'quota stays unknown, so admission needs an audited exception');
+  assert.equal(observation.quota_remaining_requests, null);
+  assert.equal(observation.effective_backend.origin, 'https://api.openai.com');
+  assert.equal(observation.credential_sha256, credentialFingerprint(f.credential));
+  // The vendor binds its own origin: the DeepSeek endpoint under the OpenAI vendor is refused.
+  f.binding.provider.base_url = 'https://api.deepseek.com/v1';
+  fs.writeFileSync(f.filename, yaml.stringify(f.binding));
+  f.value.binding_sha256 = engineeringDigest({ binding: f.binding, options: f.options });
+  assert.throws(() => f.create(), { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
+});

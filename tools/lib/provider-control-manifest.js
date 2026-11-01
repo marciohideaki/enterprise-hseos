@@ -32,6 +32,9 @@ const ROUTES = deepFreeze({
   gemini: {
     api: { kinds: ['model'], auth: 'api_key', source: 'https://ai.google.dev/gemini-api/docs' },
   },
+  openai: {
+    api: { kinds: ['model'], auth: 'api_key', source: 'https://platform.openai.com/docs/api-reference' },
+  },
   antigravity: {
     account: { kinds: ['client'], auth: 'native_account', source: 'https://antigravity.google/docs/cli/installation/' },
     api: { kinds: ['client'], auth: 'api_key', source: 'https://antigravity.google/docs/sdk/overview/' },
@@ -43,7 +46,7 @@ const ProviderControlManifestSchema = strictObject({
   schema_version: z.union([z.literal(1), z.literal(2)]),
   binding_id: IdentifierSchema,
   binding_sha256: hash,
-  vendor: z.enum(['codex', 'claude', 'deepseek', 'gemini', 'antigravity', 'execution-plugin']),
+  vendor: z.enum(['codex', 'claude', 'deepseek', 'gemini', 'openai', 'antigravity', 'execution-plugin']),
   execution_plugin: strictObject({ id: IdentifierSchema, version: label, manifest_sha256: hash }).optional(),
   provider_kind: z.enum(['model', 'runtime', 'client']),
   provider_version: label,

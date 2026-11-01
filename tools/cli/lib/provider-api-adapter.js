@@ -49,6 +49,7 @@ const VENDORS = Object.freeze({
     balanceUrl: BALANCE_URL,
   },
   gemini: { ambient: ['GEMINI_API_KEY', 'GOOGLE_API_KEY'], origins: null, balanceUrl: null },
+  openai: { ambient: ['OPENAI_API_KEY'], origins: ['https://api.openai.com', 'https://api.openai.com/v1'], balanceUrl: null },
 });
 function credentialFingerprint(value) {
   return createHash('sha256').update('hseos-provider-credential-v1\0').update(value).digest('hex');
