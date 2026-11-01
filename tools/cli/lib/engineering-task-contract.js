@@ -257,6 +257,25 @@ const effectiveOutputReserve = (providerCap) => Math.min(OUTPUT_RESERVE_TOKENS, 
 // A provider cap is a positive integer (`max_output_tokens`), so 1 is the smallest reserve any provider can impose.
 const SMALLEST_OUTPUT_RESERVE_TOKENS = 1;
 // The provider and model name of a scripted task, shared with the runtime; an unknown source cannot have shorter ones.
+/**
+ * Explicit, opt-in context compaction for an engineering run (F15). Absent means off: the run keeps the `reject` overflow
+ * policy. `context_tokens` shrinks the context window of the keyless scripted model only, so a deterministic journey can
+ * reach the compaction threshold; a bound or plugin model keeps its own declared window.
+ */
+const TASK_COMPACTION_PROVIDER = 'compaction:deterministic';
+const TaskCompactionSchema = strictObject({
+  schema_version: z.literal(1),
+  provider_id: z.literal(TASK_COMPACTION_PROVIDER),
+  threshold_basis_points: z.number().int().min(1).max(10_000).optional(),
+  context_tokens: z.number().int().min(1024).max(1_000_000).optional(),
+});
+
+function parseTaskCompaction(value) {
+  const parsed = TaskCompactionSchema.safeParse(value);
+  if (!parsed.success) throw new EngineeringTaskContractError('ENGINEERING_COMPACTION_INVALID', 'Invalid compaction configuration');
+  return parsed.data;
+}
+
 const SCRIPTED_MODEL = Object.freeze({ provider_id: 'model:engineering-scripted', model: 'engineering/fixture' });
 const SHORTEST_MODEL = Object.freeze({ provider_id: 'x', model: 'x' });
 
@@ -612,6 +631,7 @@ function readEngineeringTask(filename, { admission = false, outputCap, model } =
 
 module.exports = {
   SCRIPTED_MODEL,
+  TASK_COMPACTION_PROVIDER,
   CONSTITUTION_INSTRUCTION,
   ENVIRONMENT_CAPABILITIES,
   EngineeringTaskContractError,
@@ -623,6 +643,7 @@ module.exports = {
   isStorePath,
   minimumMaxTokens,
   parseEngineeringTask,
+  parseTaskCompaction,
   projectInstruction,
   protectedCriteriaContent,
   taskTurnContent,

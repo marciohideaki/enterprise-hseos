@@ -7,7 +7,7 @@ const DEEPSEEK_ONE_SHOT_PROFILE = 'agent-deepseek-one-shot-candidate';
 
 const { readEngineeringTask } = require('../lib/engineering-task-contract');
 
-const ACTIONS = new Set(['run', 'resume', 'cancel', 'validate-task', 'status', 'evidence', 'reconcile']);
+const ACTIONS = new Set(['run', 'resume', 'cancel', 'validate-task', 'status', 'evidence', 'reconcile', 'fork']);
 const REFERENCE_PROFILE = 'agent-reference';
 const DEFAULT_GLOBAL_CONFIG = () => require('node:path').join(require('node:os').homedir(), '.config', 'hseos', 'config.yaml');
 
@@ -56,6 +56,7 @@ function render(result, json) {
       result.output ? `output: ${result.output}` : null,
       ...(result.questions || []).map((question) => `Pergunta pendente: ${question}`),
       result.reconciliation ? `reconciliation-sha256: ${result.reconciliation.sha256}` : null,
+      result.fork ? `fork: ${result.fork.parent_session_id}@${result.fork.parent_sequence} sha256 ${result.fork.ancestry_sha256}` : null,
     ]
       .filter(Boolean)
       .join('\n') + '\n',
@@ -63,6 +64,8 @@ function render(result, json) {
 }
 
 async function execute(action, options = {}) {
+  if (options.fromSequence !== undefined && action !== 'fork') throw new Error('--from-sequence applies only to fork');
+  if (options.compaction && action !== 'run') throw new Error('--compaction applies only to a new engineering run');
   if (options.reconciliationDecision && action !== 'resume') throw new Error('Reconciliation decisions apply only to resume');
   if (!ACTIONS.has(action)) throw new Error(`Unsupported agent action: ${action}. Expected one of: ${[...ACTIONS].join(', ')}`);
   if (action === 'validate-task') {
@@ -83,10 +86,12 @@ async function execute(action, options = {}) {
   }
   if (options.taskContract && action === 'run') {
     if (
-      Object.keys(options).some((key) => !['taskContract', 'scriptedResponses', 'binding', 'createOnly', 'config', 'json'].includes(key))
+      Object.keys(options).some(
+        (key) => !['taskContract', 'scriptedResponses', 'binding', 'createOnly', 'config', 'compaction', 'json'].includes(key),
+      )
     ) {
       throw new Error(
-        'Engineering runs accept only task contract, one model source (binding or scripted responses), create-only, config and JSON options.',
+        'Engineering runs accept only task contract, one model source (binding or scripted responses), create-only, config, compaction and JSON options.',
       );
     }
     // Admission first: a contract that is not admitted never gets a host.
@@ -104,6 +109,18 @@ async function execute(action, options = {}) {
       environmentHost?.dispose();
     }
   }
+  if (options.profile === 'disposable-engineering-candidate' && action === 'fork') {
+    if (!options.state || Object.keys(options).some((key) => !['profile', 'state', 'fromSequence', 'json'].includes(key))) {
+      throw new Error('Engineering fork requires state and accepts from-sequence and JSON only.');
+    }
+    const result = await require('../lib/engineering-task-runtime').forkEngineeringTask({
+      state: options.state,
+      fromSequence: integer(options.fromSequence, '--from-sequence'),
+    });
+    render(result, options.json === true);
+    return result;
+  }
+  if (action === 'fork') throw new Error('Fork requires the disposable engineering profile.');
   if (options.profile === 'disposable-engineering-candidate' && ['status', 'resume', 'cancel', 'evidence', 'reconcile'].includes(action)) {
     if (
       !options.state ||
@@ -137,7 +154,8 @@ async function execute(action, options = {}) {
     }
   }
   if (['status', 'evidence'].includes(action)) throw new Error('Status requires the disposable engineering profile.');
-  if (options.taskContract || options.scriptedResponses) throw new Error('Engineering inputs require agent run --task-contract.');
+  if (options.taskContract || options.scriptedResponses || options.compaction)
+    throw new Error('Engineering inputs require agent run --task-contract.');
   const profile = options.profile || REFERENCE_PROFILE;
   if (!PROFILES.has(profile)) throw new Error(`Unsupported agent profile: ${profile}. Expected one of: ${[...PROFILES].join(', ')}`);
   if (profile === DEEPSEEK_ONE_SHOT_PROFILE) {
@@ -247,7 +265,7 @@ async function execute(action, options = {}) {
 
 module.exports = {
   command: 'agent <action>',
-  description: 'Agent actions: run, resume, cancel, validate-task, status, evidence, reconcile',
+  description: 'Agent actions: run, resume, cancel, validate-task, status, evidence, reconcile, fork',
   options: [
     ['--task-contract <path>', 'Versioned disposable engineering contract for validation or candidate execution'],
     ['--scripted-responses <path>', 'Bounded keyless model responses for deterministic engineering fixtures'],
@@ -260,6 +278,8 @@ module.exports = {
     ['--value <text>', 'Deterministic external state value for a new run'],
     ['--create-only', 'Create a resumable session without starting a turn'],
     ['--expected-sequence <number>', 'Required optimistic sequence for resume'],
+    ['--compaction <path>', 'Opt-in deterministic context compaction for an engineering run (off by default)'],
+    ['--from-sequence <number>', 'Parent session sequence to fork from (default: the last event)'],
     ['--reason <text>', 'Cancellation reason'],
     ['--reconciliation-decision <path>', 'Explicit answers bound to the current reconciliation report'],
     ['--config <path>', 'Global configuration with the environment: section (default: ~/.config/hseos/config.yaml)'],
@@ -272,7 +292,7 @@ module.exports = {
       (result.task_result &&
         !['approved'].includes(result.task_result) &&
         action !== 'cancel' &&
-        !['status', 'evidence', 'reconcile'].includes(action) &&
+        !['status', 'evidence', 'reconcile', 'fork'].includes(action) &&
         !options.createOnly) ||
       result.status === 'failed' ||
       (result.status === 'cancelled' && action !== 'cancel')
