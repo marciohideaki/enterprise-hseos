@@ -150,7 +150,7 @@ test('the backend a request actually reaches is the declared one and any diverge
 
   for (const divergent of [
     { ...effective, origin: 'https://other.example.invalid' },
-    { ...effective, origin: 'http://api.example.invalid' },
+    { ...effective, origin: 'http://api.openai.com' },
     { ...effective, model: 'organization/other-model' },
     { ...effective, model: undefined },
     { ...effective, origin: undefined },

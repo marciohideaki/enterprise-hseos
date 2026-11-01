@@ -5,8 +5,11 @@ adapter: openai-compatible-sse
 provider:
   provider_id: model:openai-compatible
   provider_version: 1.0.0
-  base_url: https://api.example.invalid/v1
-  model: organization/model
+  # Endpoint e modelo da API oficial do provedor que dá nome ao formato (OpenAI) (a confirmar na campanha).
+  # Nada aqui é verificado ainda: a campanha L2 confirma conta, endpoint, modelo, cota e custo.
+  base_url: https://api.openai.com/v1
+  # Modelo de chat de baixo custo do catálogo público, apenas placeholder (a confirmar na campanha).
+  model: gpt-4o-mini
   capabilities:
     - text_generation
     - streaming
@@ -19,10 +22,12 @@ provider:
     max_parallel_requests: 4
   secret_refs:
     - name: api-key
+      # Nome da variável injetada pelo supervisor no processo; o valor nunca entra neste arquivo.
       source_ref: env://HSEOS_MODEL_PROVIDER_API_KEY
 transport:
   max_attempts: 2
   retry_delay_ms: 250
+# O esquema exige operational e authorized falsos; a autorização é do owner, por campanha.
 activation:
   operational: false
   authorized: false

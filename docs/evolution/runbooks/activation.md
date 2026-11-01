@@ -180,9 +180,45 @@ Servidor MCP `project-state` (banco ativado), mesma seção, com estas particula
 - **Schema de entrada real no `tools/list` (decisão do owner de 2026-10-31).** `memory.write`, `memory.retrieve` e `memory.delete` (e as ferramentas `environment.*`) publicam o JSON Schema 2020-12 da entrada, não mais o objeto aberto: `scope` é objeto (`{ "project_id": "..." }`, não string JSON) e `ttl_seconds` é inteiro de 1 a 7 776 000. Um argumento com tipo errado é recusado pelo adaptador com `-32602` ("Tool arguments do not match inputSchema") antes do runtime; o validador programático continua a fonte da verdade (limite de bytes, varredura de credencial, `origin`/`trust`). Ao conferir um cliente real, verifique que `memory.write.inputSchema` traz `properties` (checagem: `tools/list` e `inputSchema.properties.scope.type == "object"`).
 - `memory.delete` com `project_id` de outro projeto é recusado antes de qualquer pedido de aprovação ao humano.
 - **LSP e DAP exigem cgroup delegado (achado F4 do K7).** O isolamento só funciona com um cgroup pai delegado ao usuário (controladores `memory` e `pids`) e com `/usr/bin/bwrap`. Um servidor lançado por um cliente MCP herda o cgroup do cliente, que normalmente não é delegado. Por isso o host verifica as duas condições **na inicialização**, com a mesma checagem de cgroup que o executor aplica a cada chamada. Sem elas (cgroup delegado mais bwrap), `environment.lsp.*` e `environment.dap.*` ficam **omitidas do `tools/list`** e o stderr traz uma linha `hseos mcp: environment.lsp and environment.dap are off: <causa>` com a instrução de lançamento. Não há ferramenta anunciada que falhe em toda chamada. Se a composição do host falhar mesmo passando nas checagens, o servidor reinicia **uma única vez sem o host** (um segundo erro propaga); se nenhuma família puder ser composta e não houver memória configurada, ele sobe sem a capability (K9).
-- **Lançamento delegado** (formato de referência: `run-in-cgroup.sh` da run de fechamento; **não foi testado com Codex nem com Claude Code**): `systemd-run --user -p Delegate=yes --wait --collect --pipe -- <comando do servidor>`, por exemplo o `node tools/mcp-project-state/index.js --db=<project.db>` que o cliente executaria. O `--pipe` mantém o stdio do servidor ligado ao cliente.
+- **Lançamento delegado:** ver a seção "Cliente real para environment.\*" abaixo (comando provado por teste do próprio servidor; o cliente real segue sem prova).
 - **`memory.*` não depende de isolamento** e continua anunciada com o banco ativado e `memory.operator` configurado, com ou sem cgroup delegado.
 - **NOT_EXERCISED:** nenhuma `tools/call environment.*` foi feita por cliente real (Codex ou Claude Code). A omissão sem cgroup e a presença com cgroup estão provadas por teste do próprio servidor (`test/test-mcp-environment-host.js`), não por cliente.
+
+#### Cliente real para environment.\*
+
+Um servidor lançado diretamente por um cliente MCP herda o cgroup do cliente, que em geral não é delegado, e então `environment.lsp.*` e `environment.dap.*` somem do `tools/list`. O `command` e os `args` abaixo sobem o mesmo servidor num serviço transitório do usuário com cgroup delegado, mantendo o stdio ligado ao cliente (`--pipe`). Substitua os caminhos absolutos pelos do seu host.
+
+```json
+{
+  "mcpServers": {
+    "hseos-project-state": {
+      "command": "systemd-run",
+      "args": [
+        "--user",
+        "-p",
+        "Delegate=yes",
+        "--wait",
+        "--collect",
+        "--pipe",
+        "--quiet",
+        "--working-directory=<raiz-do-projeto>",
+        "--setenv=PATH=<dir-do-node>:/usr/bin:/bin",
+        "--setenv=TMPDIR=<dir-temporario-em-disco>",
+        "--",
+        "<dir-do-node>/node",
+        "<raiz-do-hseos>/tools/mcp-project-state/index.js",
+        "--db=<raiz-do-projeto>/.hseos/state/project.db",
+        "--config=<home>/.config/hseos/config.yaml"
+      ]
+    }
+  }
+}
+```
+
+- **Por que `--setenv`:** o serviço transitório não herda o ambiente do cliente. Sem `PATH` o `node` e o `bwrap` não são encontrados; sem `TMPDIR` o scratch cai em `/tmp` (tmpfs). Não coloque credenciais nos `args`.
+- **Pré-requisitos do host:** `systemd --user` ativo, `/usr/bin/bwrap`, controladores `memory` e `pids` delegados ao usuário, e `environment.toolchain_cache` apontando para o cache pinado (o `tools/list` lê o cache local, sem rede).
+- **Prova (teste do servidor, não do cliente):** `test/test-mcp-environment-host.js`, caso "launched through systemd-run with Delegate=yes", lança o servidor por exatamente esse wrapper sobre um banco ativado de fixture e confere `environment.lsp.hover`, `environment.dap.run` e `memory.*` no `tools/list`, sem a linha `environment.lsp and environment.dap are off` no stderr. O teste **se declara pulado, com o motivo**, quando o host não tem `systemd-run --user` com `Delegate=yes`, `bwrap` ou o cache pinado; nunca passa em branco.
+- **Verificação manual com cliente real:** registre o bloco acima, inicie o cliente e confira `tools/list` (deve trazer `environment.lsp.*`). Sem isso, o stderr do servidor traz a causa. **Continua NOT_EXERCISED:** a chamada `tools/call environment.*` por Codex ou Claude Code; registrar a versão de protocolo e o resultado aqui quando for feita.
 
 **Sem a seção `environment:` o host fica ausente** e o comportamento atual se mantém: `ENV_CAPABILITY_UNAVAILABLE` no servidor MCP e `ENGINEERING_ENVIRONMENT_HOST_REQUIRED` na CLI. A seção é escrita no passo 1b.0, com backup e rollback: ela só vale com o banco ativado (memória durável no `project.db`); na CLI sem banco ativado a memória usa o ledger da tarefa, com aviso. Pré-condição de segurança: o `agent run` admite o contrato (K6) antes de montar o host. A seção não carrega segredo, e este runbook não os manuseia.
 

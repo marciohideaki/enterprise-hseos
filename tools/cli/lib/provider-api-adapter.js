@@ -37,8 +37,17 @@ function adapterArtifactDigest() {
   return engineeringDigest(artifactFiles.map((file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')));
 }
 const loadedArtifact = adapterArtifactDigest();
-const VENDOR_AMBIENT_KEY = 'DEEPSEEK_API_KEY';
 const BALANCE_URL = 'https://api.deepseek.com/user/balance';
+// Per-vendor facts of the API route. A vendor without a balance endpoint reports no balance at all: its quota is then
+// admitted only under an audited owner exception, never inferred.
+const VENDORS = Object.freeze({
+  deepseek: {
+    ambient: ['DEEPSEEK_API_KEY'],
+    origins: ['https://api.deepseek.com', 'https://api.deepseek.com/v1'],
+    balanceUrl: BALANCE_URL,
+  },
+  openai: { ambient: ['OPENAI_API_KEY'], origins: ['https://api.openai.com', 'https://api.openai.com/v1'], balanceUrl: null },
+});
 function credentialFingerprint(value) {
   return createHash('sha256').update('hseos-provider-credential-v1\0').update(value).digest('hex');
 }
@@ -59,12 +68,13 @@ function createApiCampaignAdapter(
   { environment = process.env, fetchImpl = globalThis.fetch } = {},
 ) {
   const settings = optionsSchema.parse(options);
+  const vendor = Object.hasOwn(VENDORS, manifest.vendor) ? VENDORS[manifest.vendor] : null;
+  if (!vendor) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
   const initial = readProviderBinding(filename);
   const binding = validateEngineeringBinding(initial.binding);
   const digest = engineeringDigest({ binding, options: settings });
   if (
     manifest.adapter !== API_ADAPTER_ID ||
-    manifest.vendor !== 'deepseek' ||
     manifest.route !== 'api' ||
     manifest.provider_kind !== 'model' ||
     manifest.authentication.identity_kind !== 'credential' ||
@@ -74,7 +84,7 @@ function createApiCampaignAdapter(
     manifest.provider_version !== API_ADAPTER_VERSION ||
     binding.provider.provider_version !== API_ADAPTER_VERSION ||
     manifest.authentication.source !== 'explicit' ||
-    !['https://api.deepseek.com', 'https://api.deepseek.com/v1'].includes(binding.provider.base_url.replace(/\/$/, '')) ||
+    !vendor.origins.includes(binding.provider.base_url.replace(/\/$/, '')) ||
     engineeringDigest(manifest.authentication.credential) !== engineeringDigest(binding.provider.secret_refs[0]) ||
     binding.provider.limits.context_tokens > manifest.limits.max_input_tokens ||
     manifest.limits.max_output_tokens > binding.provider.limits.max_output_tokens ||
@@ -100,7 +110,7 @@ function createApiCampaignAdapter(
     // Only the declared source may supply the credential; the vendor's ambient key is a refused competitor, never a fallback.
     const value = selectDeclaredCredential(manifest, {
       [reference]: Object.hasOwn(environment, name) ? environment[name] : undefined,
-      ...(name === VENDOR_AMBIENT_KEY ? {} : { [`env://${VENDOR_AMBIENT_KEY}`]: environment[VENDOR_AMBIENT_KEY] }),
+      ...Object.fromEntries(vendor.ambient.filter((key) => key !== name).map((key) => [`env://${key}`, environment[key]])),
     });
     if (credentialFingerprint(value) !== manifest.authentication.credential_sha256) fail('CONTROL_PROVIDER_IDENTITY_UNVERIFIED');
     return value;
@@ -112,7 +122,24 @@ function createApiCampaignAdapter(
       async inspect({ signal = new AbortController().signal } = {}) {
         try {
           const value = verify();
-          const response = await fetchImpl(BALANCE_URL, {
+          if (!vendor.balanceUrl) {
+            // No balance endpoint: nothing is requested and no quota is reported, so admission needs an audited exception.
+            return {
+              binding_sha256: digest,
+              artifact_sha256: loadedArtifact,
+              provider_version: manifest.provider_version,
+              account_sha256: null,
+              credential_sha256: credentialFingerprint(value),
+              authenticated: true,
+              auth_source: 'explicit',
+              observed_at: Date.now(),
+              expires_at: settings.pricing.valid_until,
+              quota_remaining_requests: null,
+              competing_credentials: false,
+              effective_backend: { origin: new URL(binding.provider.base_url).origin },
+            };
+          }
+          const response = await fetchImpl(vendor.balanceUrl, {
             method: 'GET',
             redirect: 'error',
             headers: { authorization: `Bearer ${value}`, accept: 'application/json' },
@@ -148,7 +175,7 @@ function createApiCampaignAdapter(
             quota_remaining_requests: null,
             quota_available_microusd: available,
             competing_credentials: false,
-            effective_backend: { origin: new URL(BALANCE_URL).origin },
+            effective_backend: { origin: new URL(vendor.balanceUrl).origin },
           };
         } catch (error) {
           if (
