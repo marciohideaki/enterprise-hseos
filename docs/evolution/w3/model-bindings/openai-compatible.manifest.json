@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "provider_kind": "model",
+  "vendor": "deepseek",
+  "route": "api",
+  "transport": "http",
+  "billing": {
+    "kind": "metered",
+    "currency": "USD",
+    "max_request_microusd": 1000
+  },
+  "limits": {
+    "max_requests": 3,
+    "max_input_tokens": 32768,
+    "max_output_tokens": 4096,
+    "max_duration_ms": 30000
+  },
+  "controls": {
+    "authority": "kernel",
+    "resume": "not_verified",
+    "cancel": "not_verified",
+    "quota": "not_verified",
+    "evidence_sha256": null
+  },
+  "binding_id": "provider-binding:openai-compatible-example",
+  "binding_sha256": "069fc1b4f100e336a7ca67656edb5fd941eee504404646543a59d30837638af9",
+  "provider_version": "1.0.0",
+  "adapter": "openai-compatible-sse",
+  "artifact_sha256": "74b4937ba78e0e2b9851f92348771af26a57b4d42bd63ace8e8e8105e40aef22",
+  "authentication": {
+    "mode": "api_key",
+    "credential": {
+      "name": "api-key",
+      "source_ref": "env://HSEOS_MODEL_PROVIDER_API_KEY"
+    },
+    "account_sha256": null,
+    "identity_kind": "credential",
+    "credential_sha256": "8773dc961ec1254cd2ee1916c8324ce2d68477eb337008448b0835c3d03f3444",
+    "source": "explicit"
+  }
+}

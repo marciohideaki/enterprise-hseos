@@ -121,6 +121,7 @@ function loadControlConfiguration(filename, { state, adapterFactories = {} } = {
         binding_sha256: loaded.binding_sha256,
         adapter: loaded.adapter,
         subordinate_binding_ids: entry.subordinate_binding_ids,
+        ...(loaded.declared_backend ? { declared_backend: loaded.declared_backend } : {}),
       };
     }
     result.providerAuthorizations = deepFreeze(settings.authorizations);

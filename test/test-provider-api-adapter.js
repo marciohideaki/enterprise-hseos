@@ -327,3 +327,57 @@ test('L1 F08-R1 openai-compatible binding: a silent change of price, balance or 
   assert.equal((await adapter.inspect()).quota_available_microusd, 0);
   assert.equal(f.calls.filter((call) => !call.url.endsWith('/user/balance')).length, 0);
 });
+
+async function campaignFor(t, f, override = {}) {
+  const { EngineeringControl } = require('../tools/cli/lib/engineering-control');
+  const authorizationId = randomUUID(),
+    campaignId = randomUUID();
+  const control = new EngineeringControl({
+    providerBindings: { [f.value.binding_id]: { ...f.create(), manifest: f.value, ...override } },
+    providerAuthorizations: {
+      [authorizationId]: {
+        max_requests: 1,
+        max_cost_microusd: 1000,
+        deadline: Date.now() + 60_000,
+        binding_ids: [f.value.binding_id],
+        task_ids: [f.taskId],
+      },
+    },
+  });
+  t.after(() => {
+    control.close();
+    control.handle.cleanup();
+  });
+  const service = control.providerCampaigns;
+  const command = (action, input) => ({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: campaignId,
+    expected_sequence: service.rows(campaignId).length,
+    action,
+    input,
+  });
+  await service.execute(command('create', { authorization_id: authorizationId }));
+  return () => service.execute(command('run', { binding_id: f.value.binding_id, task_id: f.taskId }));
+}
+
+test('production campaign refuses a second credential source before any network effect', async (t) => {
+  const f = fixture(t);
+  f.environment.DEEPSEEK_API_KEY = randomUUID();
+  const run = await campaignFor(t, f);
+  await assert.rejects(run(), { code: 'CONTROL_PROVIDER_CREDENTIAL_CONFLICT' });
+  assert.equal(f.calls.length, 0);
+  delete f.environment.DEEPSEEK_API_KEY;
+  await run();
+  assert.equal(f.calls.length, 2);
+});
+
+test('production campaign refuses an effective backend that differs from the declared one', async (t) => {
+  const f = fixture(t);
+  for (const declared_backend of [{ origin: 'https://other.example.invalid' }, { origin: 'http://api.deepseek.com' }]) {
+    const run = await campaignFor(t, f, { declared_backend });
+    await assert.rejects(run(), { code: 'CONTROL_PROVIDER_BACKEND_DIVERGED' });
+  }
+  assert.equal(f.calls.length, 2, 'only the balance probes ran; no model request was dispatched');
+  assert.ok(f.calls.every((call) => call.url.endsWith('/user/balance')));
+});

@@ -3,7 +3,11 @@
 const { randomUUID } = require('node:crypto');
 const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
-const { parseProviderControlManifest, inspectProviderControlManifest } = require('../../lib/provider-control-manifest');
+const {
+  assertEffectiveBackend,
+  parseProviderControlManifest,
+  inspectProviderControlManifest,
+} = require('../../lib/provider-control-manifest');
 const { executorOwner, isExecutorOwnerAlive } = require('../../../packages/agent-isolation-attestation/executor');
 const { MAX_EVIDENCE_BYTES, EVIDENCE_RETENTION_DAYS, storeEvidence, readEvidence, sameAccount } = require('./campaign-evidence-store');
 const { sanitizeDiagnostic } = require('./provider-campaign-process');
@@ -50,6 +54,10 @@ const observationSchema = z
       .max(4)
       .optional(),
     competing_credentials: z.boolean(),
+    effective_backend: z
+      .object({ origin: z.string().min(1).max(512), model: z.string().min(1).max(256).optional() })
+      .strict()
+      .optional(),
   })
   .strict();
 const receiptSchema = z
@@ -150,7 +158,13 @@ class ProviderCampaignControl {
         .array(z.string().min(1).max(160))
         .max(16)
         .parse(configured.subordinate_binding_ids || []);
-      this.bindings.set(id, { manifest, adapter: configured.adapter, subordinateIds: Object.freeze(subordinateIds) });
+      const declaredBackend = configured.declared_backend
+        ? z
+            .object({ origin: z.string().min(1).max(512), model: z.string().min(1).max(256).optional() })
+            .strict()
+            .parse(configured.declared_backend)
+        : null;
+      this.bindings.set(id, { manifest, adapter: configured.adapter, subordinateIds: Object.freeze(subordinateIds), declaredBackend });
     }
     this.validateComposition();
   }
@@ -168,6 +182,7 @@ class ProviderCampaignControl {
           binding_sha256: value.manifest.binding_sha256,
           adapter: key === id ? configured.adapter : value.adapter,
           subordinate_binding_ids: value.subordinateIds,
+          ...(value.declaredBackend ? { declared_backend: value.declaredBackend } : {}),
         },
       ]),
     );
@@ -496,7 +511,8 @@ class ProviderCampaignControl {
       this.inspections.get(id).add(probe);
       try {
         observed = observationSchema.parse(await binding.adapter.inspect({ signal: probe.signal }));
-      } catch {
+      } catch (error) {
+        if (error?.code === 'CONTROL_PROVIDER_CREDENTIAL_CONFLICT') reject(error.code);
         reject('CONTROL_PROVIDER_OBSERVATION_UNAVAILABLE');
       } finally {
         parent?.signal.removeEventListener('abort', abortProbe);
@@ -521,6 +537,7 @@ class ProviderCampaignControl {
             : !sameAccount(manifest.authentication, observed))
       )
         reject('CONTROL_PROVIDER_IDENTITY_UNVERIFIED');
+      if (binding.declaredBackend) assertEffectiveBackend(binding.declaredBackend, observed.effective_backend);
       this.assertFreshObservation(observed);
       this.quotaAdmission(id, binding, observed);
     }

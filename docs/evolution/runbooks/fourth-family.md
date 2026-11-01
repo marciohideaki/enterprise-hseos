@@ -36,7 +36,7 @@ Pedir ao owner, antes da campanha:
 
 **Assinatura primeiro (ADR-0050, seção 3, item 7 e resposta 10).** Antes de pedir a chave de API, registrar por escrito que a rota de assinatura oficial da família foi avaliada: se existe ou não, e a fonte. O registro também declara que nenhum token de assinatura será usado como API genérica. Sem esse registro a campanha fica **BLOCKED**.
 
-Regras (`AGENTS.md` global §3c): a chave vai ao `pass` antes do primeiro uso; nunca em prompt, workspace, log, recibo, manifest ou documento (o binding registra a **referência**, não o valor); sem pooling de identidade e sem fallback para outra credencial. Se a referência não existir, o ensaio fica **BLOCKED** com essa causa.
+Regras (`AGENTS.md` global §3c): a chave vai ao `pass` antes do primeiro uso; nunca em prompt, workspace, log, recibo, manifest ou documento (o binding registra a **referência**, não o valor); sem pooling de identidade e sem fallback para outra credencial. Se a referência não existir, o ensaio fica **BLOCKED** com essa causa. Antes de rodar, confira o passo de pré-campanha sobre variável de chave de ambiente concorrente em `docs/evolution/runbooks/evolution-matrix.md` (seção 6).
 
 ## 4. Teto de orçamento (ADR-0050, seção 3)
 
