@@ -15,6 +15,7 @@ const {
 } = require('../packages/agent-compaction');
 
 const { ContextAssembler } = require('../packages/agent-context');
+const { ContextBudgetError, ContextAssemblyError } = require('../packages/agent-context/context-assembler');
 const { AgentRuntime, RUNTIME_CAPS, stableId } = require('../packages/agent-runtime');
 const {
   CONTRACT_SCHEMA_VERSION,
@@ -781,6 +782,31 @@ test('cumulative stream caps reserve room for a durable synthetic terminal event
   assert.ok(MAX_MODEL_EVENTS_PER_STEP > tightenedEventLimit);
 });
 
+// Debt 18: only the assembler's budget refusal is an exhausted budget; any other context defect stays an internal error.
+for (const [name, error, expected] of [
+  ['a context budget refusal', new ContextBudgetError('required model context exceeds the input budget'), 'budget_exceeded'],
+  ['another context assembly error', new ContextAssemblyError('context source is invalid', 'AGENT_CONTEXT_INVALID'), 'internal_error'],
+  [
+    'a context error that only shares the budget prefix',
+    new ContextAssemblyError('counter changed', 'AGENT_CONTEXT_BUDGET_COUNTER_CHANGED'),
+    'internal_error',
+  ],
+  ['a context counter error', new ContextAssemblyError('counter failed', 'AGENT_CONTEXT_COUNTER_FAILED'), 'internal_error'],
+])
+  test(`the runtime reports ${name} as ${expected}`, async (context) => {
+    const fixture = setup({ routes: modelRoutes() });
+    context.after(() => fixture.db.close());
+    context.mock.method(ContextAssembler.prototype, 'assembleAndRecord', () => {
+      throw error;
+    });
+    await fixture.runtime.create(createCommand(fixture.sessionSpec));
+    const result = await fixture.runtime.send(sendCommand());
+    assert.equal(result.terminal, true);
+    const failure = fixture.sessionStore.replay('session:loop').terminal_event.payload;
+    assert.equal(failure.error_code, expected);
+    if (expected === 'budget_exceeded') assert.equal(failure.message, error.message);
+  });
+
 test('cancellation is durable before provider interruption and every started unit settles', async (context) => {
   const fixture = setup({ routes: modelRoutes({ slow: true }) });
   context.after(() => fixture.db.close());
@@ -840,6 +866,59 @@ test('a projected overflow fails before the step opens and reports the numbers',
   assert.equal(projected, used + request + 64);
   assert.ok(projected > 1500);
 });
+
+// Debt 18: the first step of a turn is projected from the session's other usage, its own request and its reserve. The
+// state is changed between create and send (a reconciliation reserve), so each component is observable on its own.
+const plainRoutes = () => [
+  {
+    match: (request) => request.messages.at(-1).role === 'user',
+    events: [
+      { event_type: 'content.delta', payload: { text: 'noted' } },
+      { event_type: 'usage', payload: { input_tokens: 20, output_tokens: 3, cached_tokens: 0 } },
+      { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://plain' } },
+    ],
+  },
+  { match: () => false, events: [] },
+];
+async function firstTurn(context, maxTokens, reservedElsewhere) {
+  const fixture = setup({ routes: plainRoutes(), limits: { max_tokens: maxTokens } });
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  if (reservedElsewhere > 0)
+    append(
+      fixture.sessionStore,
+      'session:loop',
+      'session.reconciled',
+      { report_sha256: 'a'.repeat(64), reserved_tokens: reservedElsewhere },
+      'reserve',
+    );
+  await fixture.runtime.send(sendCommand());
+  const state = fixture.sessionStore.replay('session:loop');
+  const assembled = fixture.sessionStore.readSession('session:loop').find((event) => event.event_type === 'context.assembled');
+  return { state, step: state.turns['turn:loop-1'].model_steps.length, request: assembled?.payload.request };
+}
+
+for (const reservedElsewhere of [0, 777])
+  test(`the first step is projected component by component (other usage ${reservedElsewhere})`, async (context) => {
+    const open = await firstTurn(context, 1_000_000, reservedElsewhere);
+    assert.equal(open.step, 1, 'with room the step opens');
+    const requestBytes = Buffer.byteLength(canonicalJson(open.request), 'utf8');
+    const reserve = open.request.parameters.max_output_tokens;
+    assert.ok(reserve === 64 && requestBytes > reserve, 'the request carries its envelope and its reserve');
+    const projected = reservedElsewhere + requestBytes + reserve;
+
+    // One short: refused before the step opens, with every component exactly as measured here (none counted twice).
+    const refused = await firstTurn(context, projected - 1, reservedElsewhere);
+    assert.equal(refused.step, 0);
+    assert.equal(refused.state.terminal_event.payload.error_code, 'budget_exceeded');
+    assert.equal(
+      refused.state.terminal_event.payload.message,
+      `session token budget cannot reserve another model step: projected ${projected} > max ${projected - 1} (used ${reservedElsewhere} + request ${requestBytes} + reserve ${reserve})`,
+    );
+    // Exactly the projection: the step opens.
+    const exact = await firstTurn(context, projected, reservedElsewhere);
+    assert.equal(exact.step, 1, JSON.stringify(exact.state.terminal_event));
+  });
 
 test('a session that stops within its window completes even when reported usage passes the limit', async (context) => {
   const fixture = setup({

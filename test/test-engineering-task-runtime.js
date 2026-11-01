@@ -129,7 +129,7 @@ function additionTask(limits = {}) {
   return task;
 }
 
-test('a max_tokens below the context floor is refused at admission with its minimum; a replayed contract still ends opaque (H-4)', async () => {
+test('a max_tokens below the context floor is refused at admission with its minimum; a replayed contract ends with an explicit budget reason (H-4)', async () => {
   const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
   const floor = minimumMaxTokens(additionTask());
   const run = async (limits, options = {}) => {
@@ -157,36 +157,119 @@ test('a max_tokens below the context floor is refused at admission with its mini
       return true;
     },
   );
-  // Without admission (a replayed or recovered task) nothing changes: the failure is still the generic one.
+  // Without admission (a replayed or recovered task) the runtime still names the cause: the budget, never an internal error.
   const replayed = await run({ max_tokens: 10_000 }, { admission: false });
-  assert.equal(replayed.reason, 'session-failed:internal_error', JSON.stringify(replayed));
+  assert.equal(replayed.reason, 'session-budget-exceeded', JSON.stringify(replayed));
   const admitted = await run({ max_tokens: floor });
   assert.ok(admitted.state, 'exactly the minimum passes admission and creates the task');
 });
 
-test('the admission floor is a lower bound of the request the assembler really builds, and close to it (H-4)', async () => {
+// Debt 18: the floor is measured on the request the runtime builds, so it is the canonical request plus the reserve.
+async function firstRequestBudget(run) {
   const { ContextAssembler } = require('../packages/agent-context/context-assembler');
-  const { minimumMaxTokens, NATIVE_TOOLS_MIN_TOKENS, OUTPUT_RESERVE_TOKENS } = require('../tools/cli/lib/engineering-task-contract');
   const original = ContextAssembler.prototype.assembleAndRecord;
-  const budgets = [];
+  const first = [];
   ContextAssembler.prototype.assembleAndRecord = function (...args) {
     const result = original.apply(this, args);
-    budgets.push(result.budget);
+    first.push({ budget: result.budget, request: result.event.payload.request });
     return result;
   };
   try {
-    await fixture({ code: 'module.exports=(a,b)=>a+b;\n' }, async () => {});
+    await run();
   } finally {
     ContextAssembler.prototype.assembleAndRecord = original;
   }
-  const first = budgets[0];
-  const required = first.reserved_output_tokens + first.input_tokens;
-  const floor = minimumMaxTokens(additionTask());
+  const { canonicalJson } = require('../packages/agent-session-store');
+  const { budget, request } = first[0];
+  // What the session accounting books for a step that reported no usage: the whole canonical request plus the reserve.
+  return { ...budget, booked: Buffer.byteLength(canonicalJson(request), 'utf8') + budget.reserved_output_tokens };
+}
+
+test('the admission floor equals what the session books for the first request, for schema 1 and schema 2 (debt 18)', async (t) => {
+  const { minimumMaxTokens, OUTPUT_RESERVE_TOKENS } = require('../tools/cli/lib/engineering-task-contract');
+  const { fixture: projectFixture } = require('./helpers/engineering-project');
+  const first = await firstRequestBudget(() =>
+    fixture({ code: 'module.exports=(a,b)=>a+b;\n', limits: { max_tokens: 30_000 } }, async () => {}),
+  );
   assert.equal(first.reserved_output_tokens, OUTPUT_RESERVE_TOKENS);
-  assert.ok(floor <= required, `the floor ${floor} must not exceed what the first request needs (${required})`);
-  assert.ok(required - floor <= 1000, `the floor ${floor} drifted from the assembled request (${required}): update the constants`);
-  assert.ok(first.tool_tokens >= NATIVE_TOOLS_MIN_TOKENS, `native tools measure ${first.tool_tokens}, below ${NATIVE_TOOLS_MIN_TOKENS}`);
+  assert.equal(minimumMaxTokens(additionTask()), first.booked, 'schema 1');
+  assert.ok(first.booked > first.reserved_output_tokens + first.input_tokens, 'the envelope is more than the assembler counts');
+  const project = projectFixture(t);
+  // The criteria quote max_tokens: both runs use five digits, the length of the floor itself.
+  project.contract.limits.max_tokens = 30_000;
+  project.save();
+  const responses = path.join(project.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  let result;
+  const second = await firstRequestBudget(async () => {
+    result = await runEngineeringTask({ taskContract: project.filename, scriptedResponses: responses });
+  });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(minimumMaxTokens(project.contract), second.booked, 'schema 2');
 });
+
+// The residual bands of debt 18 measured before the fix: 752-753 tokens on schema 1 and 2359 on schema 2 above the old
+// floor ended as session-failed:internal_error, and the first step needed twice the request. Every value must now be
+// refused at admission or run its first step, and at the floor the session does not pass its own budget.
+for (const schema of [1, 2]) {
+  test(`no max_tokens near the floor ends as session-failed:internal_error, schema ${schema} (debt 18)`, async (t) => {
+    const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
+    const { fixture: projectFixture } = require('./helpers/engineering-project');
+    const project = schema === 2 ? projectFixture(t) : null;
+    const task = project ? project.contract : additionTask();
+    // No correction round: a later step re-sends the grown context and needs more than the first one, by design.
+    task.max_failed_corrections = 0;
+    const floor = minimumMaxTokens(task);
+    const directory = project ? project.directory : fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-engineering-band-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.writeFileSync(path.join(directory, 'responses.json'), '[]');
+    const attempt = async (maxTokens, options) => {
+      const contract = structuredClone(task);
+      contract.limits.max_tokens = maxTokens;
+      fs.writeFileSync(path.join(directory, 'task.json'), JSON.stringify(contract));
+      const result = await runEngineeringTask({
+        taskContract: path.join(directory, 'task.json'),
+        scriptedResponses: path.join(directory, 'responses.json'),
+        ...options,
+      });
+      const evidence = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+      fs.rmSync(result.state, { recursive: true, force: true });
+      return {
+        result,
+        failure: evidence.verification?.evidence?.session_failure,
+        accounting: evidence.verification?.evidence?.token_accounting,
+      };
+    };
+    // Below the floor: admission names the cause and the minimum for the whole old residual band and beyond.
+    for (const below of [1, 2, 753, 2359]) {
+      await assert.rejects(
+        () => attempt(floor - below, {}),
+        (error) => error.reason === 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR' && error.message.includes(`minimum ${floor} `),
+        `${below} below the floor`,
+      );
+    }
+    // A replayed contract skips admission: the safety net still reports the budget, not an internal error.
+    for (const [below, cause] of [
+      [1, /cannot reserve another model step: projected \d+ > max \d+ \(used 0 \+ request \d+ \+ reserve 8192\)/],
+      [2359, /exceeds the input budget/],
+    ]) {
+      const { result, failure } = await attempt(floor - below, { admission: false });
+      assert.equal(result.reason, 'session-budget-exceeded', JSON.stringify(result));
+      assert.equal(failure.error_code, 'budget_exceeded');
+      assert.match(failure.message, cause, `${below} below the floor`);
+    }
+    // Boundary: the floor is the smallest value that runs, one below it does not start the first step. At the floor and
+    // above the first step starts, the session reaches its own outcome and, with no usage reported, books no more than
+    // max_tokens.
+    for (const above of [0, 1, 753, 2359]) {
+      const { result, failure, accounting } = await attempt(floor + above, {});
+      assert.equal(accounting?.over_budget, undefined, `${above} above the floor stays within the budget: ${JSON.stringify(accounting)}`);
+      assert.notEqual(result.reason, 'session-failed:internal_error', JSON.stringify(result));
+      assert.equal(failure, undefined, `${above} above the floor runs the first step: ${JSON.stringify(failure)}`);
+      assert.equal(result.status, 'completed', `${above} above the floor: ${JSON.stringify(result)}`);
+    }
+  });
+}
 
 test('a provider cap below 8192 lowers the admitted floor and the first request still assembles with that reserve (H-4)', async (t) => {
   const YAML = require('yaml');
@@ -206,8 +289,6 @@ test('a provider cap below 8192 lowers the admitted floor and the first request 
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-runtime-cap-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const task = additionTask();
-    const floor = minimumMaxTokens(task, cap);
-    assert.ok(floor < minimumMaxTokens(task), `cap ${cap} lowers the floor`);
     const binding = YAML.parse(
       fs.readFileSync(path.join(__dirname, '../.agents/activation/provider-bindings/openai-compatible.example.yaml'), 'utf8'),
     );
@@ -216,6 +297,10 @@ test('a provider cap below 8192 lowers the admitted floor and the first request 
     binding.provider.secret_refs[0].source_ref = 'env://ENGINEERING_FIXTURE_CREDENTIAL';
     binding.transport.max_attempts = 1;
     fs.writeFileSync(path.join(directory, 'binding.yaml'), YAML.stringify(binding));
+    // The request carries the binding's provider and model names, so the floor is measured with them.
+    const model = { provider_id: binding.provider.provider_id, model: binding.provider.model };
+    const floor = minimumMaxTokens(task, cap, model);
+    assert.ok(floor < minimumMaxTokens(task, 8192, model), `cap ${cap} lowers the floor`);
     const create = (maxTokens) => {
       fs.writeFileSync(path.join(directory, 'task.json'), JSON.stringify(additionTask({ max_tokens: maxTokens })));
       return runEngineeringTask({
@@ -233,8 +318,7 @@ test('a provider cap below 8192 lowers the admitted floor and the first request 
       (error) => error.reason === 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR' && error.message.includes(`minimum ${floor} `),
       `cap ${cap}: one below the effective floor`,
     );
-    // The floor omits per-message framing (about 750 tokens on this task), so a run needs a margin above it to start a step.
-    const created = await create(floor + 1500);
+    const created = await create(floor);
     t.after(() => fs.rmSync(created.state, { recursive: true, force: true }));
     budgets.length = 0;
     const result = await inspectEngineeringTask({

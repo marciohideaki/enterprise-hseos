@@ -218,6 +218,16 @@ function environmentSchemaJson(contract) {
  * host input: the toolchains, the isolation policies, the approver, the memory store and its rules and operator.
  * `factories.<family>(context)` replaces a default service (tests, alternative hosts); it receives the same context.
  */
+/** The tool entry the model is given for a declared environment capability; the admission floor measures the same value. */
+function environmentToolDefinition(name, contract = environmentContracts().get(name)) {
+  return {
+    name,
+    description: `Governed ${familyOf(name)} capability ${name}. Declared by the task contract; the host owns approvals, toolchains and sessions.`,
+    input_schema: environmentSchemaJson(contract),
+    governance_ref: governanceRef(name),
+  };
+}
+
 function createEnvironmentBundles({
   capabilities,
   policies = {},
@@ -366,12 +376,7 @@ function createEnvironmentBundles({
     const family = familyOf(name);
     return {
       contract: { ...contract, provider: `${contract.provider}:${name}`, sandbox: null, prerequisites: [] },
-      definition: {
-        name,
-        description: `Governed ${family} capability ${name}. Declared by the task contract; the host owns approvals, toolchains and sessions.`,
-        input_schema: environmentSchemaJson(contract),
-        governance_ref: governanceRef(name),
-      },
+      definition: environmentToolDefinition(name, contract),
       provider: {
         async execute(value, context) {
           try {
@@ -1056,6 +1061,7 @@ module.exports = {
   createTaskExtensions,
   taskContextReservations,
   createEnvironmentBundles,
+  environmentToolDefinition,
   createExecutionApprovalResolver,
   createTaskEnvironment,
   createProductionEnvironmentHost,

@@ -164,20 +164,29 @@ test('create-only pins authorized model identity; resume reserves the original c
   assert.equal(f.launches, 1);
 });
 
+// The request carries the pinned provider and model names, so the floor is measured with them.
+async function pinnedModel(f) {
+  const admitted = await f.control.admitCreation(
+    'create',
+    { contract: f.contract, plugin_model: { selection_id: 'selected', campaign_id: f.campaignId } },
+    f.resourceId,
+  );
+  return { provider_id: admitted.plugin_model.provider_manifest.provider_id, model: admitted.plugin_model.model };
+}
+
 test('a plugin model is held to the floor of its own output cap at admission, and runs above it (H-4)', async (t) => {
   const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
   for (const cap of [8192, 1024, 256]) {
     const f = await setup(t, { outputCap: cap });
     const withTokens = (value) => ({ ...f.contract, limits: { ...f.contract.limits, max_tokens: value } });
-    const floor = minimumMaxTokens(f.contract, cap);
+    const floor = minimumMaxTokens(f.contract, cap, await pinnedModel(f));
     await assert.rejects(
       f.create(f.resourceId, { contract: withTokens(floor - 1) }),
       (error) => error.reason === 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR' && error.message.includes(`minimum ${floor} `),
       `cap ${cap}: one below the pinned cap's floor`,
     );
-    // The floor leaves out the per-message framing and the schema 2 tools: measured on this fixture, the first request
-    // assembles from floor + 2359 (cap 8192), so the run gets a margin above that.
-    await f.create(f.resourceId, { contract: withTokens(floor + 3000) });
+    // Exactly the floor is admitted and its first step starts; the plugin session may still end on a later request.
+    await f.create(f.resourceId, { contract: withTokens(floor) });
     // The plugin session runs outside this process, so the assembly is observed through its outcome.
     const result = await f.command('resume');
     assert.notEqual(result.reason, 'session-failed:internal_error', JSON.stringify(result));
@@ -189,7 +198,7 @@ test('a plugin model is held to the floor of its own output cap at admission, an
 test('re-validating an admitted plugin model job (admission:false) does not re-apply the pinned cap floor (H-4)', async (t) => {
   const { minimumMaxTokens } = require('../tools/cli/lib/engineering-task-contract');
   const f = await setup(t);
-  const floor = minimumMaxTokens(f.contract, 8192);
+  const floor = minimumMaxTokens(f.contract, 8192, await pinnedModel(f));
   const input = {
     contract: { ...f.contract, limits: { ...f.contract.limits, max_tokens: floor - 1 } },
     plugin_model: { selection_id: 'selected', campaign_id: f.campaignId },

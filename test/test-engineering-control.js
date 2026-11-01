@@ -633,7 +633,7 @@ function bindingFile(directory, cap) {
   binding.transport.max_attempts = 1;
   const filename = path.join(directory, `binding-${cap}.yaml`);
   fs.writeFileSync(filename, YAML.stringify(binding));
-  return { id: binding.binding_id, filename };
+  return { id: binding.binding_id, filename, model: { provider_id: binding.provider.provider_id, model: binding.provider.model } };
 }
 
 test('create with a binding id is held to the floor of the binding output cap, exactly (H-4)', async (t) => {
@@ -647,7 +647,8 @@ test('create with a binding id is held to the floor of the binding output cap, e
       },
     });
     const withTokens = (value) => ({ ...f.contract, limits: { ...f.contract.limits, max_tokens: value } });
-    const floor = minimumMaxTokens(f.contract, cap);
+    // The request carries the binding's provider and model names, so the floor is measured with them.
+    const floor = minimumMaxTokens(f.contract, cap, binding.model);
     const create = (value, id = randomUUID()) =>
       f.client.execute(command(id, 'create', 0, { contract: withTokens(value), binding_id: binding.id }));
     await assert.rejects(
@@ -660,7 +661,8 @@ test('create with a binding id is held to the floor of the binding output cap, e
       `cap ${cap}: one below the exact floor`,
     );
     // Not the smallest-reserve floor: a cap-8192 binding must not be admitted just above the cap-1 floor.
-    if (cap > 1024) await assert.rejects(() => create(minimumMaxTokens(f.contract, 1) + 1), { code: 'CONTROL_REQUEST_REJECTED' });
+    if (cap > 1024)
+      await assert.rejects(() => create(minimumMaxTokens(f.contract, 1, binding.model) + 1), { code: 'CONTROL_REQUEST_REJECTED' });
     const created = await create(floor);
     assert.equal(created.reason, 'awaiting-execution', `cap ${cap}: exactly the floor is admitted: ${JSON.stringify(created)}`);
   }
@@ -675,7 +677,7 @@ test('re-validating an admitted definition (admission:false) does not re-apply t
       return { [binding.id]: binding.filename };
     },
   });
-  const floor = minimumMaxTokens(f.contract, 8192);
+  const floor = minimumMaxTokens(f.contract, 8192, binding.model);
   const input = { contract: { ...f.contract, limits: { ...f.contract.limits, max_tokens: floor - 1 } }, binding_id: binding.id };
   // The same input that admission refuses is accepted when an already admitted job is claimed or recovered.
   await assert.rejects(() => f.control.admitCreation('create', input, f.id), { reason: 'ENGINEERING_MAX_TOKENS_BELOW_FLOOR' });
