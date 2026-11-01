@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
 const vendors = ['codex', 'claude', 'deepseek', 'antigravity'];
 // Vendors admitted only in a single-binding pilot; they never count toward the four-family coverage.
-const pilotVendors = new Set(['gemini']);
+const pilotVendors = new Set(['gemini', 'openai']);
 const uuid = z.string().uuid();
 const planSchema = z
   .object({
