@@ -349,3 +349,12 @@ could interleave their writes to the manifest. They now take an exclusive lock,
 - To adapt: scripts that start several installs in one directory must run them
   one after the other, or treat exit 75 as "try again". To roll back, return to
   the previous runtime.
+
+### Provider campaigns refuse a second credential source and a diverging backend (F17 L1)
+
+Two refusal codes were added to the provider campaign admission, before any model request is dispatched or budget reserved:
+
+- `CONTROL_PROVIDER_CREDENTIAL_CONFLICT`: the API campaign adapter takes the credential only from the source the binding declares (for example `env://HSEOS_MODEL_PROVIDER_API_KEY`). If the vendor's own ambient API-key environment variable (the one named by `VENDOR_AMBIENT_KEY` in `tools/cli/lib/provider-api-adapter.js`) is also set with a value and is not the declared source, the run is refused. There is no fallback between the two, and equal values still conflict.
+- `CONTROL_PROVIDER_BACKEND_DIVERGED`: the origin the adapter actually reached differs from the origin declared by the binding (`declared_backend`), or the adapter reported none.
+
+What to adapt: an operator or CI job that exports the vendor's global API key now stops at admission when the declared credential has another name. Either `unset` that variable for the campaign (`env -u <VARIABLE> ...`), or declare the credential in the binding with that variable's name (`env://<VARIABLE>`). To roll back, return to the previous runtime.

@@ -32,7 +32,7 @@ Pedir ao owner **uma referência**, nunca o valor:
 2. A **referência no `pass`**: proposta de caminho `google/gemini-api-key` (ou `<projeto>/gemini-api-key` se pertencer a um projeto), a ser criada pelo owner com `pass insert -e`. O agente só lê o valor no momento do uso, via `pass show`, e injeta pelo mecanismo de segredo do binding.
 3. Escopo da chave: restrição por API/projeto/cota, se existir limite de gasto no lado do provedor.
 
-Regras (`AGENTS.md` global §3c): a chave vai ao `pass` antes do primeiro uso; nunca em prompt, workspace, log, recibo, manifest ou documento (o binding registra a **referência**, não o valor); sem pooling de identidade e sem fallback para outra credencial. Se a referência não existir, o ensaio fica **BLOCKED** com essa causa.
+Regras (`AGENTS.md` global §3c): a chave vai ao `pass` antes do primeiro uso; nunca em prompt, workspace, log, recibo, manifest ou documento (o binding registra a **referência**, não o valor); sem pooling de identidade e sem fallback para outra credencial. Se a referência não existir, o ensaio fica **BLOCKED** com essa causa. Antes de rodar, confira o passo de pré-campanha sobre variável de chave de ambiente concorrente em `docs/evolution/runbooks/evolution-matrix.md` (seção 6).
 
 ## 4. Teto de orçamento PROPOSTO
 

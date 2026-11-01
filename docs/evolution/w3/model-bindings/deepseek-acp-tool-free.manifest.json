@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "provider_kind": "model",
+  "vendor": "deepseek",
+  "route": "api",
+  "transport": "http",
+  "billing": {
+    "kind": "metered",
+    "currency": "USD",
+    "max_request_microusd": 1000
+  },
+  "limits": {
+    "max_requests": 3,
+    "max_input_tokens": 32768,
+    "max_output_tokens": 4096,
+    "max_duration_ms": 30000
+  },
+  "controls": {
+    "authority": "kernel",
+    "resume": "not_verified",
+    "cancel": "not_verified",
+    "quota": "not_verified",
+    "evidence_sha256": null
+  },
+  "binding_id": "provider-binding:deepseek-acp-tool-free-example",
+  "binding_sha256": "7303c9e2cfa27ca07cd450f4335020802bbf9e7ce626ce03f3e46f888d4f8394",
+  "provider_version": "1.0.0",
+  "adapter": "deepseek-acp-composition",
+  "artifact_sha256": "7303c9e2cfa27ca07cd450f4335020802bbf9e7ce626ce03f3e46f888d4f8394",
+  "authentication": {
+    "mode": "api_key",
+    "credential": {
+      "name": "api-key",
+      "source_ref": "env://DEEPSEEK_API_KEY"
+    },
+    "account_sha256": null,
+    "identity_kind": "credential",
+    "credential_sha256": "f431cd64801e8efe282f0438af9eafe71b566d70c5f219932f8f316b51c4809a",
+    "source": "explicit"
+  }
+}

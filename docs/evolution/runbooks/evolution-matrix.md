@@ -118,6 +118,7 @@ Regras da proposta:
 - **Validade curta**: cada campanha expira em até 45 min (precedente da bateria) ou em janela explícita; a matriz é fatiada em campanhas dessa duração.
 - **Exceção de cota**: motivo registrado citando a decisão do owner, `expires_at` ≤ `deadline`.
 - Uma única binding por campanha; sem pool de identidades, sem fallback de credencial.
+- **Pré-campanha, credenciais**: só a fonte declarada no binding pode fornecer a credencial. Se a variável de chave de API própria do fornecedor (a nomeada por `VENDOR_AMBIENT_KEY` em `tools/cli/lib/provider-api-adapter.js`) estiver definida no ambiente e a credencial declarada tiver outro nome, a campanha é recusada com `CONTROL_PROVIDER_CREDENTIAL_CONFLICT`, antes de qualquer chamada. Resolver com `unset` dessa variável (`env -u <VARIÁVEL> ...`) ou declarando a credencial com o nome dela. Uma origem efetiva diferente da declarada é recusada com `CONTROL_PROVIDER_BACKEND_DIVERGED` (`docs/v4-migration.md`).
 
 | Fase | Campanha                         | Execuções                          | `max_requests` proposto | `max_cost_microusd`            | Escopo                          | Validade                    |
 | ---- | -------------------------------- | ---------------------------------- | ----------------------- | ------------------------------ | ------------------------------- | --------------------------- |
