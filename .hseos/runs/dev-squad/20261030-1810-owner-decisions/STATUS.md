@@ -158,3 +158,6 @@ G2 aprovado pelo owner em 2026-10-30 ("Plano aprovado"). Merge das PRs ainda NÃ
   - Termos do VS Marketplace (set/2025): "intended for use only with In-Scope Products and Services".
   - Open VSX: projeto vendor-neutral da Eclipse Foundation, com instância pública em open-vsx.org. Os termos de uso do open-vsx.org não foram lidos.
   - OpenVSCode Server: servidor acessado pelo navegador, licença MIT, último release v1.109.5 em 2026-02-20, último push em 2026-09-24, não arquivado.
+| W10 | G2 ADR-0049 aceito (respostas + fatos verificados) | owner 2026-10-31 | exec-g2 (Sonnet) | aceita (rodada 1) | `c3f6fafb` | rev-g2 PASS (notas: checkbox de Compliance; log desatualizado) |
+| W10 | G1 JSON Schema real nas ferramentas de capability | campanha MRTR | exec-g1 (Sonnet) | aceita (rodada 1) | `b554a38f` | rev-g1 aprovado com ressalvas: (M1) remover um `required` não derrubava teste; (M2) `environmentSchemaJson` ainda abria o schema ao modelo; schema mais estrito que o validador em `null`/`position` → corrigido; reconferência APROVADO |
+- 2026-10-31: #267 mergeada (`d1fc9a1e`). W10 integrada com master em `/build/tmp/owner-decisions/int-w10`, sem conflitos.

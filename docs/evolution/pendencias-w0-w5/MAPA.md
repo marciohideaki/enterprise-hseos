@@ -83,7 +83,7 @@ Lista original em [revalidation-2026-10/STATUS.md](../revalidation-2026-10/STATU
 3. `tools/call` e MRTR do Codex (login e gasto); liberação da reserva de US$ 9. **Decidido em 2026-10-30:** serão exercitados com cliente real, com o login do owner e teto de US$ 2 (W7); a reserva de US$ 9 segue retida até a reconciliação nessa campanha.
 4. Navegador e computer-use na CLI. **Decidido em 2026-10-30:** adiados.
 5. Data do sunset do legado. **Decidido em 2026-10-30:** continua sem data (ADR-0048).
-6. Teto do inventário (G3) ou onde fica o código da W6. **Decidido em 2026-10-30:** o teto sobe pelo número medido no fechamento da onda que precisar de arquivo novo em `tools/` ou `packages/`. O ADR-0049 continua Proposed até o owner responder as 14 questões.
+6. Teto do inventário (G3) ou onde fica o código da W6. **Decidido em 2026-10-30:** o teto sobe pelo número medido no fechamento da onda que precisar de arquivo novo em `tools/` ou `packages/`. O ADR-0049 foi aceito em 2026-10-31 (Aceito na W10).
 7. O significado de `operational` por família depois da ativação do piloto. **Decidido em 2026-10-30:** revalidar por família e marcar `pilot_enterprise_hseos_only` só com prova; resultado na §3.
 8. Se os aceites do Commander atribuídos ao owner valem como decisão dele. **Decidido em 2026-10-30:** itens 5, 11, 16 e 19 aceitos, 23 confirmado; 4, 15 e 24 com destino próprio; registro em [w5/STATUS](../w5/STATUS.md), "Aceites do owner (2026-10-30)".
 9. Retenção de evidência nos adapters; formato versionado do digest de conta; lista de gates do ensaio de ativação (o `g9-zero-legacy-window` foi substituído por `g9-adr0048-activation-criterion` em W5/E6, PR #262, `75b472e0`: 4 condições verificáveis, e 9 que ficam sempre pendentes) e conjunto do gate de
@@ -236,7 +236,7 @@ Na #262, o CI falhou no shard 5/6 em `test-install-lock.js:444`, teste de corrid
 - **Watchdog `hseos-liveness-watch`.** Corrigido na W8 (E12, #265). Depois da reinstalação, o ciclo sai com 0 e o timer está ativo.
 - **A18: MRTR e sunset.** O Codex 0.166.0 não fala `2026-07-28`, e pelo ADR-0048 isso impede o sunset do legado enquanto ele for cliente registrado. O critério de consumidor real para MRTR segue aberto. Dois achados de cliente: o `codex exec` bloqueia `tools/call` de MCP com a política padrão (`never`) sem override por ferramenta, e o modelo relatou um resultado inventado para uma chamada que falhou.
 - **A15.** Removido: `w0-8-governance-clock` (2 commits equivalentes por patch na master, limpo; head `d2a01588`). Mantidos, porque não está provado que o conteúdo está na master: `harness-*` (5; sem PR e com arquivos que diferem da master), `dg27-scope` (PR #220 aberta), `aew-graph-source-2b4d6f3` (usado por sessões do vortex-events) e os worktrees com mudanças não commitadas (hseos-evolution-w0..w3, v4-consolidation, plan-w4-w8, w5-live-t1, legacy-code-review-skill, harness-private-executor).
-- **Questões dos ADRs.** 14 questões do ADR-0049 (Code OSS, Proposed). As 12 do ADR-0050 foram respondidas em 2026-10-31 (ver abaixo).
+- **Questões dos ADRs.** Nenhuma pendente. As 12 do ADR-0050 e as 14 do ADR-0049 foram respondidas em 2026-10-31. ADR-0049: Aceito na W10; o aceite não cria o repositório nem inicia o fork.
 - **Outros.** F19 e F20 seguem `not_authorized`; a classificação de `test:agent-provider-conformance` na W3 como instabilidade por carga é provisória; o guard de 200 ms do `test:capability-intake-guard` falhou uma vez sob carga na suíte da W5 (870 ms) e passou isolado.
 
 #### Decisões do owner (2026-10-31)
@@ -261,7 +261,7 @@ Plano: `PLAN-3.md` da run `20261030-1810-owner-decisions` (onda W9). As decisõe
   - pacotes tar.gz e .deb, publicados por releases do GitHub e construídos em container fixado por digest;
   - contingência "só extensão" aceita, mas só com emenda do PLAN se for acionada;
   - Q13 e Q14 verificadas na fonte antes do aceite.
-    O aceite formal vai na W10.
+    Aceito na W10 (G2), com os fatos de Q13/Q14 verificados na fonte.
 - **ADR-0050 aceito (2026-10-31)**, com as 12 respostas: (1) validade do recibo de L2 de 90 dias, além dos gatilhos por mudança; (2) teto padrão da quarta família de 4 requisições, US$ 1,00 e até 45 min, sem aumento sem decisão nova; (3) API Gemini direta com chave própria em `google/gemini-hseos`, chave da NB Eventos proibida; (4) `deterministic` usa `verified_w<N>_scope_only` da onda da prova de L1; (5) `operational` de L3 usa `pilot_enterprise_hseos_only` com `operational_evidence`; (6) teto de US$ 2 de `tools/call` e MRTR por campanha, sem herdar saldo; (7) L2 da F17 só para os bindings oficiais nomeados no PLAN; (8) quarta família liberada para planejamento, execução com autorização própria por campanha; (9) novo valor `verified_api_campaign_scope_only` em `real_consumers`; (10) rota de assinatura avaliada antes de pedir chave de API; (11) L2 padrão = `tools/call` + MRTR, com L2 parcial se o cliente não fala `2026-07-28`; (12) L2 da F17 é geração real com recuperação, sem `tools/call`.
 - **Vocabulário:** `verified_api_campaign_scope_only` é admitido (F3) com guard de enum fechado e `real_consumers_evidence` resolvível. Nenhuma família mudou de status.
 - **Reinstalação da distribuição global:** pelo Commander, depois do merge da W9.

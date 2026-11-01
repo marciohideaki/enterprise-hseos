@@ -408,13 +408,15 @@ function capabilityToolDescriptors(contracts, host) {
     .list()
     .filter((contract) => contract.provider === ENVIRONMENT_PROVIDER || contract.provider === MEMORY_PROVIDER)
     .filter((contract) => TOOL_MEMBERS(contract.name).every((name) => host[name] !== undefined))
-    .map((contract) =>
-      Object.freeze({
+    .map((contract) => {
+      // No silent fallback to an open object: a client that cannot see the types sends the wrong ones.
+      if (!contract.input_json_schema) throw new TypeError(`Capability tool ${contract.name} has no published input schema`);
+      return Object.freeze({
         name: contract.name,
         description: `Governed ${contract.name}${contract.requires_approval ? ' (asks for explicit approval)' : ''}; the input is validated against the versioned contract.`,
-        inputSchema: Object.freeze({ type: 'object', additionalProperties: true }),
-      }),
-    );
+        inputSchema: contract.input_json_schema,
+      });
+    });
 }
 
 function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcurrency = 4, toolGovernance = {}, environmentHost = null }) {
@@ -540,6 +542,7 @@ module.exports = {
   ENV_CAPABILITY_UNAVAILABLE,
   expectedPolicyVersion,
   schemaContract,
+  capabilityToolDescriptors,
   createOperationalExecution,
   EXCLUSIVE_TOOLS,
   IDEMPOTENT_PROVIDERS,

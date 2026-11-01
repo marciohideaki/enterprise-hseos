@@ -27,6 +27,20 @@ function normalizeSchema(schema, field) {
   return Object.freeze({ version: schema.version, safeParse: schema.safeParse.bind(schema) });
 }
 
+// The published (client-facing) JSON Schema of the input. Optional for contracts that are not served as capability tools; when
+// given it must be a plain object, and it is frozen with everything inside it. The programmatic input_schema stays authoritative.
+function deepFreeze(value) {
+  if (value && typeof value === 'object') for (const child of Object.values(value)) deepFreeze(child);
+  return Object.freeze(value);
+}
+function normalizeJsonSchema(schema) {
+  if (schema === undefined || schema === null) return null;
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) {
+    throw new ExecutionContractError('input_json_schema must be a JSON Schema object');
+  }
+  return deepFreeze(structuredClone(schema));
+}
+
 function parseSchema(schema, value, phase) {
   let parsed;
   try {
@@ -105,6 +119,7 @@ class ExecutionContractRegistry {
       sandbox: contract.sandbox || null,
       prerequisites: Object.freeze([...(contract.prerequisites || [])]),
       input_schema: normalizeSchema(contract.input_schema, 'input_schema'),
+      input_json_schema: normalizeJsonSchema(contract.input_json_schema),
       output_schema: normalizeSchema(contract.output_schema, 'output_schema'),
     });
     this._contracts.set(contract.name, normalized);
@@ -225,7 +240,273 @@ const dapSchema = (name) => ({
     return (name === 'input' ? DAP_INPUT_SCHEMA : DAP_OUTPUT_SCHEMA).safeParse(value);
   },
 });
-const environmentContract = (name, capability, input_schema, output_schema, timeout_ms) =>
+
+// JSON Schemas 2020-12 published as the `inputSchema` of the capability tools. They describe what the validators above accept
+// so that a client sends the right types; they never replace those validators (which stay the source of truth: byte limits,
+// credential scans and path scope are not expressible here). test-capability-input-schemas.js pins both to the same verdicts.
+const JSON_SCHEMA_DIALECT = 'https://json-schema.org/draft/2020-12/schema';
+const inputJsonSchema = (title, body) => ({ $schema: JSON_SCHEMA_DIALECT, title, type: 'object', ...body });
+const NO_NUL = String.raw`^[^\u0000]+$`;
+const text = (maxLength, extra = {}) => ({ type: 'string', minLength: 1, maxLength, pattern: NO_NUL, ...extra });
+const int = (minimum, maximum, extra = {}) => ({ type: 'integer', minimum, maximum, ...extra });
+const SAFE_MAX = Number.MAX_SAFE_INTEGER;
+const MEMORY_IDENTIFIER = { type: 'string', pattern: '^[a-z0-9][a-z0-9._:-]{0,159}$', description: 'Lowercase identifier.' };
+const NON_BLANK = String.raw`\S`;
+// The validators default an omitted field with `??`, so an explicit null is accepted as "omitted"; the schema must not refuse it.
+const nullable = (schema) => ({ anyOf: [schema, { type: 'null' }] });
+
+const lspJsonSchema = (action) => {
+  const needsPosition = action !== 'diagnostics';
+  const position = {
+    type: 'object',
+    properties: { line: int(0, SAFE_MAX), character: int(0, SAFE_MAX) },
+    required: ['line', 'character'],
+  };
+  return inputJsonSchema(`environment.lsp.${action}`, {
+    properties: {
+      action: { const: action },
+      language: { enum: ['typescript', 'python'] },
+      file: text(1024, { description: 'Workspace-relative path; its extension must match the language (checked by the validator).' }),
+      // diagnostics ignores a position, but the validator accepts one, so it stays an optional property there.
+      position,
+      ...(action === 'rename_preview' ? { new_name: { type: 'string', pattern: '^[A-Za-z_][A-Za-z0-9_]{0,127}$' } } : {}),
+    },
+    required: ['action', 'language', 'file', ...(needsPosition ? ['position'] : []), ...(action === 'rename_preview' ? ['new_name'] : [])],
+    additionalProperties: false,
+  });
+};
+
+const DAP_JSON_SCHEMA = (() => {
+  return inputJsonSchema('environment.dap.run', {
+    properties: {
+      runtime: { enum: ['node', 'python'] },
+      launch: {
+        type: 'object',
+        description:
+          'Exactly one of program or module. Module is only valid for python, and a program extension must match the runtime (checked by the validator).',
+        properties: {
+          program: text(1024),
+          module: { type: 'string', pattern: String.raw`^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*){0,7}$` },
+          args: { type: 'array', maxItems: 16, items: { type: 'string', maxLength: 256, pattern: String.raw`^[^\u0000]*$` } },
+          cwd: text(1024),
+        },
+        oneOf: [
+          { properties: { program: {} }, required: ['program'] },
+          { properties: { module: {} }, required: ['module'] },
+        ],
+        additionalProperties: false,
+      },
+      breakpoints: nullable({
+        type: 'array',
+        maxItems: 20,
+        items: {
+          type: 'object',
+          properties: { file: text(1024), line: int(1, 10_000_000) },
+          required: ['file', 'line'],
+          additionalProperties: false,
+        },
+      }),
+      steps: nullable({
+        type: 'array',
+        maxItems: 20,
+        items: {
+          type: 'object',
+          properties: { op: { enum: ['continue', 'next', 'stepIn', 'stepOut'] } },
+          required: ['op'],
+          additionalProperties: false,
+        },
+      }),
+      capture: nullable({
+        type: 'object',
+        properties: { stack: { type: 'boolean' }, variables_depth: { enum: [0, 1, 2] } },
+        required: ['stack', 'variables_depth'],
+        additionalProperties: false,
+      }),
+      timeout_ms: nullable(int(1000, 120_000)),
+    },
+    required: ['runtime', 'launch'],
+    additionalProperties: false,
+  });
+})();
+
+const BROWSER_JSON_SCHEMA = (() => {
+  const selector = text(512);
+  const step = (op, properties, required = []) => ({
+    type: 'object',
+    properties: { op: { const: op }, ...properties },
+    required: ['op', ...required],
+    additionalProperties: false,
+  });
+  return inputJsonSchema('environment.browser.run', {
+    properties: {
+      steps: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 20,
+        description:
+          'The first step must be a goto (enforced by the validator, not expressible here); at most 4 screenshot and 4 dom_snapshot steps.',
+        items: {
+          oneOf: [
+            step(
+              'goto',
+              { url: { type: 'string', maxLength: 2048, pattern: String.raw`^[Hh][Tt][Tt][Pp][Ss]?://[^/?#@\s\\]+(?:[/?#].*)?$` } },
+              ['url'],
+            ),
+            step('click', { selector }, ['selector']),
+            step('type', { selector, text: { type: 'string', maxLength: 4096 } }, ['selector', 'text']),
+            step('press', { key: { type: 'string', pattern: '^[A-Za-z0-9+]{1,32}$' } }, ['key']),
+            {
+              ...step('wait_for', { selector, load_state: { enum: ['load', 'domcontentloaded', 'networkidle'] } }),
+              oneOf: [
+                { properties: { selector: {} }, required: ['selector'] },
+                { properties: { load_state: {} }, required: ['load_state'] },
+              ],
+            },
+            step('screenshot', {}),
+            step('dom_snapshot', {}),
+          ],
+        },
+        allOf: [
+          { contains: { type: 'object', properties: { op: { const: 'screenshot' } }, required: ['op'] }, minContains: 0, maxContains: 4 },
+          { contains: { type: 'object', properties: { op: { const: 'dom_snapshot' } }, required: ['op'] }, minContains: 0, maxContains: 4 },
+        ],
+      },
+      viewport: {
+        type: 'object',
+        properties: { width: int(320, 1920), height: int(240, 1080) },
+        required: ['width', 'height'],
+        additionalProperties: false,
+      },
+      timeout_ms: nullable(int(1000, 60_000)),
+    },
+    required: ['steps'],
+    additionalProperties: false,
+  });
+})();
+
+const COMPUTER_START_JSON_SCHEMA = inputJsonSchema('environment.computer.start', {
+  properties: {
+    target: {
+      type: 'object',
+      properties: {
+        command: { type: 'string', pattern: '^/usr/bin/[A-Za-z0-9][A-Za-z0-9._-]{0,63}$' },
+        args: nullable({ type: 'array', maxItems: 8, items: { type: 'string', maxLength: 256, pattern: String.raw`^[^\u0000]*$` } }),
+      },
+      required: ['command'],
+      additionalProperties: false,
+    },
+    display: nullable({
+      type: 'object',
+      properties: { width: int(320, 800), height: int(240, 600) },
+      required: ['width', 'height'],
+      additionalProperties: false,
+    }),
+    timeout_ms: nullable(int(5000, 300_000)),
+  },
+  required: ['target'],
+  additionalProperties: false,
+});
+
+const COMPUTER_SESSION_JSON_SCHEMA = (name) =>
+  inputJsonSchema(name, {
+    properties: { session_id: { type: 'string', minLength: 1 } },
+    required: ['session_id'],
+    additionalProperties: false,
+  });
+
+const COMPUTER_ACT_JSON_SCHEMA = (() => {
+  const session_id = { type: 'string', minLength: 1 };
+  // Coordinates are checked against the default display (640x400): the same one the act validator uses.
+  const x = int(0, 639);
+  const y = int(0, 399);
+  const action = (name, properties, required = []) => ({
+    type: 'object',
+    properties: { session_id, action: { const: name }, ...properties },
+    required: ['session_id', 'action', ...required],
+    additionalProperties: false,
+  });
+  return inputJsonSchema('environment.computer.act', {
+    description: 'One approved action per call; the host resolves the approval, it is never a field of the request.',
+    properties: {
+      session_id,
+      action: { enum: ['move', 'click', 'double_click', 'type', 'key', 'scroll'] },
+      x,
+      y,
+      button: int(1, 3, { default: 1 }),
+      text: text(256),
+      key: { type: 'string', pattern: '^[A-Za-z0-9_+]{1,48}$' },
+      direction: { enum: ['up', 'down'] },
+      amount: int(1, 10, { default: 3 }),
+    },
+    required: ['session_id', 'action'],
+    oneOf: [
+      action('move', { x, y }, ['x', 'y']),
+      action('click', { x, y, button: int(1, 3, { default: 1 }) }, ['x', 'y']),
+      action('double_click', { x, y }, ['x', 'y']),
+      action('type', { text: text(256) }, ['text']),
+      action('key', { key: { type: 'string', pattern: '^[A-Za-z0-9_+]{1,48}$' } }, ['key']),
+      action('scroll', { direction: { enum: ['up', 'down'] }, amount: int(1, 10, { default: 3 }) }, ['direction']),
+    ],
+  });
+})();
+
+const MEMORY_WRITE_JSON_SCHEMA = inputJsonSchema('memory.write', {
+  description:
+    'One memory entry. The timestamp and the write policy are host-owned and are not part of the request; a note written here is stored as an untrusted agent note.',
+  properties: {
+    memory_id: MEMORY_IDENTIFIER,
+    scope: {
+      type: 'object',
+      description: 'An object, not a JSON string.',
+      properties: { project_id: MEMORY_IDENTIFIER },
+      required: ['project_id'],
+      additionalProperties: false,
+    },
+    content: { type: 'string', minLength: 1, maxLength: 8192, pattern: NON_BLANK, description: 'At most 8192 UTF-8 bytes.' },
+    authority: { const: 'data' },
+    origin: nullable({
+      enum: ['operator', 'agent', 'tool', 'plugin', 'lsp', 'dap', 'browser', 'display', 'mcp'],
+      description: 'Optional. Over MCP an entry is stored as origin agent and trust untrusted only; any other value is refused. Omit it.',
+    }),
+    trust: nullable({
+      enum: ['trusted', 'untrusted'],
+      description: 'Optional. Over MCP only untrusted is stored; only the operator origin could ever be trusted.',
+    }),
+    classification: { enum: ['public', 'internal'] },
+    source_ref: { type: 'string', pattern: String.raw`^[^\s\u0000-\u001F\u007F]{1,1024}$`, description: 'A reference without whitespace.' },
+    source_digest: nullable({
+      type: 'string',
+      pattern: '^[0-9a-f]{64}$',
+      description: 'Lowercase SHA-256 hex of the content; defaults to it.',
+    }),
+    ttl_seconds: { type: 'integer', minimum: 1, maximum: 7_776_000, description: 'An integer number of seconds, not a string.' },
+    supersedes: MEMORY_IDENTIFIER,
+  },
+  required: ['memory_id', 'scope', 'content', 'classification', 'source_ref', 'ttl_seconds'],
+  additionalProperties: false,
+});
+const MEMORY_RETRIEVE_JSON_SCHEMA = inputJsonSchema('memory.retrieve', {
+  properties: {
+    project_id: MEMORY_IDENTIFIER,
+    query: { type: 'string', minLength: 1, pattern: NON_BLANK },
+    limit: int(1, 50),
+    include_untrusted: { type: 'boolean' },
+  },
+  required: ['project_id', 'query'],
+  additionalProperties: false,
+});
+const MEMORY_DELETE_JSON_SCHEMA = inputJsonSchema('memory.delete', {
+  description: 'The deletion needs the explicit approval of the person; it is asked by the client and never a field here.',
+  properties: {
+    project_id: MEMORY_IDENTIFIER,
+    memory_id: MEMORY_IDENTIFIER,
+    reason: { type: 'string', minLength: 1, maxLength: 256, pattern: NON_BLANK, description: 'At most 256 UTF-8 bytes.' },
+  },
+  required: ['project_id', 'memory_id'],
+  additionalProperties: false,
+});
+
+const environmentContract = (name, capability, input_schema, output_schema, timeout_ms, input_json_schema) =>
   Object.freeze({
     name,
     capability,
@@ -242,13 +523,21 @@ const environmentContract = (name, capability, input_schema, output_schema, time
     exclusive: false,
     provider_accepts_idempotency: false,
     input_schema,
+    input_json_schema,
     output_schema,
   });
 const ENVIRONMENT_CONTRACTS = Object.freeze([
   ...['diagnostics', 'definition', 'references', 'hover', 'rename_preview'].map((action) =>
-    environmentContract(`environment.lsp.${action}`, 'environment.lsp', lspSchema('input', action), lspSchema('output', action), 60_000),
+    environmentContract(
+      `environment.lsp.${action}`,
+      'environment.lsp',
+      lspSchema('input', action),
+      lspSchema('output', action),
+      60_000,
+      lspJsonSchema(action),
+    ),
   ),
-  environmentContract('environment.dap.run', 'environment.dap', dapSchema('input'), dapSchema('output'), 140_000),
+  environmentContract('environment.dap.run', 'environment.dap', dapSchema('input'), dapSchema('output'), 140_000, DAP_JSON_SCHEMA),
 ]);
 
 // Contracts of the browser, computer-use and memory capabilities (W5-07..W5-09). They describe and validate only: no
@@ -393,6 +682,7 @@ const capabilityContract = (
   timeout_ms,
   input_schema,
   output_schema,
+  input_json_schema,
   provider_accepts_idempotency = false,
 ) =>
   Object.freeze({
@@ -411,6 +701,7 @@ const capabilityContract = (
     exclusive: false,
     provider_accepts_idempotency,
     input_schema,
+    input_json_schema,
     output_schema,
   });
 const CAPABILITY_CONTRACTS = Object.freeze([
@@ -425,6 +716,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     70_000,
     environmentSchema(browserContract, 'input'),
     environmentSchema(browserContract, 'output'),
+    BROWSER_JSON_SCHEMA,
   ),
   // Reading the display is not an action: it needs no approval, and the service demands one before any action.
   capabilityContract(
@@ -437,6 +729,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     30_000,
     computerSessionSchema,
     environmentSchema(computerContract, 'output'),
+    COMPUTER_SESSION_JSON_SCHEMA('environment.computer.screenshot'),
   ),
   // Computer-use drives a real display: starting a session and every non-screenshot action need a host approval.
   capabilityContract(
@@ -449,6 +742,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     310_000,
     environmentSchema(computerContract, 'input'),
     environmentSchema(computerContract, 'output'),
+    COMPUTER_START_JSON_SCHEMA,
   ),
   capabilityContract(
     'environment.computer.act',
@@ -460,6 +754,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     30_000,
     computerActSchema,
     environmentSchema(computerContract, 'output'),
+    COMPUTER_ACT_JSON_SCHEMA,
   ),
   // Stop is idempotent and only ends the session: closing one that is already closed is refused without effect.
   capabilityContract(
@@ -472,6 +767,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     30_000,
     computerSessionSchema,
     environmentSchema(computerContract, 'output'),
+    COMPUTER_SESSION_JSON_SCHEMA('environment.computer.stop'),
     true,
   ),
   // A write is compensated by superseding or deleting the entry; the ledger keeps the earlier events. The runtime asks
@@ -487,6 +783,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     30_000,
     memoryWriteInput,
     memoryWriteOutput,
+    MEMORY_WRITE_JSON_SCHEMA,
     true,
   ),
   capabilityContract(
@@ -499,6 +796,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     30_000,
     memoryRetrieveInput,
     memoryRetrieveOutput,
+    MEMORY_RETRIEVE_JSON_SCHEMA,
   ),
   capabilityContract(
     'memory.delete',
@@ -510,6 +808,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     30_000,
     memoryDeleteInput,
     memoryDeleteOutput,
+    MEMORY_DELETE_JSON_SCHEMA,
   ),
 ]);
 
