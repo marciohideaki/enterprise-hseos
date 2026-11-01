@@ -1,8 +1,12 @@
+import { readFileSync } from 'node:fs';
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import nodePlugin from 'eslint-plugin-n';
 import unicorn from 'eslint-plugin-unicorn';
 import yml from 'eslint-plugin-yml';
+
+// Every file measured by the kernel coverage gate is a kernel surface (packages/, tools/, hooks, docs).
+const kernelSurfaces = JSON.parse(readFileSync(new URL('.c8-kernel.json', import.meta.url), 'utf8')).include;
 
 export default [
   // Global ignores for files/folders that should not be linted
@@ -130,7 +134,7 @@ export default [
 
   // Kernel correctness rules must remain active even when CLI scripts relax them.
   {
-    files: ['packages/**/*.{js,cjs,mjs}'],
+    files: ['packages/**/*.{js,cjs,mjs}', ...kernelSurfaces],
     rules: {
       'no-undef': 'error',
       'no-unreachable': 'error',
