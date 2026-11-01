@@ -418,3 +418,49 @@ test('launcher carries a well-formed suite orphan token into the codex child and
   assert.deepEqual(launch('not-a-token'), base);
   assert.equal(seen.length, 3);
 });
+
+test('L1 F08-R1 F18-R1 codex ACP binding: ambient credentials never overlay the declared login and cannot be declared', async (t) => {
+  const f = adapterFixture(t);
+  const ambient = ['OPENAI_API_KEY', 'CODEX_API_KEY', 'ANTHROPIC_API_KEY'];
+  for (const name of ambient) {
+    f.nativeOptions.environment[name] = 'override';
+    f.pin();
+    assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' }, name);
+    delete f.nativeOptions.environment[name];
+  }
+  f.pin();
+  process.env.OPENAI_API_KEY = 'ambient-openai-fixture';
+  t.after(() => delete process.env.OPENAI_API_KEY);
+  const adapter = f.create().adapter;
+  await adapter.inspect();
+  await adapter.run({ task_id: f.taskId, signal: new AbortController().signal });
+  assert.ok(f.calls.length >= 2);
+  assert.ok(!JSON.stringify(f.calls).includes('ambient-openai-fixture'));
+  // Another login than the declared account is refused instead of being used silently.
+  f.report.identity.account.email = 'other@example.invalid';
+  await assert.rejects(adapter.run({ task_id: f.taskId, signal: new AbortController().signal }), {
+    code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED',
+  });
+});
+
+test('L1 F08-R1 F18-R1 codex ACP binding: a silent switch from the subscription to paid credits or API billing blocks the run', async (t) => {
+  const f = adapterFixture(t);
+  const adapter = f.create().adapter;
+  const credits = f.report.quota.rateLimits.credits;
+  for (const patch of [{ hasCredits: true }, { unlimited: true }]) {
+    f.report.quota.rateLimits.credits = { ...credits, ...patch };
+    await assert.rejects(adapter.run({ task_id: f.taskId, signal: new AbortController().signal }), {
+      code: 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE',
+    });
+  }
+  f.report.quota.rateLimits.credits = credits;
+  f.report.identity.account.type = 'apikey';
+  await assert.rejects(adapter.run({ task_id: f.taskId, signal: new AbortController().signal }), {
+    code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED',
+  });
+  assert.equal(f.calls.filter((call) => call.input.prompt !== undefined).length, 0);
+  // A metered reservation is not a subscription binding: it is refused at configuration.
+  f.report.identity.account.type = 'chatgpt';
+  f.m.billing.max_request_microusd = 1;
+  assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
+});

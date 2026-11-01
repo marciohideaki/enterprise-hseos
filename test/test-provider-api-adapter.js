@@ -285,3 +285,45 @@ test('API adapter and campaign integrate credential admission, monetary quota an
   assert.deepEqual(state.unresolved_commands, []);
   assert.equal(f.calls.length, 2);
 });
+
+test('L1 F08-R1 openai-compatible binding: an ambient credential never overlays the declared secret ref', async (t) => {
+  const f = fixture(t);
+  const ambient = f.environment.OPENAI_API_KEY;
+  assert.notEqual(ambient, f.credential);
+  const { adapter } = f.create();
+  await adapter.inspect();
+  await adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal });
+  assert.ok(f.calls.length >= 2);
+  assert.ok(
+    f.calls.every((call) => call.headerMatches),
+    'every request carries the declared credential only',
+  );
+  // Only the declared reference may be resolved: replacing it by the ambient value is identity drift before any egress.
+  const before = f.calls.length;
+  f.environment.HSEOS_MODEL_PROVIDER_API_KEY = ambient;
+  await assert.rejects(adapter.inspect(), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+  await assert.rejects(adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal }), {
+    code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED',
+  });
+  delete f.environment.HSEOS_MODEL_PROVIDER_API_KEY;
+  await assert.rejects(adapter.inspect(), { code: 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED' });
+  assert.equal(f.calls.length, before);
+});
+
+test('L1 F08-R1 openai-compatible binding: a silent change of price, balance or reservation blocks dispatch', async (t) => {
+  const f = fixture(t);
+  // A price edited without re-pinning the binding digest is refused at configuration.
+  f.options.pricing.input_microusd_per_million *= 2;
+  assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
+  // A re-pinned higher price no longer fits the manifest reservation.
+  f.value.binding_sha256 = engineeringDigest({ binding: f.binding, options: f.options });
+  assert.throws(f.create, { code: 'CONTROL_CAMPAIGN_BUDGET_EXHAUSTED' });
+  f.options.pricing.input_microusd_per_million /= 2;
+  f.value.binding_sha256 = engineeringDigest({ binding: f.binding, options: f.options });
+  // The account turning unfunded is observed as zero available money, never as the previous balance.
+  const { adapter } = f.create();
+  assert.ok((await adapter.inspect()).quota_available_microusd > 0);
+  f.transport.balance = { is_available: false, balance_infos: [{ currency: 'USD', total_balance: '10' }] };
+  assert.equal((await adapter.inspect()).quota_available_microusd, 0);
+  assert.equal(f.calls.filter((call) => !call.url.endsWith('/user/balance')).length, 0);
+});
