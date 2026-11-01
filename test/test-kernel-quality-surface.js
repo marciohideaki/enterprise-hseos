@@ -30,6 +30,56 @@ test('every authored package source is linted with correctness rules enabled', a
   assert.ok(result.messages.some((message) => message.ruleId === 'no-undef'));
 });
 
+function expandGlob(pattern) {
+  const base = pattern.slice(0, pattern.search(/[*]/) === -1 ? undefined : pattern.search(/[*]/));
+  const dir = base.endsWith('/') ? base : path.dirname(base);
+  const source = pattern
+    .replaceAll('.', String.raw`\.`)
+    .replaceAll('**/', '\u0000')
+    .replaceAll('*', '[^/]*')
+    .replaceAll('\u0000', '(?:.*/)?');
+  const matcher = new RegExp(`^${source}$`);
+  const found = fs.existsSync(path.join(root, pattern))
+    ? [pattern]
+    : fs
+        .readdirSync(path.join(root, dir), { recursive: true })
+        .map((name) => `${dir}/${name}`.replaceAll(path.sep, '/').replaceAll(/\/{2,}/g, '/'))
+        .filter((name) => matcher.test(name));
+  assert.ok(found.length > 0, `kernel include matches no file: ${pattern}`);
+  return found;
+}
+
+test('undefined globals are detected on every kernel coverage surface', async () => {
+  const eslint = new ESLint({ cwd: root });
+  const config = JSON.parse(fs.readFileSync(path.join(root, '.c8-kernel.json'), 'utf8'));
+  const files = config.include.flatMap((pattern) => expandGlob(pattern));
+  assert.ok(files.length >= config.include.length);
+  const probed = new Set();
+  for (const name of files) {
+    const filePath = path.join(root, name);
+    const resolved = await eslint.calculateConfigForFile(filePath);
+    for (const rule of ['no-undef', 'no-unreachable']) {
+      assert.equal(resolved.rules[rule][0], 2, `${name}: ${rule}`);
+    }
+    // one live probe per top-level surface and extension, on a real kernel path
+    const surface = `${name.split('/').slice(0, 2).join('/')}|${path.extname(name)}`;
+    if (probed.has(surface)) continue;
+    probed.add(surface);
+    const [result] = await eslint.lintText('missingKernelAuthority();\n', { filePath });
+    assert.ok(
+      result.messages.some((message) => message.ruleId === 'no-undef'),
+      `${name}: undefined variable not detected`,
+    );
+  }
+  for (const extension of ['.js', '.cjs', '.mjs']) {
+    assert.ok(
+      [...probed].some((surface) => surface.endsWith(`|${extension}`)),
+      `no ${extension} surface probed`,
+    );
+  }
+  assert.ok([...probed].some((surface) => surface.startsWith('tools/')));
+});
+
 test('coverage counts unexecuted critical files and enforces per-file 90/80', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, '.c8-kernel.json'), 'utf8'));
   assert.equal(config.all, true);
