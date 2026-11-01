@@ -64,4 +64,17 @@ Evidência:
 
 Medição de cobertura do conjunto atual do gate (141 arquivos), registrada pela suíte da onda WA (Commander).
 
-PENDENTE-COMMANDER
+- **Execução:** suíte completa da onda WA, rodada pelo Commander em 2026-11-01 de 17:53:46Z a 18:32:46Z.
+  - Ambiente: integração `feature/pre-w6-wa` no commit `13beca30` (base `7cf336b7`), Node 24.15.0, em cgroup delegado, pelo runner do repo (`ci-test-shards.mjs run --shards 1 --shard 1`).
+  - Resultado: exit 0, 4638 testes, 0 falhas.
+- **Gate do kernel** (`npm run test:kernel-coverage`, com `check-coverage` por arquivo a 90/80):
+  - `PASS` em 1007 s.
+  - Tabela c8: 141 arquivos, nenhum abaixo de 90% de linhas ou 80% de branches.
+  - Linha "All files": 97,82% de statements, 93,43% de branches, 98,24% de funções e 97,82% de linhas.
+- **Evidência:** o segmento do log da suíte referente ao gate está em `docs/evolution/w0/evidence/f23-2026-11/kernel-coverage-wa.log.gz`.
+  - sha256 do conteúdo descompactado (`zcat | sha256sum`): `e63e4bd52923eddd8016eb1d44b9935a11603ffdf2b50793491f5489617534c4`.
+  - sha256 do `.gz`: `7ab507d6ef29e9dc1dd206b3153158f5d829d6a611a0251b66c244138678946d`.
+- **Matrizes de mutação, na mesma execução:**
+  - W4: 20 mutantes rejeitados, 0 falhas, 0 skips.
+  - W5: 43 mutantes rejeitados, 0 falhas, 0 skips.
+- **`verify --shards 6`:** 103 itens, 237 arquivos de teste, cada um executado por um passo da suíte.
