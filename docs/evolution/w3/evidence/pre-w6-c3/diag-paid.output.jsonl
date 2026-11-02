@@ -1,0 +1,4 @@
+{"type":"system","subtype":"init","tools":[],"permissionMode":"plan","model":"claude-haiku-5-5","apiKeySource":"ANTHROPIC_API_KEY"}
+{"type":"assistant","blocks":[{"type":"text","text":"Credit balance is too low"}]}
+{"type":"result","subtype":"success","is_error":true,"stop_reason":"stop_sequence","api_error_status":400,"result":"Credit balance is too low","permission_denials":[],"num_turns":1,"total_cost_usd":0,"usage":{"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0},"model_usage":[]}
+stream-error Claude Code returned an error result: Credit balance is too low

@@ -2,7 +2,7 @@
 
 Escopo: campanha C3 do fechamento pré-W6 (PLAN-4, WC), binding `binding:claude-api-c3` (`runtime:claude-agent-sdk`, rota `api`, cobrança medida). Autorização do owner no ato (2026-11-02): no máximo 2 inferências, reserva de US$ 0,25 por requisição, teto da campanha de US$ 1,00, exceção de cota em seu nome, validade de 60 min, instalação do SDK por `npm`.
 
-**Resultado: FAIL com desfecho incerto. Nenhum nível de certificação é declarado e nada foi promovido.** A primeira inferência terminou em `CONTROL_OUTCOME_UNCERTAIN`; a campanha foi cancelada sem executar a retomada, e a causa não foi determinada. Este registro não reescreve nada como PASS.
+**Resultado: FAIL com desfecho incerto, depois diagnosticado como BLOCKED por saldo insuficiente da console (ver o adendo no fim). Nenhum nível de certificação é declarado e nada foi promovido.** A primeira inferência terminou em `CONTROL_OUTCOME_UNCERTAIN`; a campanha foi cancelada sem executar a retomada, e a causa não foi determinada. Este registro não reescreve nada como PASS.
 
 ## O que correu
 
@@ -42,3 +42,22 @@ Repetir exige uma nova campanha: o comando incerto permanece não resolvido nest
 ## Arquivos
 
 Diretório `docs/evolution/w3/evidence/pre-w6-c3/`: `manifest.json`, `grant.json`, `plan.json`, `inspect-before.json`, `failure.json`, `ledger-rows-before-cancel.json`, `final-state.json`, `scan-after.json`, `claude-binding.json`, `run-c3.cjs`, `diag-init-no-cost.mjs` e `diag-init-no-cost.output.jsonl`. A varredura (`scan-after.json`, 2 valores literais: a chave de API e a credencial do servidor de controle) não achou ocorrências nos artefatos nem no diretório da campanha, e nenhum processo da campanha restou. A varredura usa `evidence/pre-w6-scan/scan-campaign.py`, agora com suporte a segredos do `pass`.
+
+## Adendo: diagnóstico autorizado e causa (2026-11-02)
+
+O owner autorizou, depois do registro acima, uma única chamada de diagnóstico instrumentada (reserva de até US$ 0,25), seguida de uma nova C3 se a causa permitisse. A chamada usou o SDK direto, as mesmas opções do driver, `HOME` vazio (sem login que servisse de fallback) e a chave do `pass` (`diag-paid.mjs`, saída em `diag-paid.output.jsonl`).
+
+| Campo                    | Valor observado                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| `init`                   | `tools: []`, `permissionMode: plan`, `apiKeySource: ANTHROPIC_API_KEY`, modelo `claude-haiku-5-5` |
+| Mensagem do modelo       | texto `Credit balance is too low`                                                                 |
+| `result`                 | `subtype: success`, `is_error: true`, `api_error_status: 400`                                     |
+| Uso e custo (do cliente) | 0 tokens de entrada e de saída, `total_cost_usd: 0`, `model_usage` vazio                          |
+
+**Causa:** saldo de crédito insuficiente na console da conta dona da chave `claude/anthropic-api-key`. A API respondeu 400 e o cliente devolveu o erro com a forma de um `result` bem-sucedido com `is_error: true`, que o driver classifica como `refused`. A hipótese levantada acima fica confirmada para a chamada de diagnóstico; para a primeira tentativa da campanha ela é a explicação consistente (mesma chave, mesmo modelo, mesmas opções, mesmo `usage=present`), mas o conteúdo do erro daquela chamada não foi retido.
+
+**Custo:** a chamada de diagnóstico não consumiu tokens segundo o cliente (valor do cliente, não fatura). Pela mesma causa, é muito provável que a primeira tentativa da C3 também tenha custado zero; isso não está provado, e a reserva conservadora de 250000 µUSD continua retida no ledger da campanha cancelada.
+
+**Estado da C3: BLOCKED.** Causa externa e verificada: falta crédito na console. Uma nova campanha agora falharia do mesmo modo, então não foi aberta e nenhuma segunda inferência da campanha foi despachada. O que destrava é o owner adicionar crédito à console Anthropic; depois disso a C3 precisa de uma nova autorização do owner, com novo teto, sem herdar saldo nem reserva desta tentativa. O binding L0, o SDK `0.3.316` pinado e o roteiro `run-c3.cjs` ficam prontos para reuso (a variável de modelo e os limites são os do manifesto). O que não muda: nenhum item de L2 é afirmado para este binding.
+
+Arquivos acrescentados em `evidence/pre-w6-c3/`: `diag-paid.mjs`, `diag-paid.output.jsonl` e `scan-after.json` refeito (varredura do diretório da campanha e dos artefatos versionados, com a chave de API e a credencial do servidor de controle; 0 ocorrências).
