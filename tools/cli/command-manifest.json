@@ -93,7 +93,49 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "6aa221551b480f79237065e4be076bc4596b98f5abbef0d1e6aadcb56ee1cf79"
+      "source_sha256": "67a311b105dcc07861abd2fca1a1155e8b5f98c09adf14f0896f005448386a2b"
+    },
+    {
+      "filename": "agent-activation-rehearsal.js",
+      "command": "memory <action>",
+      "description": "Operator memory commands over an activated state database (promote: lift one agent note to trusted with a single-use approval).",
+      "options": [
+        [
+          "--db <path>",
+          "Activated state database"
+        ],
+        [
+          "--project <id>",
+          "Project of the memory"
+        ],
+        [
+          "--memory <id>",
+          "Memory entry to promote"
+        ],
+        [
+          "--reason <text>",
+          "Why the operator trusts this memory"
+        ],
+        [
+          "--operator <id>",
+          "Identity of the operator who confirms"
+        ],
+        [
+          "--yes",
+          "Confirm without a prompt; needs --content-sha256"
+        ],
+        [
+          "--content-sha256 <hex>",
+          "Digest of the content the operator reviewed (with --yes)"
+        ],
+        [
+          "--json",
+          "Output machine-readable JSON"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "67a311b105dcc07861abd2fca1a1155e8b5f98c09adf14f0896f005448386a2b",
+      "companion": "memory"
     },
     {
       "filename": "agent-activation-rehearsal.js",
@@ -138,7 +180,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "6aa221551b480f79237065e4be076bc4596b98f5abbef0d1e6aadcb56ee1cf79",
+      "source_sha256": "67a311b105dcc07861abd2fca1a1155e8b5f98c09adf14f0896f005448386a2b",
       "companion": "execution-activation"
     },
     {

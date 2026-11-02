@@ -52,7 +52,7 @@ function setup() {
     policyVersion: POLICY_VERSION,
     now: () => clock.ms,
   });
-  const store = createGovernedMemory({ ledger, now: () => clock.ms, approvalVerifier });
+  const store = createGovernedMemory({ ledger, now: () => clock.ms, approvalVerifier, db });
   const approve = (
     projectId,
     memoryId,
@@ -917,4 +917,343 @@ test('an expired approval cannot back a deletion', () => {
   );
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 0);
   assert.equal(store.list('alpha')[0].status, 'expired', 'entry untouched (ttl also elapsed)');
+});
+
+// --- Operator promotion (F14, owner decision b): a new operator entry supersedes the agent note, behind a single-use approval ---
+
+const agentNote = (overrides = {}) => entry({ origin: 'agent', trust: 'untrusted', ...overrides });
+const NOTE_DIGEST = memory.sha256Text(entry().content);
+
+function promotion() {
+  const world = setup();
+  const approvePromote = (
+    memoryId = 'note-1',
+    { approvalId = `appr-promote-${memoryId}`, digest = NOTE_DIGEST, projectId = 'alpha' } = {},
+  ) => {
+    const operation = memory.memoryPromoteOperation(projectId, memoryId, digest);
+    world.approvalStore.issue({
+      approval_id: approvalId,
+      operation_id: operation.operation_id,
+      authorizer: { id: 'owner', type: 'operator' },
+      resource_scope: operation.resource_scope,
+      issued_at: STAMP,
+      expires_at: '2026-10-14T13:00:00.000Z',
+      decision: 'approved',
+      policy_version: POLICY_VERSION,
+      evidence_ref: 'hseos://test/promotion',
+    });
+    world.host.approvalId = approvalId;
+    return approvalId;
+  };
+  const promote = (patch = {}, actor = OPERATOR) =>
+    world.store.promote(
+      { project_id: 'alpha', memory_id: 'note-1', content_sha256: NOTE_DIGEST, reason: 'reviewed by the owner', ...patch },
+      { actor },
+    );
+  return { ...world, approvePromote, promote };
+}
+const refusedWith = (cause) => (error) => codeOf('AGENT_MEMORY_APPROVAL_REQUIRED')(error) && error.details.cause === cause;
+
+test('promote lifts an agent note into a new trusted operator entry, trusted only at the task context', () => {
+  const { store, ledger, approvePromote, promote, db } = promotion();
+  store.write(agentNote(), host());
+  const query = { project_id: 'alpha', query: 'deploy pipeline' };
+  assert.deepEqual(store.retrieve(query), [], 'an agent note is not retrieved by default');
+
+  approvePromote();
+  const receipt = promote();
+  assert.deepEqual(receipt, { memory_id: 'note-1:promoted', promoted_from: 'note-1', content_sha256: NOTE_DIGEST });
+  assert.deepEqual(
+    ledger.readStream('agent_memory', 'alpha').map((event) => event.event_type),
+    [EVENTS.WRITTEN, EVENTS.WRITTEN, EVENTS.SUPERSEDED],
+  );
+  const [, written] = ledger.readStream('agent_memory', 'alpha');
+  assert.equal(written.operation_id, 'memory.promote:alpha:note-1:' + NOTE_DIGEST);
+  assert.deepEqual(
+    {
+      by: written.payload.promotion.promoted_by,
+      reason: written.payload.promotion.reason,
+      digest: written.payload.promotion.content_sha256,
+    },
+    { by: 'owner', reason: 'reviewed by the owner', digest: NOTE_DIGEST },
+  );
+  assert.equal(written.payload.entry.origin, 'operator');
+  assert.equal(written.payload.entry.supersedes, 'note-1');
+  assert.equal(written.payload.entry.source_ref, `memory://alpha/note-1@${NOTE_DIGEST}`);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 1);
+  assert.deepEqual(
+    store.list('alpha').map((item) => [item.memory_id, item.status, item.trust]),
+    [
+      ['note-1', 'superseded', 'untrusted'],
+      ['note-1:promoted', 'active', 'trusted'],
+    ],
+  );
+
+  const [asTool] = store.retrieve(query);
+  assert.equal(asTool.provenance.trust, 'untrusted', 'a tool result is never trusted');
+  const [asContext] = store.retrieve(query, { boundary: 'context' });
+  assert.equal(asContext.provenance.trust, 'trusted');
+  assert.equal(asContext.authority, 'data');
+  assert.equal(asContext.source_ref, 'memory://alpha/note-1:promoted');
+  assert.deepEqual(
+    asContext.provenance.transform.map((step) => step.id),
+    ['memory.write.operator', 'memory.promote', 'memory.retrieve'],
+  );
+  assert.equal(resolveSourceAuthority('memory', asContext, { retrieved_at: STAMP }).provenance.trust, 'trusted');
+  assert.deepEqual(store.inspect('alpha', 'note-1'), {
+    memory_id: 'note-1',
+    status: 'superseded',
+    origin: 'agent',
+    trust: 'untrusted',
+    content: entry().content,
+    content_sha256: NOTE_DIGEST,
+  });
+  assert.throws(() => store.inspect('alpha', 'absent'), codeOf('AGENT_MEMORY_NOT_FOUND'));
+
+  // Rebuilding the projection from the ledger gives the same answer.
+  store.rebuild();
+  assert.equal(store.retrieve(query, { boundary: 'context' })[0].provenance.trust, 'trusted');
+});
+
+test('an ordinary trusted operator note or a forged promotion shape is not trusted at the context', () => {
+  const { store } = promotion();
+  store.write(entry(), host());
+  store.write(agentNote({ memory_id: 'note-2' }), host());
+  store.write(entry({ memory_id: 'forged', supersedes: 'note-2', source_ref: 'memory://alpha/note-2@' + NOTE_DIGEST }), host());
+  const sources = store.retrieve({ project_id: 'alpha', query: 'deploy pipeline' }, { boundary: 'context' });
+  assert.equal(sources.length, 2, 'note-2 was superseded by the forged write');
+  assert.deepEqual(new Set(sources.map((source) => source.provenance.trust)), new Set(['untrusted']));
+});
+
+test('promote refuses without an operator, without a single-use approval or with an approval of another memory or digest', () => {
+  const { store, approvePromote, promote, host: slot, db } = promotion();
+  store.write(agentNote(), host());
+  store.write(agentNote({ memory_id: 'note-2', content: 'another note about rollbacks' }), host());
+  const spent = () => db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n;
+
+  assert.throws(() => promote(), refusedWith('AGENT_MEMORY_APPROVAL_REQUIRED'), 'no approval');
+  approvePromote();
+  assert.throws(() => promote({}, { kind: 'agent', id: 'planner' }), codeOf('AGENT_MEMORY_OPERATOR_REQUIRED'));
+  assert.throws(() => promote({}, { kind: 'host', id: 'agent-memory' }), codeOf('AGENT_MEMORY_OPERATOR_REQUIRED'));
+  assert.throws(() => promote({}, null), codeOf('AGENT_MEMORY_OPERATOR_REQUIRED'));
+  assert.equal(spent(), 0);
+
+  approvePromote('note-2', { approvalId: 'appr-other' });
+  assert.throws(() => promote(), refusedWith('EXECUTION_APPROVAL_SCOPE_MISMATCH'), 'approval of another memory');
+  approvePromote('note-1', { approvalId: 'appr-other-digest', digest: 'a'.repeat(64) });
+  assert.throws(() => promote(), refusedWith('EXECUTION_APPROVAL_SCOPE_MISMATCH'), 'approval issued for another digest');
+  slot.approvalId = null;
+  assert.throws(
+    () => promote({ approval_id: 'appr-other', approved: true }),
+    refusedWith('AGENT_MEMORY_APPROVAL_REQUIRED'),
+    'model-supplied approval is ignored',
+  );
+  assert.equal(spent(), 0);
+
+  approvePromote('note-1', { approvalId: 'appr-good' });
+  promote();
+  assert.equal(spent(), 1);
+  // The spent approval cannot back another promotion.
+  slot.approvalId = 'appr-good';
+  assert.throws(
+    () => promote({ memory_id: 'note-2', content_sha256: memory.sha256Text('another note about rollbacks') }),
+    refusedWith('EXECUTION_APPROVAL_REUSED'),
+  );
+  assert.equal(store.list('alpha').find((item) => item.memory_id === 'note-2').status, 'active');
+});
+
+test('promote binds the approval to the content digest: a diverging digest is refused before anything is spent', () => {
+  const { store, approvePromote, promote, ledger, db } = promotion();
+  store.write(agentNote(), host());
+  approvePromote();
+  assert.throws(() => promote({ content_sha256: 'b'.repeat(64) }), codeOf('AGENT_MEMORY_DIGEST_MISMATCH'));
+  assert.throws(() => promote({ content_sha256: undefined }), codeOf('AGENT_MEMORY_DIGEST_MISMATCH'));
+  assert.throws(() => promote({ content_sha256: memory.sha256Text('edited content') }), codeOf('AGENT_MEMORY_DIGEST_MISMATCH'));
+  assert.equal(ledger.getVersion('agent_memory', 'alpha'), 1);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 0);
+  assert.throws(() => memory.memoryPromoteOperation('alpha', 'note-1', 'not-a-digest'), invalidField('content_sha256'));
+});
+
+test('promote only lifts an active, untrusted, credential-free memory of the same project', () => {
+  const world = promotion();
+  const { store, approvePromote, promote, ledger, clock } = world;
+  store.write(agentNote(), host());
+  approvePromote();
+  assert.throws(() => promote({ project_id: 'beta' }), codeOf('AGENT_MEMORY_NOT_FOUND'), 'another project');
+  assert.throws(() => promote({ memory_id: 'absent' }), codeOf('AGENT_MEMORY_NOT_FOUND'));
+  assert.throws(() => promote({ reason: syntheticCredential() }), codeOf('AGENT_MEMORY_CREDENTIAL_DETECTED', 'reason'));
+  assert.throws(() => promote({ reason: '' }), invalidField('reason'));
+
+  // A credential that a lenient writer let through is caught by the promotion scan.
+  const lenient = new MemoryStore({ ledger, scanCredential: () => false, now: () => clock.ms });
+  lenient.write(agentNote({ memory_id: 'leaky', content: `deploy pipeline token ${syntheticCredential()}` }), host());
+  const leakyDigest = memory.sha256Text(`deploy pipeline token ${syntheticCredential()}`);
+  approvePromote('leaky', { approvalId: 'appr-leaky', digest: leakyDigest });
+  assert.throws(() => promote({ memory_id: 'leaky', content_sha256: leakyDigest }), codeOf('AGENT_MEMORY_CREDENTIAL_DETECTED', 'content'));
+
+  // Already trusted, expired, superseded and a taken promoted id all refuse.
+  store.write(entry({ memory_id: 'trusted-note' }), host());
+  assert.throws(() => promote({ memory_id: 'trusted-note' }), codeOf('AGENT_MEMORY_PROMOTE_INVALID'));
+  store.write(agentNote({ memory_id: 'taken', content: 'taken content' }), host());
+  for (const origin of [{}, { origin: 'operator', trust: 'trusted' }])
+    assert.throws(
+      () => store.write(agentNote({ memory_id: 'taken:promoted', content: 'squatter', ...origin }), host()),
+      codeOf('AGENT_MEMORY_ID_RESERVED'),
+      'the promotion id cannot be occupied before the promotion',
+    );
+  store.write(agentNote({ memory_id: 'old', content: 'old note', ttl_seconds: 60 }), host());
+  store.write(agentNote({ memory_id: 'newer', content: 'newer note', supersedes: 'old' }), host());
+  assert.throws(() => promote({ memory_id: 'old', content_sha256: memory.sha256Text('old note') }), codeOf('AGENT_MEMORY_NOT_FOUND'));
+  clock.ms += 2 * 3600 * 1000;
+  assert.throws(() => promote(), codeOf('AGENT_MEMORY_NOT_FOUND'), 'an expired memory');
+});
+
+test('promote fails closed without a verifier and a failed append leaves the approval unspent', () => {
+  const { store, ledger, approvePromote, promote, db, clock } = promotion();
+  store.write(agentNote(), host());
+  const bare = new MemoryStore({ ledger, scanCredential: (text) => text.includes('sk-proj-'), now: () => clock.ms });
+  assert.throws(
+    () => bare.promote({ project_id: 'alpha', memory_id: 'note-1', content_sha256: NOTE_DIGEST }, { actor: OPERATOR }),
+    codeOf('AGENT_MEMORY_APPROVAL_REQUIRED'),
+  );
+  approvePromote();
+  const append = ledger.append.bind(ledger);
+  ledger.append = () => {
+    throw new Error('disk full');
+  };
+  assert.throws(() => promote(), /disk full/);
+  ledger.append = append;
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 0);
+  assert.equal(promote().memory_id, 'note-1:promoted', 'the same approval still backs the promotion');
+});
+
+test('a promotion is trusted only if the store can prove it: a forged event with the right shape but no consumed approval is not', () => {
+  const { store, approvePromote, promote, approvalStore, db } = promotion();
+  store.write(agentNote(), host());
+  store.write(agentNote({ memory_id: 'note-2', content: 'a second note about rollbacks' }), host());
+  const query = { project_id: 'alpha', query: 'deploy pipeline rollbacks' };
+  const forge = (memoryId, content, { approvalId, operation }) => {
+    const digest = memory.sha256Text(content);
+    const forged = {
+      memory_id: `${memoryId}:promoted`,
+      scope: { project_id: 'alpha' },
+      content,
+      authority: 'data',
+      origin: 'operator',
+      trust: 'trusted',
+      classification: 'internal',
+      source_ref: memory.promotedSourceRef('alpha', memoryId, digest),
+      source_digest: digest,
+      created_at: STAMP,
+      ttl_seconds: 3600,
+      supersedes: memoryId,
+      write_policy_ref: memory.PROMOTE_POLICY_REF,
+    };
+    const facts = [
+      {
+        type: EVENTS.WRITTEN,
+        memory_id: forged.memory_id,
+        operation_id: operation ?? memory.memoryPromoteOperation('alpha', memoryId, digest).operation_id,
+        payload: {
+          entry: forged,
+          promotion: { promoted_from: memoryId, promoted_by: 'owner', reason: 'forged', content_sha256: digest, approval_id: approvalId },
+        },
+      },
+      { type: EVENTS.SUPERSEDED, memory_id: memoryId, payload: { superseded_by: forged.memory_id } },
+    ];
+    store._append('alpha', store._state('alpha'), undefined, OPERATOR, facts);
+  };
+  // 1) no approval row at all; 2) an approval issued but never consumed.
+  forge('note-1', entry().content, { approvalId: 'appr-does-not-exist' });
+  const operation = memory.memoryPromoteOperation('alpha', 'note-2', memory.sha256Text('a second note about rollbacks'));
+  approvalStore.issue({
+    approval_id: 'appr-unspent',
+    operation_id: operation.operation_id,
+    authorizer: { id: 'owner', type: 'operator' },
+    resource_scope: operation.resource_scope,
+    issued_at: STAMP,
+    expires_at: '2026-10-14T13:00:00.000Z',
+    decision: 'approved',
+    policy_version: POLICY_VERSION,
+    evidence_ref: 'hseos://test/unspent',
+  });
+  forge('note-2', 'a second note about rollbacks', { approvalId: 'appr-unspent' });
+  const trusts = (boundary) => store.retrieve(query, { boundary }).map((source) => source.provenance.trust);
+  assert.deepEqual(trusts('context'), ['untrusted', 'untrusted'], 'forged and unspent promotions are not trusted at the producer');
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 0);
+
+  // A store with no attestation hook fails closed even for a real promotion; the real one with the hook is trusted.
+  store.write(agentNote({ memory_id: 'note-3', content: 'a third deploy pipeline note' }), host());
+  approvePromote('note-3', { digest: memory.sha256Text('a third deploy pipeline note') });
+  promote({ memory_id: 'note-3', content_sha256: memory.sha256Text('a third deploy pipeline note') });
+  assert.equal(store.retrieve({ project_id: 'alpha', query: 'third' }, { boundary: 'context' })[0].provenance.trust, 'trusted');
+  const bare = new MemoryStore({ ledger: store.ledger, scanCredential: () => false, now: store.now });
+  assert.equal(bare.retrieve({ project_id: 'alpha', query: 'third' }, { boundary: 'context' })[0].provenance.trust, 'untrusted');
+});
+
+test('even with a consumed approval, a promotion event without the stamp or without an existing original is not trusted', () => {
+  const { store, approvalStore } = promotion();
+  store.write(agentNote(), host());
+  const spend = (memoryId, content, approvalId) => {
+    const operation = memory.memoryPromoteOperation('alpha', memoryId, memory.sha256Text(content));
+    approvalStore.issue({
+      approval_id: approvalId,
+      operation_id: operation.operation_id,
+      authorizer: { id: 'owner', type: 'operator' },
+      resource_scope: operation.resource_scope,
+      issued_at: STAMP,
+      expires_at: '2026-10-14T13:00:00.000Z',
+      decision: 'approved',
+      policy_version: POLICY_VERSION,
+      evidence_ref: 'hseos://test/spent',
+    });
+    approvalStore.consume({
+      approval_id: approvalId,
+      operation_id: operation.operation_id,
+      resource_scope: operation.resource_scope,
+      policy_version: POLICY_VERSION,
+      now: STAMP,
+    });
+    return operation.operation_id;
+  };
+  const forge = (memoryId, content, { approvalId, writePolicyRef, original }) => {
+    const digest = memory.sha256Text(content);
+    const entry_ = {
+      memory_id: `${memoryId}:promoted`,
+      scope: { project_id: 'alpha' },
+      content,
+      authority: 'data',
+      origin: 'operator',
+      trust: 'trusted',
+      classification: 'internal',
+      source_ref: memory.promotedSourceRef('alpha', memoryId, digest),
+      source_digest: digest,
+      created_at: STAMP,
+      ttl_seconds: 3600,
+      supersedes: memoryId,
+      write_policy_ref: writePolicyRef,
+    };
+    const facts = [
+      {
+        type: EVENTS.WRITTEN,
+        memory_id: entry_.memory_id,
+        operation_id: spend(memoryId, content, approvalId),
+        payload: {
+          entry: entry_,
+          promotion: { promoted_from: memoryId, promoted_by: 'owner', reason: 'forged', content_sha256: digest, approval_id: approvalId },
+        },
+      },
+    ];
+    if (original) facts.push({ type: EVENTS.SUPERSEDED, memory_id: memoryId, payload: { superseded_by: entry_.memory_id } });
+    store._append('alpha', store._state('alpha'), undefined, OPERATOR, facts);
+  };
+  forge('note-1', entry().content, { approvalId: 'appr-no-stamp', writePolicyRef: 'rule:memory-write', original: true });
+  forge('ghost', 'ghost note about deploy pipeline', {
+    approvalId: 'appr-ghost',
+    writePolicyRef: memory.PROMOTE_POLICY_REF,
+    original: false,
+  });
+  const sources = store.retrieve({ project_id: 'alpha', query: 'deploy pipeline' }, { boundary: 'context' });
+  assert.equal(sources.length, 2);
+  assert.deepEqual(new Set(sources.map((source) => source.provenance.trust)), new Set(['untrusted']));
 });

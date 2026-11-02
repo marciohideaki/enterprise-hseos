@@ -825,6 +825,7 @@ function createProductionEnvironmentHost(section, options = {}) {
         const { createGovernedMemory } = require('./memory-context-source');
         const store = createGovernedMemory({
           ledger,
+          db,
           approvalVerifier: createExecutionApprovalVerifier({ approvalStore, resolveApprovalId: deleteApprovals.resolveApprovalId }),
         });
         return { store, deleteApprovals };
@@ -971,6 +972,7 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
       host.memory = {
         store: require('./memory-context-source').createGovernedMemory({
           ledger: wiring.ledger,
+          db: wiring.approvalStore.db,
           approvalVerifier: createExecutionApprovalVerifier({
             approvalStore: wiring.approvalStore,
             resolveApprovalId: wiring.resolveMemoryDeleteApproval,

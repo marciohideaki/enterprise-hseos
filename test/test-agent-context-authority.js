@@ -274,3 +274,51 @@ test('external data never changes the lattice decision or the tool list (central
     }
   }
 });
+
+test('a trusted memory is accepted only with the operator promotion proof, as data, in the memory layer', () => {
+  const content = 'promoted note';
+  const digest = require('node:crypto').createHash('sha256').update(content, 'utf8').digest('hex');
+  const operatorWrite = { id: 'memory.write.operator', version: 'agent-memory.v1', input_digest: digest };
+  const promote = { id: 'memory.promote', version: 'agent-memory.v1', input_digest: digest };
+  const memoryWith =
+    (transform, extra = {}) =>
+    (input) => ({
+      ...input,
+      memory: [
+        declare(
+          { ...source('memory://alpha/note-1:promoted', content), priority: 1 },
+          { origin: 'memory', trust: 'trusted', transform, ...extra },
+        ),
+      ],
+    });
+  const accepted = run('promoted-memory-ok', memoryWith([operatorWrite, promote]));
+  assert.equal(accepted.result.event.payload.sources.find((entry) => entry.source_ref.startsWith('memory://')).trust, 'trusted');
+  assert.equal(accepted.result.event.payload.sources.find((entry) => entry.source_ref.startsWith('memory://')).authority, 'data');
+
+  const wrongDigest = { ...promote, input_digest: 'f'.repeat(64) };
+  const refusals = {
+    'no transform': [],
+    'promote step only': [promote],
+    'operator write only': [operatorWrite],
+    'promote step on another digest': [operatorWrite, wrongDigest],
+    'agent write with promote step': [{ ...operatorWrite, id: 'memory.write.agent' }, promote],
+  };
+  for (const [label, transform] of Object.entries(refusals)) {
+    expectRejected(`promoted-memory-${label.replaceAll(' ', '-')}`, memoryWith(transform), 'AGENT_CONTEXT_TRUST_ESCALATION');
+  }
+  // The proof opens nothing else: other origins in the memory layer and other data layers stay untrusted-only.
+  expectRejected('promoted-memory-origin-tool', memoryWith([operatorWrite, promote], { origin: 'tool' }), 'AGENT_CONTEXT_TRUST_ESCALATION');
+  expectRejected(
+    'promoted-proof-in-references',
+    (input) => ({
+      ...input,
+      references: [declare(source('source://x', content), { origin: 'memory', trust: 'trusted', transform: [operatorWrite, promote] })],
+    }),
+    'AGENT_CONTEXT_TRUST_ESCALATION',
+  );
+  expectRejected(
+    'promoted-memory-instruction-authority',
+    memoryWith([operatorWrite, promote], { authority: 'directive' }),
+    'AGENT_CONTEXT_AUTHORITY_ESCALATION',
+  );
+});

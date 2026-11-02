@@ -31,6 +31,11 @@ const ENTRY_INPUT_FIELDS = Object.freeze([
   'supersedes',
 ]);
 const DELETE_OPERATION = 'memory.delete';
+const PROMOTE_OPERATION = 'memory.promote';
+// Only `promote()` can stamp this reference: `write()` always replaces it with `rule:<id>` and refuses it as input.
+const PROMOTE_POLICY_REF = 'operator:promote';
+// Reserved for `promote()`: no write path may create an id with this suffix.
+const PROMOTED_SUFFIX = ':promoted';
 const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
 // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
@@ -188,6 +193,40 @@ function memoryDeleteOperation(projectId, memoryId) {
 }
 
 /**
+ * The operation a promotion approval is bound to: the contract name, the exact project and memory, and the sha-256 of the
+ * content the operator was shown. An approval issued for other content cannot back this promotion.
+ */
+function memoryPromoteOperation(projectId, memoryId, contentSha256) {
+  requireIdentifier(projectId, 'project_id');
+  requireIdentifier(memoryId, 'memory_id');
+  if (typeof contentSha256 !== 'string' || !SHA256.test(contentSha256))
+    invalid('content_sha256 must be a sha-256 hex digest', 'content_sha256');
+  return Object.freeze({
+    operation: PROMOTE_OPERATION,
+    operation_id: `${PROMOTE_OPERATION}:${projectId}:${memoryId}:${contentSha256}`,
+    resource_scope: Object.freeze({ project_id: projectId, memory_id: memoryId, content_sha256: contentSha256 }),
+  });
+}
+
+/** Where a promoted entry points: the original agent note and the exact content that was promoted. */
+const promotedSourceRef = (projectId, memoryId, contentSha256) => `memory://${projectId}/${memoryId}@${contentSha256}`;
+
+/**
+ * A promoted entry is an operator write that supersedes the original and whose source_ref names that original at the
+ * digest of its own content. Anything else with `trust: trusted` is an ordinary operator note.
+ */
+function isPromotedEntry(entry, projectId) {
+  return (
+    entry.origin === 'operator' &&
+    entry.trust === 'trusted' &&
+    entry.write_policy_ref === PROMOTE_POLICY_REF &&
+    typeof entry.supersedes === 'string' &&
+    entry.source_digest === sha256Text(entry.content) &&
+    entry.source_ref === promotedSourceRef(projectId, entry.supersedes, entry.source_digest)
+  );
+}
+
+/**
  * Host-side verifier for `forget`: consumes, once, the approval the host resolved for this exact operation from an
  * `ExecutionApprovalStore`. `resolveApprovalId` is host code; the model never supplies the approval id.
  */
@@ -222,6 +261,11 @@ module.exports = {
   AUTHORITY,
   createExecutionApprovalVerifier,
   memoryDeleteOperation,
+  memoryPromoteOperation,
+  PROMOTE_POLICY_REF,
+  PROMOTED_SUFFIX,
+  promotedSourceRef,
+  isPromotedEntry,
   AgentMemoryError,
   CLASSIFICATIONS,
   CONTRACT,

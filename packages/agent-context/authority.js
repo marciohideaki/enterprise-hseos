@@ -35,6 +35,18 @@ function reject(code, message, source, layer) {
   throw new ContextAuthorityError(message, code, { source_ref: source.source_ref, layer });
 }
 
+/** Narrow proof of an operator promotion: the memory layer, data authority, an operator write and a promote step on this digest. */
+function isOperatorPromotedMemory(layer, authority, provenance) {
+  return (
+    layer === 'memory' &&
+    authority === 'data' &&
+    provenance.origin === 'memory' &&
+    provenance.trust === 'trusted' &&
+    provenance.transform.some((step) => step.id === 'memory.write.operator') &&
+    provenance.transform.some((step) => step.id === 'memory.promote' && step.input_digest === provenance.digest)
+  );
+}
+
 /**
  * Validates one source declared in a layer and returns its resolved { authority, provenance }.
  * A source without `authority`/`provenance` is read as v1 and derived from its layer; a v2 source is checked
@@ -83,7 +95,12 @@ function resolveSourceAuthority(layer, source, { retrieved_at }) {
     );
   }
   // Data layers and media can only be declared untrusted: a trusted label is refused, never silently downgraded.
-  if (provenance.trust !== 'untrusted' && (rule.authority === 'data' || UNTRUSTED_ORIGINS.includes(provenance.origin))) {
+  // The single exception is a memory an operator promoted: data authority, an operator write, and the promotion proof.
+  if (
+    provenance.trust !== 'untrusted' &&
+    !isOperatorPromotedMemory(layer, authority, provenance) &&
+    (rule.authority === 'data' || UNTRUSTED_ORIGINS.includes(provenance.origin))
+  ) {
     reject('AGENT_CONTEXT_TRUST_ESCALATION', `${layer} content must be declared untrusted`, source, layer);
   }
   if (source.source_ref !== provenance.source_ref) {
