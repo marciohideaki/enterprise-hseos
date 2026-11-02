@@ -1,0 +1,15 @@
+{
+  "provider_version": "0.166.0",
+  "authenticated": true,
+  "auth_source": "explicit",
+  "competing_credentials": false,
+  "quota_windows": [
+    {
+      "used_percent": 49,
+      "resets_at": 1794124015000
+    }
+  ],
+  "account_digest_present": true,
+  "binding_sha256": "920c0bdbfec668805fd7cc45c651a7689ee6ecd117f831355935287a165e8688",
+  "artifact_sha256": "6b3dcacd650256f01eefad8821141fc49a9341ed3d66986a64a3a0f092abfd2d"
+}
