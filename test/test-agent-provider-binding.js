@@ -78,7 +78,7 @@ test('binding creates an immutable registry snapshot without loading its secret'
   const assembly = createBoundModelProvider({ binding: loaded.binding, environment, fetch_impl: successfulFetch([]) });
   assert.equal(secretReads, 0);
   assert.equal(assembly.manifest.provider_id, 'model:openai-compatible');
-  assert.equal(assembly.snapshot.resolve('model:openai-compatible', 'organization/model').provider, assembly.provider);
+  assert.equal(assembly.snapshot.resolve('model:openai-compatible', 'gpt-4o-mini').provider, assembly.provider);
   assert.throws(() => assembly.manifest.models.push('other/model'), TypeError);
   assert.throws(() => loaded.binding.provider.capabilities.push('reasoning'), TypeError);
   assert.match(loaded.binding_sha256, /^[a-f0-9]{64}$/);
@@ -137,8 +137,8 @@ test('probe resolves the exact reference at dispatch and returns only normalized
   assert.equal(report.activation_authorized, false);
   assert.equal(observed.length, 1);
   assert.equal(observed[0].authorization, `Bearer ${SECRET}`);
-  assert.equal(observed[0].url, 'https://api.example.invalid/v1/chat/completions');
-  assert.equal(observed[0].body.model, 'organization/model');
+  assert.equal(observed[0].url, 'https://api.openai.com/v1/chat/completions');
+  assert.equal(observed[0].body.model, 'gpt-4o-mini');
   assert.deepEqual(report.evidence.provider_probe.normalized_events, ['content.delta', 'usage', 'completed']);
   assert.equal(report.evidence.provider_probe.finish_reason, 'stop');
   assert.doesNotMatch(JSON.stringify(report), new RegExp(SECRET));

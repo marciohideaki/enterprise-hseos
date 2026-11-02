@@ -593,7 +593,13 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
       // A query that looks like a credential is never used to search: nothing leaves, nothing is found.
       memorySources = deepFreeze(
         wantsMemory && !containsCredential(query)
-          ? await require('./memory-context-source').collectMemorySources({ store: memory.store, project_id: host.project_id, query })
+          ? await require('./memory-context-source').collectMemorySources({
+              store: memory.store,
+              project_id: host.project_id,
+              query,
+              // Untrusted memory (every note an agent wrote over MCP) enters only by this host decision, never the model's.
+              include_untrusted: memory.include_untrusted === true,
+            })
           : [],
       );
     },
@@ -819,6 +825,7 @@ function createProductionEnvironmentHost(section, options = {}) {
         const { createGovernedMemory } = require('./memory-context-source');
         const store = createGovernedMemory({
           ledger,
+          db,
           approvalVerifier: createExecutionApprovalVerifier({ approvalStore, resolveApprovalId: deleteApprovals.resolveApprovalId }),
         });
         return { store, deleteApprovals };
@@ -965,6 +972,7 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
       host.memory = {
         store: require('./memory-context-source').createGovernedMemory({
           ledger: wiring.ledger,
+          db: wiring.approvalStore.db,
           approvalVerifier: createExecutionApprovalVerifier({
             approvalStore: wiring.approvalStore,
             resolveApprovalId: wiring.resolveMemoryDeleteApproval,

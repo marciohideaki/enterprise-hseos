@@ -13,7 +13,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { spawn } = require('node:child_process');
+const { spawn, spawnSync } = require('node:child_process');
 const test = require('node:test');
 
 const Database = require('better-sqlite3');
@@ -87,14 +87,15 @@ function configFile(box, environment, name = 'config.yaml') {
 }
 
 /** Line-delimited JSON-RPC client around one project-state server child on the box's database. */
-function startServer(box, { config, legacyDatabase = false, mode = 'stdio', env: extraEnv = {} } = {}) {
+function startServer(box, { config, legacyDatabase = false, mode = 'stdio', env: extraEnv = {}, launch } = {}) {
   const args = [path.join(ROOT, 'tools', 'mcp-project-state', 'index.js'), `--db=${box.databasePath}`];
   if (config) args.push(`--config=${config}`);
   const env = { ...process.env, HSEOS_STATE_DB: box.databasePath };
   delete env.NODE_ENV;
   delete env.HSEOS_GOVERNED_EXECUTION_FIXTURE;
   Object.assign(env, extraEnv);
-  const child = spawn(process.execPath, args, { cwd: box.root, env, stdio: ['pipe', 'pipe', 'pipe'] });
+  const spawned = launch ? launch(process.execPath, args, box.root) : { command: process.execPath, args };
+  const child = spawn(spawned.command, spawned.args, { cwd: box.root, env, stdio: ['pipe', 'pipe', 'pipe'] });
   let stderr = '';
   let buffer = '';
   const waiting = new Map();
@@ -670,6 +671,89 @@ test(
     }
     await client.close();
     assert.ok(ledgerEvents(box.databasePath, 'environment_session').some((event) => event.type === 'environment.lsp.completed'));
+  },
+);
+
+// ---------------------------------------------------------------------------------------------------------------
+// Delegated launch: the exact command a real MCP client registers in mcp.json (runbook "Cliente real para environment.*").
+// ---------------------------------------------------------------------------------------------------------------
+
+/** The mcp.json `command` and `args` that run the server under a delegated cgroup with its stdio kept. */
+function delegatedLaunch(nodePath, serverArgs, workingDirectory) {
+  return {
+    command: 'systemd-run',
+    args: [
+      '--user',
+      '-p',
+      'Delegate=yes',
+      '--wait',
+      '--collect',
+      '--pipe',
+      '--quiet',
+      `--working-directory=${workingDirectory}`,
+      `--setenv=TMPDIR=${os.tmpdir()}`,
+      `--setenv=PATH=${path.dirname(nodePath)}:/usr/bin:/bin`,
+      '--',
+      nodePath,
+      ...serverArgs,
+    ],
+  };
+}
+
+test('the delegated launch wrapper carries Delegate=yes, --pipe and the stdio-preserving form the client registers', (t) => {
+  // The wrapper forwards the caller's TMPDIR; pin it so the assertion does not depend on the host running the suite.
+  const previous = process.env.TMPDIR;
+  process.env.TMPDIR = '/srv/scratch';
+  t.after(() => (previous === undefined ? delete process.env.TMPDIR : (process.env.TMPDIR = previous)));
+  const launch = delegatedLaunch('/opt/node/bin/node', ['/srv/server.js', '--db=/srv/project.db'], '/srv/project');
+  assert.equal(launch.command, 'systemd-run');
+  const separator = launch.args.indexOf('--');
+  const options = launch.args.slice(0, separator);
+  assert.deepEqual(launch.args.slice(separator + 1), ['/opt/node/bin/node', '/srv/server.js', '--db=/srv/project.db']);
+  for (const required of ['--user', '--wait', '--collect', '--pipe']) assert.ok(options.includes(required), required);
+  const property = options.indexOf('-p');
+  assert.ok(property !== -1 && options[property + 1] === 'Delegate=yes', 'the cgroup is delegated to the service');
+  assert.ok(options.includes('--working-directory=/srv/project'));
+  assert.ok(options.includes('--setenv=PATH=/opt/node/bin:/usr/bin:/bin'));
+  const scratch = options.find((entry) => entry.startsWith('--setenv=TMPDIR='));
+  assert.equal(scratch, '--setenv=TMPDIR=/srv/scratch', 'the service inherits the caller scratch directory, not a fixed tmpfs path');
+  assert.ok(!options.some((entry) => /KEY|TOKEN|SECRET|PASSWORD/i.test(entry)), 'no credential travels in the arguments');
+});
+
+/** Why this host cannot launch a delegated service at all, or '' when it can (a real, side-effect-free probe). */
+function delegatedLaunchUnavailable() {
+  if (process.platform !== 'linux') return 'delegated launch needs Linux with systemd';
+  if (!fs.existsSync('/usr/bin/bwrap')) return 'the bwrap binary (/usr/bin/bwrap) is unavailable';
+  const probe = spawnSync('systemd-run', ['--user', '-p', 'Delegate=yes', '--wait', '--collect', '--pipe', '--quiet', '--', 'true'], {
+    encoding: 'utf8',
+    timeout: 30_000,
+  });
+  if (probe.error) return `systemd-run is unavailable (${probe.error.code ?? probe.error.message})`;
+  if (probe.status !== 0) return `no systemd user manager can start a delegated service (exit ${probe.status}: ${probe.stderr.trim()})`;
+  return '';
+}
+
+// tools/list needs a toolchain root to build the isolation policy, so it reads the pinned cache (local only, never the network).
+const delegatedSkip =
+  delegatedLaunchUnavailable() ||
+  (fs.existsSync(path.join(TOOLCHAIN_CACHE, 'toolchain-manifest.json'))
+    ? ''
+    : `pinned toolchain cache not provisioned at ${TOOLCHAIN_CACHE} (set HSEOS_TOOLCHAIN_CACHE)`);
+test(
+  'launched through systemd-run with Delegate=yes (the mcp.json form), the server advertises environment.lsp.* on an activated fixture without network',
+  { skip: delegatedSkip || false },
+  async (t) => {
+    const box = sandbox(t);
+    await activated(box);
+    const config = configFile(box, environmentSection({ toolchain_cache: TOOLCHAIN_CACHE, workspace: workspaceFor(box) }));
+    const client = await withServer(t, box, { config, launch: delegatedLaunch });
+    const names = await client.names();
+    for (const expected of ['environment.lsp.hover', 'environment.dap.run', ...MEMORY_TOOLS])
+      assert.ok(names.has(expected), `${expected}: ${client.stderr()}`);
+    assert.doesNotMatch(client.stderr(), /environment\.lsp and environment\.dap are off/);
+    const listed = (await client.modern('tools/list')).result.tools.find((tool) => tool.name === 'environment.lsp.hover');
+    assert.equal(listed.inputSchema.type, 'object');
+    assert.ok(listed.inputSchema.properties, 'the published schema is the real one');
   },
 );
 

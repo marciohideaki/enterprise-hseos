@@ -4,7 +4,7 @@ const { createHash, randomUUID } = require('node:crypto');
 const { z } = require('zod');
 const { canonicalJson } = require('../../../packages/agent-session-store');
 const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-event-ledger');
-const { parseEngineeringTask } = require('./engineering-task-contract');
+const { parseEngineeringTask, parseTaskCompaction } = require('./engineering-task-contract');
 
 const STATES = ['approved', 'failed', 'blocked', 'not_executed'];
 const sha = (value) => createHash('sha256').update(canonicalJson(value)).digest('hex');
@@ -22,6 +22,17 @@ const diagnosisSchema = z
     requirement_ids: z.array(z.string()).min(1),
   })
   .strict();
+const forkSchema = z
+  .object({
+    schema_version: z.literal(1),
+    parent_task_run_id: z.string().uuid(),
+    parent_session_id: z.string().min(1),
+    parent_sequence: z.number().int().positive().safe(),
+    ancestry_event_count: z.number().int().positive().safe(),
+    ancestry_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  })
+  .strict()
+  .refine((fork) => fork.parent_sequence === fork.ancestry_event_count);
 const eventSchema = z.discriminatedUnion('kind', [
   diagnosisSchema,
   z.object({ kind: z.literal('uncertainty'), question: z.string().min(1).max(2048) }).strict(),
@@ -67,6 +78,8 @@ const eventSchema = z.discriminatedUnion('kind', [
       binding: z.unknown().optional(),
       extensions: z.unknown().optional(),
       plugin_model: z.unknown().optional(),
+      compaction: z.unknown().optional(),
+      fork: forkSchema.optional(),
       response_source: z.record(z.string(), z.json()).optional(),
       responses: z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64),
     })
@@ -89,6 +102,7 @@ function reduce(state, event) {
         require('./engineering-plugin-model').parseTaskPluginModel(event.plugin_model, event.extensions);
         if (event.binding || event.responses.length > 0) throw new Error('A task cannot combine model sources');
       }
+      if (event.compaction !== undefined) parseTaskCompaction(event.compaction);
       if (event.response_source !== undefined && (event.responses.length === 0 || event.binding || event.plugin_model))
         throw new Error('Response provenance requires scripted responses');
       if (event.binding !== undefined) {

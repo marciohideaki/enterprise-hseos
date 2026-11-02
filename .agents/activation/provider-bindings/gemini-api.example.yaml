@@ -1,41 +1,38 @@
-# Declaração L0 (ADR-0050, seção 1) do binding da quarta família: API Gemini direta.
-# Somente declaração documentada. Não é carregada por nenhum adapter: o validador
-# atual (tools/lib/agent-provider-binding.js) aceita só o adapter openai-compatible-sse
-# e o esquema é estrito, então este arquivo é recusado por ele até a task B1.
-# Valores marcados "a confirmar na campanha" não são verificáveis agora e nunca são presumidos.
+# Binding da quarta família (ADR-0050): API Gemini direta, pelo adapter openai-compatible-sse existente.
+# Exemplo: nada aqui é fato verificado. O endpoint compatível e o modelo são configuração
+# "a confirmar na campanha"; o host reservado .invalid impede egress acidental até lá.
+# A cota e o saldo não são observáveis: a campanha só roda com quota_exceptions auditada e válida (ADR-0050 §1 L2).
+# A credencial vem de env:// (chave própria no pass, grupo google/); o valor nunca entra neste arquivo.
+# A origem para a qual a credencial pode ser enviada é fixada na configuração da campanha (allowed_origin, preso ao
+# digest do binding), com valor "a confirmar na campanha"; o adapter recusa qualquer outra origem.
+# Quem autoriza é o owner, por campanha: operational e authorized permanecem false.
 schema_version: "1.0"
 binding_id: provider-binding:gemini-api-example
-adapter: a confirmar na campanha
+profile_id: agent-openai-compatible-candidate
+adapter: openai-compatible-sse
 provider:
-  provider_id: model:gemini-api
-  provider_version: a confirmar na campanha
-  client:
-    name: a confirmar na campanha
-    version: a confirmar na campanha
-  sdk:
-    name: a confirmar na campanha
-    version: a confirmar na campanha
-  model: a confirmar na campanha
-  endpoint: a confirmar na campanha
-  route: api
-  auth:
-    mode: api_key
-    subscription_route_evaluated: a confirmar na campanha
-    subscription_token_used_as_api: false
+  provider_id: model:openai-compatible
+  provider_version: 1.0.0
+  # a confirmar na campanha: endpoint compatível com chat completions da API Gemini
+  base_url: https://gemini-endpoint-a-confirmar.example.invalid/v1
+  # a confirmar na campanha: identificador do modelo
+  model: a-confirmar-na-campanha
+  capabilities:
+    - text_generation
+    - streaming
+    - tool_calls
+    - usage
+    - cancellation
+  limits:
+    context_tokens: 32768
+    max_output_tokens: 4096
+    max_parallel_requests: 1
   secret_refs:
     - name: api-key
-      source_ref: secret://google/gemini-hseos
-  billing:
-    kind: measured
-    plan: a confirmar na campanha
-    per_request_reserve_microusd: a confirmar na campanha
-  quota:
-    status: unknown
-    note: cota desconhecida nunca é ilimitada; observar na campanha ou registrar exceção auditada
-  budget_default:
-    max_requests: 4
-    max_cost_microusd: 1000000
-    max_window_minutes: 45
+      source_ref: env://HSEOS_GEMINI_API_KEY
+transport:
+  max_attempts: 1
+  retry_delay_ms: 0
 activation:
   operational: false
   authorized: false

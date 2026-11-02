@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "provider_kind": "model",
+  "vendor": "gemini",
+  "route": "api",
+  "transport": "http",
+  "billing": {
+    "kind": "metered",
+    "currency": "USD",
+    "max_request_microusd": 250000
+  },
+  "limits": {
+    "max_requests": 4,
+    "max_input_tokens": 32768,
+    "max_output_tokens": 4096,
+    "max_duration_ms": 60000
+  },
+  "controls": {
+    "authority": "kernel",
+    "resume": "not_verified",
+    "cancel": "not_verified",
+    "quota": "not_verified",
+    "evidence_sha256": null
+  },
+  "binding_id": "provider-binding:gemini-api-example",
+  "binding_sha256": "3ff47fcf39c3ba5492cbc1486b973163f2defc96d9b74c65855051adeb21ed39",
+  "provider_version": "1.0.0",
+  "adapter": "openai-compatible-sse",
+  "artifact_sha256": "74b4937ba78e0e2b9851f92348771af26a57b4d42bd63ace8e8e8105e40aef22",
+  "authentication": {
+    "mode": "api_key",
+    "credential": {
+      "name": "api-key",
+      "source_ref": "env://HSEOS_GEMINI_API_KEY"
+    },
+    "account_sha256": null,
+    "identity_kind": "credential",
+    "credential_sha256": "c92a7e52f2f5c24c6f060b8f25e265af8b1ca0d8e276cb95074080a8262a21a0",
+    "source": "explicit"
+  }
+}

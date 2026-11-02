@@ -11,13 +11,13 @@ const { ProviderCampaignControl } = require('../tools/cli/lib/provider-campaign-
 const { runProviderCampaign } = require('../tools/cli/lib/provider-campaign-runner');
 const { manifest } = require('./helpers/provider-control');
 
-function fixture(t, { lost = false } = {}) {
+function fixture(t, { lost = false, vendor = 'deepseek', noBalance = false, exception = false } = {}) {
   const control = new EngineeringControl();
   t.after(() => {
     control.close();
     control.handle.cleanup();
   });
-  const value = manifest();
+  const value = manifest(vendor);
   const taskId = randomUUID();
   const plan = {
     schema_version: 1,
@@ -42,7 +42,7 @@ function fixture(t, { lost = false } = {}) {
         auth_source: 'explicit',
         observed_at: Date.now(),
         expires_at: null,
-        quota_remaining_requests: 3,
+        quota_remaining_requests: noBalance ? null : 3,
         competing_credentials: false,
       }),
       run: async () => {
@@ -70,6 +70,9 @@ function fixture(t, { lost = false } = {}) {
           deadline: Date.now() + 60_000,
           binding_ids: [value.binding_id],
           task_ids: [taskId],
+          ...(exception
+            ? { quota_exceptions: { [value.binding_id]: { reason: 'pilot without a balance endpoint', expires_at: Date.now() + 30_000 } } }
+            : {}),
         },
       },
     },
@@ -122,6 +125,74 @@ test('runner rejects duplicate command identity and unexpected vendor before eff
   f.client.bindingInspect = async () => ({ vendor: 'unknown' });
   await assert.rejects(runProviderCampaign(f.client, f.plan), { code: 'CONTROL_CAMPAIGN_VENDOR_UNKNOWN' });
   assert.equal(f.calls(), 0);
+});
+
+test('a pilot-only vendor runs as a single-binding pilot and never counts toward the four-family coverage', async (t) => {
+  const f = fixture(t, { vendor: 'gemini' });
+  const result = await runProviderCampaign(f.client, f.plan);
+  assert.equal(result.status, 'control_trial_completed');
+  assert.deepEqual(result.covered_vendors, ['gemini']);
+  assert.equal(f.calls(), 1);
+
+  const g = fixture(t, { vendor: 'gemini' });
+  g.plan.scope = 'four-family';
+  await assert.rejects(runProviderCampaign(g.client, g.plan), { code: 'CONTROL_CAMPAIGN_VENDOR_UNKNOWN' });
+  // Even beside every required vendor, the pilot-only one is refused in a four-family plan and cannot replace one.
+  const inspected = { codex: 'codex', claude: 'claude', deepseek: 'deepseek', gemini: 'gemini' };
+  g.plan.steps = Object.keys(inspected).map((id) => ({ command_id: randomUUID(), binding_id: id, task_id: randomUUID() }));
+  g.client.bindingInspect = async (id) => ({ vendor: inspected[id] });
+  await assert.rejects(runProviderCampaign(g.client, g.plan), { code: 'CONTROL_CAMPAIGN_VENDOR_UNKNOWN' });
+  assert.equal(g.service.rows(g.plan.campaign_id).length, 0);
+  assert.equal(g.calls(), 0);
+});
+
+test('a four-family plan with exactly the four required vendors passes the coverage check', async (t) => {
+  const f = fixture(t);
+  f.plan.scope = 'four-family';
+  const vendorOf = { a: 'codex', b: 'claude', c: 'deepseek', d: 'antigravity' };
+  f.plan.steps = Object.keys(vendorOf).map((id) => ({ command_id: randomUUID(), binding_id: id, task_id: randomUUID() }));
+  f.client.bindingInspect = async (id) => ({ vendor: vendorOf[id] });
+  f.client.campaign = async () => {
+    throw Object.assign(new Error('REACHED'), { code: 'REACHED' });
+  };
+  await assert.rejects(runProviderCampaign(f.client, f.plan), { code: 'REACHED' });
+});
+
+test('a pilot-only vendor with more than one binding is refused before effects', async (t) => {
+  const f = fixture(t, { vendor: 'gemini' });
+  f.plan.steps.push({ command_id: randomUUID(), binding_id: 'binding:second', task_id: randomUUID() });
+  f.client.bindingInspect = async () => ({ vendor: 'gemini' });
+  await assert.rejects(runProviderCampaign(f.client, f.plan), { code: 'CONTROL_CAMPAIGN_PILOT_SCOPE_INVALID' });
+  assert.equal(f.service.rows(f.plan.campaign_id).length, 0);
+  assert.equal(f.calls(), 0);
+});
+
+test('the compatible API vendor runs as a single-binding pilot and is refused in a four-family plan or with two bindings', async (t) => {
+  const f = fixture(t, { vendor: 'openai' });
+  const result = await runProviderCampaign(f.client, f.plan);
+  assert.deepEqual(result.covered_vendors, ['openai']);
+  assert.equal(f.calls(), 1);
+
+  const g = fixture(t, { vendor: 'openai' });
+  g.plan.scope = 'four-family';
+  await assert.rejects(runProviderCampaign(g.client, g.plan), { code: 'CONTROL_CAMPAIGN_VENDOR_UNKNOWN' });
+
+  const h = fixture(t, { vendor: 'openai' });
+  h.plan.steps.push({ command_id: randomUUID(), binding_id: 'binding:second', task_id: randomUUID() });
+  h.client.bindingInspect = async () => ({ vendor: 'openai' });
+  await assert.rejects(runProviderCampaign(h.client, h.plan), { code: 'CONTROL_CAMPAIGN_PILOT_SCOPE_INVALID' });
+  assert.equal(h.calls(), 0);
+});
+
+test('a vendor without a balance endpoint is admitted only with an audited quota exception', async (t) => {
+  const withException = fixture(t, { vendor: 'openai', noBalance: true, exception: true });
+  const result = await runProviderCampaign(withException.client, withException.plan);
+  assert.equal(result.status, 'control_trial_completed');
+  assert.equal(withException.calls(), 1);
+
+  const without = fixture(t, { vendor: 'openai', noBalance: true });
+  await assert.rejects(runProviderCampaign(without.client, without.plan), { code: 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE' });
+  assert.equal(without.calls(), 0);
 });
 
 test('runner operates through authenticated HTTP and the public SDK', async (t) => {

@@ -155,6 +155,31 @@ decisions. Historical events and already admitted contracts stay readable.
   same way, since the session it opens could only be acted on through a refused approval. `computer.stop` and
   `computer.screenshot` need no approval and are not affected. Putting the image in the elicitation is not done: the protocol has no place for it.
 
+### Operator memory promotion (F14, owner decision 2026-11-02)
+
+- New operator command `hseos memory promote --db <activated project.db> --project <id> --memory <id> --reason <text> --operator <id> [--yes --content-sha256 <hex>] [--json]`.
+  It shows the content and its sha-256 and confirms on the terminal, or with `--yes` and the digest the operator reviewed.
+  It is not an MCP tool, is absent from `tools/list` and cannot be called by a model or a task contract.
+- A memory written over MCP stays `agent` / `untrusted` and out of every task context. The promotion appends a NEW
+  `operator` / `trusted` entry (`<memory_id>:promoted`, same content) that supersedes the original, with the existing
+  `memory.written` and `memory.superseded` events: no new event type, no migration, `user_version` stays 17. It needs an
+  operator actor and a single-use approval bound to project, memory and content digest (`memory.promote:<project>:<memory>:<digest>`),
+  and it scans the content for credentials again.
+- A promoted memory enters the task context as `trust: trusted`, `authority: data` (never an instruction). The context
+  authority check accepts `trusted` in the memory layer only with data authority, the operator write step and a
+  `memory.promote` step on the content digest; any other `trusted` label in a data layer is still refused
+  (`AGENT_CONTEXT_TRUST_ESCALATION`). `memory.retrieve` as a model tool result is unchanged: always `untrusted`.
+- The command refuses to run without a TTY, `--yes` included. This keeps agents, pipes and CI out, but a process that can
+  allocate a pseudo-terminal with the owner's shell and database access could still run it: run it only in the owner's own
+  interactive session. `retrieve` marks a memory `trusted` for a task context only when the store proves the promotion (operator
+  entry stamped `operator:promote`, existing `supersedes`, approval consumed in `execution_approvals`; the host wires this
+  through `createGovernedMemory({ db })`); without that attestation nothing is trusted. A `memory_id` ending in `:promoted`
+  is reserved for promotions: `write()` refuses it with `AGENT_MEMORY_ID_RESERVED`. `promoted_by` and `operation_id` live in
+  the `agent_memory` ledger; the context shows the promotion through the `…:promoted` `source_ref`.
+- New codes: `AGENT_MEMORY_ID_RESERVED`, `AGENT_MEMORY_DIGEST_MISMATCH` (the confirmed digest differs from the stored content) and
+  `AGENT_MEMORY_PROMOTE_INVALID` (the entry is already trusted). The others reuse `AGENT_MEMORY_OPERATOR_REQUIRED`,
+  `AGENT_MEMORY_APPROVAL_REQUIRED` (with the approval `cause`), `AGENT_MEMORY_CREDENTIAL_DETECTED` and `AGENT_MEMORY_NOT_FOUND`.
+
 ### Capability tools publish their real input schema (owner decision 2026-10-31)
 
 - `environment.lsp.*`, `environment.dap.run`, `environment.browser.run`, `environment.computer.*` and
@@ -363,7 +388,12 @@ could interleave their writes to the manifest. They now take an exclusive lock,
 
 Two refusal codes were added to the provider campaign admission, before any model request is dispatched or budget reserved:
 
-- `CONTROL_PROVIDER_CREDENTIAL_CONFLICT`: the API campaign adapter takes the credential only from the source the binding declares (for example `env://HSEOS_MODEL_PROVIDER_API_KEY`). If the vendor's own ambient API-key environment variable (the one named by `VENDOR_AMBIENT_KEY` in `tools/cli/lib/provider-api-adapter.js`) is also set with a value and is not the declared source, the run is refused. There is no fallback between the two, and equal values still conflict.
+- `CONTROL_PROVIDER_CREDENTIAL_CONFLICT`: the API campaign adapter takes the credential only from the source the binding declares (for example `env://HSEOS_MODEL_PROVIDER_API_KEY`). If the vendor's own ambient API-key environment variable (the `ambient` list of the vendor in the `VENDORS` table of `tools/cli/lib/provider-api-adapter.js`: the earlier API vendor (its own key variable, named in that table); `GEMINI_API_KEY` and `GOOGLE_API_KEY` for `gemini`; `OPENAI_API_KEY` for `openai`) is also set with a value and is not the declared source, the run is refused. There is no fallback between the two, and equal values still conflict.
 - `CONTROL_PROVIDER_BACKEND_DIVERGED`: the origin the adapter actually reached differs from the origin declared by the binding (`declared_backend`), or the adapter reported none.
 
 What to adapt: an operator or CI job that exports the vendor's global API key now stops at admission when the declared credential has another name. Either `unset` that variable for the campaign (`env -u <VARIABLE> ...`), or declare the credential in the binding with that variable's name (`env://<VARIABLE>`). To roll back, return to the previous runtime.
+
+Pilot vendors and balance (pre-campaign):
+
+- `CONTROL_CAMPAIGN_PILOT_SCOPE_INVALID`: `gemini` and `openai` are campaign vendors only in the `pilot` scope, with exactly one binding. A plan that names more than one binding for a pilot vendor is refused with this code before any effect. In `four-family` scope they are refused with `CONTROL_CAMPAIGN_VENDOR_UNKNOWN` and never replace a required family.
+- These two vendors have no balance endpoint, so admission cannot observe a quota. The authorization must then carry an audited `quota_exceptions` entry for the binding (a `reason` and an `expires_at` no later than the authorization `deadline`); without it, admission is refused with `CONTROL_PROVIDER_QUOTA_UNAVAILABLE`. With a valid exception the run is admitted as `owner_exception`.

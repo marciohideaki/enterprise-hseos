@@ -15,11 +15,18 @@ const {
   reapExecutorOwner,
 } = require('../../../packages/agent-isolation-attestation/executor');
 const { createExecutionLedgerFileFixture, openExecutionLedgerFileFixture } = require('../../mcp-project-state/lib/execution-ledger-schema');
+const {
+  CompactionProviderRegistry,
+  CompactionRuntime,
+  DeterministicCompactionProvider,
+  InMemoryCheckpointProvider,
+} = require('../../../packages/agent-compaction');
 const { assembleTemporaryKernel } = require('./temporary-kernel-assembly');
 const {
   CONSTITUTION_INSTRUCTION,
   SCRIPTED_MODEL,
   effectiveOutputReserve,
+  parseTaskCompaction,
   projectInstruction,
   protectedCriteriaContent,
   readEngineeringTask,
@@ -57,6 +64,40 @@ function readResponses(filename) {
   } finally {
     fs.closeSync(fd);
   }
+}
+
+// The compaction configuration is a small JSON document read with the same fail-closed discipline as the responses.
+function readCompaction(filename) {
+  const fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
+  try {
+    const stat = fs.fstatSync(fd);
+    if (!stat.isFile() || stat.nlink !== 1 || stat.size > 4096) throw new Error('Invalid compaction configuration');
+    const buffer = Buffer.alloc(4097);
+    const bytes = fs.readSync(fd, buffer, 0, buffer.length, 0);
+    if (bytes !== stat.size) throw new Error('Compaction configuration changed');
+    return parseTaskCompaction(JSON.parse(buffer.subarray(0, bytes).toString('utf8')));
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+// One keyless compaction runtime per assembly; the checkpoint store is in memory because the relational
+// `compaction.completed` event is the canonical record and a lost checkpoint only means the provider runs again.
+function createTaskCompactionRuntime(compaction) {
+  const provider = new DeterministicCompactionProvider({
+    provider_id: compaction.provider_id,
+    ...(compaction.threshold_basis_points ? { threshold_basis_points: compaction.threshold_basis_points } : {}),
+  });
+  const registry = new CompactionProviderRegistry();
+  registry.register(
+    provider,
+    provider.manifest({ schema_version: 1, request_id: 'request:engineering-compaction-manifest', provider_id: compaction.provider_id }),
+  );
+  return new CompactionRuntime({
+    compaction_provider_snapshot: registry.snapshot(),
+    checkpoint_provider: new InMemoryCheckpointProvider({ provider_id: 'checkpoint:engineering-memory' }),
+    checkpoint_provider_id: 'checkpoint:engineering-memory',
+  });
 }
 
 function readIdentity(directory) {
@@ -207,6 +248,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
     ...(environmentTools?.names || []),
   ]);
   const manifest = getEngineeringModelManifest();
+  if (created.compaction?.context_tokens) manifest.limits.context_tokens = created.compaction.context_tokens;
   const provider = new ScriptedModelProvider({
     manifest,
     routes: [
@@ -286,6 +328,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
     tool_bundles: tools.bundles,
     max_concurrency: TASK_MAX_CONCURRENCY,
     approval_resolver: environmentTools?.approvalResolver ?? null,
+    ...(created.compaction ? { compaction_runtime: createTaskCompactionRuntime(created.compaction) } : {}),
     completion_review: async ({ step }) => {
       if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });
       if (contract.max_failed_corrections === 0) return null;
@@ -468,7 +511,8 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
         ],
         references: [],
         memory: environmentTools?.memorySources ?? [],
-        overflow_policy: 'reject',
+        overflow_policy: created.compaction ? 'compact' : 'reject',
+        ...(created.compaction ? { compaction_provider_id: created.compaction.provider_id } : {}),
         parameters: {
           max_output_tokens: effectiveOutputReserve(
             created.plugin_model?.provider_manifest.limits.max_output_tokens || created.binding?.provider.limits.max_output_tokens,
@@ -502,6 +546,8 @@ function summary(handle, id, task, assembly) {
     ...(state.created.extensions ? { extensions: state.created.extensions } : {}),
     ...(state.created.plugin_model ? { plugin_model: pluginModel } : {}),
     ...(state.created.response_source ? { response_source: state.created.response_source } : {}),
+    ...(state.created.compaction ? { compaction: state.created.compaction } : {}),
+    ...(state.created.fork ? { fork: state.created.fork } : {}),
     token_accounting: session ? accountSessionTokens(session) : null,
     correction_reviews: state.reviews || [],
     correction_diagnoses: state.diagnoses || [],
@@ -592,6 +638,7 @@ async function runEngineeringTask({
   resourceId,
   responseSource,
   environmentHost,
+  compaction: compactionPath,
   // Direct callers (`agent run`) admit the contract; the control API has already admitted it (or is replaying a job
   // admitted earlier) and passes `admission: false`.
   admission = true,
@@ -610,6 +657,7 @@ async function runEngineeringTask({
   const model = binding ? { provider_id: binding.provider.provider_id, model: binding.provider.model } : undefined;
   const { contract, sha256 } = readEngineeringTask(taskContract, { admission, outputCap, model });
   const responses = scriptedResponses ? readResponses(scriptedResponses) : [];
+  const compaction = compactionPath ? readCompaction(compactionPath) : undefined;
   const pinned = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(
     extensionCatalog,
     pluginModel ? [...extensionIds, pluginModel.selection_id] : extensionIds,
@@ -652,6 +700,7 @@ async function runEngineeringTask({
     ...(binding ? { binding } : {}),
     ...(extensions ? { extensions } : {}),
     ...(pluginModelPin ? { plugin_model: pluginModelPin } : {}),
+    ...(compaction ? { compaction } : {}),
   };
   let assembly;
   try {
@@ -869,6 +918,11 @@ async function inspectEngineeringTask({
         artifacts: state.snapshot || null,
         verification: state.result || null,
       };
+    if (state.created.fork && action !== 'status')
+      verifyForkAncestry(
+        new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) }).readSession(state.created.session_id),
+        state.created.fork,
+      );
     if (action === 'status' || (state.result && action !== 'reconcile')) return summary(handle, id, task);
     require('./job-dispatch').assertJobRuntimeAccess(handle.db, id);
     if (state.created.plugin_model)
@@ -974,8 +1028,80 @@ async function inspectEngineeringTask({
   }
 }
 
+/**
+ * Forks a task into a NEW state directory (a new ledger and a new task run) that carries the parent's session history up
+ * to a checkpoint, byte for byte. The parent is only read. The fork records its lineage in its own `created` event: parent
+ * task run, parent session, checkpoint sequence and the digest of the copied ancestry, so the copy is verifiable against the
+ * parent. The two runs share nothing afterwards: each resumes from its own ledger. A checkpoint that already holds an
+ * effect on the workspace (anything but a read) or a terminal event is refused, because the fork rebuilds the workspace from
+ * the contract and must not diverge from the history it inherits. No session-store child slot is used, so the contract
+ * invariant `max_children === 0` is untouched.
+ */
+const ABSENT_EXECUTOR_PID = 4_194_304;
+const FORK_ANCESTRY_MISMATCH = 'ENGINEERING_FORK_ANCESTRY_MISMATCH';
+
+/** The first `ancestry_event_count` events of the fork's session must still hash to the digest recorded at fork time. */
+function verifyForkAncestry(events, fork) {
+  if (events.length < fork.ancestry_event_count || engineeringDigest(events.slice(0, fork.ancestry_event_count)) !== fork.ancestry_sha256)
+    throw Object.assign(new Error(FORK_ANCESTRY_MISMATCH), { code: FORK_ANCESTRY_MISMATCH });
+}
+
+/** Copies the ancestry into the fork's store and proves the copy against the lineage before anything can run on it. */
+function copyForkAncestry(store, sessionId, ancestry, fork) {
+  store.append({ session_id: sessionId, expected_version: 0, events: ancestry });
+  verifyForkAncestry(store.readSession(sessionId), fork);
+}
+
+async function forkEngineeringTask({ state: directory, fromSequence }) {
+  const parent = openExecutionLedgerFileFixture(path.resolve(directory));
+  let child;
+  try {
+    const parentRunId = readIdentity(parent.directory);
+    const parentState = new EngineeringTaskState(parent.db, parentRunId).read();
+    if (parentState.started && !parentState.result && (!parentState.owner || isExecutorOwnerAlive(parentState.owner)))
+      throw new Error('A fork requires a settled or interrupted task, not a running one');
+    const { session_id: sessionId, contract } = parentState.created;
+    const events = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(parent.db) }).readSession(sessionId);
+    const checkpoint = fromSequence ?? events.length;
+    if (!Number.isSafeInteger(checkpoint) || checkpoint < 1 || checkpoint > events.length)
+      throw new Error('--from-sequence must name an existing event of the parent session');
+    const ancestry = events.slice(0, checkpoint);
+    if (ancestry.some((event) => ['session.completed', 'session.failed', 'session.cancelled'].includes(event.event_type)))
+      throw new Error('The checkpoint is already terminal: nothing is left to continue in a fork');
+    if (ancestry.some((event) => event.event_type === 'tool.execution.started' && event.payload.name !== 'engineering.read'))
+      throw new Error('The checkpoint already holds a workspace effect; a fork before the first write is required');
+    const ancestrySha256 = engineeringDigest(ancestry);
+    const fork = {
+      schema_version: 1,
+      parent_task_run_id: parentRunId,
+      parent_session_id: sessionId,
+      parent_sequence: checkpoint,
+      ancestry_event_count: ancestry.length,
+      ancestry_sha256: ancestrySha256,
+    };
+    child = createExecutionLedgerFileFixture();
+    const childRunId = randomUUID();
+    const created = { ...parentState.created, deadline: Date.now() + contract.limits.max_duration_ms, fork };
+    const childTask = createEngineeringTaskWorkspace(child, created, childRunId);
+    const childStore = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(child.db) });
+    copyForkAncestry(childStore, sessionId, ancestry, fork);
+    // The copy is an interrupted run whose executor is gone for good (a pid above the kernel's pid_max never exists):
+    // resume reconciles it from the durable history, exactly as after a crash.
+    childTask.append(
+      { kind: 'execution_started', owner: { ...executorOwner(), pid: ABSENT_EXECUTOR_PID, start_ticks: '1' } },
+      childTask.read().version,
+    );
+    return { ...summary(child, childRunId, childTask), operation: 'fork', fork };
+  } finally {
+    child?.close();
+    parent.close();
+  }
+}
+
 module.exports = {
   getEngineeringModelManifest,
+  forkEngineeringTask,
+  copyForkAncestry,
   runEngineeringTask,
   inspectEngineeringTask,
   createEngineeringTaskWorkspace,
