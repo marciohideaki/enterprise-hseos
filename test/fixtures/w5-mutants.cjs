@@ -148,7 +148,7 @@ const MUTANTS = [
     'authority',
     MEMORY,
     'packages/agent-memory/store.js',
-    [["trust: 'untrusted',\n        transform: [", 'trust: entry.trust,\n        transform: [']],
+    [["trust: promoted ? 'trusted' : 'untrusted',\n          transform: [", 'trust: entry.trust,\n          transform: [']],
   ],
   [
     'context_authority',

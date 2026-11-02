@@ -155,6 +155,31 @@ decisions. Historical events and already admitted contracts stay readable.
   same way, since the session it opens could only be acted on through a refused approval. `computer.stop` and
   `computer.screenshot` need no approval and are not affected. Putting the image in the elicitation is not done: the protocol has no place for it.
 
+### Operator memory promotion (F14, owner decision 2026-11-02)
+
+- New operator command `hseos memory promote --db <activated project.db> --project <id> --memory <id> --reason <text> --operator <id> [--yes --content-sha256 <hex>] [--json]`.
+  It shows the content and its sha-256 and confirms on the terminal, or with `--yes` and the digest the operator reviewed.
+  It is not an MCP tool, is absent from `tools/list` and cannot be called by a model or a task contract.
+- A memory written over MCP stays `agent` / `untrusted` and out of every task context. The promotion appends a NEW
+  `operator` / `trusted` entry (`<memory_id>:promoted`, same content) that supersedes the original, with the existing
+  `memory.written` and `memory.superseded` events: no new event type, no migration, `user_version` stays 17. It needs an
+  operator actor and a single-use approval bound to project, memory and content digest (`memory.promote:<project>:<memory>:<digest>`),
+  and it scans the content for credentials again.
+- A promoted memory enters the task context as `trust: trusted`, `authority: data` (never an instruction). The context
+  authority check accepts `trusted` in the memory layer only with data authority, the operator write step and a
+  `memory.promote` step on the content digest; any other `trusted` label in a data layer is still refused
+  (`AGENT_CONTEXT_TRUST_ESCALATION`). `memory.retrieve` as a model tool result is unchanged: always `untrusted`.
+- The command refuses to run without a TTY, `--yes` included. This keeps agents, pipes and CI out, but a process that can
+  allocate a pseudo-terminal with the owner's shell and database access could still run it: run it only in the owner's own
+  interactive session. `retrieve` marks a memory `trusted` for a task context only when the store proves the promotion (operator
+  entry stamped `operator:promote`, existing `supersedes`, approval consumed in `execution_approvals`; the host wires this
+  through `createGovernedMemory({ db })`); without that attestation nothing is trusted. A `memory_id` ending in `:promoted`
+  is reserved for promotions: `write()` refuses it with `AGENT_MEMORY_ID_RESERVED`. `promoted_by` and `operation_id` live in
+  the `agent_memory` ledger; the context shows the promotion through the `…:promoted` `source_ref`.
+- New codes: `AGENT_MEMORY_ID_RESERVED`, `AGENT_MEMORY_DIGEST_MISMATCH` (the confirmed digest differs from the stored content) and
+  `AGENT_MEMORY_PROMOTE_INVALID` (the entry is already trusted). The others reuse `AGENT_MEMORY_OPERATOR_REQUIRED`,
+  `AGENT_MEMORY_APPROVAL_REQUIRED` (with the approval `cause`), `AGENT_MEMORY_CREDENTIAL_DETECTED` and `AGENT_MEMORY_NOT_FOUND`.
+
 ### Capability tools publish their real input schema (owner decision 2026-10-31)
 
 - `environment.lsp.*`, `environment.dap.run`, `environment.browser.run`, `environment.computer.*` and

@@ -91,8 +91,93 @@ async function executionActivationAction(actionName, options) {
   return report;
 }
 
+const MEMORY_ACTIONS = Object.freeze(['promote']);
+const HEX64 = /^[0-9a-f]{64}$/;
+
+function confirmOnTerminal(question) {
+  return new Promise((resolve) => {
+    const readline = require('node:readline');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(/^(y|yes|s|sim)$/i.test(answer.trim()));
+    });
+  });
+}
+
+/**
+ * `hseos memory promote`: the operator lifts one agent-written memory to trusted, one memory at a time. Without `--yes` it
+ * shows the content and digest and asks on the terminal; with `--yes` the operator declares the digest they reviewed.
+ * Not an MCP tool and not reachable by a model or a task contract.
+ */
+async function memoryAction(actionName, options, confirm = confirmOnTerminal, interactive = Boolean(process.stdin.isTTY)) {
+  if (!MEMORY_ACTIONS.includes(actionName)) throw new TypeError(`memory action must be one of: ${MEMORY_ACTIONS.join(', ')}`);
+  for (const [flag, value] of [
+    ['--db', options.db],
+    ['--project', options.project],
+    ['--memory', options.memory],
+    ['--reason', options.reason],
+    ['--operator', options.operator],
+  ]) {
+    if (typeof value !== 'string' || value.length === 0) throw new TypeError(`${flag} is required`);
+  }
+  if (options.yes === true && !HEX64.test(options.contentSha256 ?? '')) {
+    throw new TypeError('--yes needs --content-sha256 <hex> of the content you reviewed');
+  }
+  // Promotion is a human act: it needs the operator's own terminal. A process without one (an agent, a pipe, CI) is refused.
+  if (interactive !== true) throw new TypeError('memory promote needs an interactive terminal (stdin is not a TTY)');
+  const { openOperatorMemory } = require('../lib/memory-context-source');
+  const operatorMemory = openOperatorMemory({
+    databasePath: path.resolve(options.db),
+    operator: { kind: 'operator', id: options.operator },
+  });
+  try {
+    const shown = operatorMemory.inspect(options.project, options.memory);
+    let digest = options.contentSha256;
+    if (options.yes !== true) {
+      console.log(
+        `memory ${shown.memory_id} (${shown.origin}, ${shown.trust}, ${shown.status})\ncontent sha256: ${shown.content_sha256}\n${shown.content}`,
+      );
+      if (!(await confirm(`Promote ${shown.memory_id} to trusted as ${options.operator}? [y/N] `)))
+        throw new TypeError('promotion declined');
+      digest = shown.content_sha256;
+    }
+    const receipt = operatorMemory.promote({
+      project_id: options.project,
+      memory_id: options.memory,
+      content_sha256: digest,
+      reason: options.reason,
+    });
+    const report = { action: 'promote', project_id: options.project, operator: options.operator, ...receipt };
+    console.log(
+      options.json
+        ? JSON.stringify(report, null, 2)
+        : `Memory ${receipt.promoted_from} promoted to trusted as ${receipt.memory_id}\n  content sha256: ${receipt.content_sha256}`,
+    );
+    return report;
+  } finally {
+    operatorMemory.close();
+  }
+}
+
 module.exports = {
   companions: [
+    {
+      command: 'memory <action>',
+      description:
+        'Operator memory commands over an activated state database (promote: lift one agent note to trusted with a single-use approval).',
+      options: [
+        ['--db <path>', 'Activated state database'],
+        ['--project <id>', 'Project of the memory'],
+        ['--memory <id>', 'Memory entry to promote'],
+        ['--reason <text>', 'Why the operator trusts this memory'],
+        ['--operator <id>', 'Identity of the operator who confirms'],
+        ['--yes', 'Confirm without a prompt; needs --content-sha256'],
+        ['--content-sha256 <hex>', 'Digest of the content the operator reviewed (with --yes)'],
+        ['--json', 'Output machine-readable JSON'],
+      ],
+      action: memoryAction,
+    },
     {
       command: 'execution-activation <action>',
       description:
@@ -135,4 +220,5 @@ module.exports = {
     return report;
   },
   render,
+  _internal: { memoryAction },
 };
