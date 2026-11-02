@@ -281,7 +281,7 @@
     {
       "filename": "agent.js",
       "command": "agent <action>",
-      "description": "Agent actions: run, resume, cancel, validate-task, status, evidence, reconcile",
+      "description": "Agent actions: run, resume, cancel, validate-task, status, evidence, reconcile, fork",
       "options": [
         [
           "--task-contract <path>",
@@ -328,6 +328,14 @@
           "Required optimistic sequence for resume"
         ],
         [
+          "--compaction <path>",
+          "Opt-in deterministic context compaction for an engineering run (off by default)"
+        ],
+        [
+          "--from-sequence <number>",
+          "Parent session sequence to fork from (default: the last event)"
+        ],
+        [
           "--reason <text>",
           "Cancellation reason"
         ],
@@ -345,7 +353,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "8adf8a98d59a1829db83395f5d801c87c900553930c6b0d535705c575bbb0b70"
+      "source_sha256": "973ccb9190b3b46a7ceb7ca05f3cdda00aba9fe09cb09e11552c1133ee7110de"
     },
     {
       "filename": "brain.js",

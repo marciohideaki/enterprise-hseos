@@ -57,6 +57,7 @@ function assembleTemporaryKernel({
   execution_policy = null,
   approval_resolver = null,
   completion_review = null,
+  compaction_runtime = null,
   max_concurrency = 1,
   runtime_clock = Date,
   execution_clock = { now: () => new Date().toISOString() },
@@ -111,6 +112,7 @@ function assembleTemporaryKernel({
     context_profile_resolver,
     clock: runtime_clock,
     completion_review,
+    ...(compaction_runtime ? { compaction_runtime } : {}),
   });
   return Object.freeze({ executionLedger, projection, runtime, sessionStore, toolRuntime });
 }
