@@ -1,0 +1,13 @@
+{
+  "max_requests": 4,
+  "max_cost_microusd": 0,
+  "deadline": 1793628938560,
+  "binding_ids": ["binding:claude-c2"],
+  "task_ids": ["aaca2d2e-7062-416a-a680-46b78669766e"],
+  "quota_exceptions": {
+    "binding:claude-c2": {
+      "reason": "Owner confirmed C2 on 2026-11-02: at most 2 headless Claude Code inferences on the owner subscription; the CLI exposes no quota window, so the exception is limited to this campaign and its validity.",
+      "expires_at": 1793628938560
+    }
+  }
+}

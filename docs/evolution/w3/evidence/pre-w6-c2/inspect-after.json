@@ -1,0 +1,11 @@
+{
+  "provider_version": "2.1.316",
+  "authenticated": true,
+  "auth_source": "explicit",
+  "competing_credentials": false,
+  "quota_remaining_requests": null,
+  "account_digest_present": true,
+  "binding_sha256": "596f45438b8c974a6e89b203bd3fb2aa1f0ab148b7f7a7650c2a89e5340167ef",
+  "artifact_sha256": "6b3dcacd650256f01eefad8821141fc49a9341ed3d66986a64a3a0f092abfd2d",
+  "observed_at": 1793625345225
+}

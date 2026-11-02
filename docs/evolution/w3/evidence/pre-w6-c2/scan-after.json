@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "scanned_at_utc": "2026-11-02T13:16:24Z",
+  "scanned_paths": ["/build/tmp/wc/c2", "docs/evolution/w3/evidence/pre-w6-c2"],
+  "literal_values_checked": 5,
+  "literal_hits": 0,
+  "pattern_hits_in_versioned_artifacts": 0,
+  "patterns": "sk-..., JWT eyJ..., Bearer ...",
+  "process_rule": "cwd under the campaign directory",
+  "matching_processes_after_campaign": 0,
+  "matching_process_lines": [],
+  "note": "Values are never written. Literal values come from the client credential files listed and from the campaign control credential in pass. Does not inspect patterns inside the control state."
+}
