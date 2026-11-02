@@ -700,7 +700,11 @@ function delegatedLaunch(nodePath, serverArgs, workingDirectory) {
   };
 }
 
-test('the delegated launch wrapper carries Delegate=yes, --pipe and the stdio-preserving form the client registers', () => {
+test('the delegated launch wrapper carries Delegate=yes, --pipe and the stdio-preserving form the client registers', (t) => {
+  // The wrapper forwards the caller's TMPDIR; pin it so the assertion does not depend on the host running the suite.
+  const previous = process.env.TMPDIR;
+  process.env.TMPDIR = '/srv/scratch';
+  t.after(() => (previous === undefined ? delete process.env.TMPDIR : (process.env.TMPDIR = previous)));
   const launch = delegatedLaunch('/opt/node/bin/node', ['/srv/server.js', '--db=/srv/project.db'], '/srv/project');
   assert.equal(launch.command, 'systemd-run');
   const separator = launch.args.indexOf('--');
@@ -712,7 +716,7 @@ test('the delegated launch wrapper carries Delegate=yes, --pipe and the stdio-pr
   assert.ok(options.includes('--working-directory=/srv/project'));
   assert.ok(options.includes('--setenv=PATH=/opt/node/bin:/usr/bin:/bin'));
   const scratch = options.find((entry) => entry.startsWith('--setenv=TMPDIR='));
-  assert.ok(scratch && scratch !== `--setenv=TMPDIR=${path.sep}tmp`, 'scratch is the disk TMPDIR, never the tmpfs');
+  assert.equal(scratch, '--setenv=TMPDIR=/srv/scratch', 'the service inherits the caller scratch directory, not a fixed tmpfs path');
   assert.ok(!options.some((entry) => /KEY|TOKEN|SECRET|PASSWORD/i.test(entry)), 'no credential travels in the arguments');
 });
 
