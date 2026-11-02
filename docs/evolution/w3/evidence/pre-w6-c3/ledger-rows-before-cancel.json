@@ -1,0 +1,50 @@
+[
+  {
+    "seq": 1,
+    "kind": "opened",
+    "command_id": null,
+    "binding_id": null,
+    "diagnostic": null
+  },
+  {
+    "seq": 2,
+    "kind": "intent",
+    "command_id": "1b34c5cf-9516-4f2a-9e4d-74a34c3ac59a",
+    "binding_id": null,
+    "diagnostic": null
+  },
+  {
+    "seq": 3,
+    "kind": "done",
+    "command_id": "1b34c5cf-9516-4f2a-9e4d-74a34c3ac59a",
+    "binding_id": null,
+    "diagnostic": null
+  },
+  {
+    "seq": 4,
+    "kind": "reserved",
+    "command_id": "cfd3801e-761d-4874-a2b9-9c26eb7a6396",
+    "binding_id": "binding:claude-api-c3",
+    "diagnostic": null
+  },
+  {
+    "seq": 5,
+    "kind": "uncertain",
+    "command_id": "cfd3801e-761d-4874-a2b9-9c26eb7a6396",
+    "binding_id": null,
+    "diagnostic": {
+      "aborted": false,
+      "code": "CONTROL_OUTCOME_UNCERTAIN",
+      "exit_code": 1,
+      "output_limit": false,
+      "signal": null,
+      "stderr": "",
+      "timed_out": false,
+      "worker": {
+        "code": null,
+        "message": "uncertain result: stop_reason=\"refused\" usage=present",
+        "name": "Error"
+      }
+    }
+  }
+]

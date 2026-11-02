@@ -9,9 +9,12 @@ def strings(o):
         for v in o: yield from strings(v)
     elif isinstance(o, str) and len(o) > 20: yield o
 vals = []
-for f in [x for x in auth_json.split(',') if x and os.path.exists(os.path.expanduser(x))]:
-    try: vals += list(strings(json.load(open(os.path.expanduser(f)))))
-    except Exception: pass
+for f in [x for x in auth_json.split(',') if x]:
+    if f.startswith('pass:'):  # a secret kept in pass: compared as a whole value, never written
+        vals.append(subprocess.run(['pass', 'show', f[5:]], capture_output=True, text=True).stdout.strip())
+    elif os.path.exists(os.path.expanduser(f)):
+        try: vals += list(strings(json.load(open(os.path.expanduser(f)))))
+        except Exception: pass
 ls = subprocess.run(['pass', 'ls', 'enterprise-hseos'], capture_output=True, text=True).stdout
 for name in re.findall(re.escape(pass_group) + r'[0-9a-f-]+', ls):
     vals.append(subprocess.run(['pass', 'show', 'enterprise-hseos/' + name], capture_output=True, text=True).stdout.strip())
