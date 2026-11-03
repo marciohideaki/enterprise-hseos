@@ -1,0 +1,126 @@
+{
+  "memory_events": [
+    {
+      "position": 45261,
+      "event_type": "memory.written",
+      "aggregate_type": "agent_memory",
+      "aggregate_id": "c8-f14",
+      "memory_id": "c8-note-1",
+      "project_id": "c8-f14",
+      "origin": "agent",
+      "trust": "untrusted",
+      "authority": "data",
+      "write_policy_ref": "rule:memory-write",
+      "supersedes": null,
+      "created_at": "2026-11-03T17:39:01.517Z",
+      "recorded_at": "2026-11-03T17:39:01.518Z",
+      "source_digest": "d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+      "source_ref": "doc://runbook/sums",
+      "promotion": null
+    },
+    {
+      "position": 45263,
+      "event_type": "memory.written",
+      "aggregate_type": "agent_memory",
+      "aggregate_id": "c8-f14",
+      "memory_id": "c8-note-1:promoted",
+      "project_id": "c8-f14",
+      "origin": "operator",
+      "trust": "trusted",
+      "authority": "data",
+      "write_policy_ref": "operator:promote",
+      "supersedes": "c8-note-1",
+      "created_at": "2026-11-03T18:09:49.972Z",
+      "recorded_at": "2026-11-03T18:09:49.973Z",
+      "source_digest": "d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+      "source_ref": "memory://c8-f14/c8-note-1@d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+      "promotion": {
+        "approval_id": "75916b8d-76cb-4ad7-8512-40b785ed5983",
+        "content_sha256": "d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+        "promoted_by": "owner",
+        "promoted_from": "c8-note-1",
+        "reason": "C8/F14: nota gravada pelo cliente real e revisada pelo owner"
+      }
+    },
+    {
+      "position": 45264,
+      "event_type": "memory.superseded",
+      "aggregate_type": "agent_memory",
+      "aggregate_id": "c8-f14",
+      "memory_id": "c8-note-1",
+      "project_id": null,
+      "origin": null,
+      "trust": null,
+      "authority": null,
+      "write_policy_ref": null,
+      "supersedes": null,
+      "created_at": null,
+      "recorded_at": "2026-11-03T18:09:49.973Z",
+      "source_digest": null,
+      "source_ref": null,
+      "promotion": null
+    },
+    {
+      "position": 45267,
+      "event_type": "memory.written",
+      "aggregate_type": "agent_memory",
+      "aggregate_id": "c8-beta",
+      "memory_id": "c8-foreign-1",
+      "project_id": "c8-beta",
+      "origin": "agent",
+      "trust": "untrusted",
+      "authority": "data",
+      "write_policy_ref": "rule:memory-write",
+      "supersedes": null,
+      "created_at": "2026-11-03T18:10:51.036Z",
+      "recorded_at": "2026-11-03T18:10:51.036Z",
+      "source_digest": "1a83308f215a95ca0ef10ca9a86fd9e901f0330510ffd9751d4a047667fd3697",
+      "source_ref": "doc://runbook/sums",
+      "promotion": null
+    }
+  ],
+  "client_operations": [
+    {
+      "position": 45259,
+      "aggregate_type": "execution",
+      "aggregate_id": "0ebc25f7-b334-5fe1-8c9d-7dab533b16c7",
+      "event_type": "ExecutionAuthorized",
+      "recorded_at": "2026-11-03T17:39:01.514Z"
+    },
+    {
+      "position": 45260,
+      "aggregate_type": "execution",
+      "aggregate_id": "0ebc25f7-b334-5fe1-8c9d-7dab533b16c7",
+      "event_type": "ExecutionStarted",
+      "recorded_at": "2026-11-03T17:39:01.515Z"
+    },
+    {
+      "position": 45262,
+      "aggregate_type": "execution",
+      "aggregate_id": "0ebc25f7-b334-5fe1-8c9d-7dab533b16c7",
+      "event_type": "ExecutionSucceeded",
+      "recorded_at": "2026-11-03T17:39:01.518Z"
+    },
+    {
+      "position": 45265,
+      "aggregate_type": "execution",
+      "aggregate_id": "2c66aebc-0e2d-514d-87f2-37bcda2e826e",
+      "event_type": "ExecutionAuthorized",
+      "recorded_at": "2026-11-03T18:10:51.027Z"
+    },
+    {
+      "position": 45266,
+      "aggregate_type": "execution",
+      "aggregate_id": "2c66aebc-0e2d-514d-87f2-37bcda2e826e",
+      "event_type": "ExecutionStarted",
+      "recorded_at": "2026-11-03T18:10:51.028Z"
+    },
+    {
+      "position": 45268,
+      "aggregate_type": "execution",
+      "aggregate_id": "2c66aebc-0e2d-514d-87f2-37bcda2e826e",
+      "event_type": "ExecutionSucceeded",
+      "recorded_at": "2026-11-03T18:10:51.037Z"
+    }
+  ]
+}

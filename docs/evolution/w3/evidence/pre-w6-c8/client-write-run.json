@@ -1,0 +1,73 @@
+{
+  "duration_api_ms": 10165,
+  "stop_reason": "end_turn",
+  "session_id": "f59f0b26-27d6-44f2-af89-a543b6979b16",
+  "total_cost_usd": 0.07101160000000001,
+  "usage": {
+    "input_tokens": 28,
+    "cache_creation_input_tokens": 27951,
+    "cache_read_input_tokens": 94766,
+    "output_tokens": 1121,
+    "output_tokens_details": { "thinking_tokens": 496 },
+    "server_tool_use": { "web_search_requests": 0, "web_fetch_requests": 0 },
+    "service_tier": "standard",
+    "cache_creation": { "ephemeral_1h_input_tokens": 27951, "ephemeral_5m_input_tokens": 0 },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 8,
+        "output_tokens": 291,
+        "cache_read_input_tokens": 41049,
+        "cache_creation_input_tokens": 675,
+        "cache_creation": { "ephemeral_5m_input_tokens": 0, "ephemeral_1h_input_tokens": 675 },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 28,
+      "outputTokens": 1121,
+      "cacheReadInputTokens": 94766,
+      "cacheCreationInputTokens": 27951,
+      "webSearchRequests": 0,
+      "costUSD": 0.07101160000000001,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 496,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": { "background": 0, "foreground": 0, "unset": 0 },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": { "parent": 0, "user": 0, "system": 0 },
+    "refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+    "by_type": {}
+  },
+  "is_error": false,
+  "num_turns": 3,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**Raw result:**\n\n```json\n{\n  \"schema_version\": 1,\n  \"ok\": true,\n  \"data\": {\n    \"operation_id\": \"0ebc25f7-b334-5fe1-8c9d-7dab533b16c7\",\n    \"result\": {\n      \"memory_id\": \"c8-note-1\",\n      \"write_policy_ref\": \"rule:memory-write\"\n    },\n    \"replayed\": false\n  },\n  \"error\": null,\n  \"evidence\": [\n    \"hseos://execution/0ebc25f7-b334-5fe1-8c9d-7dab533b16c7/provider/agent-memory\"\n  ],\n  \"warnings\": []\n}\n```\n\n**Summary:** Memory entry `c8-note-1` successfully written to project `c8-f14` with content about integer addition invariants. Operation ID: `0ebc25f7-b334-5fe1-8c9d-7dab533b16c7`. TTL: 24 hours.",
+  "ttft_ms": 3066,
+  "type": "result",
+  "duration_ms": 10943,
+  "uuid": "b4ae5ec3-72dc-48d4-9b7d-5a13a14ff0d5",
+  "ttft_stream_ms": 1605,
+  "time_to_request_ms": 580,
+  "first_content_frame_ms": 1605,
+  "queued_turn_count": 0
+}

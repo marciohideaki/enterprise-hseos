@@ -4,7 +4,7 @@
 usage: scan-campaign.py <campaign-dir> <versioned-dir> <sources> <control-pass-prefix> <process-pattern|-> <output.json>
   sources: comma-separated. A path is a JSON credential file (every string value of 40+ characters without spaces is a literal);
            'pass:<entry>' is one secret kept in pass, compared as a whole value.
-  control-pass-prefix: every pass entry under enterprise-hseos/ whose name starts with it is a control credential literal.
+  control-pass-prefix: every pass entry under enterprise-hseos/ whose name starts with it is a control credential literal ('-' = this campaign has no control credential).
 Values are never written to the output and never passed in argv: they go to a 0600 pattern file that is removed afterwards.
 """
 import datetime, json, os, re, subprocess, sys, tempfile
@@ -51,11 +51,11 @@ listed = subprocess.run(['pass', 'ls', 'enterprise-hseos'], capture_output=True,
 if listed.returncode != 0:
     sys.exit('scan aborted: pass ls enterprise-hseos failed, so the control credentials cannot be enumerated')
 listing = listed.stdout
-for name in sorted(set(re.findall(re.escape(control_prefix) + r'[0-9a-f-]+', listing))):
+for name in sorted(set(re.findall(re.escape(control_prefix) + r'[0-9a-f-]+', listing))) if control_prefix != '-' else []:
     v = pass_show('enterprise-hseos/' + name)
     labels.append({'source': 'pass:enterprise-hseos/' + name, 'values': 1 if v else 0})
     vals += [v] if v else []
-if not any(l['source'].startswith('pass:enterprise-hseos/' + control_prefix) for l in labels):
+if control_prefix != '-' and not any(l['source'].startswith('pass:enterprise-hseos/' + control_prefix) for l in labels):
     sys.exit('scan aborted: no control credential entry starts with ' + control_prefix)
 empty_sources = [l['source'] for l in labels if l['values'] == 0]
 

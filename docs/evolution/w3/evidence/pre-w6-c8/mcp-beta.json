@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "hseos-state-tracking": {
+      "command": "/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node",
+      "args": [
+        "/workspace/local/tooling/hseos-releases/d05920002872fef32ab6edb0d1053f895b4ff19d/tools/mcp-project-state/index.js",
+        "--db=/build/tmp/c8-live-W0vn/project.db",
+        "--config=/build/tmp/c8-live-W0vn/config-beta.yaml"
+      ],
+      "env": { "HSEOS_STATE_DB": "/build/tmp/c8-live-W0vn/project.db", "HSEOS_LEGACY_TELEMETRY_DB": "/build/tmp/c8-live-W0vn/legacy.db" }
+    }
+  }
+}

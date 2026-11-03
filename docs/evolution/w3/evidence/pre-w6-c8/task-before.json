@@ -1,0 +1,23 @@
+{
+  "label": "before-promotion",
+  "observed_at": "2026-11-03T17:39:12.509Z",
+  "task_result": "approved",
+  "project_id": "c8-f14",
+  "memory_sources": [],
+  "memory_blocks": [],
+  "source_refs": [
+    "hseos://context/precedence-v1",
+    "policy://engineering/v1",
+    "profile://engineering/candidate",
+    "task-contract://63675e913eecb923b7ed23991b16f00456b841b126e14fb95fa229a1dd0d78b0/protected-criteria",
+    "session-event://event:4963068da881fd99b2db9a42a483be1f9c496109",
+    "governance://tool/engineering.command",
+    "governance://tool/engineering.diagnose",
+    "governance://tool/engineering.diff",
+    "governance://tool/engineering.patch",
+    "governance://tool/engineering.read",
+    "governance://tool/engineering.search",
+    "governance://tool/engineering.write",
+    "governance://tool/memory.retrieve"
+  ]
+}

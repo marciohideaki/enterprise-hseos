@@ -1,0 +1,10 @@
+{"label":"after-promotion-with-ids","task_result":"approved","memory_sources":1,"blocks":1}
+task-exit=0
+✖ hseos memory promote: the registered action reaches the terminal prompt and ignores the extra arguments the CLI parser passes (2399.158327ms)
+ℹ tests 1
+ℹ pass 0
+ℹ fail 1
+✖ failing tests:
+✖ hseos memory promote: the registered action reaches the terminal prompt and ignores the extra arguments the CLI parser passes (2399.158327ms)
+    expected: /promotion declined/,
+red-exit=0

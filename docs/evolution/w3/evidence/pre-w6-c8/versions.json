@@ -1,0 +1,18 @@
+{
+  "claude_code_on_path": "2.1.317 (Claude Code)",
+  "note": "C2 and C3 used 2.1.316; the client auto-updated before this campaign",
+  "hseos_cli": "4.0.0-rc.0 (global distribution d05920002872fef32ab6edb0d1053f895b4ff19d)",
+  "mcp_server_release": "d05920002872fef32ab6edb0d1053f895b4ff19d",
+  "database": "instant copy of the activated project.db: integrity ok, user_version 17; the real database was not opened for writing",
+  "project_ids": {
+    "note": "c8-f14",
+    "foreign": "c8-beta"
+  },
+  "client_cost_estimates_usd": {
+    "write_note": 0.0710116,
+    "write_foreign": 0.0633646,
+    "basis": "estimates reported by the client under the owner subscription, not an invoice"
+  },
+  "client_session_ids": ["f59f0b26-27d6-44f2-af89-a543b6979b16", "e23c134c-4bf9-4a73-981a-f1c3f0ebda44"],
+  "note_session_ids": "first = write of the note in c8-f14; second = write of the foreign-project note in c8-beta"
+}

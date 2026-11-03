@@ -1,0 +1,38 @@
+{
+  "label": "after-promotion-with-foreign-note",
+  "observed_at": "2026-11-03T18:11:08.147Z",
+  "task_result": "approved",
+  "project_id": "c8-f14",
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+      "origin": "memory",
+      "source_ref": "memory://c8-f14/c8-note-1:promoted",
+      "trust": "trusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "3c264810bc27720d370dceaeb9a4055d15167021ab91466f966b02c0c3dc3368",
+      "bytes": 233,
+      "authority_data": true
+    }
+  ],
+  "source_refs": [
+    "hseos://context/precedence-v1",
+    "policy://engineering/v1",
+    "profile://engineering/candidate",
+    "task-contract://9198bf20ee6e0d247483762938eb8b78daa937da5f23c59c9e09e8764fc9034e/protected-criteria",
+    "memory://c8-f14/c8-note-1:promoted",
+    "session-event://event:766b07fbb43726c3c75217267d3b1fde1f8890af",
+    "governance://tool/engineering.command",
+    "governance://tool/engineering.diagnose",
+    "governance://tool/engineering.diff",
+    "governance://tool/engineering.patch",
+    "governance://tool/engineering.read",
+    "governance://tool/engineering.search",
+    "governance://tool/engineering.write",
+    "governance://tool/memory.retrieve"
+  ]
+}
