@@ -1,0 +1,11 @@
+{
+  "python": "/build/hseos-models/venv/bin/python",
+  "checkpoint": "/build/hseos-models/litert/Qwen3-0.6B_dynamic_wi4b32_afp32.litertlm",
+  "sdk_module": "/build/hseos-models/venv/lib/python3.12/site-packages/google/antigravity/__init__.py",
+  "scratch": "/build/tmp/wc/c7/parent-scratch",
+  "subordinate_binding_id": "binding:codex-child-c7",
+  "max_model_calls": 1,
+  "memory_max_bytes": 2147483648,
+  "pids_max": 256,
+  "tasks": { "2c1f9b1c-bb32-4951-b39c-4530adb10e74": { "prompt": "Call run_campaign_model exactly once, with no arguments. /no_think" } }
+}

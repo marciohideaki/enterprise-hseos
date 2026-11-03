@@ -1,0 +1,17 @@
+{
+  "evidence_kind": "real_local_client_and_real_account_child",
+  "mocks_or_fixtures_in_inference_path": false,
+  "control_ledger_is_temporary_fixture": true,
+  "parent_turns": 2,
+  "child_turns": 2,
+  "parent_model_calls": [1, 1],
+  "parent_usage_source": ["litert_native_benchmark", "litert_native_benchmark"],
+  "requests": 4,
+  "committed_microusd": 0,
+  "authorized_microusd": 0,
+  "live_commands": 0,
+  "unresolved": 0,
+  "cancelled": true,
+  "replay_verified": true,
+  "child_same_binding_before_after": true
+}

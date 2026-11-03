@@ -1,0 +1,10 @@
+{
+  "provider_version": "0.166.0",
+  "quota_windows": [
+    {
+      "used_percent": 94,
+      "resets_at": 1794124015000
+    }
+  ],
+  "binding_sha256": "daf8aec6c0cc6ae8c4ffad03e6d38e747652c5adde3aa0431a103667095c687f"
+}

@@ -1,0 +1,9 @@
+{
+  "python_version": "Python 3.12.12",
+  "python_realpath_sha256": "3008abbb48c1e2b0fa3072ae72334b9b352e1346ea3a20d34126a455f0c7bc66",
+  "packages": "{'google-antigravity': '0.1.18', 'litert-lm': '0.17.1', 'litert-lm-api': '0.17.1'}",
+  "checkpoint_sha256": "03e7da1eb1108b50dffaa9bb52cc7bcbad2eb0c66ca990267f480c1e545d2856",
+  "checkpoint_size": 344671744,
+  "sdk_module_sha256": "40ed12117105f4ca747d3d519c0e1be59c2f41ca45471319bc86a72e73fc7f77",
+  "codex_version_observed": "0.166.0"
+}

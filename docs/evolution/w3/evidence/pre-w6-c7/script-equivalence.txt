@@ -1,0 +1,5 @@
+executed copy (as run): sha256 a594e0c6b091efd9795a6a51cff6569f652aa3f655be7f3eb772a2014af5ffe9
+versioned copy (formatted by prettier --write): sha256 bcdf46b445cd66de5acdee6778aaf1dc003bd1680e844d01ceb1392c80c8260b
+character-level comparison after removing whitespace and commas: 10147 vs 10145 characters; the only differences are two pairs of redundant parentheses removed by the formatter (around an arrow-function body and around a ternary), plus layout and trailing commas
+result: same program logic; not byte-identical
+note: the executed copy is /build/tmp/wc/c7/run.cjs, kept outside the repository; renames done by hand: child-inspect-before-run.json -> child-inspect-before.json; this file is written by the executor, without independent verification

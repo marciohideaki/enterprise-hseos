@@ -10,7 +10,7 @@ Values are never written to the output and never passed in argv: they go to a 06
 import datetime, json, os, re, subprocess, sys, tempfile
 
 campaign, versioned, sources, control_prefix, ps_pattern, out = sys.argv[1:7]
-WORKER_RULE = r'provider-(campaign|claude-account|acp)-worker'
+WORKER_RULE = r'provider-(campaign|claude-account|acp)-worker|antigravity_campaign_worker'
 # Credential files also hold public metadata (scope names, plan tiers) that appears inside the installed client binary; scanning
 # those produced false positives, so only token-like strings (40+ characters, no spaces) count as literals from a file.
 MIN_TOKEN_LENGTH = 40
