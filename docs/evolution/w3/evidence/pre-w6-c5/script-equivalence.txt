@@ -1,0 +1,5 @@
+executed copy (as run): sha256 a0053b0cfcd94d6349fa387356b7ccc5d26c01d60e5dba22c3d99b29cf211da8
+versioned copy: sha256 0c6ad82b3d0a23b21f7f973fee1c82e2a746beddd3a23d2e90fc65f3a4a1a35f
+executed copy after prettier: sha256 0c6ad82b3d0a23b21f7f973fee1c82e2a746beddd3a23d2e90fc65f3a4a1a35f 
+result: versioned copy equals the executed copy after formatting
+note: the executed copy is /build/tmp/wc/c5/run.cjs, kept outside the repository; renames done by hand: inspect-before-run.json -> inspect-before.json

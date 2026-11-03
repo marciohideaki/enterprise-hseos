@@ -1,0 +1,123 @@
+[
+  {
+    "t": 1793724267711,
+    "phase": "before-restart",
+    "call": "campaign",
+    "action": "create",
+    "command_id": "d212ada3-5be6-49e8-88c1-7358b859f45a"
+  },
+  {
+    "t": 1793724267715,
+    "phase": "before-restart",
+    "call": "query",
+    "current_sequence": 3,
+    "requests": 0,
+    "committed_microusd": 0,
+    "report_sha256": "4df8bfd9db627c07b9cae03f728280cbbf3f880077b7dd2b8473b7683935b0d4"
+  },
+  {
+    "t": 1793724269925,
+    "phase": "before-restart",
+    "call": "campaign",
+    "action": "run",
+    "command_id": "3a29a855-fe65-478e-9c43-c7b29117deaa"
+  },
+  {
+    "t": 1793724269926,
+    "phase": "before-restart",
+    "call": "query",
+    "current_sequence": 6,
+    "requests": 1,
+    "committed_microusd": 250000,
+    "report_sha256": "25b1c029875de73dc53e05b21e107c871005a864b31c20decf6e3207bf243247"
+  },
+  {
+    "t": 1793724269928,
+    "phase": "before-restart-replay",
+    "call": "campaign",
+    "action": "run",
+    "command_id": "3a29a855-fe65-478e-9c43-c7b29117deaa"
+  },
+  {
+    "t": 1793724269929,
+    "phase": "before-restart-replay",
+    "call": "query",
+    "current_sequence": 6,
+    "requests": 1,
+    "committed_microusd": 250000,
+    "report_sha256": "25b1c029875de73dc53e05b21e107c871005a864b31c20decf6e3207bf243247"
+  },
+  {
+    "t": 1793724269944,
+    "phase": "after-restart",
+    "call": "query",
+    "current_sequence": 6,
+    "requests": 1,
+    "committed_microusd": 250000,
+    "report_sha256": "25b1c029875de73dc53e05b21e107c871005a864b31c20decf6e3207bf243247"
+  },
+  {
+    "t": 1793724269946,
+    "phase": "after-restart-replay",
+    "call": "campaign",
+    "action": "run",
+    "command_id": "3a29a855-fe65-478e-9c43-c7b29117deaa"
+  },
+  {
+    "t": 1793724269947,
+    "phase": "after-restart-replay",
+    "call": "query",
+    "current_sequence": 6,
+    "requests": 1,
+    "committed_microusd": 250000,
+    "report_sha256": "25b1c029875de73dc53e05b21e107c871005a864b31c20decf6e3207bf243247"
+  },
+  {
+    "t": 1793724270610,
+    "phase": "after-restart",
+    "call": "campaign",
+    "action": "run",
+    "command_id": "1336e853-d25f-42d4-be3b-85c22836c092"
+  },
+  {
+    "t": 1793724270612,
+    "phase": "after-restart",
+    "call": "query",
+    "current_sequence": 9,
+    "requests": 2,
+    "committed_microusd": 500000,
+    "report_sha256": "5946b196153f3356888407c9b82dcc5ce350bb9f196de51cccc22a753fb58eee"
+  },
+  {
+    "t": 1793724270614,
+    "phase": "after-restart-replay",
+    "call": "campaign",
+    "action": "run",
+    "command_id": "1336e853-d25f-42d4-be3b-85c22836c092"
+  },
+  {
+    "t": 1793724270616,
+    "phase": "after-restart-replay",
+    "call": "query",
+    "current_sequence": 9,
+    "requests": 2,
+    "committed_microusd": 500000,
+    "report_sha256": "5946b196153f3356888407c9b82dcc5ce350bb9f196de51cccc22a753fb58eee"
+  },
+  {
+    "t": 1793724270621,
+    "phase": "close",
+    "call": "campaign",
+    "action": "cancel",
+    "command_id": "634548ad-913e-42b1-b3d7-92fedfba1b51"
+  },
+  {
+    "t": 1793724270622,
+    "phase": "close",
+    "call": "query",
+    "current_sequence": 12,
+    "requests": 2,
+    "committed_microusd": 500000,
+    "report_sha256": "9a56eba27a9f0b6eebf0ca5c87c9d4778ddac200300625d7043703e915c18a70"
+  }
+]

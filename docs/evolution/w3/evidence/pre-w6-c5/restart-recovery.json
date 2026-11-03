@@ -1,0 +1,15 @@
+{
+  "state_preserved": true,
+  "replay_after_restart_same_result": true,
+  "requests_unchanged_by_replay": true,
+  "before": {
+    "current_sequence": 6,
+    "requests": 1,
+    "report_sha256": "25b1c029875de73dc53e05b21e107c871005a864b31c20decf6e3207bf243247"
+  },
+  "after": {
+    "current_sequence": 6,
+    "requests": 1,
+    "report_sha256": "25b1c029875de73dc53e05b21e107c871005a864b31c20decf6e3207bf243247"
+  }
+}

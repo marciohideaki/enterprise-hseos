@@ -1,0 +1,13 @@
+{
+  "max_requests": 4,
+  "max_cost_microusd": 1000000,
+  "deadline": 1793727867580,
+  "binding_ids": ["binding:openai-compatible-c5"],
+  "task_ids": ["60aaa66d-b92c-4660-90ed-a92b64ff8f47", "1129e746-2b84-4384-9915-7fcf5448e343"],
+  "quota_exceptions": {
+    "binding:openai-compatible-c5": {
+      "reason": "Owner confirmed C5 on 2026-11-03: at most 2 inferences on the owner OpenAI API key, USD 1.00 campaign ceiling, 0.25 reserved per request; the provider API has no balance endpoint, so no balance or quota window is observable and the exception is limited to this campaign and its validity.",
+      "expires_at": 1793727867580
+    }
+  }
+}

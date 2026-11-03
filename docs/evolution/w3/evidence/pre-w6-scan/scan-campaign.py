@@ -74,11 +74,13 @@ try:
 finally:
     os.unlink(patfile)
 
-pattern = re.compile(r'sk-ant-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{20,}|eyJ[A-Za-z0-9_-]{20,}|Bearer [A-Za-z0-9._-]{16,}')
+pattern = re.compile(r'sk-[A-Za-z0-9_-]{20,}|eyJ[A-Za-z0-9_-]{20,}|Bearer [A-Za-z0-9._-]{16,}')  # sk- covers sk-ant-, sk-proj- and the like
 KNOWN_PLACEHOLDERS = {'sk-ant-api03-invalid-diagnostic-key-0000000000'}  # deliberately invalid keys used by the no-cost diagnostics
 pattern_hits, pattern_hit_files, placeholder_files = 0, [], []
 for base, _, files in os.walk(versioned):
     for name in files:
+        if os.path.abspath(os.path.join(base, name)) == os.path.abspath(out):
+            continue  # never scan the report being rewritten: it names the known placeholders
         found = set(m.group(0) for m in pattern.finditer(open(os.path.join(base, name), errors='ignore').read()))
         if not found:
             continue
@@ -119,7 +121,7 @@ res = {
     'pattern_hit_files': pattern_hit_files,
     'known_invalid_placeholder_files': placeholder_files,
     'known_invalid_placeholders': sorted(KNOWN_PLACEHOLDERS),
-    'patterns': 'sk-ant-..., sk-..., JWT eyJ..., Bearer ... (16+ chars)',
+    'patterns': 'sk-... (letters, digits, hyphen, underscore; covers sk-ant-, sk-proj-), JWT eyJ..., Bearer ... (16+ chars)',
     'process_rule': 'cwd under the campaign directory, or command line matching ' + WORKER_RULE + ('' if ps_pattern == '-' else ' or ' + ps_pattern),
     'matching_processes_after_campaign': len(procs),
     'matching_process_lines': procs,
