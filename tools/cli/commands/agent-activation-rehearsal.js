@@ -176,7 +176,9 @@ module.exports = {
         ['--content-sha256 <hex>', 'Digest of the content the operator reviewed (with --yes)'],
         ['--json', 'Output machine-readable JSON'],
       ],
-      action: memoryAction,
+      // The CLI parser calls an action as (arguments, options, command): forward only the first two, so that the confirmation and
+      // terminal parameters of memoryAction keep their defaults instead of receiving the parser's command object.
+      action: (actionName, options) => memoryAction(actionName, options),
     },
     {
       command: 'execution-activation <action>',
