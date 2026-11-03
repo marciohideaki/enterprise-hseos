@@ -1,13 +1,29 @@
 {
-  "schema_version": 1,
-  "scanned_at_utc": "2026-11-02T13:16:24Z",
+  "schema_version": 2,
+  "scanned_at_utc": "2026-11-03T15:12:46Z",
   "scanned_paths": ["/build/tmp/wc/c2", "docs/evolution/w3/evidence/pre-w6-c2"],
-  "literal_values_checked": 5,
-  "literal_hits": 0,
+  "literal_values_checked": 3,
+  "literal_sources": [
+    {
+      "source": "/home/annonymous/.claude/.credentials.json",
+      "values": 2
+    },
+    {
+      "source": "pass:enterprise-hseos/wc-c2-control-1b810699-ed71-4b09-9783-5379ccb775af",
+      "values": 1
+    }
+  ],
+  "literal_min_length_from_files": 40,
+  "literal_hit_reporting": "count of files with a literal match; the files are not named, so a literal can never leak through this report",
+  "sources_with_no_value": [],
+  "files_with_literal_hits": 0,
   "pattern_hits_in_versioned_artifacts": 0,
-  "patterns": "sk-..., JWT eyJ..., Bearer ...",
-  "process_rule": "cwd under the campaign directory",
+  "pattern_hit_files": [],
+  "known_invalid_placeholder_files": ["scan-after.json"],
+  "known_invalid_placeholders": ["sk-ant-api03-invalid-diagnostic-key-0000000000"],
+  "patterns": "sk-ant-..., sk-..., JWT eyJ..., Bearer ... (16+ chars)",
+  "process_rule": "cwd under the campaign directory, or command line matching provider-(campaign|claude-account|acp)-worker",
   "matching_processes_after_campaign": 0,
   "matching_process_lines": [],
-  "note": "Values are never written. Literal values come from the client credential files listed and from the campaign control credential in pass. Does not inspect patterns inside the control state."
+  "does_not_cover": "secrets of 20 to 39 characters in a credential file are not searched as literals (floor of 40, accepted because shorter values there are identifiers and public metadata); patterns inside the control state; transcripts the client persists under its own home; truncated or re-encoded values; the raw process listing is not versioned"
 }

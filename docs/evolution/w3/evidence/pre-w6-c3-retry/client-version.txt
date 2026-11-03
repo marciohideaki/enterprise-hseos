@@ -1,0 +1,4 @@
+executable: /home/annonymous/.local/share/claude/versions/2.1.316
+2.1.316 (Claude Code)
+fd13c70000fec3f2116dfbcbb6121210b4a29328bf0e46210a59dd594a67d824
+size=328262000 mtime=2026-10-31 03:35:34.627398261 -0300
