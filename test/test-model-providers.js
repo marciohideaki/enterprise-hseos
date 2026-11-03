@@ -260,6 +260,25 @@ before(async () => {
         sendSse(response, [{ choices: [{ delta: { content: 'first' }, finish_reason: null }] }], { hold: true });
         return;
       }
+      // The official chat-completions stream carries `usage: null` on every chunk but the last when usage is requested.
+      if (content === 'official-usage-shape') {
+        sendSse(response, [
+          { choices: [{ index: 0, delta: { role: 'assistant', content: '' }, finish_reason: null }], usage: null },
+          { choices: [{ index: 0, delta: { content: 'ready' }, finish_reason: null }], usage: null },
+          { choices: [{ index: 0, delta: {}, finish_reason: 'stop' }], usage: null },
+          { choices: [], usage: { prompt_tokens: 12, completion_tokens: 2, prompt_tokens_details: { cached_tokens: 0 } } },
+        ]);
+        return;
+      }
+      // A stream whose usage is only ever null reports no usage at all: the campaign adapter then fails closed.
+      if (content === 'null-usage-only') {
+        sendSse(response, [{ choices: [{ index: 0, delta: { content: 'ready' }, finish_reason: 'stop' }], usage: null }]);
+        return;
+      }
+      if (content === 'usage-not-object') {
+        sendSse(response, [{ choices: [{ delta: { content: 'ready' }, finish_reason: 'stop' }], usage: 'twelve' }]);
+        return;
+      }
       sendSse(response, [
         { choices: [{ delta: { reasoning_content: 'inspect' }, finish_reason: null }] },
         {
@@ -398,6 +417,49 @@ test('invalid content and tool wire shapes fail as protocol errors without false
     assert.equal(events[0].payload.error_code, 'protocol_error');
     assert.equal(events[0].payload.retryable, false);
   }
+});
+
+test('a null usage on intermediate chunks is no usage, and the final usage chunk is still reported', async () => {
+  const events = await collect(provider(), request('model:http', 'request:http-official-usage', 'official-usage-shape'));
+  assert.deepEqual(
+    events.map((event) => event.event_type),
+    ['content.delta', 'usage', 'completed'],
+  );
+  assert.equal(events[0].payload.text, 'ready');
+  assert.deepEqual(events[1].payload, { input_tokens: 12, output_tokens: 2, cached_tokens: 0 });
+});
+
+test('a stream whose usage is only ever null emits no usage event, so a consumer that needs usage can still fail closed', async () => {
+  const events = await collect(provider(), request('model:http', 'request:http-null-usage-only', 'null-usage-only'));
+  assert.deepEqual(
+    events.map((event) => event.event_type),
+    ['content.delta', 'completed'],
+  );
+  assert.equal(
+    events.some((event) => event.event_type === 'usage'),
+    false,
+  );
+});
+
+test('without the usage capability, a null usage is ignored and a real usage object is still undeclared usage', async () => {
+  const undeclared = manifest('model:http');
+  undeclared.capabilities = undeclared.capabilities.filter((capability) => capability !== 'usage');
+  const withoutUsage = () => new OpenAICompatibleModelProvider({ manifest: undeclared, base_url: baseUrl });
+  const ignored = await collect(withoutUsage(), request('model:http', 'request:http-undeclared-null', 'null-usage-only'));
+  assert.deepEqual(
+    ignored.map((event) => event.event_type),
+    ['content.delta', 'completed'],
+  );
+  const refused = await collect(withoutUsage(), request('model:http', 'request:http-undeclared-object', 'official-usage-shape'));
+  assert.equal(refused.at(-1).event_type, 'failed');
+  assert.equal(refused.at(-1).payload.error_code, 'protocol_error');
+});
+
+test('a usage that is neither null nor an object is still a protocol error', async () => {
+  const events = await collect(provider({ max_attempts: 2 }), request('model:http', 'request:http-usage-not-object', 'usage-not-object'));
+  assert.equal(events.at(-1).event_type, 'failed');
+  assert.equal(events.at(-1).payload.error_code, 'protocol_error');
+  assert.equal(events.at(-1).payload.retryable, false);
 });
 
 test('cancels an in-flight HTTP stream with a normalized terminal event', async () => {

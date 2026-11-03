@@ -269,7 +269,8 @@ class OpenAICompatibleModelProvider {
                 if (!chunk || typeof chunk !== 'object' || Array.isArray(chunk)) {
                   throw new ModelProviderError('provider chunk must be an object', 'protocol_error');
                 }
-                if (chunk.usage !== undefined) {
+                // The official stream sends `usage: null` on every chunk but the last when usage is requested: null means none yet.
+                if (chunk.usage !== undefined && chunk.usage !== null) {
                   if (!provider.providerManifest.capabilities.includes('usage')) {
                     throw new ModelProviderError('provider emitted undeclared usage', 'protocol_error');
                   }
