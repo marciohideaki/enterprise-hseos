@@ -1,0 +1,7 @@
+[
+  {
+    "url": "https://api.openai.com/v1/chat/completions",
+    "method": "POST",
+    "status": 200
+  }
+]
