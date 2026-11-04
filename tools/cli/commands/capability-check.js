@@ -2,7 +2,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { getProjectRoot } = require('../lib/project-root');
 const { loadPlatformBindings, readRecordedMode } = require('../lib/platform-bindings');
-const { loadCapabilityRegistry, resolveCapability } = require('../lib/capability-registry');
+const {
+  IDENTITY_VOCABULARY,
+  createStackFilter,
+  loadCapabilityRegistry,
+  missingTargets,
+  resolveCapability,
+} = require('../lib/capability-registry');
 
 class UsageError extends Error {
   constructor(message) {
@@ -180,7 +186,10 @@ function overrideFor(bindings, name) {
 
 const CONSUMABLE_STATUSES = new Set(['experimental', 'stable']);
 
-/** Prefers a stable implementation, then the one whose package mentions the query, then the first. */
+/**
+ * Prefers a stable implementation, then the one whose package mentions the query, then the first.
+ * `bestOf` is applied to the implementations of a queried stack first and only then to those kept through `accepts`.
+ */
 function bestImplementation(implementations, queryLower) {
   return (
     implementations.find((implementation) => implementation.status === 'stable') ||
@@ -189,7 +198,7 @@ function bestImplementation(implementations, queryLower) {
   );
 }
 
-function verdictFor({ mode, override, implementations, stacks, queryLower }) {
+function verdictFor({ mode, override, implementations, stacks, queryLower, isDirect = () => true }) {
   if (mode === 'local') {
     return { code: 'informational', text: 'informational (local mode: no intake required)', advisory: false };
   }
@@ -205,27 +214,77 @@ function verdictFor({ mode, override, implementations, stacks, queryLower }) {
   // Only experimental or stable implementations can be consumed; planned or deprecated ones do not count.
   const consumable = implementations.filter((implementation) => CONSUMABLE_STATUSES.has(implementation.status));
   if (consumable.length > 0) {
-    const chosen = bestImplementation(consumable, queryLower);
+    const direct = consumable.filter((implementation) => isDirect(implementation));
+    const chosen = bestImplementation(direct.length > 0 ? direct : consumable, queryLower);
     return { code: 'consume', text: `consume ${chosen.package} (${chosen.status})${suffix}`, advisory };
   }
   const target = stacks.length > 0 ? stacks.join(', ') : 'the project stack';
   return { code: 'extend', text: `extend (implement the contract for ${target} in the owning core)${suffix}`, advisory };
 }
 
-function buildResult(entry, { mode, bindings, stacks, queryLower }) {
+const SHELL_SAFE = /^[\w@%+=:,./-]+$/;
+
+/** Python `shlex.quote`, so the command matches the ECP text byte for byte. */
+function shellQuote(value) {
+  if (value === '') return "''";
+  return SHELL_SAFE.test(value) ? value : `'${value.replaceAll("'", `'"'"'`)}'`;
+}
+
+/** The ECP scaffold command (Decision 0013); the owning repository, path and package are never inferred. */
+function scaffoldCommand(capability, stack) {
+  return `make scaffold-impl CAPABILITY=${shellQuote(capability)} STACK=${shellQuote(stack)} REPOSITORY=CORE_REPOSITORY IMPL_PATH=IMPLEMENTATION_PATH PACKAGE=PACKAGE_NAME`;
+}
+
+/**
+ * Stack to scaffold for an `extend` verdict (ECP `_scaffold_stack`): a requested stack that is a missing target
+ * wins, then any other requested stack that is not already planned; with no requested stack, the first required
+ * missing target, then the first missing one. `null` when the requested stack is only planned or none qualifies.
+ */
+function scaffoldStack({ stacks, vocabulary, missing, implementations }) {
+  const missingStacks = missing.map((item) => item.stack);
+  const planned = new Set(implementations.filter((item) => item.status === 'planned').map((item) => vocabulary.normalize(item.stack)));
+  // Without a vocabulary every non-empty requested stack counts as known.
+  const isKnown = (stack) => (vocabulary.ids ? vocabulary.ids.includes(stack) : stack !== '');
+  const known = (stacks || []).map((raw) => vocabulary.normalize(raw)).filter(isKnown);
+  if (known.length > 0) {
+    return known.find((stack) => missingStacks.includes(stack)) || known.find((stack) => !planned.has(stack)) || null;
+  }
+  const required = missing.filter((item) => item.required).map((item) => item.stack);
+  return (required.length > 0 ? required : missingStacks)[0] || null;
+}
+
+function buildScaffold(args) {
+  const stack = scaffoldStack(args);
+  return stack === null ? null : { command: scaffoldCommand(args.capability, stack), stack, missing_targets: args.missing };
+}
+
+function buildResult(entry, { mode, bindings, stacks, queryLower, vocabulary }) {
   const { capability } = entry;
+  const filter = createStackFilter(stacks, vocabulary);
   const implementations = entry.implementations.map(describeImplementation);
   const override = overrideFor(bindings, capability.name);
-  const covered = new Set(implementations.map((implementation) => implementation.stack));
+  const covered = new Set(implementations.map((implementation) => filter.canonical(implementation.stack)));
   const otherStacks = [
     ...new Set(
       entry.capability.implementations
-        .filter((implementation) => CONSUMABLE_STATUSES.has(implementation.status) && !covered.has(implementation.stack))
-        .map((implementation) => implementation.stack),
+        .filter((implementation) => CONSUMABLE_STATUSES.has(implementation.status) && !covered.has(filter.canonical(implementation.stack)))
+        .map((implementation) => filter.canonical(implementation.stack)),
     ),
   ].sort();
-  const verdict = verdictFor({ mode, override, implementations, stacks, queryLower });
-  return {
+  const verdict = verdictFor({ mode, override, implementations, stacks, queryLower, isDirect: filter.isDirect });
+  // Targets are derived from the implementations, never read from `coverage`, and do not depend on the stack filter.
+  const missing = missingTargets(capability.targets || [], capability.implementations, filter.vocabulary || IDENTITY_VOCABULARY);
+  const scaffold =
+    verdict.code === 'extend'
+      ? buildScaffold({
+          capability: capability.name,
+          stacks,
+          vocabulary: filter.vocabulary || IDENTITY_VOCABULARY,
+          missing,
+          implementations,
+        })
+      : null;
+  const result = {
     capability: capability.name,
     kind: capability.kind,
     version: capability.version,
@@ -234,11 +293,14 @@ function buildResult(entry, { mode, bindings, stacks, queryLower }) {
     matched_by: entry.matchedBy,
     implementations,
     other_stacks: otherStacks,
+    missing_targets: missing,
     override,
     verdict: verdict.code,
     verdict_text: verdict.text,
     advisory: verdict.advisory,
   };
+  if (verdict.code === 'extend') result.scaffold = scaffold;
+  return result;
 }
 
 /**
@@ -281,8 +343,14 @@ function runCapabilityCheck(rawQuery, { directory, env = process.env, runtimeRoo
   try {
     const loaded = loadCapabilityRegistry({ runtimeRoot, bindings });
     report.registry = { source: loaded.source, ref: loaded.ref, sha256: loaded.sha256 };
-    report.results = resolveCapability(loaded.registry, query, { stacks: bindings.stacks }).map((entry) =>
-      buildResult(entry, { mode: bindings.mode, bindings, stacks: bindings.stacks, queryLower: query.toLowerCase() }),
+    report.results = resolveCapability(loaded.registry, query, { stacks: bindings.stacks, vocabulary: loaded.vocabulary }).map((entry) =>
+      buildResult(entry, {
+        mode: bindings.mode,
+        bindings,
+        stacks: bindings.stacks,
+        queryLower: query.toLowerCase(),
+        vocabulary: loaded.vocabulary,
+      }),
     );
   } catch (error) {
     report.errors.push(`capability registry: ${error.message}`);
@@ -330,7 +398,19 @@ function renderText(report) {
       if (result.implementations.length === 0 && result.other_stacks.length > 0) {
         lines.push(`   other stacks with an implementation: ${result.other_stacks.join(', ')}`);
       }
+      if (result.missing_targets.length > 0) {
+        const named = result.missing_targets.map((target) => `${target.stack}${target.required ? '' : ' (optional)'}`);
+        lines.push(`   missing targets: ${named.join(', ')}`);
+      }
       lines.push(`   verdict: ${result.verdict_text}`);
+      if (result.scaffold) {
+        lines.push(
+          `   scaffold: ${result.scaffold.command} (replace CORE_REPOSITORY, IMPLEMENTATION_PATH and PACKAGE_NAME; it only writes files under OUT)`,
+        );
+        const also = result.missing_targets.filter((target) => target.stack !== result.scaffold.stack);
+        if (also.length > 0)
+          lines.push(`   also missing: ${also.map((target) => `${target.stack}${target.required ? ' (required)' : ''}`).join(', ')}`);
+      }
     }
   }
   if (report.filesystem_candidates.length > 0) {
@@ -359,6 +439,7 @@ module.exports = {
     }
   },
   UsageError,
+  buildResult,
   runCapabilityCheck,
   renderText,
   scanFilesystem,

@@ -7,9 +7,12 @@ const yaml = require('yaml');
 const { getProjectRoot } = require('../lib/project-root');
 const { loadPlatformBindings, readRecordedMode } = require('../lib/platform-bindings');
 const {
-  RegistryIntegrityError,
   MAX_REGISTRY_BYTES,
+  RegistryIntegrityError,
+  STACKS_LOCK_FILE,
+  createVocabulary,
   loadCapabilityRegistry,
+  readSnapshotLock,
   validateCapabilityRegistry,
 } = require('../lib/capability-registry');
 const { evaluateGuard } = require('../lib/capability-intake-guard');
@@ -100,7 +103,88 @@ function defaultOutput(ref, env) {
   return path.join(cacheHome, 'hseos', 'ecp-registry', `${ref.replaceAll('%', '%25').replaceAll('/', '%2F')}.json`);
 }
 
-/** `sync`: copies a tagged registry out of a local ECP checkout. No network, no edits of user configuration. */
+/** Default stacks file next to the registry output: `<output>.stacks.json` (what a `path` registry source finds on its own). */
+function stacksOutputFor(output) {
+  return `${output.replace(/\.json$/i, '')}.stacks.json`;
+}
+
+/**
+ * Publishes the registry and its stack vocabulary as one unit. `entries` are `{ target, bytes }`; `bytes: null`
+ * removes the target (a vocabulary left over from another ref). Everything is staged first, existing targets are
+ * moved aside, and any failure puts the previous files back and removes the temporaries, so a new registry never
+ * ends up next to an old vocabulary.
+ */
+function publishPair(entries) {
+  const suffix = `.${process.pid}.tmp`;
+  const staged = [];
+  const moved = [];
+  const placed = [];
+  const cleanup = () => {
+    for (const entry of staged) fs.rmSync(`${entry.target}${suffix}`, { force: true });
+  };
+  try {
+    for (const entry of entries) {
+      if (entry.bytes === null) continue;
+      fs.mkdirSync(path.dirname(entry.target), { recursive: true });
+      fs.writeFileSync(`${entry.target}${suffix}`, entry.bytes, { flag: 'wx' });
+      staged.push(entry);
+    }
+    for (const entry of entries) {
+      if (!fs.existsSync(entry.target)) continue;
+      fs.renameSync(entry.target, `${entry.target}.bak${suffix}`);
+      moved.push(entry);
+    }
+    for (const entry of staged) {
+      fs.renameSync(`${entry.target}${suffix}`, entry.target);
+      placed.push(entry);
+    }
+  } catch (error) {
+    for (const entry of placed) fs.rmSync(entry.target, { force: true });
+    for (const entry of moved) fs.renameSync(`${entry.target}.bak${suffix}`, entry.target);
+    cleanup();
+    throw error;
+  }
+  for (const entry of moved) fs.rmSync(`${entry.target}.bak${suffix}`, { force: true, recursive: true });
+}
+
+/**
+ * Reads `contracts/stacks.json` at `ref` (resolution v1.1, Decision 0011). Contracts before 0.5.0 ship none:
+ * that is `null`, not an error, and the resolver then keeps the v1 stack rules. A vocabulary that exists but is
+ * invalid fails the sync.
+ */
+function readStacksAtRef(ecpRoot, ref) {
+  const run = (args) =>
+    execFileSync('git', ['-C', ecpRoot, ...args], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 15_000,
+      maxBuffer: MAX_REGISTRY_BYTES + 1,
+    });
+  try {
+    run(['cat-file', '-e', `${ref}:contracts/stacks.json`]);
+  } catch {
+    return null;
+  }
+  let bytes;
+  try {
+    bytes = run(['show', `${ref}:contracts/stacks.json`]);
+  } catch (error) {
+    const detail = error.stderr ? String(error.stderr).trim() : error.message;
+    throw new Error(`Cannot read contracts/stacks.json at ${ref} in ${ecpRoot}: ${detail}`);
+  }
+  let document;
+  try {
+    document = JSON.parse(bytes.toString('utf8'));
+  } catch (error) {
+    throw new Error(`Invalid stack vocabulary: not valid JSON (${error.message})`);
+  }
+  const vocabulary = createVocabulary(document);
+  return { bytes, sha256: crypto.createHash('sha256').update(bytes).digest('hex'), version: vocabulary.version };
+}
+
+/**
+ * `sync`: copies a tagged registry (and, when the ref ships one, the stack vocabulary) out of a local ECP checkout.
+ * No network, no edits of user configuration. The registry is validated, and the vocabulary is written only after it validates.
+ */
 function runSync(options = {}, { env = process.env } = {}) {
   if (!options.ref || !options.ecpRoot) throw new Error('sync requires --ref <tag> and --ecp-root <path>');
   if (!REF_PATTERN.test(options.ref)) throw new Error(`Invalid --ref '${options.ref}'`);
@@ -138,26 +222,39 @@ function runSync(options = {}, { env = process.env } = {}) {
     throw new Error(`Registry declares generated_from.ref '${declaredRef}' but --ref is '${options.ref}'`);
   }
   const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+  const stacks = readStacksAtRef(ecpRoot, options.ref);
   const output = path.resolve(options.output || defaultOutput(options.ref, env));
-  fs.mkdirSync(path.dirname(output), { recursive: true });
-  const staged = `${output}.${process.pid}.tmp`;
-  try {
-    fs.writeFileSync(staged, bytes, { flag: 'wx' });
-    fs.renameSync(staged, output);
-  } finally {
-    fs.rmSync(staged, { force: true });
-  }
+  const stacksTarget = path.resolve(options.stacksOutput || stacksOutputFor(output));
+  const stacksOutput = stacks ? stacksTarget : null;
+  // A ref without a vocabulary must not leave one from another ref next to this registry.
+  const staleStacks = !stacks && fs.existsSync(stacksTarget) ? stacksTarget : null;
+  publishPair([
+    { target: stacksTarget, bytes: stacks ? stacks.bytes : null },
+    { target: output, bytes },
+  ]);
   const snippet = yaml.stringify({ registry: { source: 'path', path: output, sha256 } });
   const result = {
     ref: options.ref,
     contracts_version: registry.generated_from.contracts_version,
     output,
     sha256,
+    stacks: stacks ? { output: stacksOutput, sha256: stacks.sha256, stacks_version: stacks.version } : null,
+    stacks_removed: staleStacks,
     user_layer_snippet: snippet,
   };
   const text = [
     `Registry ${options.ref} (contracts ${result.contracts_version}) written to ${output}`,
     `sha256: ${sha256}`,
+    ...(stacks
+      ? [
+          `Stack vocabulary ${stacks.version} written to ${stacksOutput}`,
+          `stacks sha256: ${stacks.sha256}`,
+          `(a snapshot refresh also needs ${path.basename(STACKS_LOCK_FILE)} with this sha256, the same ref, repository and contracts_version)`,
+        ]
+      : [
+          `No contracts/stacks.json at ${options.ref}: stack rules stay at resolution v1 (lower-case equality)`,
+          ...(staleStacks ? [`Removed ${staleStacks}: a vocabulary from another ref must not sit next to this registry`] : []),
+        ]),
     '',
     'Add this to your user-layer bindings file to use it (nothing was edited):',
     snippet.trimEnd(),
@@ -212,7 +309,28 @@ function runDrift(options = {}, { runtimeRoot = getProjectRoot() } = {}) {
       .split('\n')
       .filter(Boolean),
   );
-  const diverged = upstream !== lock.sha256;
+  const registryDiverged = upstream !== lock.sha256;
+  // The stack vocabulary snapshot (resolution v1.1) is checked the same way when its lock ships.
+  const stacksLockPath = path.join(runtimeRoot, STACKS_LOCK_FILE);
+  let stacksDrift = null;
+  if (fs.existsSync(stacksLockPath)) {
+    const stacksLock = readSnapshotLock(runtimeRoot, { file: STACKS_LOCK_FILE, label: 'Stacks snapshot lock' });
+    if (!REF_PATTERN.test(stacksLock.ref)) throw new Error(`Invalid stacks lock ref '${stacksLock.ref}'`);
+    let stacksBytes = null;
+    try {
+      stacksBytes = run(['show', `${stacksLock.ref}:contracts/stacks.json`]);
+    } catch {
+      stacksBytes = null;
+    }
+    const stacksUpstream = stacksBytes ? crypto.createHash('sha256').update(stacksBytes).digest('hex') : null;
+    stacksDrift = {
+      ref: stacksLock.ref,
+      locked_sha256: stacksLock.sha256,
+      upstream_sha256: stacksUpstream,
+      diverged: stacksUpstream !== stacksLock.sha256,
+    };
+  }
+  const diverged = registryDiverged || Boolean(stacksDrift && stacksDrift.diverged);
   const result = {
     ref: lock.ref,
     repository: lock.repository,
@@ -220,9 +338,15 @@ function runDrift(options = {}, { runtimeRoot = getProjectRoot() } = {}) {
     upstream_sha256: upstream,
     diverged,
     newer_tags: newerTags,
+    ...(stacksDrift ? { stacks: stacksDrift } : {}),
   };
   const text = [
-    `Lock ${lock.ref}: ${diverged ? 'DIVERGED' : 'equal'} (locked ${lock.sha256}, upstream ${upstream})`,
+    `Lock ${lock.ref}: ${registryDiverged ? 'DIVERGED' : 'equal'} (locked ${lock.sha256}, upstream ${upstream})`,
+    ...(stacksDrift
+      ? [
+          `Stacks lock ${stacksDrift.ref}: ${stacksDrift.diverged ? 'DIVERGED' : 'equal'} (locked ${stacksDrift.locked_sha256}, upstream ${stacksDrift.upstream_sha256 || 'absent'})`,
+        ]
+      : []),
     newerTags.length > 0 ? `Newer contracts tags than ${lock.ref}: ${newerTags.join(', ')}` : `No contracts tag newer than ${lock.ref}`,
   ].join('\n');
   return { code: diverged ? 1 : 0, result, text };
@@ -252,6 +376,7 @@ module.exports = {
     ],
     ['--ecp-root <path>', 'sync/drift: local ECP checkout'],
     ['--output <file>', 'sync: destination file (default: user cache directory)'],
+    ['--stacks-output <file>', 'sync: destination of the stack vocabulary when the ref ships one (default: <output>.stacks.json)'],
   ],
   action: async (action, options = {}) => {
     switch (action) {

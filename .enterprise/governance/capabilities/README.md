@@ -165,6 +165,40 @@ hseos platform-bindings sync --ref contracts-v0.4.0 --ecp-root <ecp-checkout> \
 
 See `docs/capabilities.md` (Platform bindings) and ADR-0046.
 
+### Stack vocabulary snapshot (resolution v1.1)
+
+ECP Decision 0011 adds a stack vocabulary (`contracts/stacks.json`: canonical ids, aliases and the
+directional, non-transitive `accepts` relation) and optional `targets`/`coverage` on capabilities. HSEOS
+applies the same normalization and `accepts` rules as ECP, with the vocabulary taken from a verified
+snapshot, exactly like the registry:
+
+- `ecp-stacks.snapshot.json` is a byte copy of ECP `contracts/stacks.json` at the same ref as the registry
+  snapshot. `ecp-stacks.snapshot.lock.json` is its sibling lock (same shape as the registry lock:
+  `schema_version`, `repository`, `ref`, `contracts_version`, `sha256`). The lock must name the same
+  repository, ref and contracts version as the registry lock, and the file must match the lock sha256, so a
+  registry and a vocabulary from different releases never combine. Any mismatch fails closed; the file and
+  its lock exist together or not at all.
+- **No stacks snapshot means resolution v1, unchanged**: stacks compare by lower-case equality, there are no
+  aliases and no `accepts`. This is today's state (the pinned `contracts-v0.4.0` ships no `stacks.json`).
+- A `path` registry looks for `<registry>.stacks.json` beside it (what `sync` writes), or for
+  `contracts/stacks.json` next to an ECP checkout's `catalog/`. It is hashed on read; the `registry.sha256` pin
+  covers only the registry. The `path` source is for development only: a vocabulary beside the registry is
+  not covered by any pin or lock, so production and CI use the verified snapshot.
+- `platform-bindings sync` also copies `contracts/stacks.json` from the same ref when it exists (validated
+  first; nothing is written when it is invalid) to `<output>.stacks.json` or `--stacks-output <file>`.
+  Refreshing the snapshot is therefore:
+
+```bash
+hseos platform-bindings sync --ref contracts-v0.5.0 --ecp-root <ecp-checkout> \
+  --output .enterprise/governance/capabilities/ecp-registry.snapshot.json \
+  --stacks-output .enterprise/governance/capabilities/ecp-stacks.snapshot.json
+```
+
+then update `ecp-registry.snapshot.lock.json` and create `ecp-stacks.snapshot.lock.json` with the printed
+`ref`, `contracts_version` and sha256 values. `drift` also compares the stacks snapshot when its lock exists.
+
+- Test vectors for the shared behaviour are vendored under `test/fixtures/ecp-resolution-v1.1/`.
+
 ## Capability Graph Discovery
 
 The capability graph and discovery corpus are distinct governance surfaces:
