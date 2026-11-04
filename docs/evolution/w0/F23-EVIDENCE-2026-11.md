@@ -78,3 +78,14 @@ Medição de cobertura do conjunto atual do gate (141 arquivos), registrada pela
   - W4: 20 mutantes rejeitados, 0 falhas, 0 skips.
   - W5: 43 mutantes rejeitados, 0 falhas, 0 skips.
 - **`verify --shards 6`:** 103 itens, 237 arquivos de teste, cada um executado por um passo da suíte.
+
+## Medição no HEAD da master, 2026-11-04 (fechamento pré-W6, WD)
+
+A reauditoria cética da WD achou que a medição acima foi feita em `13beca30` (WA), que nenhum branch contém, e que 21 arquivos de `tools/` e `packages/` mudaram depois (incluindo arquivos do gate c8). A cobertura foi medida de novo no HEAD da master.
+
+- **Commit medido:** `25e673ff9c7e9dee99ef88a554cc9144d99c5b40` (master depois do merge do PR #274), worktree limpo, Node v24.15.0, em cgroup delegado (`/build/tmp/pre-w6/bin/cg.sh`), com `TMPDIR` isolado.
+- **Janela:** 2026-11-04T20:45:37Z a 21:03:14Z (cerca de 17,6 min).
+- **Comando:** `npm run test:kernel-coverage` (`c8 --config .c8-kernel.json npm run test:kernel`, com `check-coverage` por arquivo a 90/80).
+- **Resultado:** `coverage-exit=0`; 2408 testes em 10 segmentos encadeados do `test:kernel`, 2408 passam e 0 falham; tabela c8 com 141 arquivos e nenhum abaixo de 90% de linhas ou 80% de branches; linha "All files": 97,86% de statements, 93,44% de branches, 98,26% de funções e 97,86% de linhas.
+- **Evidência:** `docs/evolution/w0/evidence/f23-2026-11/kernel-coverage-wd.log.gz`, que **carrega o commit, o início, o fim e a versão do Node no cabeçalho**. sha256 do conteúdo descompactado (`zcat | sha256sum`): `fa1ba688c76c683d4bcea1a36a32651dfb77b40b162598aabaf0457acac4eebb`. sha256 do `.gz`: `c07f941f2a582e04a6e537a290a437264845d5fbd67ec18d3da25879477b79f4`.
+- **O que isto não prova:** as matrizes de mutação (W4 20 e W5 43) e o `verify --shards 6` são da medição da WA e não foram refeitos aqui; o gate `.c8-kernel.json` e a configuração do eslint não mudaram entre as duas medições. A mutação das decisões de F23 segue sendo a da task A4 (seção 2).

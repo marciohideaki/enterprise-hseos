@@ -199,11 +199,20 @@
       ],
       "gap": "Bindings oficiais por conta e cotas precisam de ensaios reais.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w3_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       },
-      "not_verified_reason": "Pesquisado W0-W5. Existem testes do broker (test/test-provider-egress-broker.js:42,196: credencial injetada pelo supervisor e cabeçalho de sobrescrita recusado; :165 eco de credencial bloqueado), mas nenhum recibo de onda liga a verificação da família (login expirado, credencial de ambiente sobreposta, mudança silenciosa de cobrança) a um teste. docs/evolution/w3/BINDINGS.md:54 declara que os testes de protocolo não comprovam login, quota, cobrança ou recuperação reais, e docs/evolution/w3/STATUS.md:352 não declara a certificação de W3 concluída. Mantido not_verified."
+      "deterministic_evidence": [
+        "docs/evolution/w3/L1-F08-F18-2026-11.md",
+        "test/test-provider-egress-broker.js",
+        "test/test-provider-campaign-control.js",
+        "test/test-provider-campaign-adapters.js",
+        "test/test-acp-campaign-boundaries.js",
+        "test/test-claude-account-adapter.js",
+        "test/test-provider-api-adapter.js"
+      ],
+      "evolution_scope": "Escopo do L1 do ADR-0050 apenas (eixo deterministic): login expirado, credencial de ambiente sobreposta e mudança silenciosa de cobrança ligados a testes nomeados nos bindings declarados, mais os testes do broker (injeção pelo supervisor, cabeçalho de sobrescrita, eco bloqueado). O eixo real_consumers segue not_verified: nenhuma campanha de L2 foi concluída (C1 a C11 da WC fecham como L2 incompleto) e o ADR exige a varredura de segredos sobre uma campanha L2 completa. N=3 é a onda da própria família (precedente do inventário), porque a prova de L1 foi feita no fechamento pré-W6, que não é uma onda de 0 a 8."
     },
     {
       "id": "F09",
@@ -425,7 +434,7 @@
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       },
-      "not_verified_reason": "Pesquisado W0-W5. test/test-provider-api-adapter.js:112 recusa tarifa expirada, mas a certificação de todos os bindings e as declarações versionadas seguem pendentes: docs/evolution/w3/STATUS.md:3-5 (quarta família diferida, não PASS) e :352 (certificação multifamília e fechamento integral de W3 não declarados). Mantido not_verified."
+      "not_verified_reason": "Reauditoria cética de 2026-11-04 (WD): o L1 de F17 foi entregue (docs/evolution/w3/L1-F17-2026-11.md) para o openai-compatible, a composição ACP tool-free e a quarta família, mas o critério do ADR-0050 §2 exige todos os bindings de modelo, local e remoto, com versão, transporte, autenticação, cobrança e cotas. Faltam: backend efetivo provado para a composição ACP tool-free, um binding de modelo local (não existe em .agents/activation/provider-bindings) e o modelo efetivo observado na admissão (os credential_sha256 são pinos de template). Mantido not_verified_for_evolution."
     },
     {
       "id": "F18",
@@ -449,7 +458,7 @@
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       },
-      "not_verified_reason": "Pesquisado W0-W5. O critério exige quatro ecossistemas e a quarta família (API Gemini) está diferida e não é PASS (docs/evolution/w3/STATUS.md:3-5, :352); Antigravity foi exercitado só por rota local (w3/STATUS.md:308). Mantido not_verified."
+      "not_verified_reason": "Reauditoria cética de 2026-11-04 (WD): o L1 de F18 foi entregue (docs/evolution/w3/L1-F08-F18-2026-11.md) para os bindings de runtime declarados, mas a quarta família (API Gemini) está diferida: a campanha C6 está BLOCKED por decisão do owner (sem a credencial google/gemini-hseos) e o L1 da Gemini (docs/evolution/w3/L1-GEMINI-2026-11.md) não liga F18-R1. O ADR-0050 §2 diz que três ecossistemas em L2 mais a quarta pendente deixam F18 em not_verified, sem nomear o eixo; este inventário aplica a frase ao eixo deterministic desde a revalidação, e o owner pode esclarecer o ADR. Antigravity foi exercitado só por rota local. Mantido not_verified_for_evolution."
     },
     {
       "id": "F19",
@@ -498,9 +507,15 @@
       "gap": "Conformance das ferramentas ampliadas precisa de consumidores reais.",
       "status": {
         "deterministic": "verified_w5_scope_only",
-        "real_consumers": "not_verified",
+        "real_consumers": "verified_installed_local_scope_only",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/pendencias-w0-w5/MAPA.md:252-256 (campanha MRTR de 2026-10-31: Claude Code 2.1.316 em sessão interativa; memory.write ok e memory.delete com input_required, aprovação humana de uso único consumida no ledger)",
+        ".hseos/runs/dev-squad/20261030-1810-owner-decisions/logs/MRTR-CLAUDE.md (recibo da campanha MRTR)",
+        "docs/evolution/w3/C11-F20-ENVIRONMENT-REAL-CLIENT-2026-11.md (environment.lsp.hover por Claude Code 2.1.263 pelo envelope systemd-run delegado, quatro eventos no ledger de uma cópia do banco ativado)"
+      ],
+      "evolution_scope": "Escopo declarado: o servidor MCP da distribuição instalada localmente, consumido por um cliente real (Claude Code) sobre cópias do banco ativado: memory.write, memory.delete com MRTR e uma chamada environment.lsp.hover somente leitura. Não cobre: as outras quatro ações de LSP, o DAP, memory.retrieve por cliente, computer-use e navegador, o uso autônomo do LSP para corrigir uma tarefa (provar que LSP ou DAP guiaram a correção segue pendente), os negativos do F20-R1 por cliente real, o Codex (0.166.0 não negocia 2026-07-28), a versão de protocolo negociada pela C11 e o banco real. A aprovação humana do MRTR é atestada pelo owner e pelo registro authorizer: human do servidor; o cliente não grava prova independente do diálogo. As evidências são de clientes e releases diferentes entre si e da distribuição instalada hoje (25e673ff): o MRTR usou o Claude Code 2.1.316 com o release 2d2da31f; a C11 usou o Claude Code 2.1.263 com o release d0592000; ambas são anteriores à reinstalação de 2026-11-04 e perdem validade com mudança de cliente ou de distribuição. O uso do valor verified_installed_local_scope_only para um servidor MCP instalado é leitura do Commander do ADR-0050 §2, que o descreve para binding local instalado; o owner pode ratificá-la ou revertê-la."
     },
     {
       "id": "F21",
@@ -578,11 +593,17 @@
       ],
       "gap": "Cobertura mínima 90/80 e mutação das decisões precisam de evidência.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w0_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       },
-      "not_verified_reason": "Pesquisado W0-W5. Há evidência parcial: docs/evolution/W0-CLOSEOUT.md:9-15 (lint integral sem avisos, mínimo 90/80 por arquivo crítico em Node 22 e 24, três mutantes dirigidos detectados) e test/test-kernel-quality-surface.js:12-30 (regra no-undef ativa e sonda de variável indefinida). A sonda cobre só packages/ (probe em packages/agent-runtime/quality-probe.js), enquanto .c8-kernel.json inclui arquivos de tools/; a verificação \"em cada superfície\" não está demonstrada. Mantido not_verified."
+      "deterministic_evidence": [
+        "docs/evolution/w0/F23-EVIDENCE-2026-11.md",
+        "docs/evolution/w0/evidence/f23-2026-11/kernel-coverage-wd.log.gz",
+        "docs/evolution/w0/evidence/f23-2026-11/kernel-coverage-wa.log.gz",
+        "test/test-kernel-quality-surface.js"
+      ],
+      "evolution_scope": "Escopo do eixo deterministic apenas: regra no-undef/no-unreachable com sonda por superfície (test/test-kernel-quality-surface.js), cobertura mínima 90/80 por arquivo nos 141 arquivos do gate c8, medida de novo no HEAD da master 25e673ff em 2026-11-04 (log com o commit no cabeçalho), e as matrizes de mutação W4 (20) e W5 (43) da WA. As matrizes de mutação não foram refeitas no HEAD de 2026-11-04. real_consumers segue not_verified. N=0 é a onda da própria família (precedente do inventário)."
     },
     {
       "id": "F24",
