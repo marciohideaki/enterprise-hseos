@@ -400,3 +400,148 @@ test('an invalid vocabulary in the snapshot is an integrity error', () => {
     (error) => error instanceof RegistryIntegrityError && /unknown stack 'cobol'/.test(error.message),
   );
 });
+
+// ---------------------------------------------------------------------------------------------
+// Resolver and capability-check parity (resolution v1.1)
+
+const yaml = require('yaml');
+const { runCapabilityCheck, renderText } = require('../tools/cli/commands/capability-check');
+const { createStackFilter, matchExport, resolveCapability } = require('../tools/cli/lib/capability-registry');
+
+const SHIPPED = () => JSON.parse(fs.readFileSync(path.join(REPO_ROOT, SNAPSHOT_FILE), 'utf8'));
+
+/** A project whose bindings point at a `path` registry (with an optional sibling vocabulary) and declare stacks. */
+function projectWith({ registry, withVocabulary, stacks }) {
+  const dir = temp('hseos-stacks-project-');
+  write(dir, 'registry.json', JSON.stringify(registry));
+  if (withVocabulary) write(dir, 'registry.stacks.json', fs.readFileSync(STACKS_FIXTURE));
+  const doc = { schema_version: '1.0.0', mode: 'platform', stacks, registry: { source: 'path', path: 'registry.json' } };
+  write(dir, '.hseos/config/platform-bindings.yaml', yaml.stringify(doc));
+  return dir;
+}
+
+const isolatedEnv = () => ({ HOME: temp('hseos-stacks-home-'), XDG_CONFIG_HOME: temp('hseos-stacks-xdg-') });
+const run = (query, dir) => runCapabilityCheck(query, { directory: dir, env: isolatedEnv(), runtimeRoot: REPO_ROOT }).report;
+
+function mutatedRegistry(mutation) {
+  const registry = SHIPPED();
+  mutation(registry, (name) => registry.capabilities.find((capability) => capability.name === name));
+  return registry;
+}
+
+test('without a vocabulary stacks keep the v1 rule: lower-case equality, no alias, no accepts', () => {
+  const dir = projectWith({ registry: SHIPPED(), withVocabulary: false, stacks: ['node'] });
+  const [result] = run('auth.authenticate', dir).results;
+  assert.equal(result.verdict, 'extend', 'node does not reach typescript');
+  assert.deepEqual(result.other_stacks, ['python', 'typescript']);
+  assert.deepEqual(result.missing_targets, []);
+  const aliased = projectWith({ registry: SHIPPED(), withVocabulary: false, stacks: ['ts'] });
+  assert.equal(run('auth.authenticate', aliased).results[0].verdict, 'extend', "'ts' is not an alias without a vocabulary");
+  const upper = projectWith({ registry: SHIPPED(), withVocabulary: false, stacks: ['typescript'] });
+  assert.equal(run('auth.authenticate', upper).results[0].verdict, 'consume');
+  const filter = createStackFilter(['TypeScript'], null);
+  assert.equal(filter.keeps({ stack: 'typescript' }), true);
+  assert.equal(filter.keeps({ stack: 'node' }), false);
+  assert.equal(filter.isDirect({ stack: 'node' }), true, 'every kept implementation is direct under v1');
+});
+
+test('with a vocabulary: aliases, directional accepts, canonical other_stacks', () => {
+  const node = projectWith({ registry: SHIPPED(), withVocabulary: true, stacks: ['node'] });
+  const [viaAccepts] = run('auth.authenticate', node).results;
+  assert.equal(viaAccepts.verdict, 'consume', 'node accepts typescript');
+  assert.equal(viaAccepts.verdict_text, 'consume ecp-client (experimental)');
+  assert.deepEqual(viaAccepts.other_stacks, ['python']);
+  assert.deepEqual(
+    viaAccepts.implementations.map((implementation) => implementation.stack),
+    ['typescript'],
+  );
+  const alias = projectWith({ registry: SHIPPED(), withVocabulary: true, stacks: ['ts'] });
+  assert.equal(run('auth.authenticate', alias).results[0].verdict, 'consume');
+  const typescript = projectWith({ registry: SHIPPED(), withVocabulary: true, stacks: ['typescript'] });
+  const [reverse] = run('messaging.event-envelope', typescript).results;
+  assert.equal(reverse.verdict, 'extend', 'typescript does not accept node (directional)');
+  assert.deepEqual(reverse.other_stacks, ['dotnet', 'go', 'node', 'python']);
+  const rn = projectWith({ registry: SHIPPED(), withVocabulary: true, stacks: ['rn'] });
+  const [mobile] = run('design.mobile-tokens', rn).results;
+  assert.equal(mobile.verdict, 'consume');
+  assert.deepEqual(mobile.other_stacks, [], 'planned flutter is not consumable');
+  const upperCase = projectWith({ registry: SHIPPED(), withVocabulary: true, stacks: ['golang'] });
+  assert.deepEqual(
+    run('security.authn', upperCase).results[0].implementations.map((implementation) => implementation.stack),
+    ['go'],
+  );
+});
+
+test('accepts is not transitive in the resolver', () => {
+  const document = stacksDocument();
+  document.stacks.find((stack) => stack.id === 'typescript').accepts = ['python'];
+  const chained = createVocabulary(document);
+  const registry = SHIPPED();
+  const results = resolveCapability(registry, 'auth.authenticate', { stacks: ['node'], vocabulary: chained });
+  assert.deepEqual([...new Set(results[0].implementations.map((implementation) => implementation.stack))], ['typescript']);
+  const typescript = resolveCapability(registry, 'auth.authenticate', { stacks: ['typescript'], vocabulary: chained });
+  assert.deepEqual([...new Set(typescript[0].implementations.map((implementation) => implementation.stack))].sort(), [
+    'python',
+    'typescript',
+  ]);
+});
+
+test('the chosen implementation prefers the queried stack over one reached through accepts', () => {
+  const registry = mutatedRegistry((r, capability) => {
+    capability('auth.authenticate').implementations.push({
+      stack: 'node',
+      kind: 'library',
+      package: 'ecp-node-client',
+      contract_version: '0.4.0',
+      status: 'experimental',
+    });
+  });
+  const dir = projectWith({ registry, withVocabulary: true, stacks: ['node'] });
+  const [result] = run('auth.authenticate', dir).results;
+  assert.match(result.verdict_text, /^consume ecp-node-client \(experimental\)/, 'direct node before via typescript');
+  const both = projectWith({ registry, withVocabulary: true, stacks: ['node', 'typescript'] });
+  assert.match(run('auth.authenticate', both).results[0].verdict_text, /^consume ecp-client /, 'both direct: the v1 order applies');
+  const without = projectWith({ registry, withVocabulary: false, stacks: ['node'] });
+  assert.match(run('auth.authenticate', without).results[0].verdict_text, /^consume ecp-node-client/);
+});
+
+test('missing_targets: derived from targets and implementations, independent of the stack filter', () => {
+  const registry = mutatedRegistry((r, capability) => {
+    capability('auth.authenticate').targets = [
+      { stack: 'go', required: false },
+      { stack: 'node', required: true },
+      { stack: 'python', required: true },
+    ];
+    // A stale coverage block must never be read.
+    capability('auth.authenticate').coverage = [{ target: 'go', required: false, status: 'stable' }];
+  });
+  const dir = projectWith({ registry, withVocabulary: true, stacks: ['python'] });
+  const [result] = run('auth.authenticate', dir).results;
+  assert.deepEqual(result.missing_targets, [{ stack: 'go', required: false }]);
+  assert.match(renderText(run('auth.authenticate', dir)), /missing targets: go \(optional\)/);
+  const noVocabulary = projectWith({ registry, withVocabulary: false, stacks: ['python'] });
+  assert.deepEqual(
+    run('auth.authenticate', noVocabulary).results[0].missing_targets,
+    [
+      { stack: 'go', required: false },
+      { stack: 'node', required: true },
+    ],
+    'without accepts, node is not satisfied by typescript',
+  );
+});
+
+test('matchExport follows the same stack rules', () => {
+  const registry = SHIPPED();
+  const vocab = vocabulary();
+  const withSymbol = mutatedRegistry((r, capability) => {
+    capability('auth.authenticate').match = { symbols: ['AuthenticateUser'] };
+  });
+  const v1 = matchExport(withSymbol, { symbol: 'AuthenticateUser', stacks: ['node'] }).matches[0];
+  assert.equal(v1.stableForStack, false);
+  assert.equal(v1.implementations.length, 0);
+  const v11 = matchExport(withSymbol, { symbol: 'AuthenticateUser', stacks: ['node'], vocabulary: vocab }).matches[0];
+  assert.deepEqual(
+    v11.implementations.map((implementation) => implementation.stack),
+    ['typescript'],
+  );
+});

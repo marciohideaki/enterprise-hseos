@@ -2,7 +2,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { getProjectRoot } = require('../lib/project-root');
 const { loadPlatformBindings, readRecordedMode } = require('../lib/platform-bindings');
-const { loadCapabilityRegistry, resolveCapability } = require('../lib/capability-registry');
+const {
+  IDENTITY_VOCABULARY,
+  createStackFilter,
+  loadCapabilityRegistry,
+  missingTargets,
+  resolveCapability,
+} = require('../lib/capability-registry');
 
 class UsageError extends Error {
   constructor(message) {
@@ -180,7 +186,10 @@ function overrideFor(bindings, name) {
 
 const CONSUMABLE_STATUSES = new Set(['experimental', 'stable']);
 
-/** Prefers a stable implementation, then the one whose package mentions the query, then the first. */
+/**
+ * Prefers a stable implementation, then the one whose package mentions the query, then the first.
+ * `bestOf` is applied to the implementations of a queried stack first and only then to those kept through `accepts`.
+ */
 function bestImplementation(implementations, queryLower) {
   return (
     implementations.find((implementation) => implementation.status === 'stable') ||
@@ -189,7 +198,7 @@ function bestImplementation(implementations, queryLower) {
   );
 }
 
-function verdictFor({ mode, override, implementations, stacks, queryLower }) {
+function verdictFor({ mode, override, implementations, stacks, queryLower, isDirect = () => true }) {
   if (mode === 'local') {
     return { code: 'informational', text: 'informational (local mode: no intake required)', advisory: false };
   }
@@ -205,26 +214,30 @@ function verdictFor({ mode, override, implementations, stacks, queryLower }) {
   // Only experimental or stable implementations can be consumed; planned or deprecated ones do not count.
   const consumable = implementations.filter((implementation) => CONSUMABLE_STATUSES.has(implementation.status));
   if (consumable.length > 0) {
-    const chosen = bestImplementation(consumable, queryLower);
+    const direct = consumable.filter((implementation) => isDirect(implementation));
+    const chosen = bestImplementation(direct.length > 0 ? direct : consumable, queryLower);
     return { code: 'consume', text: `consume ${chosen.package} (${chosen.status})${suffix}`, advisory };
   }
   const target = stacks.length > 0 ? stacks.join(', ') : 'the project stack';
   return { code: 'extend', text: `extend (implement the contract for ${target} in the owning core)${suffix}`, advisory };
 }
 
-function buildResult(entry, { mode, bindings, stacks, queryLower }) {
+function buildResult(entry, { mode, bindings, stacks, queryLower, vocabulary }) {
   const { capability } = entry;
+  const filter = createStackFilter(stacks, vocabulary);
   const implementations = entry.implementations.map(describeImplementation);
   const override = overrideFor(bindings, capability.name);
-  const covered = new Set(implementations.map((implementation) => implementation.stack));
+  const covered = new Set(implementations.map((implementation) => filter.canonical(implementation.stack)));
   const otherStacks = [
     ...new Set(
       entry.capability.implementations
-        .filter((implementation) => CONSUMABLE_STATUSES.has(implementation.status) && !covered.has(implementation.stack))
-        .map((implementation) => implementation.stack),
+        .filter((implementation) => CONSUMABLE_STATUSES.has(implementation.status) && !covered.has(filter.canonical(implementation.stack)))
+        .map((implementation) => filter.canonical(implementation.stack)),
     ),
   ].sort();
-  const verdict = verdictFor({ mode, override, implementations, stacks, queryLower });
+  const verdict = verdictFor({ mode, override, implementations, stacks, queryLower, isDirect: filter.isDirect });
+  // Targets are derived from the implementations, never read from `coverage`, and do not depend on the stack filter.
+  const missing = missingTargets(capability.targets || [], capability.implementations, filter.vocabulary || IDENTITY_VOCABULARY);
   return {
     capability: capability.name,
     kind: capability.kind,
@@ -234,6 +247,7 @@ function buildResult(entry, { mode, bindings, stacks, queryLower }) {
     matched_by: entry.matchedBy,
     implementations,
     other_stacks: otherStacks,
+    missing_targets: missing,
     override,
     verdict: verdict.code,
     verdict_text: verdict.text,
@@ -281,8 +295,14 @@ function runCapabilityCheck(rawQuery, { directory, env = process.env, runtimeRoo
   try {
     const loaded = loadCapabilityRegistry({ runtimeRoot, bindings });
     report.registry = { source: loaded.source, ref: loaded.ref, sha256: loaded.sha256 };
-    report.results = resolveCapability(loaded.registry, query, { stacks: bindings.stacks }).map((entry) =>
-      buildResult(entry, { mode: bindings.mode, bindings, stacks: bindings.stacks, queryLower: query.toLowerCase() }),
+    report.results = resolveCapability(loaded.registry, query, { stacks: bindings.stacks, vocabulary: loaded.vocabulary }).map((entry) =>
+      buildResult(entry, {
+        mode: bindings.mode,
+        bindings,
+        stacks: bindings.stacks,
+        queryLower: query.toLowerCase(),
+        vocabulary: loaded.vocabulary,
+      }),
     );
   } catch (error) {
     report.errors.push(`capability registry: ${error.message}`);
@@ -329,6 +349,10 @@ function renderText(report) {
       }
       if (result.implementations.length === 0 && result.other_stacks.length > 0) {
         lines.push(`   other stacks with an implementation: ${result.other_stacks.join(', ')}`);
+      }
+      if (result.missing_targets.length > 0) {
+        const named = result.missing_targets.map((target) => `${target.stack}${target.required ? '' : ' (optional)'}`);
+        lines.push(`   missing targets: ${named.join(', ')}`);
       }
       lines.push(`   verdict: ${result.verdict_text}`);
     }

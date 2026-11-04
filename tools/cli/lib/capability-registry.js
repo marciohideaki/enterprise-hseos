@@ -412,6 +412,9 @@ function createVocabulary(document) {
   };
 }
 
+/** Vocabulary of a registry shipped without `stacks.json`: ids compare by normalized token, nothing is accepted. */
+const IDENTITY_VOCABULARY = Object.freeze({ normalize: normalizeToken, accepts: () => [] });
+
 /** Targets with the `required` default materialized, sorted by stack (code-unit order, as the ids are ASCII). */
 function normalizedTargets(targets) {
   return targets
@@ -656,9 +659,39 @@ function inStacks(implementation, wanted) {
   return !wanted || wanted.has(implementation.stack.toLowerCase());
 }
 
-function filterImplementations(capability, stacks) {
-  const wanted = stackSet(stacks);
-  return capability.implementations.filter((implementation) => inStacks(implementation, wanted));
+/**
+ * The stack filter of a lookup. Without a vocabulary it is the v1 rule (lower-case equality; every kept
+ * implementation is a direct one; stacks are reported as written). With one (resolution v1.1, Decision 0011)
+ * the query and implementation stacks are normalized to canonical ids (aliases), the kept set is each queried
+ * stack plus the stacks it `accepts` (directional, not transitive), `isDirect` tells an implementation of a
+ * queried stack from one kept only through `accepts`, and `canonical` names stacks by their id.
+ */
+function createStackFilter(stacks, vocabulary) {
+  if (!vocabulary) {
+    const wanted = stackSet(stacks);
+    return {
+      vocabulary: null,
+      keeps: (implementation) => inStacks(implementation, wanted),
+      isDirect: () => true,
+      canonical: (stack) => stack,
+    };
+  }
+  if (!Array.isArray(stacks) || stacks.length === 0) {
+    return { vocabulary, keeps: () => true, isDirect: () => true, canonical: vocabulary.normalize };
+  }
+  const direct = new Set(stacks.map((stack) => vocabulary.normalize(stack)));
+  const expanded = new Set([...direct].flatMap((stack) => [...vocabulary.expand(stack)]));
+  return {
+    vocabulary,
+    keeps: (implementation) => expanded.has(vocabulary.normalize(implementation.stack)),
+    isDirect: (implementation) => direct.has(vocabulary.normalize(implementation.stack)),
+    canonical: vocabulary.normalize,
+  };
+}
+
+function filterImplementations(capability, stacks, vocabulary) {
+  const filter = createStackFilter(stacks, vocabulary);
+  return capability.implementations.filter((implementation) => filter.keeps(implementation));
 }
 
 function matchHints(capability) {
@@ -788,7 +821,7 @@ function containsQuery(capability, query, queryCanonical) {
  * the same separator (in the heuristic only for queries of at least two tokens
  * and four alphanumerics); ties break by capability name.
  */
-function resolveCapability(registry, query, { stacks } = {}) {
+function resolveCapability(registry, query, { stacks, vocabulary } = {}) {
   if (typeof query !== 'string') return [];
   query = query.trim();
   if (query.length === 0) return [];
@@ -797,7 +830,7 @@ function resolveCapability(registry, query, { stacks } = {}) {
     capability,
     matchedBy,
     score: SCORES[matchedBy],
-    implementations: filterImplementations(capability, stacks),
+    implementations: filterImplementations(capability, stacks, vocabulary),
   });
   const ordered = (results) =>
     results.sort(
@@ -1004,8 +1037,8 @@ function byName(a, b) {
  * `stacks` follows the shared rule: undefined or empty = any stack. Returns
  * `{ matches, warnings }`; `warnings` lists path globs ignored for exceeding the safety caps.
  */
-function matchExport(registry, { symbol, filePath, stacks } = {}) {
-  const wanted = stackSet(stacks);
+function matchExport(registry, { symbol, filePath, stacks, vocabulary } = {}) {
+  const filter = createStackFilter(stacks, vocabulary);
   const relative = isNonEmptyString(filePath) ? normalizeProjectPath(filePath) : null;
   const wantedSymbol = isNonEmptyString(symbol) ? normalizeSymbol(symbol) : null;
   const results = [];
@@ -1021,15 +1054,16 @@ function matchExport(registry, { symbol, filePath, stacks } = {}) {
     else if (relative && pathGlobs.some((glob) => globMatches(glob, relative))) matchedBy = 'path';
     if (!matchedBy) continue;
     const stableForStack = capability.implementations.some(
-      (implementation) => implementation.status === 'stable' && inStacks(implementation, wanted),
+      (implementation) => implementation.status === 'stable' && filter.keeps(implementation),
     );
-    results.push({ capability, matchedBy, stableForStack, implementations: filterImplementations(capability, stacks) });
+    results.push({ capability, matchedBy, stableForStack, implementations: filterImplementations(capability, stacks, vocabulary) });
   }
   results.sort(byName);
   return { matches: results, warnings: [...new Set(warnings)].sort() };
 }
 
 module.exports = {
+  IDENTITY_VOCABULARY,
   createVocabulary,
   deriveCoverage,
   missingTargets,
@@ -1043,6 +1077,7 @@ module.exports = {
   SNAPSHOT_LOCK_FILE,
   STACKS_LOCK_FILE,
   STACKS_SNAPSHOT_FILE,
+  createStackFilter,
   loadCapabilityRegistry,
   matchExport,
   readSnapshotLock,
