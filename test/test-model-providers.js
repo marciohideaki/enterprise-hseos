@@ -384,7 +384,7 @@ test('a mixed-case tool call id issued by the provider is carried as a contract 
   const { IdentifierSchema } = require('../packages/agent-runtime-contracts');
   const first = await collect(provider(), request('model:http', 'request:http-openai-id', 'openai-ids'));
   const deltas = first.filter((event) => event.event_type === 'tool_call.delta');
-  assert.ok(deltas.length >= 1);
+  assert.ok(deltas.length > 0);
   for (const delta of deltas)
     assert.equal(IdentifierSchema.safeParse(delta.payload.tool_call_id).success, true, delta.payload.tool_call_id);
   const id = deltas[0].payload.tool_call_id;
@@ -465,10 +465,10 @@ test('the wire name mapping is reversible, injective and bounded', () => {
   for (const invented of ['engineering_x2e_read', 'a_x41_', '_x5f_', '_xffffffff_', '_x110000_', '_x_', '_u_d_']) {
     assert.equal(fromWireToolName(invented), invented, invented);
   }
-  for (const odd of ['a_', '_', '__u', '_x2f_', 'x_', 'a.', '._', '😀', '😀_x', 'é.é', '\ud800'])
+  for (const odd of ['a_', '_', '__u', '_x2f_', 'x_', 'a.', '._', '😀', '😀_x', 'é.é', '\uD800'])
     assert.equal(fromWireToolName(toWireToolName(odd)), odd, odd);
   assert.equal(toWireToolName('a'.repeat(64)).length, 64);
-  assert.throws(() => toWireToolName(undefined), /must be a string/);
+  assert.throws(() => toWireToolName(), /must be a string/);
   assert.throws(() => toWireToolName(123), /must be a string/);
   assert.throws(() => toWireToolName('x'.repeat(65)), /cannot be represented/);
   assert.throws(() => toWireToolName(''), /cannot be represented/);

@@ -38,7 +38,7 @@ const WIRE_NAME_LIMIT = 64;
 
 function toWireToolName(name) {
   if (typeof name !== 'string') throw new ModelProviderError('tool name must be a string', 'invalid_request');
-  const wire = name.replace(/[^A-Za-z0-9-]/gu, (character) => {
+  const wire = name.replaceAll(/[^A-Za-z0-9-]/gu, (character) => {
     if (character === '_') return '_u';
     if (character === '.') return '_d';
     return `_x${character.codePointAt(0).toString(16)}_`;
@@ -55,7 +55,7 @@ function fromWireToolName(wire) {
   if (typeof wire !== 'string' || !/^(?:[A-Za-z0-9-]|_u|_d|_x[0-9a-f]{1,6}_)+$/u.test(wire)) return wire;
   let decoded;
   try {
-    decoded = wire.replace(/_(u|d|x([0-9a-f]{1,6})_)/gu, (_match, kind, hex) => {
+    decoded = wire.replaceAll(/_(u|d|x([0-9a-f]{1,6})_)/gu, (_match, kind, hex) => {
       if (kind === 'u') return '_';
       if (kind === 'd') return '.';
       return String.fromCodePoint(Number.parseInt(hex, 16));
@@ -75,7 +75,7 @@ const TOOL_CALL_ID_LIMIT = 160;
 
 function toContractToolCallId(id) {
   if (typeof id !== 'string' || id.length === 0) throw new ModelProviderError('tool call id is invalid', 'protocol_error');
-  const body = id.replace(/[^a-z0-9_:-]/gu, (character) => {
+  const body = id.replaceAll(/[^a-z0-9_:-]/gu, (character) => {
     if (character === '.') return '..';
     if (/^[A-Z]$/u.test(character)) return `.${character.toLowerCase()}`;
     return `.0${character.codePointAt(0).toString(16)}:`;
@@ -91,7 +91,7 @@ function fromContractToolCallId(id) {
   const body = id.slice(TOOL_CALL_ID_PREFIX.length);
   if (!/^(?:[a-z0-9_:-]|\.\.|\.[a-z]|\.0[0-9a-f]{1,6}:)+$/u.test(body)) return id;
   try {
-    const decoded = body.replace(/\.(?:(\.)|([a-z])|0([0-9a-f]{1,6}):)/gu, (_match, dot, letter, hex) => {
+    const decoded = body.replaceAll(/\.(?:(\.)|([a-z])|0([0-9a-f]{1,6}):)/gu, (_match, dot, letter, hex) => {
       if (dot) return '.';
       if (letter) return letter.toUpperCase();
       return String.fromCodePoint(Number.parseInt(hex, 16));
