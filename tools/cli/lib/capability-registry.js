@@ -30,6 +30,8 @@ const CAPABILITY_KEYS = new Set([
   'providers',
   'files',
   'implementations',
+  'targets',
+  'coverage',
 ]);
 const CAPABILITY_REQUIRED = ['name', 'kind', 'version', 'stability', 'owner', 'summary', 'aliases', 'files', 'implementations'];
 const KINDS = new Set(['service', 'library']);
@@ -50,6 +52,9 @@ const FILE_ROLES = new Set([
   'example',
   'policy',
 ]);
+const TARGET_KEYS = new Set(['stack', 'required']);
+const COVERAGE_KEYS = new Set(['target', 'required', 'status', 'via']);
+const COVERAGE_STATUSES = new Set(['stable', 'experimental', 'planned', 'missing']);
 const IMPLEMENTATION_KEYS = new Set([
   'stack',
   'kind',
@@ -172,6 +177,8 @@ function capabilityProblems(capability, label, { fail, shape, stringList }) {
     for (const key of MATCH_KEYS) if (capability.match[key] !== undefined) stringList(capability.match[key], `${label}.match.${key}`);
   }
   if (capability.files !== undefined) filesProblems(capability.files, label, { fail, shape });
+  if (capability.targets !== undefined) targetsProblems(capability.targets, label, { fail, shape });
+  if (capability.coverage !== undefined) coverageProblems(capability.coverage, label, { fail, shape });
   if (capability.implementations !== undefined) {
     if (Array.isArray(capability.implementations)) {
       for (const [index, implementation] of capability.implementations.entries()) {
@@ -196,6 +203,41 @@ function filesProblems(files, label, { fail, shape }) {
     if (file.sha256 !== undefined && !(typeof file.sha256 === 'string' && SHA256.test(file.sha256)))
       fail(`${fileLabel}.sha256 must be 64 hex characters`);
     if (file.role !== undefined && !FILE_ROLES.has(file.role)) fail(`${fileLabel}.role is not a known role`);
+  }
+}
+
+/** `targets` (Decision 0011): the stacks a capability must reach, `required` materialized by the generator. */
+function targetsProblems(targets, label, { fail, shape }) {
+  if (!Array.isArray(targets) || targets.length === 0) {
+    fail(`${label}.targets must be a non-empty list`);
+    return;
+  }
+  for (const [index, target] of targets.entries()) {
+    const targetLabel = `${label}.targets[${index}]`;
+    if (!shape(target, targetLabel, TARGET_KEYS, [...TARGET_KEYS])) continue;
+    if (target.stack !== undefined && !(typeof target.stack === 'string' && STACK_ID.test(target.stack)))
+      fail(`${targetLabel}.stack must be a stack id`);
+    if (target.required !== undefined && typeof target.required !== 'boolean') fail(`${targetLabel}.required must be a boolean`);
+  }
+}
+
+/** `coverage` (Decision 0011): derived by the generator, one item per target; only its shape is checked here. */
+function coverageProblems(coverage, label, { fail, shape }) {
+  if (!Array.isArray(coverage)) {
+    fail(`${label}.coverage must be a list`);
+    return;
+  }
+  for (const [index, item] of coverage.entries()) {
+    const itemLabel = `${label}.coverage[${index}]`;
+    if (!shape(item, itemLabel, COVERAGE_KEYS, ['target', 'required', 'status'])) continue;
+    for (const key of ['target', 'via']) {
+      if (item[key] !== undefined && !(typeof item[key] === 'string' && STACK_ID.test(item[key])))
+        fail(`${itemLabel}.${key} must be a stack id`);
+    }
+    if (item.required !== undefined && typeof item.required !== 'boolean') fail(`${itemLabel}.required must be a boolean`);
+    if (item.status !== undefined && !COVERAGE_STATUSES.has(item.status)) {
+      fail(`${itemLabel}.status must be one of ${[...COVERAGE_STATUSES].join(', ')}`);
+    }
   }
 }
 
