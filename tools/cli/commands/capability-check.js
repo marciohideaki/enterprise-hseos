@@ -383,6 +383,7 @@ module.exports = {
     }
   },
   UsageError,
+  buildResult,
   runCapabilityCheck,
   renderText,
   scanFilesystem,

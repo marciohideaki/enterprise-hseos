@@ -1,0 +1,2063 @@
+[
+  {
+    "id": "name-exact",
+    "query": "cache.typed",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "Acme.Caching.Redis"
+      ]
+    }
+  },
+  {
+    "id": "name-uppercase",
+    "query": "CACHE.TYPED",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "name-trimmed",
+    "query": "  notification.send  ",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "notification.send"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "ecp_runtime"
+      ]
+    },
+    "note": "no stable implementation: first consumable wins"
+  },
+  {
+    "id": "alias-simple",
+    "query": "redis",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "alias-underscore-mixed-case",
+    "query": "Distributed_Cache",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "alias-space",
+    "query": "distributed cache",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "alias-upper-hyphen",
+    "query": "TYPED-CACHE",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "alias-dotted",
+    "query": "mobile.tokens",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "design.mobile-tokens"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "alias-padded-query",
+    "query": "  Redis  ",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "contract-alias",
+    "query": "platform/messaging/outbox/v1",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "contract"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "contract-alias-case-insensitive",
+    "query": "Platform/Messaging/Event-Envelope",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "contract"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-nuget",
+    "query": "Acme.Caching.Redis",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-nuget-lowercase",
+    "query": "acme.caching.abstractions",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-nuget-from-implementation-only",
+    "query": "Acme.Messaging.Outbox",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    },
+    "note": "package declared only in implementations[].package"
+  },
+  {
+    "id": "package-npm-scoped",
+    "query": "@acme/mobile-tokens",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "design.mobile-tokens"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-npm-shared",
+    "query": "@acme/platform-node",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-pip-underscore",
+    "query": "mobile_tokens_flutter",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "design.mobile-tokens"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-pip-implementation",
+    "query": "acme-cache",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-pip-implementation-only",
+    "query": "acme-messaging-outbox",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-pip-dotted",
+    "query": "acme_platform.messaging",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "package-go",
+    "query": "github.com/acme/core/messaging",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "symbol-exact",
+    "query": "ICacheStore",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "symbol"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "symbol-lowercase",
+    "query": "icachestore",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "symbol"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "symbol-camel",
+    "query": "createEventEnvelope",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "symbol"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "symbol-type",
+    "query": "EventEnvelope",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "symbol"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "path-glob-doublestar",
+    "query": "schemas/v1/event-envelope.schema.json",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "path"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "path-glob-single-star",
+    "query": "docs/messaging/overview.md",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "path"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "path-glob-star-does-not-cross-slash",
+    "query": "docs/messaging/deep/overview.md",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "path-backslashes",
+    "query": "docs\\messaging\\readme.md",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "path"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "path-escaping-project",
+    "query": "../docs/messaging/readme.md",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "path-with-stack",
+    "query": "src/events/event-envelope.schema.json",
+    "stacks": [
+      "go"
+    ],
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "path"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        [
+          "node",
+          "python"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "prefix-two-chars-is-empty",
+    "query": "ca",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "prefix-three-chars",
+    "query": "cac",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "prefix"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "prefix-token-boundary",
+    "query": "mobile tok",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "design.mobile-tokens"
+      ],
+      "matched_by": [
+        "prefix"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "prefix-mid-word-long-enough",
+    "query": "tran",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "prefix"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "prefix-tie-sorted-by-name",
+    "query": "messag",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope",
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "prefix",
+        "prefix"
+      ],
+      "verdicts": [
+        "consume",
+        "consume"
+      ],
+      "other_stacks": [
+        [],
+        []
+      ]
+    }
+  },
+  {
+    "id": "alias-tie-sorted-by-name",
+    "query": "delivery",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope",
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "alias",
+        "alias"
+      ],
+      "verdicts": [
+        "consume",
+        "consume"
+      ],
+      "other_stacks": [
+        [],
+        []
+      ]
+    }
+  },
+  {
+    "id": "score-order-alias-before-prefix",
+    "query": "messaging",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox",
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "alias",
+        "prefix"
+      ],
+      "verdicts": [
+        "consume",
+        "consume"
+      ],
+      "other_stacks": [
+        [],
+        []
+      ]
+    },
+    "note": "alias 90 outranks prefix 40 even though the name sorts later"
+  },
+  {
+    "id": "limit-truncates-after-ordering",
+    "query": "messaging",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    },
+    "limit": 1
+  },
+  {
+    "id": "heuristic-camel-case-hump",
+    "query": "Store",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed",
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "heuristic",
+        "heuristic"
+      ],
+      "verdicts": [
+        "consume",
+        "consume"
+      ],
+      "other_stacks": [
+        [],
+        []
+      ]
+    }
+  },
+  {
+    "id": "heuristic-after-separator",
+    "query": "tokens",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "design.mobile-tokens"
+      ],
+      "matched_by": [
+        "heuristic"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "heuristic-after-slash",
+    "query": "messaging-outbox",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "heuristic"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/messaging-outbox"
+      ]
+    },
+    "note": "no stable: package containing the query beats the first"
+  },
+  {
+    "id": "heuristic-not-mid-word",
+    "query": "ache",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "heuristic-short-tail-is-empty",
+    "query": "mobile-t",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "heuristic-separator-bridge",
+    "query": "tokens flutter",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "design.mobile-tokens"
+      ],
+      "matched_by": [
+        "heuristic"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "heuristic-token-start-envelope",
+    "query": "envelope",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "heuristic"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "plural-does-not-match",
+    "query": "envelopes",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "plural-does-not-match-outbox",
+    "query": "outboxes",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "tokens-two-words",
+    "query": "cache typed",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "tokens"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "tokens-stopword-dropped",
+    "query": "create cache typed",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "tokens"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "tokens-majority-of-three",
+    "query": "typed cache widget",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "tokens"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "tokens-stem-shared",
+    "query": "caching redis",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "tokens"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "empty-query",
+    "query": "",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "blank-query",
+    "query": "   ",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "unknown-query",
+    "query": "zzzunknown",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "unknown-two-chars",
+    "query": "zz",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    }
+  },
+  {
+    "id": "ptbr-queue-no-match",
+    "query": "fila de saída",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    },
+    "note": "lexical resolver: Portuguese does not match English identifiers (limitation, E7)"
+  },
+  {
+    "id": "ptbr-retry-no-match",
+    "query": "repetição http",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    },
+    "note": "lexical resolver: no translation or semantics (limitation, E7)"
+  },
+  {
+    "id": "synonym-no-match",
+    "query": "message queue",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    },
+    "note": "'message' is not a stem prefix of 'messaging': no semantic matching"
+  },
+  {
+    "id": "stack-with-implementation",
+    "query": "cache.typed",
+    "stacks": [
+      "dotnet"
+    ],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        [
+          "go"
+        ]
+      ],
+      "chosen_packages": [
+        "Acme.Caching.Redis"
+      ]
+    }
+  },
+  {
+    "id": "stack-case-insensitive",
+    "query": "cache.typed",
+    "stacks": [
+      "DotNet"
+    ],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        [
+          "go"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "stack-several",
+    "query": "cache.typed",
+    "stacks": [
+      "go",
+      "python"
+    ],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        [
+          "dotnet"
+        ]
+      ],
+      "chosen_packages": [
+        "github.com/acme/core/cache"
+      ]
+    }
+  },
+  {
+    "id": "stack-only-planned-is-extend",
+    "query": "cache.typed",
+    "stacks": [
+      "python"
+    ],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        [
+          "dotnet",
+          "go"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "stack-flutter-planned-is-extend",
+    "query": "mobile-tokens",
+    "stacks": [
+      "flutter"
+    ],
+    "expect": {
+      "names": [
+        "design.mobile-tokens"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        [
+          "react-native"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "stack-only-deprecated-is-extend",
+    "query": "authn",
+    "stacks": [
+      "python"
+    ],
+    "expect": {
+      "names": [
+        "security.authn"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-nonexistent",
+    "query": "cache.typed",
+    "stacks": [
+      "cobol"
+    ],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        [
+          "dotnet",
+          "go"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "stack-empty-list-is-any",
+    "query": "cache.typed",
+    "stacks": [],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-other-than-implemented-symbol",
+    "query": "IOutboxStore",
+    "stacks": [
+      "python"
+    ],
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "symbol"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        [
+          "dotnet",
+          "npm"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "stack-other-than-implemented-alias",
+    "query": "outbox",
+    "stacks": [
+      "python"
+    ],
+    "expect": {
+      "names": [
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        [
+          "dotnet",
+          "npm"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "planned-and-deprecated-never-consumable",
+    "query": "oidc",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "security.authn"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "planned-stack-explicit",
+    "query": "jwt",
+    "stacks": [
+      "dotnet"
+    ],
+    "expect": {
+      "names": [
+        "security.authn"
+      ],
+      "matched_by": [
+        "alias"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stable-preferred-over-package-hit",
+    "query": "acme.caching.abstractions",
+    "stacks": [
+      "dotnet"
+    ],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "package"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        [
+          "go"
+        ]
+      ],
+      "chosen_packages": [
+        "Acme.Caching.Redis"
+      ]
+    }
+  },
+  {
+    "id": "symbols-only-query",
+    "query": "!!!",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    },
+    "note": "no alphanumerics: no prefix, heuristic or tokens"
+  },
+  {
+    "id": "stack-uppercase",
+    "query": "cache.typed",
+    "stacks": [
+      "DOTNET"
+    ],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        [
+          "go"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "stack-uppercase-multiple",
+    "query": "cache.typed",
+    "stacks": [
+      "GO",
+      "PYTHON"
+    ],
+    "expect": {
+      "names": [
+        "cache.typed"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        [
+          "dotnet"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "stack-multiple-all-consumable",
+    "query": "messaging.event-envelope",
+    "stacks": [
+      "go",
+      "node",
+      "python"
+    ],
+    "expect": {
+      "names": [
+        "messaging.event-envelope"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "accent-does-not-fold",
+    "query": "cáche",
+    "stacks": null,
+    "expect": {
+      "names": [],
+      "matched_by": [],
+      "verdicts": [],
+      "other_stacks": []
+    },
+    "note": "no accent folding: 'cáche' does not match 'cache'; the tokens stage needs two words"
+  },
+  {
+    "id": "query-ending-in-separator",
+    "query": "messaging.",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "messaging.event-envelope",
+        "messaging.outbox"
+      ],
+      "matched_by": [
+        "prefix",
+        "prefix"
+      ],
+      "verdicts": [
+        "consume",
+        "consume"
+      ],
+      "other_stacks": [
+        [],
+        []
+      ]
+    },
+    "note": "a query ending on a separator stops at a token boundary"
+  },
+  {
+    "id": "stack-alias-ts",
+    "query": "stackfx.ts-lib",
+    "stacks": [
+      "ts"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.ts-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-ts"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-ts"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-alias-js",
+    "query": "stackfx.ts-lib",
+    "stacks": [
+      "JavaScript"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.ts-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-ts"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-ts"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-alias-csharp",
+    "query": "stackfx.dotnet-lib",
+    "stacks": [
+      "csharp"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.dotnet-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "Acme.StackFx"
+      ],
+      "listed_packages": [
+        [
+          "Acme.StackFx"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-alias-golang",
+    "query": "stackfx.go-lib",
+    "stacks": [
+      "golang"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.go-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "github.com/acme/stackfx"
+      ],
+      "listed_packages": [
+        [
+          "github.com/acme/stackfx"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-alias-py",
+    "query": "stackfx.py-lib",
+    "stacks": [
+      "py"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.py-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "acme-stackfx"
+      ],
+      "listed_packages": [
+        [
+          "acme-stackfx"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-alias-rn",
+    "query": "stackfx.rn-lib",
+    "stacks": [
+      "rn"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.rn-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-rn"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-rn"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-alias-spacing",
+    "query": "stackfx.rn-lib",
+    "stacks": [
+      "React Native",
+      "react_native"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.rn-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-rn"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-rn"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-node-accepts-typescript",
+    "query": "stackfx.ts-lib",
+    "stacks": [
+      "node"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.ts-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-ts"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-ts"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-typescript-rejects-node",
+    "query": "stackfx.node-only",
+    "stacks": [
+      "typescript"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.node-only"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        [
+          "node"
+        ]
+      ],
+      "listed_packages": [
+        []
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-react-accepts-typescript",
+    "query": "stackfx.ts-lib",
+    "stacks": [
+      "react"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.ts-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-ts"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-ts"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-react-native-accepts-typescript",
+    "query": "stackfx.ts-lib",
+    "stacks": [
+      "react-native"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.ts-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-ts"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-ts"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-accepts-not-transitive",
+    "query": "stackfx.node-only",
+    "stacks": [
+      "react"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.node-only"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        [
+          "node"
+        ]
+      ],
+      "listed_packages": [
+        []
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-direct-preferred",
+    "query": "stackfx.both",
+    "stacks": [
+      "node"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.both"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-both-node"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-both-ts",
+          "@acme/stackfx-both-node"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "stack-unknown-token",
+    "query": "stackfx.ts-lib",
+    "stacks": [
+      "cobol"
+    ],
+    "expect": {
+      "names": [
+        "stackfx.ts-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        [
+          "typescript"
+        ]
+      ],
+      "listed_packages": [
+        []
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "missing-targets-listed",
+    "query": "stackfx.gap-go",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "stackfx.gap-go"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "acme-stackfx-gap"
+      ],
+      "listed_packages": [
+        [
+          "acme-stackfx-gap"
+        ]
+      ],
+      "missing_targets": [
+        [
+          {
+            "stack": "go",
+            "required": true
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "missing-targets-none-declared",
+    "query": "stackfx.py-lib",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "stackfx.py-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "acme-stackfx"
+      ],
+      "listed_packages": [
+        [
+          "acme-stackfx"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "missing-targets-family-satisfied",
+    "query": "stackfx.ts-lib",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "stackfx.ts-lib"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "consume"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "chosen_packages": [
+        "@acme/stackfx-ts"
+      ],
+      "listed_packages": [
+        [
+          "@acme/stackfx-ts"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "missing-targets-planned-not-missing",
+    "query": "stackfx.planned-flutter",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "stackfx.planned-flutter"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "listed_packages": [
+        [
+          "stackfx_flutter"
+        ]
+      ],
+      "missing_targets": [
+        []
+      ]
+    }
+  },
+  {
+    "id": "missing-targets-deprecated-is-missing",
+    "query": "stackfx.deprecated-go",
+    "stacks": null,
+    "expect": {
+      "names": [
+        "stackfx.deprecated-go"
+      ],
+      "matched_by": [
+        "name"
+      ],
+      "verdicts": [
+        "extend"
+      ],
+      "other_stacks": [
+        []
+      ],
+      "listed_packages": [
+        [
+          "github.com/acme/stackfx-old"
+        ]
+      ],
+      "missing_targets": [
+        [
+          {
+            "stack": "go",
+            "required": true
+          }
+        ]
+      ]
+    }
+  }
+]
