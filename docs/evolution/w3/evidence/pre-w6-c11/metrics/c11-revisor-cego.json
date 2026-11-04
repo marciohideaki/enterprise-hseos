@@ -1,0 +1,68 @@
+{
+  "label": "c11-revisor-cego",
+  "span": [
+    "2026-11-04T18:29:18.165Z",
+    "2026-11-04T18:31:35.687Z"
+  ],
+  "priced": false,
+  "activities": [
+    {
+      "activity": "leitura_spec",
+      "model_latency_s": 7.2,
+      "tool_time_s": 4.9,
+      "tool_calls": 4.0,
+      "tok_in_fresh": 6.0,
+      "tok_cache_read": 117324.0,
+      "tok_cache_write": 55863.0,
+      "tok_out": 1206.0,
+      "api_calls": 3.0,
+      "wall_s": 12.0
+    },
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 36.0,
+      "tool_time_s": 10.8,
+      "tool_calls": 8.0,
+      "tok_in_fresh": 16.0,
+      "tok_cache_read": 551016.0,
+      "tok_cache_write": 24266.0,
+      "tok_out": 5294.0,
+      "api_calls": 8.0,
+      "wall_s": 46.8
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 45.4,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 81085.0,
+      "tok_cache_write": 1876.0,
+      "tok_out": 6709.0,
+      "api_calls": 1.0,
+      "wall_s": 45.4
+    },
+    {
+      "activity": "git_estado",
+      "model_latency_s": 28.6,
+      "tool_time_s": 4.7,
+      "tool_calls": 2.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 68114.0,
+      "tok_cache_write": 956.0,
+      "tok_out": 4214.0,
+      "api_calls": 1.0,
+      "wall_s": 33.3
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 117.2,
+    "tool_time_s": 20.4,
+    "tool_calls": 14.0,
+    "tok_in_fresh": 26.0,
+    "tok_cache_read": 817539.0,
+    "tok_cache_write": 82961.0,
+    "tok_out": 17423.0,
+    "api_calls": 13.0,
+    "wall_s": 137.5
+  }
+}

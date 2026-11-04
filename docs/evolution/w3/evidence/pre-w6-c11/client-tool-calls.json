@@ -1,0 +1,35 @@
+[
+  {
+    "session_id": "a4f78856-a280-4f03-9932-9aa373315cbf",
+    "transcript_file": [
+      "a4f78856-a280-4f03-9932-9aa373315cbf.jsonl"
+    ],
+    "tool_calls": [
+      {
+        "timestamp": "2026-11-04T18:22:59.135Z",
+        "tool": "ToolSearch",
+        "input": {
+          "query": "select:mcp__hseos-state-tracking__environment_lsp_hover",
+          "max_results": 3
+        },
+        "result_prefix": "[{\"type\": \"tool_reference\", \"tool_name\": \"mcp__hseos-state-tracking__environment_lsp_hover\"}]",
+        "result_timestamp": "2026-11-04T18:22:59.162Z"
+      },
+      {
+        "timestamp": "2026-11-04T18:23:01.365Z",
+        "tool": "mcp__hseos-state-tracking__environment_lsp_hover",
+        "input": {
+          "action": "hover",
+          "language": "typescript",
+          "file": "index.ts",
+          "position": {
+            "line": 0,
+            "character": 10
+          }
+        },
+        "result_prefix": "{\"schema_version\":1,\"ok\":true,\"data\":{\"operation_id\":\"02cd48d4-82cd-53a2-8883-070474918385\",\"result\":{\"contract\":\"environment.lsp.v1\",\"status\":\"ok\",\"action\":\"hover\",\"language\":\"typescript\",\"result\":{\"hover\":\"\\n```typescript\\nfunction calculate(n: number): number\\n```\\n\",\"truncated\":false},\"source\":{\"source_ref\":\"environment.lsp.hover\",\"authority\":\"data\",\"provenance\":{\"origin\":\"lsp\",\"source_ref\":\"e",
+        "result_timestamp": "2026-11-04T18:23:02.206Z"
+      }
+    ]
+  }
+]

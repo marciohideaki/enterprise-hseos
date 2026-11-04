@@ -1,0 +1,17 @@
+environment:
+  project_id: c11-f20
+  toolchain_cache: /build/cache/hseos-toolchain
+  workspace:
+    host_workspace: /build/tmp/c11-live-BUOi/main/workspace
+    main_checkout: /build/tmp/c11-live-BUOi/main
+    protected_paths:
+      - /build/tmp/c11-live-BUOi/main/manifest.json
+  memory:
+    rules:
+      - id: memory-write
+        source: project
+        stage: allow
+        decision: allow
+    operator:
+      id: owner
+      kind: operator

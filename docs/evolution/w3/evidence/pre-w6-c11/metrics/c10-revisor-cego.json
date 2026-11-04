@@ -1,0 +1,56 @@
+{
+  "label": "c10-revisor-cego",
+  "span": [
+    "2026-11-04T18:29:18.168Z",
+    "2026-11-04T18:30:28.005Z"
+  ],
+  "priced": false,
+  "activities": [
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 24.9,
+      "tool_time_s": 11.2,
+      "tool_calls": 10.0,
+      "tok_in_fresh": 18.0,
+      "tok_cache_read": 523233.0,
+      "tok_cache_write": 69534.0,
+      "tok_out": 4057.0,
+      "api_calls": 8.0,
+      "wall_s": 36.1
+    },
+    {
+      "activity": "leitura_spec",
+      "model_latency_s": 2.3,
+      "tool_time_s": 0.7,
+      "tool_calls": 2.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 50396.0,
+      "tok_cache_write": 12766.0,
+      "tok_out": 333.0,
+      "api_calls": 1.0,
+      "wall_s": 3.0
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 8.7,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 82300.0,
+      "tok_cache_write": 2261.0,
+      "tok_out": 4572.0,
+      "api_calls": 1.0,
+      "wall_s": 8.7
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 35.9,
+    "tool_time_s": 11.9,
+    "tool_calls": 12.0,
+    "tok_in_fresh": 22.0,
+    "tok_cache_read": 655929.0,
+    "tok_cache_write": 84561.0,
+    "tok_out": 8962.0,
+    "api_calls": 10.0,
+    "wall_s": 47.8
+  }
+}

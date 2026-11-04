@@ -1,0 +1,58 @@
+{
+  "session_id": "a4f78856-a280-4f03-9932-9aa373315cbf",
+  "total_cost_usd": 0.28216600000000003,
+  "usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 62308,
+    "cache_read_input_tokens": 122560,
+    "output_tokens": 841,
+    "output_tokens_details": {
+      "thinking_tokens": 96
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 62308,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 500,
+        "cache_read_input_tokens": 61613,
+        "cache_creation_input_tokens": 695,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 695
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-sonnet-5": {
+      "inputTokens": 6,
+      "outputTokens": 841,
+      "cacheReadInputTokens": 122560,
+      "cacheCreationInputTokens": 62308,
+      "webSearchRequests": 0,
+      "costUSD": 0.28216600000000003,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "thinkingTokens": 96,
+      "canonicalModel": "claude-sonnet-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "is_error": false,
+  "result": "Raw result:\n\n```json\n{\"schema_version\":1,\"ok\":true,\"data\":{\"operation_id\":\"02cd48d4-82cd-53a2-8883-070474918385\",\"result\":{\"contract\":\"environment.lsp.v1\",\"status\":\"ok\",\"action\":\"hover\",\"language\":\"typescript\",\"result\":{\"hover\":\"\\n```typescript\\nfunction calculate(n: number): number\\n```\\n\",\"truncated\":false},\"source\":{\"source_ref\":\"environment.lsp.hover\",\"authority\":\"data\",\"provenance\":{\"origin\":\"lsp\",\"source_ref\":\"environment.lsp.hover\",\"digest\":\"sha256:7a9381d4f367e71414a169d2a29cb47102e1412ac878bc90235693b14503215e\",\"retrieved_at\":\"2026-11-04T18:23:02.198Z\",\"trust\":\"untrusted\",\"transform\":[]}},\"execution\":{\"profile\":\"P1\",\"limits\":{\"processes\":128,\"memory_bytes\":2147483648,\"nofile\":64,\"output_bytes\":65536,\"duration_ms\":60000,\"shm_bytes\":67108864},\"pids_peak\":41,\"memory_peak_bytes\":380612608,\"workspace_access\":\"read_only\",\"descendants_terminated\":true}},\"replayed\":false},\"error\":null,\"evidence\":[\"hseos://execution/02cd48d4-82cd-53a2-8883-070474918385/provider/agent-environment\"],\"warnings\":[]}\n```\n\nHover text: `function calculate(n: number): number`\n\nvault: nao aplicavel"
+}

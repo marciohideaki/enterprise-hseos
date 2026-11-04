@@ -1,0 +1,1 @@
+Use the hseos-state-tracking MCP server. Call environment.lsp.hover exactly once with arguments {"action":"hover","language":"typescript","file":"index.ts","position":{"line":0,"character":10}}. Report the raw result. Do not call any other tool.

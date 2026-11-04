@@ -1,0 +1,68 @@
+{
+  "label": "c1011-revisor-confronto",
+  "span": [
+    "2026-11-04T18:35:27.812Z",
+    "2026-11-04T18:38:30.137Z"
+  ],
+  "priced": false,
+  "activities": [
+    {
+      "activity": "leitura_spec",
+      "model_latency_s": 62.7,
+      "tool_time_s": 23.6,
+      "tool_calls": 15.0,
+      "tok_in_fresh": 24.0,
+      "tok_cache_read": 989514.0,
+      "tok_cache_write": 47978.0,
+      "tok_out": 10650.0,
+      "api_calls": 12.0,
+      "wall_s": 86.3
+    },
+    {
+      "activity": "git_estado",
+      "model_latency_s": 13.6,
+      "tool_time_s": 4.3,
+      "tool_calls": 5.0,
+      "tok_in_fresh": 10.0,
+      "tok_cache_read": 309029.0,
+      "tok_cache_write": 46656.0,
+      "tok_out": 1933.0,
+      "api_calls": 4.0,
+      "wall_s": 17.9
+    },
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 11.9,
+      "tool_time_s": 2.9,
+      "tool_calls": 2.0,
+      "tok_in_fresh": 4.0,
+      "tok_cache_read": 166066.0,
+      "tok_cache_write": 5988.0,
+      "tok_out": 1850.0,
+      "api_calls": 2.0,
+      "wall_s": 14.9
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 22.2,
+      "tok_in_fresh": 4.0,
+      "tok_cache_read": 207196.0,
+      "tok_cache_write": 1397.0,
+      "tok_out": 4616.0,
+      "api_calls": 2.0,
+      "wall_s": 22.2
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 110.4,
+    "tool_time_s": 30.8,
+    "tool_calls": 22.0,
+    "tok_in_fresh": 42.0,
+    "tok_cache_read": 1671805.0,
+    "tok_cache_write": 102019.0,
+    "tok_out": 19049.0,
+    "api_calls": 20.0,
+    "wall_s": 141.3
+  }
+}
