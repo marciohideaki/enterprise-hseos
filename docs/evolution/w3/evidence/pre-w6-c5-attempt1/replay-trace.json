@@ -1,0 +1,18 @@
+[
+  {
+    "t": 1793720259478,
+    "phase": "before-restart",
+    "call": "campaign",
+    "action": "create",
+    "command_id": "0b0d9368-d5e7-4fc0-8f4c-e00fe9f3075b"
+  },
+  {
+    "t": 1793720259481,
+    "phase": "before-restart",
+    "call": "query",
+    "current_sequence": 3,
+    "requests": 0,
+    "committed_microusd": 0,
+    "report_sha256": "2f35e75a4f41055183d8865cee1b389a943d0fccfff867c1d8efc0973057e6e3"
+  }
+]

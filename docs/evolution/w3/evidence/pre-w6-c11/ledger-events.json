@@ -1,0 +1,48 @@
+{
+  "snapshot_at": "2026-11-04T18:22:51Z",
+  "max_position_before_snapshot": 49035,
+  "events_after_snapshot": [
+    {
+      "position": 49036,
+      "event_type": "ExecutionAuthorized",
+      "aggregate_type": "execution",
+      "aggregate_id": "02cd48d4-82cd-53a2-8883-070474918385",
+      "occurred_at": "2026-11-04T18:23:01.492Z",
+      "recorded_at": "2026-11-04T18:23:01.493Z",
+      "operation_id": "02cd48d4-82cd-53a2-8883-070474918385",
+      "payload": "{\"cancellation_policy\":\"cooperative\",\"capability\":\"environment.lsp\",\"deadline\":\"2026-11-04T18:24:01.492Z\",\"idempotency_key\":\"f0450a9c-e127-4002-8337-ca590dccbbb2\",\"input_digest\":\"aa82fcf633aabfa51641b41d85b39c1e9f7f2e016a0ed929c532b5821215bfaf\",\"input_schema_version\":1,\"output_schema_version\":1,\"policy_version\":\"hseos-w5-environment-v1\",\"resource_scope\":{\"project\":\"/build/tmp/c11-live-BUOi\",\"server\":\"project_state\",\"state_db\":\"/build/tmp/c11-live-BUOi/project.db\"},\"reversibility\":\"read_only\",\"tool\":\"environment.lsp.hover\",\"warnings\":[]}"
+    },
+    {
+      "position": 49037,
+      "event_type": "ExecutionStarted",
+      "aggregate_type": "execution",
+      "aggregate_id": "02cd48d4-82cd-53a2-8883-070474918385",
+      "occurred_at": "2026-11-04T18:23:01.492Z",
+      "recorded_at": "2026-11-04T18:23:01.493Z",
+      "operation_id": "02cd48d4-82cd-53a2-8883-070474918385",
+      "payload": "{\"deadline\":\"2026-11-04T18:24:01.492Z\",\"dispatch_attempt\":1,\"idempotency_key\":\"f0450a9c-e127-4002-8337-ca590dccbbb2\",\"provider\":\"agent-environment\",\"tool\":\"environment.lsp.hover\"}"
+    },
+    {
+      "position": 49038,
+      "event_type": "environment.lsp.completed",
+      "aggregate_type": "environment_session",
+      "aggregate_id": "mcp-lsp-48513c08-83a8-44a6-bc05-6543a67a13f5",
+      "occurred_at": "2026-11-04T18:23:02.198Z",
+      "recorded_at": "2026-11-04T18:23:02.200Z",
+      "operation_id": null,
+      "payload": "{\"action\":\"hover\",\"contract\":\"environment.lsp.v1\",\"input_digest\":\"aa82fcf633aabfa51641b41d85b39c1e9f7f2e016a0ed929c532b5821215bfaf\",\"language\":\"typescript\",\"output_digest\":\"7a9381d4f367e71414a169d2a29cb47102e1412ac878bc90235693b14503215e\",\"pids_peak\":41,\"project_id\":\"c11-f20\"}"
+    },
+    {
+      "position": 49039,
+      "event_type": "ExecutionSucceeded",
+      "aggregate_type": "execution",
+      "aggregate_id": "02cd48d4-82cd-53a2-8883-070474918385",
+      "occurred_at": "2026-11-04T18:23:02.201Z",
+      "recorded_at": "2026-11-04T18:23:02.201Z",
+      "operation_id": "02cd48d4-82cd-53a2-8883-070474918385",
+      "payload": "{\"output_schema_version\":1,\"result\":{\"action\":\"hover\",\"contract\":\"environment.lsp.v1\",\"execution\":{\"descendants_terminated\":true,\"limits\":{\"duration_ms\":60000,\"memory_bytes\":2147483648,\"nofile\":64,\"output_bytes\":65536,\"processes\":128,\"shm_bytes\":67108864},\"memory_peak_bytes\":380612608,\"pids_peak\":41,\"profile\":\"P1\",\"workspace_access\":\"read_only\"},\"language\":\"typescript\",\"result\":{\"hover\":\"\\n```typescript\\nfunction calculate(n: number): number\\n```\\n\",\"truncated\":false},\"source\":{\"authority\":\"data\",\"provenance\":{\"digest\":\"sha256:7a9381d4f367e71414a169d2a29cb47102e1412ac878bc90235693b14503215e\",\"origin\":\"lsp\",\"retrieved_at\":\"2026-11-04T18:23:02.198Z\",\"source_ref\":\"environment.lsp.hover\",\"transform\":[],\"trust\":\"untrusted\"},\"source_ref\":\"environment.lsp.hover\"},\"status\":\"ok\"},\"warnings\":[]}"
+    }
+  ],
+  "integrity": "ok",
+  "user_version": 17
+}

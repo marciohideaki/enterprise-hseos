@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "binding_id": "binding:claude-c2",
+  "binding_sha256": "596f45438b8c974a6e89b203bd3fb2aa1f0ab148b7f7a7650c2a89e5340167ef",
+  "vendor": "claude",
+  "provider_kind": "client",
+  "provider_version": "2.1.316",
+  "adapter": "hseos-claude-campaign-v1",
+  "artifact_sha256": "6b3dcacd650256f01eefad8821141fc49a9341ed3d66986a64a3a0f092abfd2d",
+  "route": "account",
+  "transport": "process",
+  "authentication": {
+    "mode": "native_account",
+    "identity_kind": "account",
+    "credential": {
+      "name": "native-account",
+      "source_ref": "file:///home/annonymous/.claude"
+    },
+    "account_sha256": null,
+    "source": "explicit",
+    "account_digest": {
+      "v": 2,
+      "alg": "hmac-sha256",
+      "value": "429cb390632c351977ec320db27b664e4afa3543109b5b1dfeec68b9c264d187"
+    }
+  },
+  "billing": {
+    "kind": "subscription",
+    "currency": "USD",
+    "max_request_microusd": 0
+  },
+  "limits": {
+    "max_requests": 2,
+    "max_input_tokens": 65536,
+    "max_output_tokens": 2048,
+    "max_duration_ms": 180000
+  },
+  "controls": {
+    "authority": "external_client",
+    "resume": "not_verified",
+    "cancel": "not_verified",
+    "quota": "not_verified",
+    "evidence_sha256": null
+  }
+}

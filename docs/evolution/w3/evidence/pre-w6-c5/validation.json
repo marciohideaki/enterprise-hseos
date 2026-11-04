@@ -1,0 +1,41 @@
+{
+  "evidence_kind": "real_api_call",
+  "mocks_or_fixtures_in_inference_path": false,
+  "control_ledger_is_temporary_fixture": true,
+  "expected_response_hashes": [true, true],
+  "real_inference_calls": 2,
+  "requests": 2,
+  "committed_microusd": 500000,
+  "authorized_microusd": 1000000,
+  "live_commands": 0,
+  "unresolved": 0,
+  "cancelled": true,
+  "provider_calls": [
+    {
+      "url": "https://api.openai.com/v1/chat/completions",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "url": "https://api.openai.com/v1/chat/completions",
+      "method": "POST",
+      "status": 200
+    }
+  ],
+  "restart_recovery": {
+    "state_preserved": true,
+    "replay_after_restart_same_result": true,
+    "requests_unchanged_by_replay": true,
+    "before": {
+      "current_sequence": 6,
+      "requests": 1,
+      "report_sha256": "25b1c029875de73dc53e05b21e107c871005a864b31c20decf6e3207bf243247"
+    },
+    "after": {
+      "current_sequence": 6,
+      "requests": 1,
+      "report_sha256": "25b1c029875de73dc53e05b21e107c871005a864b31c20decf6e3207bf243247"
+    }
+  },
+  "same_binding_before_after": true
+}

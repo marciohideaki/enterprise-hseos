@@ -382,6 +382,24 @@ test('production campaign refuses an effective backend that differs from the dec
   assert.ok(f.calls.every((call) => call.url.endsWith('/user/balance')));
 });
 
+test('the official OpenAI stream shape, with usage null until the last chunk, completes with its usage; a stream with no usage still fails closed', async (t) => {
+  const f = fixture(t);
+  f.transport.frames = [
+    { id: 'chatcmpl-x', choices: [{ index: 0, delta: { role: 'assistant', content: '' }, finish_reason: null }], usage: null },
+    { id: 'chatcmpl-x', choices: [{ index: 0, delta: { content: 'ready' }, finish_reason: null }], usage: null },
+    { id: 'chatcmpl-x', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }], usage: null },
+    { id: 'chatcmpl-x', choices: [], usage: { prompt_tokens: 12, completion_tokens: 2, prompt_tokens_details: { cached_tokens: 0 } } },
+  ];
+  const run = () => f.create().adapter.run({ task_id: f.taskId, request_id: randomUUID(), signal: new AbortController().signal });
+  const receipt = await run();
+  assert.equal(receipt.status, 'completed');
+  assert.equal(receipt.input_tokens, 12);
+  assert.equal(receipt.output_tokens, 2);
+  // A stream whose usage is only ever null reports no usage: the outcome stays uncertain, never a success without usage.
+  f.transport.frames = [{ id: 'chatcmpl-x', choices: [{ index: 0, delta: { content: 'ready' }, finish_reason: 'stop' }], usage: null }];
+  await assert.rejects(run(), { code: 'CONTROL_OUTCOME_UNCERTAIN' });
+});
+
 test('the official OpenAI API route has no balance endpoint: nothing is requested and no quota is reported', async (t) => {
   const f = fixture(t);
   f.binding.provider.base_url = 'https://api.openai.com/v1';

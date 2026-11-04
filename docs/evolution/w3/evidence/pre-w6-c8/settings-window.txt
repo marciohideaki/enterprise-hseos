@@ -1,0 +1,3 @@
+Allowlist window of ~/.claude/settings.json (allowedMcpServers gets hseos-state-tracking only during each client write; restored by hash afterwards).
+window 1 (write of the note): opened by open.sh, closed right after the client call. Output of close.sh: "settings.json: OK" and "allowlist restaurada".
+window 2 (write of the foreign-project note): the settings hash equalled the original before opening; closed right after the client call. Output of close.sh: "settings.json: OK".

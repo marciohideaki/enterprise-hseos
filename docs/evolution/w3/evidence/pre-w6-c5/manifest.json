@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "binding_id": "binding:openai-compatible-c5",
+  "binding_sha256": "58f6b2296c2e99da98d8a358328af7fabc10ce0b209055c70668c1af3fec9bb8",
+  "vendor": "openai",
+  "provider_kind": "model",
+  "provider_version": "1.0.0",
+  "adapter": "hseos-api-campaign-v1",
+  "artifact_sha256": "fe4a2f36e7a857b71b1c4a64a74d22e7aae242d0e358e505e18afe0b069606a2",
+  "route": "api",
+  "transport": "http",
+  "authentication": {
+    "mode": "api_key",
+    "identity_kind": "credential",
+    "credential": {
+      "name": "api-key",
+      "source_ref": "env://HSEOS_MODEL_PROVIDER_API_KEY"
+    },
+    "account_sha256": null,
+    "credential_sha256": "1f8890f443edc8ff115a071a1a84e507d45d24ae9da0df27bf23fa9e59f980c1",
+    "source": "explicit"
+  },
+  "billing": {
+    "kind": "metered",
+    "currency": "USD",
+    "max_request_microusd": 250000
+  },
+  "limits": {
+    "max_requests": 2,
+    "max_input_tokens": 4096,
+    "max_output_tokens": 256,
+    "max_duration_ms": 60000
+  },
+  "controls": {
+    "authority": "kernel",
+    "resume": "unavailable",
+    "cancel": "not_verified",
+    "quota": "not_verified",
+    "evidence_sha256": null
+  }
+}

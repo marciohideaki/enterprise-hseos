@@ -1,0 +1,100 @@
+[
+  {
+    "t": 1793718021537,
+    "call": "campaign",
+    "action": "create",
+    "command_id": "3fc651b4-9273-466a-9703-2b9d4401cdcd",
+    "replay_of_prior": false
+  },
+  {
+    "t": 1793718021540,
+    "call": "query",
+    "requests": 0,
+    "committed_microusd": 0,
+    "report_sha256": "de72ed24d5898b5ff58cab5fa7b7e0d944baacd529aa5b7ff517aec2a041b08e"
+  },
+  {
+    "t": 1793718027132,
+    "call": "campaign",
+    "action": "run",
+    "command_id": "2ae4c80d-6111-4be3-87fd-497ab682fc7e",
+    "replay_of_prior": false
+  },
+  {
+    "t": 1793718027136,
+    "call": "query",
+    "requests": 1,
+    "committed_microusd": 250000,
+    "report_sha256": "a3698fe25bb39ca7e11fbedc4e0e832e2ab195cb7d9a5c4daf76df907ba39194"
+  },
+  {
+    "t": 1793718027139,
+    "call": "campaign",
+    "action": "run",
+    "command_id": "2ae4c80d-6111-4be3-87fd-497ab682fc7e",
+    "replay_of_prior": true
+  },
+  {
+    "t": 1793718027141,
+    "call": "query",
+    "requests": 1,
+    "committed_microusd": 250000,
+    "report_sha256": "a3698fe25bb39ca7e11fbedc4e0e832e2ab195cb7d9a5c4daf76df907ba39194"
+  },
+  {
+    "t": 1793718027143,
+    "call": "query",
+    "requests": 1,
+    "committed_microusd": 250000,
+    "report_sha256": "a3698fe25bb39ca7e11fbedc4e0e832e2ab195cb7d9a5c4daf76df907ba39194"
+  },
+  {
+    "t": 1793718032477,
+    "call": "campaign",
+    "action": "run",
+    "command_id": "f56df2e0-ae81-4e6b-aef9-3f7c7c85a47c",
+    "replay_of_prior": false
+  },
+  {
+    "t": 1793718032478,
+    "call": "query",
+    "requests": 2,
+    "committed_microusd": 500000,
+    "report_sha256": "105526bad4a9c309416e0052f3b1a3b1e1faf2e7f51cefd53f7b262b269337bd"
+  },
+  {
+    "t": 1793718032479,
+    "call": "campaign",
+    "action": "run",
+    "command_id": "f56df2e0-ae81-4e6b-aef9-3f7c7c85a47c",
+    "replay_of_prior": true
+  },
+  {
+    "t": 1793718032480,
+    "call": "query",
+    "requests": 2,
+    "committed_microusd": 500000,
+    "report_sha256": "105526bad4a9c309416e0052f3b1a3b1e1faf2e7f51cefd53f7b262b269337bd"
+  },
+  {
+    "t": 1793718032481,
+    "call": "query",
+    "requests": 2,
+    "committed_microusd": 500000,
+    "report_sha256": "105526bad4a9c309416e0052f3b1a3b1e1faf2e7f51cefd53f7b262b269337bd"
+  },
+  {
+    "t": 1793718032485,
+    "call": "campaign",
+    "action": "cancel",
+    "command_id": "047caa6a-545e-41d3-9dff-a46e8f52c550",
+    "replay_of_prior": false
+  },
+  {
+    "t": 1793718032486,
+    "call": "query",
+    "requests": 2,
+    "committed_microusd": 500000,
+    "report_sha256": "1b81ff624d89092111f4232f0d897c629ead5415d95509cd29f75d8ddfeb780c"
+  }
+]

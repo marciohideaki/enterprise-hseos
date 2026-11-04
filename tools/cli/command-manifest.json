@@ -93,7 +93,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "67a311b105dcc07861abd2fca1a1155e8b5f98c09adf14f0896f005448386a2b"
+      "source_sha256": "c341bb365687f03ff6b8557e448cb2ded14eb61ef1b6373d128e11f8633f04c2"
     },
     {
       "filename": "agent-activation-rehearsal.js",
@@ -134,7 +134,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "67a311b105dcc07861abd2fca1a1155e8b5f98c09adf14f0896f005448386a2b",
+      "source_sha256": "c341bb365687f03ff6b8557e448cb2ded14eb61ef1b6373d128e11f8633f04c2",
       "companion": "memory"
     },
     {
@@ -180,7 +180,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "67a311b105dcc07861abd2fca1a1155e8b5f98c09adf14f0896f005448386a2b",
+      "source_sha256": "c341bb365687f03ff6b8557e448cb2ded14eb61ef1b6373d128e11f8633f04c2",
       "companion": "execution-activation"
     },
     {

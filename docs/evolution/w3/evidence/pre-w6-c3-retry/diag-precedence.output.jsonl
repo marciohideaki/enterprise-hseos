@@ -1,0 +1,4 @@
+{"type":"system","subtype":"init","tools":[],"permissionMode":"plan","model":"claude-haiku-5-5","apiKeySource":"ANTHROPIC_API_KEY","claude_code_version":"2.1.316"}
+{"type":"assistant"}
+{"type":"result","subtype":"success","is_error":true,"api_error_status":401,"result":"Invalid API key · Fix external API key","total_cost_usd":0,"model_usage":[]}
+stream-error Claude Code returned an error result: Invalid API key · Fix external API key

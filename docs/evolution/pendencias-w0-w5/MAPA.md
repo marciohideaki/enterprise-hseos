@@ -271,3 +271,13 @@ Plano: `PLAN-3.md` da run `20261030-1810-owner-decisions` (onda W9). As decisõe
 #### Distribuição global após a W9
 
 Reinstalada em 2026-10-31 no SHA `fe878a5f` (master após a W9), com o mesmo procedimento da A12. Tarball sha256 `86026bbc74143a3a907167da93905baead8d797763d3e2e7d0bc8c1d78c9adb7`. Foram repontadas 20 referências, e os 4 serviços `hseos-*` passaram no health check. O watchdog sai com 0 e o pin do `AGENTS.md` global foi atualizado. Recibo em `~/.local/state/hseos/distributions/fe878a5f…/verification.json`. O rollback aponta para o `817da40b`. A restauração do host foi testada em diretório descartável; a reinstalação do CLI anterior não foi executada (NOT VERIFIED).
+
+## 9. Fechamento pré-W6 (run `20261101-pre-w6-closeout`, PLAN-4): situação ao fim da WC, 2026-11-04
+
+Fonte: `.hseos/runs/dev-squad/20261101-pre-w6-closeout/STATUS.md` e os recibos `docs/evolution/w3/C1-…` a `C11-…`. Esta seção registra a WC; a WD (promoções, reauditoria, reinstalação) a completa. Nenhum status em `requirements.json` mudou na WC.
+
+- **Campanhas reais:** C1, C2, C3, C5 e C7 fecham como "binding em L1; campanha L2 incompleta, sem promoção". C8 (F14): consumidor real observado, com limites. C9 (F15): parcial, com a retomada do `fork` não aprovada. C10: sem gasto, observação parcial em F02, F03, F04 e F09, NOT_EXERCISED em F05, F06, F10, F12, F13 e F22. C11 (F20): `environment.lsp.hover` por cliente real, com limites.
+- **BLOCKED por decisão do owner, nunca PASS:** C4 (ACP de terceiro e tool-free, chave ausente) e C6 (Gemini, quarta família, chave ausente).
+- **Defeitos de código achados e corrigidos:** `95e2e469` (`usage: null`), `66d77fbe` (`memory promote` interativo), `c02b5085` (nomes de ferramenta) e `23d2c29f` (ids de chamada). Só chegam à distribuição global na reinstalação da WD.
+- **Limites que valem para toda a WC:** nenhuma campanha fixou a conta dona da chave nem o modelo respondente (a C9 o observou); o custo do ledger é reserva e o do cliente é estimativa, sem fatura; `tools/call` com aprovação por chamada e MRTR não são exercitáveis no Codex 0.166.0, no Antigravity e nos bindings sem ferramenta.
+- **Abertas para a WD:** reinstalação da distribuição; verificação humana do prompt interativo de `memory promote`; promoções com evidência resolvível; reauditoria cética; `PLAN.md` §"Pendências antes de abrir a W6" zerado ou com BLOCKED explícito; CI completo na master.

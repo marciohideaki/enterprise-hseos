@@ -1,0 +1,14 @@
+{
+  "resource_id": "e094ce03-3648-44c9-b7ae-65d96ed362b8",
+  "current_sequence": 8,
+  "max_requests": 4,
+  "max_cost_microusd": 1000000,
+  "deadline": 1793723859367,
+  "requests": 1,
+  "committed_microusd": 250000,
+  "cancelled": true,
+  "unresolved_commands": ["10ddecf2-2db0-46b2-a03b-7dadbd2c6be0"],
+  "live_commands": [],
+  "bindings": ["binding:openai-compatible-c5"],
+  "report_sha256": "6189c6b333838fbb3e9100ce8b606d6b4aadd77e6f6ee157c0d60f08e2c99e29"
+}

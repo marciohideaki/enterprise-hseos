@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "resource_id": "10df2637-d8bb-40c1-9898-4f2a885920a5",
+  "scope": "pilot",
+  "covered_vendors": ["claude"],
+  "status": "control_trial_completed",
+  "vendor_session_recovery": "not_certified",
+  "real_conformance": "not_certified",
+  "receipts": [
+    {
+      "binding_id": "binding:claude-api-c3",
+      "task_id": "26e62bed-87e2-4f57-a879-9a08c4b00075",
+      "command_id": "2ae4c80d-6111-4be3-87fd-497ab682fc7e",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "43778ab378575adae308c6e222ca490432d7f163f0c2f1ad807922a3d52ed978",
+        "evidence_sha256": "f2f1325f36c13c1ee2fb53681f0e5ad805b96ee8b453f1ac70297da000a5f898",
+        "cost_microusd": null,
+        "input_tokens": 2123,
+        "output_tokens": 135,
+        "provider_session_id": "04ed3863-4803-4d87-a4a3-b3ab5b24a26b",
+        "evidence_ref": {
+          "schema_version": 1,
+          "kind": "model_output",
+          "sha256": "dd8be5bbc0df0b953583d53fede85460030f6a56c66ef7b3a3ea9291054f591d",
+          "bytes": 30
+        }
+      },
+      "control_replay_verified": true
+    },
+    {
+      "binding_id": "binding:claude-api-c3",
+      "task_id": "26e62bed-87e2-4f57-a879-9a08c4b00075",
+      "command_id": "f56df2e0-ae81-4e6b-aef9-3f7c7c85a47c",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "43778ab378575adae308c6e222ca490432d7f163f0c2f1ad807922a3d52ed978",
+        "evidence_sha256": "f4173c9c14fa7865ab0355f19f75f0ba7b9e5163e7c4c8db14bbbb4ef5b0db5a",
+        "cost_microusd": null,
+        "input_tokens": 2454,
+        "output_tokens": 18,
+        "provider_session_id": "04ed3863-4803-4d87-a4a3-b3ab5b24a26b",
+        "evidence_ref": {
+          "schema_version": 1,
+          "kind": "model_output",
+          "sha256": "4ea36a698ffed176b85758cb0cfbb60cdfa17421835b71aede7beb09a1315414",
+          "bytes": 30
+        }
+      },
+      "control_replay_verified": true
+    }
+  ],
+  "final": {
+    "resource_id": "10df2637-d8bb-40c1-9898-4f2a885920a5",
+    "current_sequence": 12,
+    "max_requests": 4,
+    "max_cost_microusd": 1000000,
+    "deadline": 1793721621411,
+    "requests": 2,
+    "committed_microusd": 500000,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": ["binding:claude-api-c3"],
+    "report_sha256": "1b81ff624d89092111f4232f0d897c629ead5415d95509cd29f75d8ddfeb780c"
+  }
+}

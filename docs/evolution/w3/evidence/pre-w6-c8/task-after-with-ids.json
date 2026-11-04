@@ -1,0 +1,44 @@
+{
+  "label": "after-promotion-with-ids",
+  "observed_at": "2026-11-03T18:22:55.019Z",
+  "task_run_id": "0fe947fb-c8c9-443d-ade0-c5e91f13346b",
+  "task_id": "addition-fixture",
+  "session_id": "session:dff0811b-088f-409f-a8ac-0b921cedcce9",
+  "task_ledger_events": 14,
+  "agent_session_event_positions": [2, 4, 5, 6, 7, 8, 9, 12],
+  "context_assembled_sequence": 3,
+  "task_result": "approved",
+  "project_id": "c8-f14",
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+      "origin": "memory",
+      "source_ref": "memory://c8-f14/c8-note-1:promoted",
+      "trust": "trusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "3c264810bc27720d370dceaeb9a4055d15167021ab91466f966b02c0c3dc3368",
+      "bytes": 233,
+      "authority_data": true
+    }
+  ],
+  "source_refs": [
+    "hseos://context/precedence-v1",
+    "policy://engineering/v1",
+    "profile://engineering/candidate",
+    "task-contract://84307dcf50582ad1023e80e8177272d16dac5f5ff1f8c7c203b78f78556c2676/protected-criteria",
+    "memory://c8-f14/c8-note-1:promoted",
+    "session-event://event:1186bd44a17b97fdee4c7e52247cea3c9cf209ed",
+    "governance://tool/engineering.command",
+    "governance://tool/engineering.diagnose",
+    "governance://tool/engineering.diff",
+    "governance://tool/engineering.patch",
+    "governance://tool/engineering.read",
+    "governance://tool/engineering.search",
+    "governance://tool/engineering.write",
+    "governance://tool/memory.retrieve"
+  ]
+}

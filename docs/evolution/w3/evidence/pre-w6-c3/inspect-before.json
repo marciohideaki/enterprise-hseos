@@ -1,0 +1,12 @@
+{
+  "provider_version": "0.3.316",
+  "authenticated": true,
+  "auth_source": "explicit",
+  "competing_credentials": false,
+  "quota_remaining_requests": null,
+  "quota_available_microusd": null,
+  "credential_fingerprint_matches_manifest": true,
+  "binding_sha256": "d219f948390446a0dca9b877179f619517afd28a02b7893a8fdeef29546fd14b",
+  "artifact_sha256": "6b3dcacd650256f01eefad8821141fc49a9341ed3d66986a64a3a0f092abfd2d",
+  "observed_at": 1793626135149
+}

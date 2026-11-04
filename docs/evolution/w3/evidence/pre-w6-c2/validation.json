@@ -1,0 +1,16 @@
+{
+  "evidence_kind": "real_client_call",
+  "mocks_or_fixtures_in_inference_path": false,
+  "control_ledger_is_temporary_fixture": true,
+  "same_session": true,
+  "expected_response_hashes": [true, true],
+  "real_inference_calls": 2,
+  "requests": 2,
+  "committed_microusd": 0,
+  "authorized_microusd": 0,
+  "live_commands": 0,
+  "unresolved": 0,
+  "cancelled": true,
+  "replay_verified": true,
+  "same_binding_before_after": true
+}

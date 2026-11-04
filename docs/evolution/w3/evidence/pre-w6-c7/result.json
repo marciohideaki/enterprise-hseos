@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "resource_id": "2c6ef772-6d11-45a0-9c6e-9e54f602a81d",
+  "scope": "pilot",
+  "covered_vendors": ["antigravity"],
+  "status": "control_trial_completed",
+  "vendor_session_recovery": "not_certified",
+  "real_conformance": "not_certified",
+  "receipts": [
+    {
+      "binding_id": "binding:antigravity-local-c7",
+      "task_id": "2c1f9b1c-bb32-4951-b39c-4530adb10e74",
+      "command_id": "3835b94f-6775-4c3c-b75f-3d4bc7d0f725",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "670bb1130a0adb9e82906e5383dcf5226b42d73eeb91844e878d36a685cab04f",
+        "evidence_sha256": "f555d59d2d0de90013d15918563b89cd9cfcbc75b78f052f479913d82e9d1aca",
+        "cost_microusd": 0,
+        "input_tokens": 249,
+        "output_tokens": 21,
+        "provider_session_id": "116cf6d914738af58f165524d95649bf",
+        "evidence_withheld": "not_observable"
+      },
+      "control_replay_verified": true
+    },
+    {
+      "binding_id": "binding:antigravity-local-c7",
+      "task_id": "2c1f9b1c-bb32-4951-b39c-4530adb10e74",
+      "command_id": "f8d3418d-80d8-454f-b3aa-9c95aac0e1c2",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "670bb1130a0adb9e82906e5383dcf5226b42d73eeb91844e878d36a685cab04f",
+        "evidence_sha256": "72eadfa90419e15f118557980b82dfba897e46eec9804d5038eefec19fae9d91",
+        "cost_microusd": 0,
+        "input_tokens": 331,
+        "output_tokens": 21,
+        "provider_session_id": "116cf6d914738af58f165524d95649bf",
+        "evidence_withheld": "not_observable"
+      },
+      "control_replay_verified": true
+    }
+  ],
+  "final": {
+    "resource_id": "2c6ef772-6d11-45a0-9c6e-9e54f602a81d",
+    "current_sequence": 18,
+    "max_requests": 4,
+    "max_cost_microusd": 0,
+    "deadline": 1793728793960,
+    "requests": 4,
+    "committed_microusd": 0,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": ["binding:antigravity-local-c7", "binding:codex-child-c7"],
+    "report_sha256": "5f730155d1715b87dd7c771fadb360c9b112c2ab297174ea2b1d93cb1e242368"
+  }
+}

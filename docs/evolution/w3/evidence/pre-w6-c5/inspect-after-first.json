@@ -1,0 +1,15 @@
+{
+  "provider_version": "1.0.0",
+  "authenticated": true,
+  "auth_source": "explicit",
+  "competing_credentials": false,
+  "quota_remaining_requests": null,
+  "credential_fingerprint_matches_manifest": true,
+  "effective_backend": {
+    "origin": "https://api.openai.com"
+  },
+  "pricing_valid_until": 1793735067541,
+  "binding_sha256": "58f6b2296c2e99da98d8a358328af7fabc10ce0b209055c70668c1af3fec9bb8",
+  "artifact_sha256": "fe4a2f36e7a857b71b1c4a64a74d22e7aae242d0e358e505e18afe0b069606a2",
+  "observed_at": 1793724269931
+}

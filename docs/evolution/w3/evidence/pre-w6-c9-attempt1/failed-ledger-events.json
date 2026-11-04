@@ -1,0 +1,58 @@
+{
+  "note": "ledger of the failed attempt-1 reference run (state kept by chance); payloads of the large events are omitted",
+  "events": [
+    {
+      "sequence": 1,
+      "event_type": "session.created"
+    },
+    {
+      "sequence": 2,
+      "event_type": "turn.started"
+    },
+    {
+      "sequence": 3,
+      "event_type": "context.assembled"
+    },
+    {
+      "sequence": 4,
+      "event_type": "model.request.started"
+    },
+    {
+      "sequence": 5,
+      "event_type": "model.streamed",
+      "payload": {
+        "turn_id": "turn:6284587c-6980-4279-a5f8-63610aec10e4",
+        "step_id": "step:fee13c1eeee7939ef7512b2d6ae2b4b566030501",
+        "provider_id": "model:openai-compatible",
+        "event": {
+          "schema_version": 1,
+          "provider_id": "model:openai-compatible",
+          "request_id": "request:fee13c1eeee7939ef7512b2d6ae2b4b566030501",
+          "event_type": "failed",
+          "sequence": 0,
+          "payload": {
+            "error_code": "internal_error",
+            "message": "agent runtime failed",
+            "retryable": false
+          }
+        }
+      }
+    },
+    {
+      "sequence": 6,
+      "event_type": "session.failed",
+      "payload": {
+        "error_code": "internal_error",
+        "message": "agent runtime failed",
+        "retryable": false
+      }
+    }
+  ],
+  "identifier_schema_check": {
+    "call_Ab12Cd34": false,
+    "call_ab12": true,
+    "call:one": true,
+    "hseos-id:call_.ab12.cd34": true
+  },
+  "identifier_schema_pattern": "^[a-z0-9][a-z0-9._:-]*$ (max 160)"
+}

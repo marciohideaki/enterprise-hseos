@@ -1,0 +1,19 @@
+{
+  "mode": "real",
+  "root": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/pre-w6-wc",
+  "contract_sha256": "443b12e3bc426f65c437a7143cb7f1e9d512aa4e642d259e2cc5d7322b38eb34",
+  "binding_sha256": "2e2672cf54b8261173c4c934f040386213e6144921c8830db4a1d6b5b17f6f8b",
+  "compaction": {
+    "schema_version": 1,
+    "provider_id": "compaction:deterministic",
+    "threshold_basis_points": 2800,
+    "context_tokens": 20000
+  },
+  "compaction_sha256": "f83810afee200086247713238280f4cdac21023d2425574cce2631a889bc412d",
+  "base_url": "https://api.openai.com/v1",
+  "model": "gpt-4o-mini",
+  "pad_repeat": 600,
+  "context_tokens": 20000,
+  "max_requests": 12,
+  "node": "v24.15.0"
+}

@@ -15,6 +15,7 @@ const {
   runBoundKernelAgent,
 } = require('../tools/cli/lib/bound-kernel-agent-runtime');
 const { openExecutionLedgerFileFixture } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
+const { toWireToolName } = require('../packages/model-providers/openai-compatible-provider');
 
 const ROOT = path.join(__dirname, '..');
 const EXAMPLE = path.join(ROOT, '.agents', 'activation', 'provider-bindings', 'openai-compatible.example.yaml');
@@ -75,7 +76,7 @@ function successfulFetch(observed) {
                 {
                   index: 0,
                   id: 'call:set-state',
-                  function: { name: 'temporary.set-state', arguments: '{"value":"durable"}' },
+                  function: { name: toWireToolName('temporary.set-state'), arguments: '{"value":"durable"}' },
                 },
               ],
             },
@@ -110,7 +111,7 @@ test('bound kernel runs a real provider tool loop with sandbox evidence and no p
     assert.deepEqual(JSON.parse(fs.readFileSync(result.world_state, 'utf8')), { schema_version: 1, value: 'durable' });
     assert.equal(observed.length, 2);
     assert.ok(observed.every((request) => request.authorization === `Bearer ${SECRET}`));
-    assert.equal(observed[0].body.tools[0].function.name, 'temporary.set-state');
+    assert.equal(observed[0].body.tools[0].function.name, 'temporary_dset-state', 'the wire carries the encoded name');
 
     const handle = openExecutionLedgerFileFixture(result.state);
     try {

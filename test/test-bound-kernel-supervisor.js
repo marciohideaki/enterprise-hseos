@@ -13,6 +13,7 @@ const yaml = require('yaml');
 const { probeExactSandboxProfile, runSupervisedBoundKernel } = require('../tools/cli/lib/bound-kernel-supervisor');
 const { resolveSandbox } = require('../tools/cli/lib/sandbox');
 const { openExecutionLedgerFileFixture } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
+const { toWireToolName } = require('../packages/model-providers/openai-compatible-provider');
 
 const ROOT = path.join(__dirname, '..');
 const EXAMPLE = path.join(ROOT, '.agents', 'activation', 'provider-bindings', 'openai-compatible.example.yaml');
@@ -118,7 +119,7 @@ async function providerServer(t, observed) {
                   {
                     index: 0,
                     id: 'call:supervised-state',
-                    function: { name: 'temporary.set-state', arguments: '{"value":"durable"}' },
+                    function: { name: toWireToolName('temporary.set-state'), arguments: '{"value":"durable"}' },
                   },
                 ],
               },

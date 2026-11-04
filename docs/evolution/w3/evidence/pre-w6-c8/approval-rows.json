@@ -1,0 +1,22 @@
+{
+  "execution_approvals": [
+    {
+      "approval_id": "75916b8d-76cb-4ad7-8512-40b785ed5983",
+      "operation_id": "memory.promote:c8-f14:c8-note-1:d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+      "authorizer_json": "{\"id\":\"owner\",\"type\":\"human\"}",
+      "resource_scope_json": "{\"content_sha256\":\"d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136\",\"memory_id\":\"c8-note-1\",\"project_id\":\"c8-f14\"}",
+      "issued_at": "2026-11-03T18:09:49.968Z",
+      "expires_at": "2026-11-03T18:10:19.968Z",
+      "decision": "approved",
+      "policy_version": "hseos-operational-v1",
+      "evidence_ref": "hseos://operator/memory-promotion/75916b8d-76cb-4ad7-8512-40b785ed5983"
+    }
+  ],
+  "execution_approval_uses": [
+    {
+      "approval_id": "75916b8d-76cb-4ad7-8512-40b785ed5983",
+      "operation_id": "memory.promote:c8-f14:c8-note-1:d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+      "consumed_at": "2026-11-03T18:09:49.973Z"
+    }
+  ]
+}

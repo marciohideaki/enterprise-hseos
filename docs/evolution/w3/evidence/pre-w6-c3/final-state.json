@@ -1,0 +1,14 @@
+{
+  "resource_id": "7156957a-82f1-4436-a56c-730012995e61",
+  "current_sequence": 8,
+  "max_requests": 4,
+  "max_cost_microusd": 1000000,
+  "deadline": 1793629735458,
+  "requests": 1,
+  "committed_microusd": 250000,
+  "cancelled": true,
+  "unresolved_commands": ["cfd3801e-761d-4874-a2b9-9c26eb7a6396"],
+  "live_commands": [],
+  "bindings": ["binding:claude-api-c3"],
+  "report_sha256": "d433c379434e8a2ef8db4e1f65f5dded31b9598d8d068d811293d770b522de38"
+}

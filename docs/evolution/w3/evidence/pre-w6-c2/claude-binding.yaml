@@ -1,0 +1,7 @@
+schema_version: 1
+profile_id: agent-claude-cli-account-candidate
+runtime_provider_id: runtime:claude-cli
+executable: /home/annonymous/.local/share/claude/versions/2.1.316
+cwd: /build/tmp/wc/c2/project
+env_names: []
+secret_refs: []

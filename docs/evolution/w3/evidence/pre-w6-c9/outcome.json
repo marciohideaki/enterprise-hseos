@@ -1,0 +1,8 @@
+{
+  "outcome": "partial",
+  "label": "compaction, SIGKILL crash, resume with reconciliation and fork lineage proved with the real model; fork resume NOT approved; L2 incomplete, no promotion",
+  "reference": "approved",
+  "compacted_resume": "approved",
+  "fork_resume": "failed (criteria-not-satisfied)",
+  "note": "verdict.json field `completed: true` only means the script reached its end; it does not mean the campaign passed"
+}

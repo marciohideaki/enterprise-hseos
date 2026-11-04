@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "profile_id": "agent-claude-delegated-candidate",
+  "runtime_provider_id": "runtime:claude-agent-sdk",
+  "executable": "/home/annonymous/.local/share/claude/versions/2.1.316",
+  "sdk_module": "/build/tmp/wc/c3/sdk/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs",
+  "cwd": "/build/tmp/wc/c3/project",
+  "env_names": [],
+  "secret_refs": []
+}

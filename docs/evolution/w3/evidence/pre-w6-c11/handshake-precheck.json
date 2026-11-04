@@ -1,0 +1,19 @@
+{
+ "protocol": "2024-11-05",
+ "tools": 24,
+ "lsp": [
+  "environment.lsp.definition",
+  "environment.lsp.diagnostics",
+  "environment.lsp.hover",
+  "environment.lsp.references",
+  "environment.lsp.rename_preview"
+ ],
+ "dap": 1,
+ "memory": [
+  "memory.delete",
+  "memory.retrieve",
+  "memory.write"
+ ],
+ "stderr_has_off_line": false,
+ "stderr": "[project-state:info] hseos mcp: computer and browser are off in this phase (they need a media store and an egress broker)\n[project-state:info] [project_state] governed mode=activated user_version=17\n[project-state:info] [project_state] governed MCP stdio ready; tools=16\n[project-state:info] started;"
+}

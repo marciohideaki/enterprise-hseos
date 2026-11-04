@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "scope": "pilot",
+  "campaign_id": "c9ccd9cc-1663-4925-a02c-ed518bd95fab",
+  "authorization_id": "4ffb05f2-0abb-4aad-a5b5-57d65f1e75ae",
+  "create_command_id": "b78877d2-ffe5-4e80-b4b6-6751e136b399",
+  "cancel_command_id": "50755897-fe4c-49b9-b053-7bf48b5e49c3",
+  "steps": [
+    {
+      "command_id": "9067e5fe-4383-4bf6-b440-879a114ad036",
+      "binding_id": "binding:codex-c1",
+      "task_id": "6ae261e6-59d2-461b-9c98-1d3046eef241"
+    },
+    {
+      "command_id": "2c299163-1e1e-4aaf-a66f-f867531def8d",
+      "binding_id": "binding:codex-c1",
+      "task_id": "6ae261e6-59d2-461b-9c98-1d3046eef241",
+      "resume_from": "9067e5fe-4383-4bf6-b440-879a114ad036"
+    }
+  ]
+}

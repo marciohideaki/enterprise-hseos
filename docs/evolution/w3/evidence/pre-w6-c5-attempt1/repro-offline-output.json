@@ -1,0 +1,30 @@
+{
+  "description": "Offline reproduction (no network, no credential) of the adapter run against a stream shaped like the official chat-completions stream. 'before' = tree at b5e1ed77; 'after' = task commit 95e2e469 (provider fix).",
+  "before_fix": [
+    {
+      "mode": "omitted-usage",
+      "outcome": "completed",
+      "input_tokens": 12,
+      "output_tokens": 2
+    },
+    {
+      "mode": "null-usage",
+      "outcome": "error",
+      "code": "CONTROL_OUTCOME_UNCERTAIN"
+    }
+  ],
+  "after_fix": [
+    {
+      "mode": "omitted-usage",
+      "outcome": "completed",
+      "input_tokens": 12,
+      "output_tokens": 2
+    },
+    {
+      "mode": "null-usage",
+      "outcome": "completed",
+      "input_tokens": 12,
+      "output_tokens": 2
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "label": "isolation-control-beta-default",
+  "observed_at": "2026-11-03T18:47:30.557Z",
+  "task_run_id": "c669a0aa-d854-4576-a91e-d2b704e48851",
+  "task_id": "addition-fixture",
+  "session_id": "session:ef78bf65-f7ad-45b7-8d6a-4b6f269f0975",
+  "task_ledger_events": 14,
+  "agent_session_event_positions": [2, 4, 5, 6, 7, 8, 9, 12],
+  "context_assembled_sequence": 3,
+  "task_result": "approved",
+  "project_id": "c8-beta",
+  "host_include_untrusted": false,
+  "memory_sources": [],
+  "memory_blocks": [],
+  "source_refs": [
+    "hseos://context/precedence-v1",
+    "policy://engineering/v1",
+    "profile://engineering/candidate",
+    "task-contract://365e8e1c23966c85b69deab2f971f9845faf71e1efabceac1b744a0618a20288/protected-criteria",
+    "session-event://event:dd348de193ad0df76f3dc87c14965ace174e6806",
+    "governance://tool/engineering.command",
+    "governance://tool/engineering.diagnose",
+    "governance://tool/engineering.diff",
+    "governance://tool/engineering.patch",
+    "governance://tool/engineering.read",
+    "governance://tool/engineering.search",
+    "governance://tool/engineering.write",
+    "governance://tool/memory.retrieve"
+  ]
+}

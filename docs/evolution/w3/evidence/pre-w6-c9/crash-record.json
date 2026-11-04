@@ -1,0 +1,1 @@
+{"pid":467473,"cmdline":["/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node","--require","/build/tmp/wc/c9/fetch-guard.cjs","/workspace/github/marciohideaki/enterprise-hseos/.worktrees/pre-w6-wc/tools/cli/hseos-cli.js","agent","resume"],"at_request_in_process":3,"killed_before_sending":true}

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "resource_id": "1b810699-ed71-4b09-9783-5379ccb775af",
+  "scope": "pilot",
+  "covered_vendors": ["claude"],
+  "status": "control_trial_completed",
+  "vendor_session_recovery": "not_certified",
+  "real_conformance": "not_certified",
+  "receipts": [
+    {
+      "binding_id": "binding:claude-c2",
+      "task_id": "aaca2d2e-7062-416a-a680-46b78669766e",
+      "command_id": "3a4ffff2-377b-4848-afac-d05e32c3dc68",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "596f45438b8c974a6e89b203bd3fb2aa1f0ab148b7f7a7650c2a89e5340167ef",
+        "evidence_sha256": "b2877979571cff87639efcc70c1178bcf6e1e2b241293b4c04f57f8095c92741",
+        "cost_microusd": null,
+        "input_tokens": 3086,
+        "output_tokens": 17,
+        "provider_session_id": "8f7e9683-fce8-43df-a241-eba6b1631785",
+        "evidence_ref": {
+          "schema_version": 1,
+          "kind": "model_output",
+          "sha256": "dd8be5bbc0df0b953583d53fede85460030f6a56c66ef7b3a3ea9291054f591d",
+          "bytes": 30
+        }
+      },
+      "control_replay_verified": true
+    },
+    {
+      "binding_id": "binding:claude-c2",
+      "task_id": "aaca2d2e-7062-416a-a680-46b78669766e",
+      "command_id": "f550184e-4adf-45cc-bbca-54b12a4122fd",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "596f45438b8c974a6e89b203bd3fb2aa1f0ab148b7f7a7650c2a89e5340167ef",
+        "evidence_sha256": "623b437436402d4893643973b46fdac46797c0ea2a39d084c51a6537b15015af",
+        "cost_microusd": null,
+        "input_tokens": 3341,
+        "output_tokens": 18,
+        "provider_session_id": "8f7e9683-fce8-43df-a241-eba6b1631785",
+        "evidence_ref": {
+          "schema_version": 1,
+          "kind": "model_output",
+          "sha256": "4ea36a698ffed176b85758cb0cfbb60cdfa17421835b71aede7beb09a1315414",
+          "bytes": 30
+        }
+      },
+      "control_replay_verified": true
+    }
+  ],
+  "final": {
+    "resource_id": "1b810699-ed71-4b09-9783-5379ccb775af",
+    "current_sequence": 12,
+    "max_requests": 4,
+    "max_cost_microusd": 0,
+    "deadline": 1793628938560,
+    "requests": 2,
+    "committed_microusd": 0,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": ["binding:claude-c2"],
+    "report_sha256": "262104c7b670833354c5869c0383e8f73007f3e443cf58cea6761098b9b4004c"
+  }
+}

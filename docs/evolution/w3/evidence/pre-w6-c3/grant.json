@@ -1,0 +1,13 @@
+{
+  "max_requests": 4,
+  "max_cost_microusd": 1000000,
+  "deadline": 1793629735458,
+  "binding_ids": ["binding:claude-api-c3"],
+  "task_ids": ["33accd37-1f61-47fb-85a1-140dec28300f"],
+  "quota_exceptions": {
+    "binding:claude-api-c3": {
+      "reason": "Owner confirmed C3 on 2026-11-02: at most 2 Claude Agent SDK inferences on the owner API key, USD 1.00 campaign ceiling, 0.25 reserved per request; the API listing authenticates the key but exposes no balance or quota window, so the exception is limited to this campaign and its validity.",
+      "expires_at": 1793629735458
+    }
+  }
+}

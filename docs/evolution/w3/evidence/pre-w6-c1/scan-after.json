@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "scanned_at_utc": "2026-11-02T12:36:22Z",
+  "scanned_paths": [
+    "docs/evolution/w3/evidence/pre-w6-c1 (artefatos versionados)",
+    "/build/tmp/wc/c1 (diret\u00f3rio inteiro da campanha, incluindo o state do controle)"
+  ],
+  "literal_values_checked": 6,
+  "literal_value_kinds": "valores string do auth.json do cliente (5) e a credencial do servidor de controle (do pass)",
+  "literal_hits": 0,
+  "pattern_hits_in_versioned_artifacts": 0,
+  "patterns": "sk-\u2026, JWT eyJ\u2026, Bearer \u2026",
+  "app_server_stdio_processes_after_campaign": 0,
+  "note": "Valores n\u00e3o s\u00e3o gravados. N\u00e3o cobre o conte\u00fado do state do controle quanto a padr\u00f5es, s\u00f3 valores literais."
+}

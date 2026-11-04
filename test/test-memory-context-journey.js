@@ -436,6 +436,45 @@ test('hseos memory promote: the operator command confirms on the terminal or wit
   assert.equal(events.at(-2).payload.promotion.promoted_by, 'owner');
 });
 
+test('hseos memory promote: the registered action reaches the terminal prompt and ignores the extra arguments the CLI parser passes', async (t) => {
+  const box = await seeded(t);
+  const modulePath = path.join(ROOT, 'tools/cli/commands/agent-activation-rehearsal');
+  // A child process with a piped stdin that answers the prompt, and a terminal flag set before the module loads. The third argument stands
+  // for what the CLI parser passes to an action (its command object): it must never be taken for the confirmation function. The parser
+  // itself and a real pseudo-terminal are NOT exercised here; the arguments are simulated and the terminal is a flag over a pipe.
+  const script = `
+    process.stdin.isTTY = true;
+    const companion = require(${JSON.stringify(modulePath)}).companions.find((entry) => entry.command === 'memory <action>');
+    const options = { db: ${JSON.stringify(box.databasePath)}, project: 'proj-1', memory: 'note-1', reason: 'reviewed', operator: 'owner', json: true };
+    companion.action('promote', options, { parsedBy: 'cli-parser-command-object' }, 'unexpected-extra-argument').then(
+      (report) => console.log(JSON.stringify({ promoted: report.memory_id })),
+      (error) => { console.log(JSON.stringify({ failed: String(error.message) })); process.exitCode = 1; },
+    );
+  `;
+  const run = (answer) =>
+    new Promise((resolve) => {
+      const child = spawn(process.execPath, ['-e', script], { cwd: ROOT, stdio: ['pipe', 'pipe', 'pipe'] });
+      let stdout = '';
+      let stderr = '';
+      const timer = setTimeout(() => child.kill('SIGKILL'), 30_000);
+      child.stdout.on('data', (chunk) => (stdout += chunk));
+      child.stderr.on('data', (chunk) => (stderr += chunk));
+      child.stdin.on('error', () => {});
+      child.on('close', (code, signal) => {
+        clearTimeout(timer);
+        resolve(`${stdout}${code === 0 || stdout.includes('promotion declined') ? '' : `\n[exit ${code ?? signal}] ${stderr}`}`);
+      });
+      child.stdin.end(answer);
+    });
+  const declined = await run('n\n');
+  assert.match(declined, /promotion declined/, 'the prompt is reached and a refusal stops the promotion');
+  assert.equal(memoryEvents(box).length, 2, 'nothing was promoted by the refusal');
+  const accepted = await run('y\n');
+  assert.match(accepted, /Promote note-1 to trusted as owner/, 'the question is asked on the terminal');
+  assert.match(accepted, /"promoted":"note-1:promoted"/);
+  assert.equal(memoryEvents(box).at(-2).payload.promotion.promoted_by, 'owner');
+});
+
 test('hseos memory promote through the real CLI entrypoint refuses without a terminal, even with --yes and a digest', async (t) => {
   const box = await seeded(t);
   const { spawnSync } = require('node:child_process');

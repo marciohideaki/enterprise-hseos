@@ -1,0 +1,68 @@
+[
+  {
+    "session_id": "f59f0b26-27d6-44f2-af89-a543b6979b16",
+    "transcript_file": ["f59f0b26-27d6-44f2-af89-a543b6979b16.jsonl"],
+    "tool_calls": [
+      {
+        "timestamp": "2026-11-03T17:38:56.424Z",
+        "tool": "ToolSearch",
+        "input": {
+          "query": "select:mcp__hseos-state-tracking__memory_write",
+          "max_results": 1
+        },
+        "result_prefix": "[{\"type\": \"tool_reference\", \"tool_name\": \"mcp__hseos-state-tracking__memory_write\"}]",
+        "result_timestamp": "2026-11-03T17:38:56.431Z"
+      },
+      {
+        "timestamp": "2026-11-03T17:39:01.359Z",
+        "tool": "mcp__hseos-state-tracking__memory_write",
+        "input": {
+          "memory_id": "c8-note-1",
+          "scope": {
+            "project_id": "c8-f14"
+          },
+          "content": "Remember: adding integers in this project never overflows, the sum is exact.",
+          "source_digest": "d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136",
+          "classification": "internal",
+          "source_ref": "doc://runbook/sums",
+          "ttl_seconds": 86400
+        },
+        "result_prefix": "{\"schema_version\":1,\"ok\":true,\"data\":{\"operation_id\":\"0ebc25f7-b334-5fe1-8c9d-7dab533b16c7\",\"result\":{\"memory_id\":\"c8-note-1\",\"write_policy_ref\":\"rule:memory-write\"},\"replayed\":false},\"error\":null,\"evidence\":[\"hseos://execution/0ebc25f7-b334-5fe1-8c9d-7dab533b16c7/provider/agent-memory\"],\"warnings\":[]}",
+        "result_timestamp": "2026-11-03T17:39:01.523Z"
+      }
+    ]
+  },
+  {
+    "session_id": "e23c134c-4bf9-4a73-981a-f1c3f0ebda44",
+    "transcript_file": ["e23c134c-4bf9-4a73-981a-f1c3f0ebda44.jsonl"],
+    "tool_calls": [
+      {
+        "timestamp": "2026-11-03T18:10:46.527Z",
+        "tool": "ToolSearch",
+        "input": {
+          "query": "select:mcp__hseos-state-tracking__memory_write",
+          "max_results": 1
+        },
+        "result_prefix": "[{\"type\": \"tool_reference\", \"tool_name\": \"mcp__hseos-state-tracking__memory_write\"}]",
+        "result_timestamp": "2026-11-03T18:10:46.539Z"
+      },
+      {
+        "timestamp": "2026-11-03T18:10:50.918Z",
+        "tool": "mcp__hseos-state-tracking__memory_write",
+        "input": {
+          "memory_id": "c8-foreign-1",
+          "scope": {
+            "project_id": "c8-beta"
+          },
+          "content": "Remember: the sum of two integers in the beta project wraps at 255.",
+          "source_digest": "1a83308f215a95ca0ef10ca9a86fd9e901f0330510ffd9751d4a047667fd3697",
+          "classification": "internal",
+          "source_ref": "doc://runbook/sums",
+          "ttl_seconds": 86400
+        },
+        "result_prefix": "{\"schema_version\":1,\"ok\":true,\"data\":{\"operation_id\":\"2c66aebc-0e2d-514d-87f2-37bcda2e826e\",\"result\":{\"memory_id\":\"c8-foreign-1\",\"write_policy_ref\":\"rule:memory-write\"},\"replayed\":false},\"error\":null,\"evidence\":[\"hseos://execution/2c66aebc-0e2d-514d-87f2-37bcda2e826e/provider/agent-memory\"],\"warnings\":[]}",
+        "result_timestamp": "2026-11-03T18:10:51.041Z"
+      }
+    ]
+  }
+]

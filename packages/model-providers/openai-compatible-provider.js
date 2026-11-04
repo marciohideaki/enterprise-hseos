@@ -31,20 +31,91 @@ function normalizeEndpoint(value) {
   return url.href.replace(/\/$/, '');
 }
 
+// The chat-completions wire only accepts tool names in [A-Za-z0-9_-]{1,64}, while canonical tool names carry dots
+// (`engineering.read`). The mapping is injective, so the name the model returns decodes to exactly one canonical name:
+// `_` -> `_u`, `.` -> `_d`, any other character -> `_x<hex>_`.
+const WIRE_NAME_LIMIT = 64;
+
+function toWireToolName(name) {
+  if (typeof name !== 'string') throw new ModelProviderError('tool name must be a string', 'invalid_request');
+  const wire = name.replaceAll(/[^A-Za-z0-9-]/gu, (character) => {
+    if (character === '_') return '_u';
+    if (character === '.') return '_d';
+    return `_x${character.codePointAt(0).toString(16)}_`;
+  });
+  if (wire.length === 0 || wire.length > WIRE_NAME_LIMIT) {
+    throw new ModelProviderError('tool name cannot be represented on the provider wire', 'invalid_request');
+  }
+  return wire;
+}
+
+// A name the encoder could not have produced (an invented tool, a non-canonical escape such as `_x2e_`, an out-of-range code point)
+// is passed through unchanged, so the kernel rejects it as unknown instead of resolving it to a real tool.
+function fromWireToolName(wire) {
+  if (typeof wire !== 'string' || !/^(?:[A-Za-z0-9-]|_u|_d|_x[0-9a-f]{1,6}_)+$/u.test(wire)) return wire;
+  let decoded;
+  try {
+    decoded = wire.replaceAll(/_(u|d|x([0-9a-f]{1,6})_)/gu, (_match, kind, hex) => {
+      if (kind === 'u') return '_';
+      if (kind === 'd') return '.';
+      return String.fromCodePoint(Number.parseInt(hex, 16));
+    });
+    return toWireToolName(decoded) === wire ? decoded : wire;
+  } catch {
+    return wire;
+  }
+}
+
+// The normalized contract accepts tool call ids in [a-z0-9][a-z0-9._:-]* (at most 160), while chat-completions providers issue
+// mixed-case ids (`call_AbC123`). The id is carried through the runtime as `hseos-id:` plus an injective escape (an uppercase
+// letter becomes `.` and its lowercase letter, `.` becomes `..`, any other character outside [a-z0-9_:-] becomes `.0<hex>:`),
+// and the original id is restored when it is sent back, because the provider matches tool results by the id it issued.
+const TOOL_CALL_ID_PREFIX = 'hseos-id:';
+const TOOL_CALL_ID_LIMIT = 160;
+
+function toContractToolCallId(id) {
+  if (typeof id !== 'string' || id.length === 0) throw new ModelProviderError('tool call id is invalid', 'protocol_error');
+  const body = id.replaceAll(/[^a-z0-9_:-]/gu, (character) => {
+    if (character === '.') return '..';
+    if (/^[A-Z]$/u.test(character)) return `.${character.toLowerCase()}`;
+    return `.0${character.codePointAt(0).toString(16)}:`;
+  });
+  const encoded = `${TOOL_CALL_ID_PREFIX}${body}`;
+  if (encoded.length > TOOL_CALL_ID_LIMIT) throw new ModelProviderError('tool call id is too long', 'protocol_error');
+  return encoded;
+}
+
+// An id that is not ours (no prefix, or an escape the encoder could not have produced) is sent back unchanged.
+function fromContractToolCallId(id) {
+  if (typeof id !== 'string' || !id.startsWith(TOOL_CALL_ID_PREFIX)) return id;
+  const body = id.slice(TOOL_CALL_ID_PREFIX.length);
+  if (!/^(?:[a-z0-9_:-]|\.\.|\.[a-z]|\.0[0-9a-f]{1,6}:)+$/u.test(body)) return id;
+  try {
+    const decoded = body.replaceAll(/\.(?:(\.)|([a-z])|0([0-9a-f]{1,6}):)/gu, (_match, dot, letter, hex) => {
+      if (dot) return '.';
+      if (letter) return letter.toUpperCase();
+      return String.fromCodePoint(Number.parseInt(hex, 16));
+    });
+    return toContractToolCallId(decoded) === id ? decoded : id;
+  } catch {
+    return id;
+  }
+}
+
 function requestBody(input, manifest) {
   return {
     model: input.model,
     messages: input.messages.map((message) => ({
       role: message.role,
       content: message.content,
-      ...(message.name ? { name: message.name } : {}),
-      ...(message.tool_call_id ? { tool_call_id: message.tool_call_id } : {}),
+      ...(message.name ? { name: toWireToolName(message.name) } : {}),
+      ...(message.tool_call_id ? { tool_call_id: fromContractToolCallId(message.tool_call_id) } : {}),
       ...(message.tool_calls
         ? {
             tool_calls: message.tool_calls.map((call) => ({
-              id: call.tool_call_id,
+              id: fromContractToolCallId(call.tool_call_id),
               type: 'function',
-              function: { name: call.name, arguments: JSON.stringify(call.input) },
+              function: { name: toWireToolName(call.name), arguments: JSON.stringify(call.input) },
             })),
           }
         : {}),
@@ -54,7 +125,7 @@ function requestBody(input, manifest) {
       : {
           tools: input.tools.map((tool) => ({
             type: 'function',
-            function: { name: tool.name, description: tool.description, parameters: tool.input_schema },
+            function: { name: toWireToolName(tool.name), description: tool.description, parameters: tool.input_schema },
           })),
         }),
     max_tokens: input.parameters.max_output_tokens,
@@ -269,7 +340,8 @@ class OpenAICompatibleModelProvider {
                 if (!chunk || typeof chunk !== 'object' || Array.isArray(chunk)) {
                   throw new ModelProviderError('provider chunk must be an object', 'protocol_error');
                 }
-                if (chunk.usage !== undefined) {
+                // The official stream sends `usage: null` on every chunk but the last when usage is requested: null means none yet.
+                if (chunk.usage !== undefined && chunk.usage !== null) {
                   if (!provider.providerManifest.capabilities.includes('usage')) {
                     throw new ModelProviderError('provider emitted undeclared usage', 'protocol_error');
                   }
@@ -373,12 +445,12 @@ class OpenAICompatibleModelProvider {
                     }
                     const index = toolCall.index;
                     if (!Number.isInteger(index) || index < 0) throw new ModelProviderError('tool call index is invalid', 'protocol_error');
-                    if (toolCall.id) toolIds.set(index, toolCall.id);
+                    if (toolCall.id) toolIds.set(index, toContractToolCallId(toolCall.id));
                     const toolCallId = toolIds.get(index);
                     if (!toolCallId) throw new ModelProviderError('tool call delta has no identity', 'protocol_error');
                     yield streamEvent(provider.providerManifest.provider_id, input.request_id, sequence++, 'tool_call.delta', {
                       tool_call_id: toolCallId,
-                      name: toolCall.function?.name ?? null,
+                      name: toolCall.function?.name == null ? null : fromWireToolName(toolCall.function.name),
                       arguments_delta: toolCall.function?.arguments ?? '',
                     });
                     emitted = true;
@@ -444,4 +516,12 @@ class OpenAICompatibleModelProvider {
   }
 }
 
-module.exports = { MAX_SSE_BUFFER_BYTES, OpenAICompatibleModelProvider, parseSse };
+module.exports = {
+  MAX_SSE_BUFFER_BYTES,
+  OpenAICompatibleModelProvider,
+  fromContractToolCallId,
+  fromWireToolName,
+  parseSse,
+  toContractToolCallId,
+  toWireToolName,
+};

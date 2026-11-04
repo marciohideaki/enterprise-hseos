@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "scanned_at_utc": "2026-11-03T17:27:34Z",
+  "scanned_paths": ["/build/tmp/wc/c3", "docs/evolution/w3/evidence/pre-w6-c3-retry"],
+  "literal_values_checked": 5,
+  "literal_sources": [
+    {
+      "source": "pass:claude/anthropic-api-key",
+      "values": 1
+    },
+    {
+      "source": "/home/annonymous/.claude/.credentials.json",
+      "values": 2
+    },
+    {
+      "source": "pass:enterprise-hseos/wc-c3-control-10df2637-d8bb-40c1-9898-4f2a885920a5",
+      "values": 1
+    },
+    {
+      "source": "pass:enterprise-hseos/wc-c3-control-7156957a-82f1-4436-a56c-730012995e61",
+      "values": 1
+    }
+  ],
+  "literal_min_length_from_files": 40,
+  "literal_hit_reporting": "count of files with a literal match; the files are not named, so a literal can never leak through this report",
+  "sources_with_no_value": [],
+  "files_with_literal_hits": 0,
+  "pattern_hits_in_versioned_artifacts": 0,
+  "pattern_hit_files": [],
+  "known_invalid_placeholder_files": ["diag-precedence.mjs"],
+  "known_invalid_placeholders": ["sk-ant-api03-invalid-diagnostic-key-0000000000"],
+  "patterns": "sk-... (letters, digits, hyphen, underscore; covers sk-ant-, sk-proj-), JWT eyJ..., Bearer ... (16+ chars)",
+  "process_rule": "cwd under the campaign directory, or command line matching provider-(campaign|claude-account|acp)-worker|antigravity_campaign_worker",
+  "matching_processes_after_campaign": 0,
+  "matching_process_lines": [],
+  "does_not_cover": "secrets of 20 to 39 characters in a credential file are not searched as literals (floor of 40, accepted because shorter values there are identifiers and public metadata); patterns inside the control state; transcripts the client persists under its own home; truncated or re-encoded values; the raw process listing is not versioned"
+}

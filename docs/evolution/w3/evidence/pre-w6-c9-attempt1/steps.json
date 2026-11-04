@@ -1,0 +1,22 @@
+[
+  {
+    "s": "reference",
+    "status": 1,
+    "task_result": "failed",
+    "requests": 1,
+    "stderr": "",
+    "json": "{\"schema_version\":1,\"profile\":\"disposable-engineering-candidate\",\"task_run_id\":\"4637cb7b-d1bb-4832-b8c1-19de28fdc187\",\"task_id\":\"example-addition\",\"state\":\"/build/tmp/wc/c9-tmp/hseos-ledger-fixture-6VBtUy\",\"session_id\":\"session:24c87ab4-2c71-42cb-b34f-473d7cce0144\",\"status\":\"failed\",\"task_result\":\"failed\",\"reason\":\"session-failed:internal_error\",\"current_sequence\":4,\"contract_sha256\":\"9367de2301fd8bd4fb14236a690e65c7f1d6b4f8d7626efa2dea5653a2d0db32\",\"token_accounting\":{\"reported_input_tokens\":0,\"reported_output_tokens\":0,\"conservative_estimate_tokens\":5015,\"total_tokens\":5015,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}"
+  },
+  {
+    "s": "reference-evidence",
+    "err": "d7626efa2dea5653a2d0db32\",\"files_sha256\":\"6511a9d5c009dd254744d63a2eba59b15fa6e0fabfe55f22cf708a3baf3d52a1\",\"reason\":\"session-failed:internal_error\",\"schema_version\":1,\"session_failure\":{\"error_code\":\"internal_error\",\"message\":\"agent runtime failed\"},\"session_id\":\"session:24c87ab4-2c71-42cb-b34f-473d7cce0144\",\"token_accounting\":{\"conservative_estimate_tokens\":5015,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\",\"reported_input_tokens\":0,\"reported_output_tokens\":0,\"total_tokens\":5015}}}}",
+    "stderr": ""
+  },
+  {
+    "s": "STOP",
+    "why": "reference-not-approved",
+    "requests": 1,
+    "result": "failed",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,8 @@
+The versioned orchestrate.cjs and fetch-guard.cjs were lint-fixed after the paid run, because the repository lint gate (zero warnings) covers this directory.
+executed orchestrate.cjs (outside the repository, /build/tmp/wc/c9/orchestrate.cjs): sha256 651e3e0a83efd828c38f27d1954be73e8190b96872b84cfa98967dca2539d947
+versioned orchestrate.cjs: sha256 ff8ce7a3fb47bbe4ebdec634a23b466a9996e28517c6c043b69ac8108c3aa7cf
+executed fetch-guard.cjs (/build/tmp/wc/c9/fetch-guard.cjs): sha256 1855fd7af49145a5945a2c939d20f1465e304bbc3923e4c6f42bc3055a18b5a4
+versioned fetch-guard.cjs: sha256 a08507caa0c64e25480d9b01c503f9ef018ea1c011d6ee5cc7f6a46dc0b80a85
+changes: replaceAll for global replacements, catch parameter names, empty catch blocks now carry a comment, unused variables removed (os, last, the unused expect option), findLast and numeric separators, and stop() now throws a C9_STOP error that an uncaughtException handler turns into exit code 2 instead of calling process.exit(2).
+behaviour check (no paid call): the versioned scripts were run through the free mock rehearsal and produced the same verdict.json as the pre-lint scripts (verdict equal, same requests, same stage outcomes); a forced stop (C9_MAX_REQUESTS=1) still ends with exit code 2 and completed:false.
+not covered: the paid run itself is not repeated; the equivalence is for the free mock path and the stop path.

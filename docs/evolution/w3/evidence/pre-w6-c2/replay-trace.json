@@ -1,0 +1,100 @@
+[
+  {
+    "t": 1793625338678,
+    "call": "campaign",
+    "action": "create",
+    "command_id": "3d8e014d-0f64-4525-975f-0b232c1b5dff",
+    "replay_of_prior": false
+  },
+  {
+    "t": 1793625338680,
+    "call": "query",
+    "requests": 0,
+    "committed_microusd": 0,
+    "report_sha256": "3a1870c929424c09275e7b4e5e523adb9e052c497a5051d18b07ac79b84e45e2"
+  },
+  {
+    "t": 1793625342291,
+    "call": "campaign",
+    "action": "run",
+    "command_id": "3a4ffff2-377b-4848-afac-d05e32c3dc68",
+    "replay_of_prior": false
+  },
+  {
+    "t": 1793625342294,
+    "call": "query",
+    "requests": 1,
+    "committed_microusd": 0,
+    "report_sha256": "23367c647669b41cb8e9d6433d68a645d0435ee35824a00704a3ea9e136d28cc"
+  },
+  {
+    "t": 1793625342296,
+    "call": "campaign",
+    "action": "run",
+    "command_id": "3a4ffff2-377b-4848-afac-d05e32c3dc68",
+    "replay_of_prior": true
+  },
+  {
+    "t": 1793625342297,
+    "call": "query",
+    "requests": 1,
+    "committed_microusd": 0,
+    "report_sha256": "23367c647669b41cb8e9d6433d68a645d0435ee35824a00704a3ea9e136d28cc"
+  },
+  {
+    "t": 1793625342299,
+    "call": "query",
+    "requests": 1,
+    "committed_microusd": 0,
+    "report_sha256": "23367c647669b41cb8e9d6433d68a645d0435ee35824a00704a3ea9e136d28cc"
+  },
+  {
+    "t": 1793625344864,
+    "call": "campaign",
+    "action": "run",
+    "command_id": "f550184e-4adf-45cc-bbca-54b12a4122fd",
+    "replay_of_prior": false
+  },
+  {
+    "t": 1793625344866,
+    "call": "query",
+    "requests": 2,
+    "committed_microusd": 0,
+    "report_sha256": "615bc696e250bb46a69990d0a4d0b3a48a309fa88ad053b01d96a52d7d0458ca"
+  },
+  {
+    "t": 1793625344868,
+    "call": "campaign",
+    "action": "run",
+    "command_id": "f550184e-4adf-45cc-bbca-54b12a4122fd",
+    "replay_of_prior": true
+  },
+  {
+    "t": 1793625344869,
+    "call": "query",
+    "requests": 2,
+    "committed_microusd": 0,
+    "report_sha256": "615bc696e250bb46a69990d0a4d0b3a48a309fa88ad053b01d96a52d7d0458ca"
+  },
+  {
+    "t": 1793625344871,
+    "call": "query",
+    "requests": 2,
+    "committed_microusd": 0,
+    "report_sha256": "615bc696e250bb46a69990d0a4d0b3a48a309fa88ad053b01d96a52d7d0458ca"
+  },
+  {
+    "t": 1793625344878,
+    "call": "campaign",
+    "action": "cancel",
+    "command_id": "e0058957-2273-4b9c-9277-226954a64969",
+    "replay_of_prior": false
+  },
+  {
+    "t": 1793625344880,
+    "call": "query",
+    "requests": 2,
+    "committed_microusd": 0,
+    "report_sha256": "262104c7b670833354c5869c0383e8f73007f3e443cf58cea6761098b9b4004c"
+  }
+]

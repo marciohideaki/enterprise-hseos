@@ -1,0 +1,45 @@
+{
+  "label": "isolation-control-beta-include-untrusted",
+  "observed_at": "2026-11-03T18:47:19.755Z",
+  "task_run_id": "97e31100-e591-4756-b204-f6356736767b",
+  "task_id": "addition-fixture",
+  "session_id": "session:4822fe30-8430-4042-ae0b-fd5374736179",
+  "task_ledger_events": 14,
+  "agent_session_event_positions": [2, 4, 5, 6, 7, 8, 9, 12],
+  "context_assembled_sequence": 3,
+  "task_result": "approved",
+  "project_id": "c8-beta",
+  "host_include_untrusted": true,
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "1a83308f215a95ca0ef10ca9a86fd9e901f0330510ffd9751d4a047667fd3697",
+      "origin": "memory",
+      "source_ref": "memory://c8-beta/c8-foreign-1",
+      "trust": "untrusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "5895751f1fe7d9ca12b8fd07eeb5f19946d6eb6425593b05aedc5e726bc23b6e",
+      "bytes": 221,
+      "authority_data": true
+    }
+  ],
+  "source_refs": [
+    "hseos://context/precedence-v1",
+    "policy://engineering/v1",
+    "profile://engineering/candidate",
+    "task-contract://e56db65cfed2bd4f828bd828116335f37fc4c144abdd1f1514d0e5c20b7b966b/protected-criteria",
+    "memory://c8-beta/c8-foreign-1",
+    "session-event://event:84507567a01918fd924306addf4558d38ed507e8",
+    "governance://tool/engineering.command",
+    "governance://tool/engineering.diagnose",
+    "governance://tool/engineering.diff",
+    "governance://tool/engineering.patch",
+    "governance://tool/engineering.read",
+    "governance://tool/engineering.search",
+    "governance://tool/engineering.write",
+    "governance://tool/memory.retrieve"
+  ]
+}

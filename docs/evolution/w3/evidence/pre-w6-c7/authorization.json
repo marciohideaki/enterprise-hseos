@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "campaign": "C7 (pre-W6 closeout, PLAN-4, WC)",
+  "recorded_at_utc": "2026-11-03",
+  "owner_instruction": "segue com a C7",
+  "context_stated_before_the_run": [
+    "Antigravity local (LiteRT), custo monetario nenhum",
+    "o filho Codex por conta consome cota de assinatura (duas chamadas)",
+    "a janela de cota do Codex estava em 94% de uso (era 49% na C1)"
+  ],
+  "scope_executed": {
+    "binding_ids": ["binding:antigravity-local-c7", "binding:codex-child-c7"],
+    "max_requests": 4,
+    "max_cost_microusd": 0,
+    "validity_minutes": 60,
+    "task_ids": 1
+  },
+  "note": "A instrucao do owner foi dada no chat; este arquivo a registra. Os avisos sobre a cota do filho foram dados ao owner antes da execucao, e a execucao seguiu sem objecao."
+}

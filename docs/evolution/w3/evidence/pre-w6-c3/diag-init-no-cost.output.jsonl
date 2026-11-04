@@ -1,0 +1,3 @@
+{"type":"system","subtype":"init","tools":[],"permissionMode":"plan","model":"claude-haiku-5-5","apiKeySource":"ANTHROPIC_API_KEY","claude_code_version":"2.1.316","mcp_servers":[]}
+{"type":"assistant","blocks":["text"]}
+{"type":"result","subtype":"success","is_error":true,"stop_reason":"stop_sequence","api_error_status":401,"result":"Invalid API key · Fix external API key","permission_denials":[],"has_usage":true}

@@ -61,3 +61,54 @@ Plano: `PLAN.md`. Commander em Opus; executores e revisores em Sonnet.
 - Perfis delegated não usam `AgentRuntime`: a compactação vale só para o runtime de engenharia (limite da F15 com cliente real).
 - 2026-11-02 (suíte WB, 1ª execução): FAIL no `test:kernel-coverage`, com vários arquivos do gate a 0%. Causa: na resolução do conflito do `package.json` (merge da B2), o Commander reconstruiu o `test:kernel` a partir da lista de arquivos e **descartou os 9 segmentos encadeados (`&&`)**. Os 1978 testes do segmento restante passaram. Correção: o `test:kernel` foi refeito a partir da linha da integração (`1caa3540`), com o teste da B2 inserido na posição original (9 `&&` preservados), em commit próprio. Lição: conflito em script encadeado se resolve por inserção pontual, nunca por reconstrução.
 - 2026-11-02 06:19–07:01Z (suíte WB, 2ª execução, `5ada449c`): exit 0, 4698 testes, 0 falhas. `verify` com 103 itens e 239 arquivos. `test:kernel-coverage` PASS em 1068 s. Matrizes W4 com 20 e W5 com 43 rejeitados.
+
+## WC — campanhas reais (2026-11-02 a 2026-11-04), cada uma com confirmação do owner no ato
+
+Regra de rótulo: nenhuma campanha é PASS. "L2 incompleto" e "NOT_EXERCISED" ficam explícitos; o recibo de cada uma diz o que não prova. Cada recibo passou pelo script de varredura `docs/evolution/w3/evidence/pre-w6-scan/scan-campaign.py` (0 acertos literais em todas as que têm varredura).
+
+| Campanha | Escopo | Rótulo | Commit do recibo | Recibo |
+|---|---|---|---|---|
+| C1 | Codex por conta, app-server na versão atual | binding em L1; campanha L2 incompleta, sem promoção | `6d5e7ac5` | `w3/C1-CODEX-L2-2026-11.md` |
+| C2 | Claude por conta (cliente headless) | binding em L1; campanha L2 incompleta, sem promoção | `9ff10cca` | `w3/C2-CLAUDE-ACCOUNT-L2-2026-11.md` |
+| C3 | Claude por API (SDK) | 1ª tentativa sem saldo (desfecho incerto), refeita depois do crédito do owner: binding em L1; L2 incompleto | `3551de24`, `b0bf385d`, `b5e1ed77` | `w3/C3-CLAUDE-API-2026-11.md`, `w3/C3-CLAUDE-API-L2-2026-11.md` |
+| C4 | ACP de terceiro e tool-free | **BLOCKED por decisão do owner** (chave ausente no `pass`, "bloqueado por enquanto"); nunca PASS | n/a | n/a |
+| C5 | Binding compatível na API oficial | binding em L1; L2 incompleto, sem promoção (a 1ª tentativa expôs o defeito do `usage: null`) | `989849b7`, `723b215d` | `w3/C5-OPENAI-COMPATIBLE-2026-11.md`, `w3/C5-OPENAI-COMPATIBLE-L2-2026-11.md` |
+| C6 | Gemini (quarta família) | **BLOCKED por decisão do owner** (sem a chave `google/gemini-hseos`); nunca PASS | n/a | `w3/L1-GEMINI-2026-11.md` (L1 da B1) |
+| C7 | Antigravity local com filho Codex | binding em L1; L2 incompleto, sem promoção | `0dcf3276` | `w3/C7-ANTIGRAVITY-LOCAL-L2-2026-11.md` |
+| C8 (F14) | Memória gravada por cliente real, promovida pelo operador, recuperada pela tarefa | consumidor real observado, com limites | `cad5018f` | `w3/C8-F14-REAL-CONSUMER-2026-11.md` |
+| C9 (F15) | Runtime de engenharia com `gpt-4o-mini` real: compactação, SIGKILL, retomada com reconciliação, `fork` | parcial: retomada e linhagem provadas; **retomada do `fork` NÃO aprovada**; L2 incompleto, sem promoção | `6c334965` | `w3/C9-F15-ENGINEERING-REAL-2026-11.md` |
+| C10 | Campanha agregada F02–F06, F09, F10, F12, F13, F22 | sem gasto: observação PARCIAL em F02, F03, F04 (fraca) e F09; NOT_EXERCISED em F05, F06, F10, F12, F13 e F22 | `f4ca5d0e` | `w3/C10-AGGREGATED-REAL-CONSUMER-2026-11.md` |
+| C11 (F20) | `environment.lsp.hover` por Claude Code 2.1.263 com lançamento delegado | consumidor real observado, com limites (uma chamada, somente leitura, workspace de teste) | `f4ca5d0e` | `w3/C11-F20-ENVIRONMENT-REAL-CLIENT-2026-11.md` |
+
+### Defeitos de código achados pelas campanhas, corrigidos em tasks próprias (1 task = 1 commit, integração por fast-forward)
+
+| Commit | Defeito | Achado por | Revisão |
+|---|---|---|---|
+| `95e2e469` | O provider rejeitava `usage: null` dos chunks intermediários do stream oficial, e a C5 terminou com desfecho incerto. | C5, tentativa 1 | task própria, teste que falha sem a correção |
+| `66d77fbe` | `hseos memory promote` quebrava no prompt interativo: a ação recebia o objeto do parser no lugar da confirmação. | C8 | task própria; a verificação humana do prompt interativo segue para a WD |
+| `c02b5085` | O provider enviava nomes de ferramenta com ponto, que a API recusa; correção com codificação injetiva e reversível. | C9, por leitura antes de gastar | cega: aprovada com ressalvas (alias no decodificador, exceção em hexadecimal fora de faixa); confronto: reprovado na rodada 1 (4 consumidores com o nome antigo), aprovado na rodada 2 |
+| `23d2c29f` | O contrato do kernel recusa ids de chamada de caixa mista (`call_AbC…`), que a API emite: a sessão terminava em `internal_error` antes de qualquer ferramenta. | C9, tentativa 1 (1 requisição) | cega: aprovada com ressalvas (limite de 160 sem teste na fronteira); confronto: aprovado |
+
+Os dois últimos só chegam à distribuição global na reinstalação da WD, junto com `95e2e469` e `66d77fbe`.
+
+### Gasto da WC com provedor pago (estimativas, não faturas)
+
+- C3 e C5: ver os recibos; as reservas de US$ 0,25 das duas tentativas incertas seguem retidas nos ledgers cancelados.
+- C9: 12 requisições no total (1 + 11), cerca de 13 mil tokens, estimativa de cerca de US$ 0,0023 pelo preço declarado (mais uma fração da tentativa 1).
+- C11: uso da assinatura do Claude, US$ 0,282 a preço de lista, não é fatura.
+- A conferência nas consoles da OpenAI e da Anthropic fica para a WD.
+
+### Lições registradas
+
+- O ensaio com `fetch` falso mascarou dois defeitos reais (nome e id de ferramenta) e a falha do `fork` (o mock ignora o texto do prompt). Ensaio gratuito só vale para a mecânica; o que depende do formato real da API ou do comportamento do modelo exige a chamada real.
+- O `claude` resolvido pelo `PATH` de um roteiro pode não ser o do shell interativo (C11 rodou na 2.1.263; o shell tinha a 2.1.318). Registrar `command -v claude` e a versão dentro do mesmo script que chama o cliente.
+- O orquestrador da C9 removia os estados ao terminar; sem eles, a causa da falha do `fork` só pôde ser inferida do SSE bruto e de uma sonda. Preservar o estado de toda execução real.
+- `verdict.json.completed: true` da C9 significa só "o roteiro chegou ao fim".
+
+### Pendências da WC para a WD
+
+- Reinstalar a distribuição global com `95e2e469`, `66d77fbe`, `c02b5085` e `23d2c29f`.
+- Verificar o prompt interativo de `memory promote` com uma segunda nota que o owner promova sem `--yes`.
+- Promoções no `requirements.json` (decisão do Commander): F20 com escopo declarado, F23 e o L1 de F08/F17/F18, mais o que os recibos da WC sustentarem, sem afrouxar nenhum gate.
+- Conferir o consumo real nas consoles da OpenAI e da Anthropic.
+- Limpeza: `/build/tmp/wc/`, `/build/tmp/c8-live-*`, `/build/tmp/c11-live-*` e as entradas `enterprise-hseos/wc-c*-control-*` do `pass`; remover os worktrees `c5-usage-null`, `c8-memory-cli`, `c9-tool-wire-name` e `c9-tool-call-id` e as branches `task/*` integradas.

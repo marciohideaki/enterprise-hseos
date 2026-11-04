@@ -1,0 +1,14 @@
+Pasted by the owner, from the owner's own interactive terminal (TTY). Verbatim.
+
+--- attempt 1 (interactive confirmation) ---
+$ hseos memory promote --db /build/tmp/c8-live-W0vn/project.db --project c8-f14 --memory c8-note-1 --operator owner --reason "C8/F14: nota gravada pelo cliente real e revisada pelo owner"
+memory c8-note-1 (agent, untrusted, active)
+content sha256: d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136
+Remember: adding integers in this project never overflows, the sum is exact.
+[hseos] confirm is not a function
+(the database was checked afterwards: nothing was promoted, 0 approvals)
+
+--- attempt 2 (--yes with the digest the owner reviewed on screen) ---
+$ hseos memory promote --db /build/tmp/c8-live-W0vn/project.db --project c8-f14 --memory c8-note-1 --operator owner --reason "C8/F14: nota gravada pelo cliente real e revisada pelo owner" --yes --content-sha256 d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136
+Memory c8-note-1 promoted to trusted as c8-note-1:promoted
+  content sha256: d5a6e4ba8ee5eab313f2a053a79962014c3e529a286707e2d8ca739de04f4136

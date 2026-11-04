@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "resource_id": "c9ccd9cc-1663-4925-a02c-ed518bd95fab",
+  "scope": "pilot",
+  "covered_vendors": ["codex"],
+  "status": "control_trial_completed",
+  "vendor_session_recovery": "not_certified",
+  "real_conformance": "not_certified",
+  "receipts": [
+    {
+      "binding_id": "binding:codex-c1",
+      "task_id": "6ae261e6-59d2-461b-9c98-1d3046eef241",
+      "command_id": "9067e5fe-4383-4bf6-b440-879a114ad036",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "07ab1d7db3ee3287dfc9eefc73534646a27bca8e1e6a0726d619d08098a1d0bb",
+        "evidence_sha256": "6dd896386fe43a7aaefa90958cafe545ea3783aa025332a3dc6e07a04cebe84c",
+        "cost_microusd": null,
+        "input_tokens": 17595,
+        "output_tokens": 27,
+        "provider_session_id": "01a19c3c-68c6-7900-b6a8-293058160301",
+        "evidence_ref": {
+          "schema_version": 1,
+          "kind": "model_output",
+          "sha256": "dd8be5bbc0df0b953583d53fede85460030f6a56c66ef7b3a3ea9291054f591d",
+          "bytes": 30
+        }
+      },
+      "control_replay_verified": true
+    },
+    {
+      "binding_id": "binding:codex-c1",
+      "task_id": "6ae261e6-59d2-461b-9c98-1d3046eef241",
+      "command_id": "2c299163-1e1e-4aaf-a66f-f867531def8d",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "07ab1d7db3ee3287dfc9eefc73534646a27bca8e1e6a0726d619d08098a1d0bb",
+        "evidence_sha256": "eb9f48f858070ec4a881d379d31988ff71fe01530cdc5dbff90985dda3a7f508",
+        "cost_microusd": null,
+        "input_tokens": 22086,
+        "output_tokens": 14,
+        "provider_session_id": "01a19c3c-68c6-7900-b6a8-293058160301",
+        "evidence_ref": {
+          "schema_version": 1,
+          "kind": "model_output",
+          "sha256": "4ea36a698ffed176b85758cb0cfbb60cdfa17421835b71aede7beb09a1315414",
+          "bytes": 30
+        }
+      },
+      "control_replay_verified": true
+    }
+  ],
+  "final": {
+    "resource_id": "c9ccd9cc-1663-4925-a02c-ed518bd95fab",
+    "current_sequence": 12,
+    "max_requests": 4,
+    "max_cost_microusd": 0,
+    "deadline": 1793626163788,
+    "requests": 2,
+    "committed_microusd": 0,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": ["binding:codex-c1"],
+    "report_sha256": "fe5a5dc478d4c860e2f2f158dd226bd4eedf7aee668acb2dffb247aa3278cc89"
+  }
+}
