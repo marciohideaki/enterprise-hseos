@@ -425,7 +425,7 @@ test('the command is registered in the CLI manifest with its options', () => {
   assert.equal(entry.command, 'platform-bindings <action>');
   assert.deepEqual(
     entry.options.map((option) => option[0]),
-    ['--directory <path>', '--json', '--base <git-ref>', '--ref <tag>', '--ecp-root <path>', '--output <file>'],
+    ['--directory <path>', '--json', '--base <git-ref>', '--ref <tag>', '--ecp-root <path>', '--output <file>', '--stacks-output <file>'],
   );
   const optionsOf = (file) => manifest.entries.find((candidate) => candidate.filename === file).options.map((option) => option[0]);
   for (const file of ['install.js', 'install-plan.js']) {

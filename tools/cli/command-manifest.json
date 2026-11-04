@@ -1076,10 +1076,14 @@
         [
           "--output <file>",
           "sync: destination file (default: user cache directory)"
+        ],
+        [
+          "--stacks-output <file>",
+          "sync: destination of the stack vocabulary when the ref ships one (default: <output>.stacks.json)"
         ]
       ],
       "governed": false,
-      "source_sha256": "8cf8a1a4f8ac2a2f628fa6d9f606f6ebd2e2efbc57dfc8d812d3dcb151e7ded2"
+      "source_sha256": "ac420242b51e9484265998481258a9e0962f2fa4f7c8aeb63cd24ef145d7dc41"
     },
     {
       "filename": "plugin.js",
