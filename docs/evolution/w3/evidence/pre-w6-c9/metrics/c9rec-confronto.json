@@ -1,0 +1,56 @@
+{
+  "label": "c9rec-confronto",
+  "span": [
+    "2026-11-04T04:42:17.074Z",
+    "2026-11-04T04:43:51.076Z"
+  ],
+  "priced": false,
+  "activities": [
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 23.0,
+      "tool_time_s": 21.3,
+      "tool_calls": 7.0,
+      "tok_in_fresh": 8.0,
+      "tok_cache_read": 208140.0,
+      "tok_cache_write": 52536.0,
+      "tok_out": 3504.0,
+      "api_calls": 4.0,
+      "wall_s": 44.3
+    },
+    {
+      "activity": "leitura_spec",
+      "model_latency_s": 25.7,
+      "tool_time_s": 2.7,
+      "tool_calls": 4.0,
+      "tok_in_fresh": 6.0,
+      "tok_cache_read": 198979.0,
+      "tok_cache_write": 15631.0,
+      "tok_out": 3517.0,
+      "api_calls": 3.0,
+      "wall_s": 28.4
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 8.7,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 79558.0,
+      "tok_cache_write": 939.0,
+      "tok_out": 3045.0,
+      "api_calls": 1.0,
+      "wall_s": 8.7
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 57.4,
+    "tool_time_s": 24.0,
+    "tool_calls": 11.0,
+    "tok_in_fresh": 16.0,
+    "tok_cache_read": 486677.0,
+    "tok_cache_write": 69106.0,
+    "tok_out": 10066.0,
+    "api_calls": 8.0,
+    "wall_s": 81.4
+  }
+}

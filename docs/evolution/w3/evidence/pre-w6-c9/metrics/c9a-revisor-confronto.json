@@ -1,0 +1,80 @@
+{
+  "label": "c9a-revisor-confronto",
+  "span": [
+    "2026-11-04T01:34:56.743Z",
+    "2026-11-04T03:00:16.208Z"
+  ],
+  "priced": false,
+  "activities": [
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 27.2,
+      "tool_time_s": 11.0,
+      "tool_calls": 13.0,
+      "tok_in_fresh": 26.0,
+      "tok_cache_read": 774314.0,
+      "tok_cache_write": 98934.0,
+      "tok_out": 3732.0,
+      "api_calls": 12.0,
+      "wall_s": 38.2
+    },
+    {
+      "activity": "outros",
+      "model_latency_s": 9.3,
+      "tool_time_s": 86.6,
+      "tool_calls": 5.0,
+      "tok_in_fresh": 8.0,
+      "tok_cache_read": 199286.0,
+      "tok_cache_write": 75884.0,
+      "tok_out": 1241.0,
+      "api_calls": 4.0,
+      "wall_s": 95.9
+    },
+    {
+      "activity": "git_estado",
+      "model_latency_s": 8.7,
+      "tool_time_s": 124.8,
+      "tool_calls": 6.0,
+      "tok_in_fresh": 8.0,
+      "tok_cache_read": 146646.0,
+      "tok_cache_write": 55372.0,
+      "tok_out": 1362.0,
+      "api_calls": 3.0,
+      "wall_s": 133.5
+    },
+    {
+      "activity": "teste",
+      "model_latency_s": 30.8,
+      "tool_time_s": 785.2,
+      "tool_calls": 14.0,
+      "tok_in_fresh": 28.0,
+      "tok_cache_read": 1172204.0,
+      "tok_cache_write": 11401.0,
+      "tok_out": 6209.0,
+      "api_calls": 14.0,
+      "wall_s": 816.0
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 27.3,
+      "tok_in_fresh": 6.0,
+      "tok_cache_read": 251977.0,
+      "tok_cache_write": 952.0,
+      "tok_out": 3368.0,
+      "api_calls": 3.0,
+      "wall_s": 27.3
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 103.3,
+    "tool_time_s": 1007.6,
+    "tool_calls": 38.0,
+    "tok_in_fresh": 76.0,
+    "tok_cache_read": 2544427.0,
+    "tok_cache_write": 242543.0,
+    "tok_out": 15912.0,
+    "api_calls": 36.0,
+    "wall_s": 1110.9
+  }
+}
