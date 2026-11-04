@@ -209,6 +209,16 @@ token or a camelCase hump, never in the middle of a word, and a hit that stops m
 output reports the effective mode and the layer it came from. Exit codes: 0 completed, 1 bindings or
 registry failed validation, 2 usage error.
 
+With a stack vocabulary (a verified `ecp-stacks.snapshot.json`, or a `path` registry with a vocabulary beside
+it; see `.enterprise/governance/capabilities/README.md`), resolution follows ECP v1.1: the stacks of the
+project and of the implementations are normalized to canonical ids (`ts` and `js` are `typescript`, `golang` is
+`go`, `rn` is `react-native`), a queried stack also keeps the stacks it `accepts` (`node`, `react` and
+`react-native` accept `typescript`; directional, not transitive), `other_stacks` lists canonical ids, the chosen
+implementation prefers one of a queried stack over one reached through `accepts`, and each result carries
+`missing_targets` (the `targets` of the capability that no `stable`, `experimental` or `planned`
+implementation satisfies). Without a vocabulary the stack rules stay at v1 (lower-case equality) and
+`missing_targets` is derived by plain id equality.
+
 `hseos platform-bindings` exit codes: `show` 0 (1 if the registry fails its integrity check), `check`
 0/1 (violation)/2 (git or usage failure), `sync` 1 on error, `guard` 0 allow / 2 deny. The registry
 snapshot ships at `contracts-v0.4.0`; refresh it with `sync` and update the lock.

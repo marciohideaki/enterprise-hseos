@@ -2890,8 +2890,10 @@ function evaluateGuard({ input, cwd = process.cwd(), env = process.env, runtimeR
   if (mode === 'local') return allowance('');
 
   let registry = null;
+  let vocabulary = null;
   try {
-    registry = loadCapabilityRegistry({ runtimeRoot, bindings }).registry;
+    const loaded = loadCapabilityRegistry({ runtimeRoot, bindings });
+    ({ registry, vocabulary } = loaded);
   } catch (error) {
     notes.push(
       `Capability registry unavailable${error instanceof RegistryIntegrityError ? ' (integrity check failed)' : ''}: ${error.message}`,
@@ -2902,6 +2904,7 @@ function evaluateGuard({ input, cwd = process.cwd(), env = process.env, runtimeR
     return decide({
       mode: 'platform',
       registry,
+      vocabulary,
       symbols,
       relative: target.relative,
       file: target.real,
@@ -2913,7 +2916,20 @@ function evaluateGuard({ input, cwd = process.cwd(), env = process.env, runtimeR
       now,
     });
   }
-  return decide({ mode, registry, symbols, relative: target.relative, file: target.real, root, env, bindings, notes, incomplete, now });
+  return decide({
+    mode,
+    registry,
+    vocabulary,
+    symbols,
+    relative: target.relative,
+    file: target.real,
+    root,
+    env,
+    bindings,
+    notes,
+    incomplete,
+    now,
+  });
 }
 
 /** Names for messages: the named exports joined, or the fallback for an export without a name. */
@@ -2922,7 +2938,20 @@ function nameList(symbols, fallback) {
   return names.length > 0 ? names.join(', ') : fallback;
 }
 
-function decide({ mode, registry, symbols, relative, file, root, env, bindings, notes, incomplete = false, now = new Date() }) {
+function decide({
+  mode,
+  registry,
+  vocabulary = null,
+  symbols,
+  relative,
+  file,
+  root,
+  env,
+  bindings,
+  notes,
+  incomplete = false,
+  now = new Date(),
+}) {
   let stacks = [];
   try {
     stacks = bindings.stacksExplicit && bindings.stacks.length > 0 ? bindings.stacks : detectStacksForFile(root, file);
@@ -2936,7 +2965,7 @@ function decide({ mode, registry, symbols, relative, file, root, env, bindings, 
   const perSymbol = [];
   for (const symbol of symbols) {
     const result = registry
-      ? matchExport(registry, { symbol: symbol || undefined, filePath: relative === null ? undefined : relative, stacks })
+      ? matchExport(registry, { symbol: symbol || undefined, filePath: relative === null ? undefined : relative, stacks, vocabulary })
       : { matches: [], warnings: [] };
     perSymbol.push({ symbol, matches: result.matches });
     for (const warning of result.warnings) warningSet.add(warning);
@@ -2996,7 +3025,7 @@ function decide({ mode, registry, symbols, relative, file, root, env, bindings, 
   const named = uncovered.filter(Boolean);
   const registryCandidates = registry
     ? named.flatMap((symbol) =>
-        resolveCapability(registry, symbol, { stacks })
+        resolveCapability(registry, symbol, { stacks, vocabulary })
           .slice(0, MAX_CANDIDATES)
           .map((match) => match.capability.name),
       )

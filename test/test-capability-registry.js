@@ -257,9 +257,75 @@ function testValidation() {
     deprecation: { since: '0.2.0', sunset: '2027-01-01', replaced_by: 'cache.v2@1.0.0' },
   });
   assertPass('deprecated capability with deprecation is accepted', validateCapabilityRegistry(deprecated) !== undefined);
+  testTargetsAndCoverage(cache);
   const many = fixture();
   for (const capability of many.capabilities) capability.name = 'Bad';
   assertPass('long problem lists are truncated', /and \d+ more/.test(String(thrown(() => validateCapabilityRegistry(many)))));
+}
+
+/** Decision 0011: optional `targets` and `coverage`, strict shapes, unknown keys still rejected. */
+function testTargetsAndCoverage(cache) {
+  const mutate = (fn) => {
+    const registry = fixture();
+    fn(registry);
+    return String(thrown(() => validateCapabilityRegistry(registry)));
+  };
+  const withBoth = (registry) => {
+    cache(registry).targets = [
+      { stack: 'node', required: true },
+      { stack: 'python', required: false },
+    ];
+    cache(registry).coverage = [
+      { target: 'node', required: true, status: 'stable', via: 'typescript' },
+      { target: 'python', required: false, status: 'missing' },
+    ];
+  };
+  const accepted = fixture();
+  withBoth(accepted);
+  assertPass('targets and coverage are accepted', validateCapabilityRegistry(accepted) !== undefined);
+  const cases = [
+    ['targets not a list', (r) => (cache(r).targets = {}), 'targets must be a non-empty list'],
+    ['empty targets', (r) => (cache(r).targets = []), 'targets must be a non-empty list'],
+    ['target not an object', (r) => (cache(r).targets = ['node']), 'targets[0] must be an object'],
+    ['target unknown field', (r) => (cache(r).targets = [{ stack: 'node', required: true, x: 1 }]), "unknown field 'x'"],
+    ['target without required', (r) => (cache(r).targets = [{ stack: 'node' }]), 'targets[0].required is required'],
+    ['target without stack', (r) => (cache(r).targets = [{ required: true }]), 'targets[0].stack is required'],
+    ['target bad stack', (r) => (cache(r).targets = [{ stack: 'Node JS', required: true }]), 'targets[0].stack must be a stack id'],
+    ['target non-boolean required', (r) => (cache(r).targets = [{ stack: 'node', required: 'yes' }]), 'required must be a boolean'],
+    ['coverage not a list', (r) => (cache(r).coverage = {}), 'coverage must be a list'],
+    [
+      'coverage unknown field',
+      (r) => (cache(r).coverage = [{ target: 'go', required: true, status: 'missing', x: 1 }]),
+      "unknown field 'x'",
+    ],
+    ['coverage without status', (r) => (cache(r).coverage = [{ target: 'go', required: true }]), 'coverage[0].status is required'],
+    [
+      'coverage bad status',
+      (r) => (cache(r).coverage = [{ target: 'go', required: true, status: 'deprecated' }]),
+      'coverage[0].status must be one of',
+    ],
+    [
+      'coverage bad target',
+      (r) => (cache(r).coverage = [{ target: 'Go!', required: true, status: 'missing' }]),
+      'coverage[0].target must be a stack id',
+    ],
+    [
+      'coverage bad via',
+      (r) => (cache(r).coverage = [{ target: 'go', required: true, status: 'stable', via: 3 }]),
+      'coverage[0].via must be a stack id',
+    ],
+    [
+      'coverage non-boolean required',
+      (r) => (cache(r).coverage = [{ target: 'go', required: 1, status: 'missing' }]),
+      'required must be a boolean',
+    ],
+    ['implementation still rejects targets', (r) => (cache(r).implementations[0].targets = []), "unknown field 'targets'"],
+    ['root still rejects coverage', (r) => (r.coverage = []), "unknown field 'coverage'"],
+  ];
+  for (const [label, mutation, fragment] of cases) {
+    const message = mutate(mutation);
+    assertPass(`rejects ${label}`, message.includes(fragment), message);
+  }
 }
 
 function testResolution() {

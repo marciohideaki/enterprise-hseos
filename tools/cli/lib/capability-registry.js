@@ -4,6 +4,8 @@ const path = require('node:path');
 
 const SNAPSHOT_FILE = path.join('.enterprise', 'governance', 'capabilities', 'ecp-registry.snapshot.json');
 const SNAPSHOT_LOCK_FILE = path.join('.enterprise', 'governance', 'capabilities', 'ecp-registry.snapshot.lock.json');
+const STACKS_SNAPSHOT_FILE = path.join('.enterprise', 'governance', 'capabilities', 'ecp-stacks.snapshot.json');
+const STACKS_LOCK_FILE = path.join('.enterprise', 'governance', 'capabilities', 'ecp-stacks.snapshot.lock.json');
 const MAX_REGISTRY_BYTES = 5 * 1024 * 1024;
 
 const SEMVER = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
@@ -30,6 +32,8 @@ const CAPABILITY_KEYS = new Set([
   'providers',
   'files',
   'implementations',
+  'targets',
+  'coverage',
 ]);
 const CAPABILITY_REQUIRED = ['name', 'kind', 'version', 'stability', 'owner', 'summary', 'aliases', 'files', 'implementations'];
 const KINDS = new Set(['service', 'library']);
@@ -50,6 +54,9 @@ const FILE_ROLES = new Set([
   'example',
   'policy',
 ]);
+const TARGET_KEYS = new Set(['stack', 'required']);
+const COVERAGE_KEYS = new Set(['target', 'required', 'status', 'via']);
+const COVERAGE_STATUSES = new Set(['stable', 'experimental', 'planned', 'missing']);
 const IMPLEMENTATION_KEYS = new Set([
   'stack',
   'kind',
@@ -172,6 +179,8 @@ function capabilityProblems(capability, label, { fail, shape, stringList }) {
     for (const key of MATCH_KEYS) if (capability.match[key] !== undefined) stringList(capability.match[key], `${label}.match.${key}`);
   }
   if (capability.files !== undefined) filesProblems(capability.files, label, { fail, shape });
+  if (capability.targets !== undefined) targetsProblems(capability.targets, label, { fail, shape });
+  if (capability.coverage !== undefined) coverageProblems(capability.coverage, label, { fail, shape });
   if (capability.implementations !== undefined) {
     if (Array.isArray(capability.implementations)) {
       for (const [index, implementation] of capability.implementations.entries()) {
@@ -196,6 +205,41 @@ function filesProblems(files, label, { fail, shape }) {
     if (file.sha256 !== undefined && !(typeof file.sha256 === 'string' && SHA256.test(file.sha256)))
       fail(`${fileLabel}.sha256 must be 64 hex characters`);
     if (file.role !== undefined && !FILE_ROLES.has(file.role)) fail(`${fileLabel}.role is not a known role`);
+  }
+}
+
+/** `targets` (Decision 0011): the stacks a capability must reach, `required` materialized by the generator. */
+function targetsProblems(targets, label, { fail, shape }) {
+  if (!Array.isArray(targets) || targets.length === 0) {
+    fail(`${label}.targets must be a non-empty list`);
+    return;
+  }
+  for (const [index, target] of targets.entries()) {
+    const targetLabel = `${label}.targets[${index}]`;
+    if (!shape(target, targetLabel, TARGET_KEYS, [...TARGET_KEYS])) continue;
+    if (target.stack !== undefined && !(typeof target.stack === 'string' && STACK_ID.test(target.stack)))
+      fail(`${targetLabel}.stack must be a stack id`);
+    if (target.required !== undefined && typeof target.required !== 'boolean') fail(`${targetLabel}.required must be a boolean`);
+  }
+}
+
+/** `coverage` (Decision 0011): derived by the generator, one item per target; only its shape is checked here. */
+function coverageProblems(coverage, label, { fail, shape }) {
+  if (!Array.isArray(coverage)) {
+    fail(`${label}.coverage must be a list`);
+    return;
+  }
+  for (const [index, item] of coverage.entries()) {
+    const itemLabel = `${label}.coverage[${index}]`;
+    if (!shape(item, itemLabel, COVERAGE_KEYS, ['target', 'required', 'status'])) continue;
+    for (const key of ['target', 'via']) {
+      if (item[key] !== undefined && !(typeof item[key] === 'string' && STACK_ID.test(item[key])))
+        fail(`${itemLabel}.${key} must be a stack id`);
+    }
+    if (item.required !== undefined && typeof item.required !== 'boolean') fail(`${itemLabel}.required must be a boolean`);
+    if (item.status !== undefined && !COVERAGE_STATUSES.has(item.status)) {
+      fail(`${itemLabel}.status must be one of ${[...COVERAGE_STATUSES].join(', ')}`);
+    }
   }
 }
 
@@ -249,6 +293,181 @@ function validateCapabilityRegistry(registry) {
   return registry;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Stack vocabulary (ECP Decision 0011, resolution v1.1)
+//
+// Stack vocabulary, normalization, `accepts` and target coverage (ECP Decision 0011, resolution v1.1).
+//
+// Mirror of ecp_runtime/stacks.py. Pure and deterministic. The vocabulary document is the ECP
+// `contracts/stacks.json`; HSEOS reads it from a verified snapshot (see capability-registry.js).
+// Without a vocabulary the resolver keeps the v1 rules (lower-case equality), so nothing here runs.
+
+const VOCABULARY_KEYS = new Set(['schema_version', 'stacks_version', 'stacks']);
+const STACK_KEYS = new Set(['id', 'family', 'summary', 'aliases', 'accepts']);
+
+const STATUS_RANK = { stable: 3, experimental: 2, planned: 1 };
+
+// Python `str.isspace()` / `re` `\s` (what ECP uses) is not the ECP-agnostic JavaScript `\s`: it adds
+// U+001C..U+001F and U+0085 and has no U+FEFF. Parity with the ECP vocabulary needs the exact set.
+const SPACE = String.raw`\t\n\v\f\r\u001c-\u001f \u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000`;
+const EDGE_SPACE = new RegExp(`^[${SPACE}]+|[${SPACE}]+$`, 'g');
+const SEPARATORS = new RegExp(`[${SPACE}_-]+`, 'g');
+
+/** Trim, lower-case and collapse whitespace, `_` and `-` runs into one `-` (no alias lookup). */
+function normalizeToken(value) {
+  return String(value).replaceAll(EDGE_SPACE, '').toLowerCase().replaceAll(SEPARATORS, '-');
+}
+
+/** Every structural and semantic problem of a `stacks.json` document (shape plus the invariants of ECP `vocabulary_problems`). */
+function vocabularyProblems(document) {
+  if (!isPlainObject(document)) return ['stacks.json must be an object'];
+  const problems = [];
+  for (const key of Object.keys(document)) if (!VOCABULARY_KEYS.has(key)) problems.push(`stacks.json has unknown field '${key}'`);
+  if (document.schema_version !== '1') problems.push("stacks.json schema_version must be '1'");
+  if (!(typeof document.stacks_version === 'string' && SEMVER.test(document.stacks_version))) {
+    problems.push('stacks.json stacks_version must be a semantic version');
+  }
+  if (!Array.isArray(document.stacks) || document.stacks.length === 0) {
+    problems.push("stacks.json must have a non-empty 'stacks' list");
+    return problems;
+  }
+  const ids = new Set();
+  const entries = [];
+  for (const [index, entry] of document.stacks.entries()) {
+    const label = `stacks[${index}]`;
+    if (!isPlainObject(entry)) {
+      problems.push(`${label} must be an object`);
+      continue;
+    }
+    for (const key of Object.keys(entry)) if (!STACK_KEYS.has(key)) problems.push(`${label} has unknown field '${key}'`);
+    for (const key of ['family', 'summary']) {
+      if (!(typeof entry[key] === 'string' && entry[key].length > 0)) problems.push(`${label}.${key} must be a non-empty string`);
+    }
+    for (const key of ['aliases', 'accepts']) {
+      if (!Array.isArray(entry[key]) || entry[key].some((item) => typeof item !== 'string')) {
+        problems.push(`${label}.${key} must be a list of strings`);
+      }
+    }
+    if (!(typeof entry.id === 'string' && STACK_ID.test(entry.id))) {
+      problems.push(`${label}.id must be a stack id`);
+      continue;
+    }
+    if (ids.has(entry.id)) problems.push(`stack id '${entry.id}' is defined more than once`);
+    ids.add(entry.id);
+    entries.push(entry);
+  }
+  const seenAliases = new Map();
+  for (const entry of entries) {
+    const aliases = Array.isArray(entry.aliases) ? entry.aliases.filter((alias) => typeof alias === 'string') : [];
+    for (const alias of aliases) {
+      if (normalizeToken(alias) !== alias) {
+        problems.push(`${entry.id}: alias '${alias}' is not in normalized form ('${normalizeToken(alias)}')`);
+      }
+      if (ids.has(alias)) problems.push(`${entry.id}: alias '${alias}' is also a stack id (ids and aliases must be disjoint)`);
+      if (seenAliases.has(alias)) {
+        const owner = seenAliases.get(alias);
+        problems.push(`alias '${alias}' is declared ${owner === entry.id ? 'twice' : `by '${owner}' and '${entry.id}'`}`);
+      } else {
+        seenAliases.set(alias, entry.id);
+      }
+    }
+    const accepted = new Set();
+    for (const other of Array.isArray(entry.accepts) ? entry.accepts.filter((item) => typeof item === 'string') : []) {
+      if (other === entry.id) problems.push(`${entry.id}: accepts must not list itself`);
+      else if (!ids.has(other)) problems.push(`${entry.id}: accepts refers to unknown stack '${other}'`);
+      if (accepted.has(other)) problems.push(`${entry.id}: accepts lists '${other}' more than once`);
+      accepted.add(other);
+    }
+  }
+  return problems;
+}
+
+/**
+ * Parsed vocabulary: `normalize` maps an id or alias to the canonical id (anything else stays as the normalized
+ * token and matches nothing); `accepts` is directional and NOT transitive.
+ */
+function createVocabulary(document) {
+  const problems = vocabularyProblems(document);
+  if (problems.length > 0) {
+    const shown = problems.slice(0, 10).join('; ');
+    throw new Error(`Invalid stack vocabulary: ${shown}${problems.length > 10 ? `; and ${problems.length - 10} more` : ''}`);
+  }
+  const aliases = new Map();
+  const acceptsMap = new Map();
+  for (const entry of document.stacks) {
+    for (const alias of entry.aliases) aliases.set(alias, entry.id);
+    acceptsMap.set(entry.id, [...entry.accepts]);
+  }
+  const normalize = (value) => {
+    const token = normalizeToken(value);
+    return aliases.has(token) ? aliases.get(token) : token;
+  };
+  const acceptsOf = (stackId) => acceptsMap.get(stackId) || [];
+  return {
+    version: document.stacks_version,
+    ids: document.stacks.map((entry) => entry.id),
+    normalize,
+    accepts: acceptsOf,
+    expand: (stackId) => new Set([stackId, ...acceptsOf(stackId)]),
+  };
+}
+
+/** Vocabulary of a registry shipped without `stacks.json`: ids compare by normalized token, nothing is accepted. */
+const IDENTITY_VOCABULARY = Object.freeze({ normalize: normalizeToken, accepts: () => [] });
+
+/** Targets with the `required` default materialized, sorted by stack (code-unit order, as the ids are ASCII). */
+function normalizedTargets(targets) {
+  return targets
+    .map((target) => ({ stack: target.stack, required: target.required === undefined ? true : target.required }))
+    .sort((a, b) => (a.stack < b.stack ? -1 : a.stack > b.stack ? 1 : 0));
+}
+
+/** Best `{status, via}` for one target: highest status rank, a direct implementation beats a via-accepts one; deprecated never counts. */
+function satisfaction(targetStack, implementations, vocabulary) {
+  const accepted = new Set(vocabulary.accepts(targetStack));
+  let best = null;
+  for (const implementation of implementations) {
+    const rank = STATUS_RANK[implementation.status];
+    if (rank === undefined || !Object.hasOwn(STATUS_RANK, implementation.status)) continue;
+    const stack = vocabulary.normalize(implementation.stack === undefined ? '' : implementation.stack);
+    let direct;
+    let via;
+    if (stack === targetStack) {
+      direct = 1;
+      via = null;
+    } else if (accepted.has(stack)) {
+      direct = 0;
+      via = stack;
+    } else {
+      continue;
+    }
+    const better =
+      best === null ||
+      rank > best.rank ||
+      (rank === best.rank && direct > best.direct) ||
+      (rank === best.rank && direct === best.direct && (via || '') < (best.via || ''));
+    if (better) best = { rank, direct, status: implementation.status, via };
+  }
+  return best === null ? { status: 'missing', via: null } : { status: best.status, via: best.via };
+}
+
+/** One item per target, sorted by stack: `{target, required, status[, via]}`. */
+function deriveCoverage(targets, implementations, vocabulary) {
+  return normalizedTargets(targets).map((target) => {
+    const { status, via } = satisfaction(vocabulary.normalize(target.stack), implementations, vocabulary);
+    const item = { target: target.stack, required: target.required, status };
+    if (via) item.via = via;
+    return item;
+  });
+}
+
+/** Targets whose derived status is `missing` (a `planned` target is not missing). */
+function missingTargets(targets, implementations, vocabulary) {
+  return deriveCoverage(targets, implementations, vocabulary)
+    .filter((item) => item.status === 'missing')
+    .map((item) => ({ stack: item.target, required: item.required }));
+}
+
 function sha256Hex(bytes) {
   return crypto.createHash('sha256').update(bytes).digest('hex');
 }
@@ -271,16 +490,16 @@ function parseRegistry(bytes, label) {
   return validateCapabilityRegistry(parsed);
 }
 
-function readSnapshotLock(runtimeRoot) {
-  const lockFile = path.join(runtimeRoot, SNAPSHOT_LOCK_FILE);
+function readSnapshotLock(runtimeRoot, { file = SNAPSHOT_LOCK_FILE, label = 'Registry snapshot lock' } = {}) {
+  const lockFile = path.join(runtimeRoot, file);
   let lock;
   try {
-    lock = JSON.parse(readBoundedFile(lockFile, 'registry snapshot lock', { rejectSymlink: true }).toString('utf8'));
+    lock = JSON.parse(readBoundedFile(lockFile, label.toLowerCase(), { rejectSymlink: true }).toString('utf8'));
   } catch (error) {
-    throw new RegistryIntegrityError(`Registry snapshot lock is unreadable (${lockFile}): ${error.message}`);
+    throw new RegistryIntegrityError(`${label} is unreadable (${lockFile}): ${error.message}`);
   }
   if (!isPlainObject(lock) || Object.keys(lock).some((key) => !LOCK_KEYS.has(key)) || lock.schema_version !== '1.0.0') {
-    throw new RegistryIntegrityError('Registry snapshot lock has an unexpected shape');
+    throw new RegistryIntegrityError(`${label} has an unexpected shape`);
   }
   if (
     !(typeof lock.sha256 === 'string' && SHA256.test(lock.sha256)) ||
@@ -288,9 +507,78 @@ function readSnapshotLock(runtimeRoot) {
     !isNonEmptyString(lock.repository) ||
     !SEMVER.test(String(lock.contracts_version))
   ) {
-    throw new RegistryIntegrityError('Registry snapshot lock is missing sha256, ref, repository or contracts_version');
+    throw new RegistryIntegrityError(`${label} is missing sha256, ref, repository or contracts_version`);
   }
   return lock;
+}
+
+function exists(file) {
+  try {
+    fs.lstatSync(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function parseVocabulary(bytes, label) {
+  let parsed;
+  try {
+    parsed = JSON.parse(bytes.toString('utf8'));
+  } catch (error) {
+    throw new Error(`Invalid stack vocabulary: ${label} is not valid JSON (${error.message})`);
+  }
+  return createVocabulary(parsed);
+}
+
+/**
+ * The shipped stack vocabulary (ECP `contracts/stacks.json`), or null when the snapshot ships none (contracts
+ * before 0.5.0): null keeps the v1 stack rules. The file and its lock exist together or not at all, the file is
+ * verified against the lock, and the lock must name the same repository, ref and contracts version as the registry
+ * snapshot lock, so a registry and a vocabulary from different releases never combine.
+ */
+function loadStacksSnapshot(runtimeRoot, registryLock) {
+  const file = path.join(runtimeRoot, STACKS_SNAPSHOT_FILE);
+  const lockFile = path.join(runtimeRoot, STACKS_LOCK_FILE);
+  const hasFile = exists(file);
+  const hasLock = exists(lockFile);
+  if (!hasFile && !hasLock) return null;
+  if (hasFile !== hasLock) throw new RegistryIntegrityError('Stacks snapshot and its lock must be present together');
+  const lock = readSnapshotLock(runtimeRoot, { file: STACKS_LOCK_FILE, label: 'Stacks snapshot lock' });
+  for (const key of ['repository', 'ref', 'contracts_version']) {
+    if (lock[key] !== registryLock[key]) {
+      throw new RegistryIntegrityError(
+        `Stacks snapshot lock ${key} ${lock[key]} does not match the registry snapshot lock (${registryLock[key]})`,
+      );
+    }
+  }
+  const bytes = readBoundedFile(file, 'stacks snapshot', { rejectSymlink: true });
+  const sha256 = sha256Hex(bytes);
+  if (sha256 !== lock.sha256) throw new RegistryIntegrityError(`Stacks snapshot sha256 mismatch: lock ${lock.sha256}, computed ${sha256}`);
+  let vocabulary;
+  try {
+    vocabulary = parseVocabulary(bytes, STACKS_SNAPSHOT_FILE);
+  } catch (error) {
+    throw new RegistryIntegrityError(`Stacks snapshot is not a valid vocabulary: ${error.message}`);
+  }
+  return { vocabulary, sha256, version: vocabulary.version, source: 'snapshot' };
+}
+
+/**
+ * Development vocabulary next to a `path` registry: `<registry>.stacks.json` (what `platform-bindings sync` writes),
+ * or `contracts/stacks.json` beside an ECP checkout's `catalog/`. Hashed on read; the registry pin does not cover it.
+ */
+function loadStacksBesideRegistry(registryFile) {
+  const resolved = path.resolve(registryFile);
+  const candidates = [`${resolved.replace(/\.json$/i, '')}.stacks.json`];
+  if (path.basename(path.dirname(resolved)) === 'catalog') {
+    candidates.push(path.join(path.dirname(path.dirname(resolved)), 'contracts', 'stacks.json'));
+  }
+  const found = candidates.find((candidate) => exists(candidate));
+  if (!found) return null;
+  const bytes = readBoundedFile(found, 'stacks file');
+  const vocabulary = parseVocabulary(bytes, found);
+  return { vocabulary, sha256: sha256Hex(bytes), version: vocabulary.version, source: 'path' };
 }
 
 function verifyPin(pin, actual, label) {
@@ -316,7 +604,15 @@ function loadCapabilityRegistry({ runtimeRoot, bindings } = {}) {
     const sha256 = sha256Hex(bytes);
     verifyPin(declared.sha256, sha256, 'Capability registry');
     const registry = parseRegistry(bytes, declared.path);
-    return { registry, source: 'path', ref: registry.generated_from.ref || null, sha256 };
+    const stacks = loadStacksBesideRegistry(declared.path);
+    return {
+      registry,
+      source: 'path',
+      ref: registry.generated_from.ref || null,
+      sha256,
+      vocabulary: stacks ? stacks.vocabulary : null,
+      stacks: stacks ? { source: stacks.source, version: stacks.version, sha256: stacks.sha256 } : null,
+    };
   }
   if (declared.source !== 'snapshot') throw new Error(`Unknown registry source '${declared.source}'`);
   if (!isNonEmptyString(runtimeRoot)) throw new Error('loadCapabilityRegistry requires runtimeRoot for the snapshot source');
@@ -338,7 +634,15 @@ function loadCapabilityRegistry({ runtimeRoot, bindings } = {}) {
       `Registry snapshot repository ${registry.generated_from.repository} does not match its lock (${lock.repository})`,
     );
   }
-  return { registry, source: 'snapshot', ref: lock.ref, sha256 };
+  const stacks = loadStacksSnapshot(runtimeRoot, lock);
+  return {
+    registry,
+    source: 'snapshot',
+    ref: lock.ref,
+    sha256,
+    vocabulary: stacks ? stacks.vocabulary : null,
+    stacks: stacks ? { source: stacks.source, version: stacks.version, sha256: stacks.sha256 } : null,
+  };
 }
 
 /**
@@ -355,9 +659,39 @@ function inStacks(implementation, wanted) {
   return !wanted || wanted.has(implementation.stack.toLowerCase());
 }
 
-function filterImplementations(capability, stacks) {
-  const wanted = stackSet(stacks);
-  return capability.implementations.filter((implementation) => inStacks(implementation, wanted));
+/**
+ * The stack filter of a lookup. Without a vocabulary it is the v1 rule (lower-case equality; every kept
+ * implementation is a direct one; stacks are reported as written). With one (resolution v1.1, Decision 0011)
+ * the query and implementation stacks are normalized to canonical ids (aliases), the kept set is each queried
+ * stack plus the stacks it `accepts` (directional, not transitive), `isDirect` tells an implementation of a
+ * queried stack from one kept only through `accepts`, and `canonical` names stacks by their id.
+ */
+function createStackFilter(stacks, vocabulary) {
+  if (!vocabulary) {
+    const wanted = stackSet(stacks);
+    return {
+      vocabulary: null,
+      keeps: (implementation) => inStacks(implementation, wanted),
+      isDirect: () => true,
+      canonical: (stack) => stack,
+    };
+  }
+  if (!Array.isArray(stacks) || stacks.length === 0) {
+    return { vocabulary, keeps: () => true, isDirect: () => true, canonical: vocabulary.normalize };
+  }
+  const direct = new Set(stacks.map((stack) => vocabulary.normalize(stack)));
+  const expanded = new Set([...direct].flatMap((stack) => [...vocabulary.expand(stack)]));
+  return {
+    vocabulary,
+    keeps: (implementation) => expanded.has(vocabulary.normalize(implementation.stack)),
+    isDirect: (implementation) => direct.has(vocabulary.normalize(implementation.stack)),
+    canonical: vocabulary.normalize,
+  };
+}
+
+function filterImplementations(capability, stacks, vocabulary) {
+  const filter = createStackFilter(stacks, vocabulary);
+  return capability.implementations.filter((implementation) => filter.keeps(implementation));
 }
 
 function matchHints(capability) {
@@ -487,7 +821,7 @@ function containsQuery(capability, query, queryCanonical) {
  * the same separator (in the heuristic only for queries of at least two tokens
  * and four alphanumerics); ties break by capability name.
  */
-function resolveCapability(registry, query, { stacks } = {}) {
+function resolveCapability(registry, query, { stacks, vocabulary } = {}) {
   if (typeof query !== 'string') return [];
   query = query.trim();
   if (query.length === 0) return [];
@@ -496,7 +830,7 @@ function resolveCapability(registry, query, { stacks } = {}) {
     capability,
     matchedBy,
     score: SCORES[matchedBy],
-    implementations: filterImplementations(capability, stacks),
+    implementations: filterImplementations(capability, stacks, vocabulary),
   });
   const ordered = (results) =>
     results.sort(
@@ -703,8 +1037,8 @@ function byName(a, b) {
  * `stacks` follows the shared rule: undefined or empty = any stack. Returns
  * `{ matches, warnings }`; `warnings` lists path globs ignored for exceeding the safety caps.
  */
-function matchExport(registry, { symbol, filePath, stacks } = {}) {
-  const wanted = stackSet(stacks);
+function matchExport(registry, { symbol, filePath, stacks, vocabulary } = {}) {
+  const filter = createStackFilter(stacks, vocabulary);
   const relative = isNonEmptyString(filePath) ? normalizeProjectPath(filePath) : null;
   const wantedSymbol = isNonEmptyString(symbol) ? normalizeSymbol(symbol) : null;
   const results = [];
@@ -720,19 +1054,30 @@ function matchExport(registry, { symbol, filePath, stacks } = {}) {
     else if (relative && pathGlobs.some((glob) => globMatches(glob, relative))) matchedBy = 'path';
     if (!matchedBy) continue;
     const stableForStack = capability.implementations.some(
-      (implementation) => implementation.status === 'stable' && inStacks(implementation, wanted),
+      (implementation) => implementation.status === 'stable' && filter.keeps(implementation),
     );
-    results.push({ capability, matchedBy, stableForStack, implementations: filterImplementations(capability, stacks) });
+    results.push({ capability, matchedBy, stableForStack, implementations: filterImplementations(capability, stacks, vocabulary) });
   }
   results.sort(byName);
   return { matches: results, warnings: [...new Set(warnings)].sort() };
 }
 
 module.exports = {
+  IDENTITY_VOCABULARY,
+  createVocabulary,
+  deriveCoverage,
+  missingTargets,
+  normalizeToken,
+  normalizedTargets,
+  satisfaction,
+  vocabularyProblems,
   MAX_REGISTRY_BYTES,
   RegistryIntegrityError,
   SNAPSHOT_FILE,
   SNAPSHOT_LOCK_FILE,
+  STACKS_LOCK_FILE,
+  STACKS_SNAPSHOT_FILE,
+  createStackFilter,
   loadCapabilityRegistry,
   matchExport,
   readSnapshotLock,

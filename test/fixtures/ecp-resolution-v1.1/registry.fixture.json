@@ -1,0 +1,612 @@
+{
+  "capabilities": [
+    {
+      "aliases": [
+        "cache",
+        "redis",
+        "distributed-cache",
+        "typed-cache"
+      ],
+      "files": [
+        {
+          "path": "capabilities/cache.typed/capability.yaml",
+          "role": "contract",
+          "sha256": "7ae3b7e7d08a320e803c48f2d74f640ee5262b5dbbf2de325440d15fe311abb9"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Acme.Caching.Abstractions",
+          "package_version": "0.1.0",
+          "path": "dotnet/src/Acme.Caching.Abstractions",
+          "repository": "Acme/core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Acme.Caching.Redis",
+          "package_version": "0.1.0",
+          "path": "dotnet/src/Acme.Caching.Redis",
+          "repository": "Acme/core",
+          "stack": "dotnet",
+          "status": "stable"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/acme/core/cache",
+          "package_version": "0.1.0",
+          "path": "go/src/cache",
+          "repository": "Acme/core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "acme-cache",
+          "package_version": "0.1.0",
+          "path": "python/src/acme-cache",
+          "repository": "Acme/core",
+          "stack": "python",
+          "status": "planned"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Acme.Caching.Abstractions",
+          "Acme.Caching.Redis"
+        ],
+        "symbols": [
+          "ICacheStore",
+          "CacheKey",
+          "AddTypedRedisCache"
+        ]
+      },
+      "name": "cache.typed",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Typed cache with governed key namespaces.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "mobile.tokens",
+        "mobile-tokens",
+        "design-tokens",
+        "mobile-theme"
+      ],
+      "files": [
+        {
+          "path": "capabilities/design.mobile-tokens/capability.yaml",
+          "role": "contract",
+          "sha256": "2559719cc540195c2778e02b3ed754c94e993eaba025e3fb8713c758c5f64f1b"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@acme/mobile-tokens",
+          "package_version": "0.1.0",
+          "path": "react-native/src/mobile-tokens",
+          "repository": "Acme/core",
+          "stack": "react-native",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "mobile_tokens_flutter",
+          "package_version": "0.1.0",
+          "path": "flutter/src/mobile_tokens_flutter",
+          "repository": "Acme/core",
+          "stack": "flutter",
+          "status": "planned"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "@acme/mobile-tokens",
+          "mobile_tokens_flutter"
+        ],
+        "symbols": [
+          "getMobileTheme",
+          "MobileTheme"
+        ]
+      },
+      "name": "design.mobile-tokens",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Mobile design tokens.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "platform/messaging/event-envelope",
+        "event-envelope",
+        "delivery"
+      ],
+      "files": [
+        {
+          "path": "capabilities/messaging.event-envelope/capability.yaml",
+          "role": "contract",
+          "sha256": "5be47d83dcdd547a6a0c15e699e1d1099cce04bc8605723809d153404a148faa"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/acme/core/messaging",
+          "package_version": "0.1.0",
+          "path": "go/src/messaging",
+          "repository": "Acme/core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@acme/platform-node",
+          "package_version": "0.1.0",
+          "path": "node/src/platform-node",
+          "repository": "Acme/core",
+          "stack": "node",
+          "status": "stable"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "acme-platform",
+          "package_version": "0.1.0",
+          "path": "python/src/acme-platform",
+          "repository": "Acme/core",
+          "stack": "python",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "github.com/acme/core/messaging",
+          "@acme/platform-node",
+          "acme_platform.messaging"
+        ],
+        "path_globs": [
+          "**/event-envelope.schema.json"
+        ],
+        "symbols": [
+          "EventEnvelope",
+          "createEventEnvelope"
+        ]
+      },
+      "name": "messaging.event-envelope",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Versioned event envelope.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "platform/messaging/outbox/v1",
+        "outbox",
+        "inbox",
+        "transactional-outbox",
+        "messaging",
+        "delivery"
+      ],
+      "files": [
+        {
+          "path": "capabilities/messaging.outbox/capability.yaml",
+          "role": "contract",
+          "sha256": "5e5e517e2794e173d4a245f2315495bd5b5d82ff19859c299834cc40780489c6"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Acme.Messaging.Outbox",
+          "package_version": "0.1.0",
+          "path": "dotnet/src/Acme.Messaging.Outbox",
+          "repository": "Acme/core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@acme/messaging-outbox",
+          "package_version": "0.1.0",
+          "path": "npm/src/messaging-outbox",
+          "repository": "Acme/core",
+          "stack": "npm",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "acme-messaging-outbox",
+          "package_version": "0.1.0",
+          "path": "python/src/acme-messaging-outbox",
+          "repository": "Acme/core",
+          "stack": "python",
+          "status": "planned"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "path_globs": [
+          "**/outbox-v1.schema.json",
+          "docs/messaging/*.md"
+        ],
+        "symbols": [
+          "IOutboxStore",
+          "PostgreSqlOutboxStore"
+        ]
+      },
+      "name": "messaging.outbox",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Transactional outbox and idempotent inbox.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/notification.send/capability.yaml",
+          "role": "contract",
+          "sha256": "d6a7395014dcafe9d72f206735670b313b369911b6a5632fcac7645b6bda445c"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "service",
+          "package": "ecp_runtime",
+          "package_version": "0.1.0",
+          "path": "python/src/ecp_runtime",
+          "repository": "Acme/core",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "service",
+          "package": "ecp-client",
+          "package_version": "0.1.0",
+          "path": "typescript/src/ecp-client",
+          "repository": "Acme/core",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "notification.send",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Send a notification through a provider.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "auth",
+        "authn",
+        "jwt",
+        "bearer",
+        "oidc"
+      ],
+      "files": [
+        {
+          "path": "capabilities/security.authn/capability.yaml",
+          "role": "contract",
+          "sha256": "41d955f15c0552ecdc085db43acf724a04d7cff94ab2fdabbf2a433645180b62"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Acme.Security.Authn",
+          "package_version": "0.1.0",
+          "path": "dotnet/src/Acme.Security.Authn",
+          "repository": "Acme/core",
+          "stack": "dotnet",
+          "status": "planned"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "acme-auth",
+          "package_version": "0.1.0",
+          "path": "python/src/acme-auth",
+          "repository": "Acme/core",
+          "stack": "python",
+          "status": "deprecated"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Acme.Security.Authn"
+        ],
+        "symbols": [
+          "AddJwtBearer",
+          "mapRealmRoles"
+        ]
+      },
+      "name": "security.authn",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Authentication middleware.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@acme/stackfx-both-ts",
+          "package_version": "0.1.0",
+          "path": "typescript/@acme/stackfx-both-ts",
+          "repository": "Acme/stackfx",
+          "stack": "typescript",
+          "status": "stable"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@acme/stackfx-both-node",
+          "package_version": "0.1.0",
+          "path": "node/@acme/stackfx-both-node",
+          "repository": "Acme/stackfx",
+          "stack": "node",
+          "status": "stable"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.both",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "node"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/acme/stackfx-old",
+          "package_version": "0.1.0",
+          "path": "go/github.com/acme/stackfx-old",
+          "repository": "Acme/stackfx",
+          "stack": "go",
+          "status": "deprecated"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.deprecated-go",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "go"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Acme.StackFx",
+          "package_version": "0.1.0",
+          "path": "dotnet/Acme.StackFx",
+          "repository": "Acme/stackfx",
+          "stack": "dotnet",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.dotnet-lib",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "acme-stackfx-gap",
+          "package_version": "0.1.0",
+          "path": "python/acme-stackfx-gap",
+          "repository": "Acme/stackfx",
+          "stack": "python",
+          "status": "stable"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.gap-go",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/acme/stackfx",
+          "package_version": "0.1.0",
+          "path": "go/github.com/acme/stackfx",
+          "repository": "Acme/stackfx",
+          "stack": "go",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.go-lib",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@acme/stackfx-node",
+          "package_version": "0.1.0",
+          "path": "node/@acme/stackfx-node",
+          "repository": "Acme/stackfx",
+          "stack": "node",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.node-only",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "stackfx_flutter",
+          "package_version": "0.1.0",
+          "path": "flutter/stackfx_flutter",
+          "repository": "Acme/stackfx",
+          "stack": "flutter",
+          "status": "planned"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.planned-flutter",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "flutter"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "acme-stackfx",
+          "package_version": "0.1.0",
+          "path": "python/acme-stackfx",
+          "repository": "Acme/stackfx",
+          "stack": "python",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.py-lib",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@acme/stackfx-rn",
+          "package_version": "0.1.0",
+          "path": "react-native/@acme/stackfx-rn",
+          "repository": "Acme/stackfx",
+          "stack": "react-native",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.rn-lib",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@acme/stackfx-ts",
+          "package_version": "0.1.0",
+          "path": "typescript/@acme/stackfx-ts",
+          "repository": "Acme/stackfx",
+          "stack": "typescript",
+          "status": "stable"
+        }
+      ],
+      "kind": "library",
+      "name": "stackfx.ts-lib",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Stack vocabulary probe.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "node"
+        }
+      ],
+      "version": "0.1.0"
+    }
+  ],
+  "generated_from": {
+    "contracts_version": "0.0.0-fixture",
+    "repository": "Acme/enterprise-capability-platform"
+  },
+  "schema_version": "1"
+}
