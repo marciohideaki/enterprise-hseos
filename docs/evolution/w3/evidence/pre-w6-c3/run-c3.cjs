@@ -36,7 +36,7 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
   const HOME = process.env.HOME;
   const options = {
     model: 'claude-haiku-5-5',
-    memory_max_bytes: 1073741824,
+    memory_max_bytes: 1_073_741_824,
     pids_max: 256,
     tasks: { [taskId]: { prompt } },
     environment: { HOME, PATH: process.env.PATH },
@@ -60,8 +60,8 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
       credential_sha256: credentialFingerprint(key),
       source: 'explicit',
     },
-    billing: { kind: 'metered', currency: 'USD', max_request_microusd: 250000 },
-    limits: { max_requests: 2, max_input_tokens: 65536, max_output_tokens: 1024, max_duration_ms: 120000 },
+    billing: { kind: 'metered', currency: 'USD', max_request_microusd: 250_000 },
+    limits: { max_requests: 2, max_input_tokens: 65_536, max_output_tokens: 1024, max_duration_ms: 120_000 },
     controls: {
       authority: 'external_client',
       resume: 'not_verified',
@@ -125,7 +125,7 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
   };
   const grant = {
     max_requests: 4,
-    max_cost_microusd: 1000000,
+    max_cost_microusd: 1_000_000,
     deadline,
     binding_ids: [manifest.binding_id],
     task_ids: [taskId],
@@ -184,7 +184,11 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
     save('replay-trace.json', trace);
     const after = await configured.adapter.inspect();
     save('inspect-after.json', view(after));
-    const t = fs.readFileSync(turns, 'utf8').trim().split('\n').map(JSON.parse);
+    const t = fs
+      .readFileSync(turns, 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
     const exp = ['{"value":42,"phase":"initial"}', '{"value":43,"phase":"resumed"}'].map((s) =>
       createHash('sha256').update(s).digest('hex'),
     );
@@ -224,9 +228,12 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
     await control.providerCampaigns.shutdown();
     control.close();
   }
-})().catch((e) => {
+})().catch((error) => {
   console.error(
-    JSON.stringify({ code: e.code || 'SETUP_FAILED', message: /^[A-Z_]+$/.test(e.message) ? e.message : String(e.message).slice(0, 200) }),
+    JSON.stringify({
+      code: error.code || 'SETUP_FAILED',
+      message: /^[A-Z_]+$/.test(error.message) ? error.message : String(error.message).slice(0, 200),
+    }),
   );
   process.exitCode = 1;
 });

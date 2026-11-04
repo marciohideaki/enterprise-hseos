@@ -2,7 +2,7 @@
 import { randomUUID } from 'node:crypto';
 const sdk = await import('/build/tmp/wc/c3/sdk/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs');
 const controller = new AbortController();
-setTimeout(() => controller.abort(), 45000);
+setTimeout(() => controller.abort(), 45_000);
 const q = sdk.query({
   prompt: 'diagnostic only',
   options: {
@@ -48,8 +48,8 @@ try {
     if (m.type === 'assistant') o.blocks = (m.message?.content || []).map((b) => b.type);
     console.log(JSON.stringify(o));
   }
-} catch (e) {
-  console.log('stream-error', String(e.message).slice(0, 200));
+} catch (error) {
+  console.log('stream-error', String(error.message).slice(0, 200));
 } finally {
   q.close();
 }

@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 const key = execFileSync('pass', ['show', 'claude/anthropic-api-key'], { encoding: 'utf8' }).trim();
 const sdk = await import('/build/tmp/wc/c3/sdk/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs');
 const controller = new AbortController();
-setTimeout(() => controller.abort(), 90000);
+setTimeout(() => controller.abort(), 90_000);
 const prompt =
   'Teste de continuidade HSEOS. Nao use ferramentas, nao leia arquivos e nao execute comandos. Se esta for a primeira mensagem desta conversa, responda exatamente {"value":42,"phase":"initial"}. Se esta conversa ja tiver uma resposta sua anterior, responda exatamente {"value":43,"phase":"resumed"}. Nao use markdown nem acrescente explicacoes.';
 const q = sdk.query({
@@ -56,8 +56,8 @@ try {
       });
     console.log(JSON.stringify(o));
   }
-} catch (e) {
-  console.log('stream-error', redact(e.message));
+} catch (error) {
+  console.log('stream-error', redact(error.message));
 } finally {
   q.close();
 }

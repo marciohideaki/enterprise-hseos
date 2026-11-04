@@ -43,7 +43,7 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
   const childFile = path.join(dir, 'codex-binding.json');
   const childOptions = {
     model: 'gpt-6.1-sol',
-    memory_max_bytes: 1073741824,
+    memory_max_bytes: 1_073_741_824,
     pids_max: 256,
     tasks: { [ids.task]: { prompt: 'Do not use any tools or read files. Reply exactly READY.' } },
     environment: { HOME, CODEX_HOME, PATH: process.env.PATH },
@@ -67,7 +67,7 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
       source: 'explicit',
     },
     billing: { kind: 'subscription', currency: 'USD', max_request_microusd: 0 },
-    limits: { max_requests: 2, max_input_tokens: 65536, max_output_tokens: 1024, max_duration_ms: 90000 },
+    limits: { max_requests: 2, max_input_tokens: 65_536, max_output_tokens: 1024, max_duration_ms: 90_000 },
     controls: { authority: 'external_client', resume: 'not_verified', cancel: 'not_verified', quota: 'observed', evidence_sha256: null },
   };
   // parent: Antigravity local
@@ -78,13 +78,13 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
     scratch,
     subordinate_binding_id: child.binding_id,
     max_model_calls: 1,
-    memory_max_bytes: 2147483648,
+    memory_max_bytes: 2_147_483_648,
     pids_max: 256,
     tasks: { [ids.task]: { prompt: 'Call run_campaign_model exactly once, with no arguments. /no_think' } },
   };
   const localFile = path.join(dir, 'local.json');
   fs.writeFileSync(localFile, JSON.stringify(config));
-  const artifacts = [python, checkpoint, sdkModule].map(sha);
+  const artifacts = [python, checkpoint, sdkModule].map((file) => sha(file));
   const parent = {
     schema_version: 1,
     binding_id: 'binding:antigravity-local-c7',
@@ -105,7 +105,7 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
       source: 'explicit',
     },
     billing: { kind: 'local', currency: 'USD', max_request_microusd: 0 },
-    limits: { max_requests: 2, max_input_tokens: 4096, max_output_tokens: 96, max_duration_ms: 150000 },
+    limits: { max_requests: 2, max_input_tokens: 4096, max_output_tokens: 96, max_duration_ms: 150_000 },
     controls: {
       authority: 'external_client',
       resume: 'not_verified',
@@ -244,7 +244,14 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
       binding_sha256: afterChild.binding_sha256,
     });
     const readLines = (f) =>
-      fs.existsSync(path.join(out, f)) ? fs.readFileSync(path.join(out, f), 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse) : [];
+      fs.existsSync(path.join(out, f))
+        ? fs
+            .readFileSync(path.join(out, f), 'utf8')
+            .trim()
+            .split('\n')
+            .filter(Boolean)
+            .map((line) => JSON.parse(line))
+        : [];
     const pt = readLines('parent-turns.jsonl'),
       ct = readLines('child-turns.jsonl');
     const validation = {
@@ -270,7 +277,9 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
     let st = null;
     try {
       st = control.providerCampaigns.query(ids.campaign);
-    } catch {}
+    } catch {
+      /* best effort */
+    }
     save('failure.json', { code: error.code || error.message, diagnostic: error.diagnostic, state: st });
     try {
       save(
@@ -282,7 +291,9 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
           diagnostic: r.payload.diagnostic || null,
         })),
       );
-    } catch {}
+    } catch {
+      /* best effort */
+    }
     console.log(JSON.stringify({ code: error.code || error.message, requests: st?.requests, unresolved: st?.unresolved_commands }));
     process.exitCode = 1;
   } finally {
@@ -290,9 +301,12 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
     await control.providerCampaigns.shutdown();
     control.close();
   }
-})().catch((e) => {
+})().catch((error) => {
   console.error(
-    JSON.stringify({ code: e.code || 'SETUP_FAILED', message: /^[A-Z_]+$/.test(e.message) ? e.message : String(e.message).slice(0, 300) }),
+    JSON.stringify({
+      code: error.code || 'SETUP_FAILED',
+      message: /^[A-Z_]+$/.test(error.message) ? error.message : String(error.message).slice(0, 300),
+    }),
   );
   process.exitCode = 1;
 });

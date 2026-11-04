@@ -31,7 +31,7 @@ const MODE = process.argv[2]; // 'inspect' (0 inferences) or 'run'
     'Teste de continuidade HSEOS. Nao use ferramentas, nao leia arquivos e nao execute comandos. Se esta for a primeira mensagem desta conversa, responda exatamente {"value":42,"phase":"initial"}. Se esta conversa ja tiver uma resposta sua anterior, responda exatamente {"value":43,"phase":"resumed"}. Nao use markdown nem acrescente explicacoes.';
   const options = {
     model: 'gpt-6.1-sol',
-    memory_max_bytes: 1073741824,
+    memory_max_bytes: 1_073_741_824,
     pids_max: 256,
     tasks: { [taskId]: { prompt } },
     environment: { HOME, CODEX_HOME, PATH: process.env.PATH },
@@ -55,7 +55,7 @@ const MODE = process.argv[2]; // 'inspect' (0 inferences) or 'run'
       source: 'explicit',
     },
     billing: { kind: 'subscription', currency: 'USD', max_request_microusd: 0 },
-    limits: { max_requests: 2, max_input_tokens: 65536, max_output_tokens: 2048, max_duration_ms: 120000 },
+    limits: { max_requests: 2, max_input_tokens: 65_536, max_output_tokens: 2048, max_duration_ms: 120_000 },
     controls: { authority: 'external_client', resume: 'not_verified', cancel: 'not_verified', quota: 'observed', evidence_sha256: null },
   };
   const turns = path.join(out, 'turns.jsonl');
@@ -126,7 +126,11 @@ const MODE = process.argv[2]; // 'inspect' (0 inferences) or 'run'
     server = await startControlServer({ control, credential });
     const result = await runProviderCampaign(new ControlClient({ url: server.url, credential }), plan);
     save('result.json', result);
-    const t = fs.readFileSync(turns, 'utf8').trim().split('\n').map(JSON.parse);
+    const t = fs
+      .readFileSync(turns, 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
     const exp = ['{"value":42,"phase":"initial"}', '{"value":43,"phase":"resumed"}'].map((s) =>
       createHash('sha256').update(s).digest('hex'),
     );
@@ -156,9 +160,12 @@ const MODE = process.argv[2]; // 'inspect' (0 inferences) or 'run'
     await control.providerCampaigns.shutdown();
     control.close();
   }
-})().catch((e) => {
+})().catch((error) => {
   console.error(
-    JSON.stringify({ code: e.code || 'SETUP_FAILED', message: /^[A-Z_]+$/.test(e.message) ? e.message : String(e.message).slice(0, 200) }),
+    JSON.stringify({
+      code: error.code || 'SETUP_FAILED',
+      message: /^[A-Z_]+$/.test(error.message) ? error.message : String(error.message).slice(0, 200),
+    }),
   );
   process.exitCode = 1;
 });

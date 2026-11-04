@@ -24,7 +24,7 @@ const mode = process.argv[2] || 'null-usage'; // null-usage = official shape; om
   const task = randomUUID();
   const options = {
     tasks: { [task]: { prompt: 'Reply ready.' } },
-    pricing: { input_microusd_per_million: 150000, output_microusd_per_million: 600000, valid_until: Date.now() + 3600_000 },
+    pricing: { input_microusd_per_million: 150_000, output_microusd_per_million: 600_000, valid_until: Date.now() + 3_600_000 },
   };
   const key = 'repro-' + randomUUID() + randomUUID();
   const value = {
@@ -46,8 +46,8 @@ const mode = process.argv[2] || 'null-usage'; // null-usage = official shape; om
       credential_sha256: credentialFingerprint(key),
       source: 'explicit',
     },
-    billing: { kind: 'metered', currency: 'USD', max_request_microusd: 250000 },
-    limits: { max_requests: 2, max_input_tokens: 4096, max_output_tokens: 256, max_duration_ms: 60000 },
+    billing: { kind: 'metered', currency: 'USD', max_request_microusd: 250_000 },
+    limits: { max_requests: 2, max_input_tokens: 4096, max_output_tokens: 256, max_duration_ms: 60_000 },
     controls: { authority: 'kernel', resume: 'unavailable', cancel: 'not_verified', quota: 'not_verified', evidence_sha256: null },
   };
   const base = {
@@ -90,8 +90,8 @@ const mode = process.argv[2] || 'null-usage'; // null-usage = official shape; om
   try {
     const r = await adapter.adapter.run({ task_id: task, request_id: randomUUID(), signal: new AbortController().signal });
     console.log(JSON.stringify({ mode, outcome: 'completed', input_tokens: r.input_tokens, output_tokens: r.output_tokens }));
-  } catch (e) {
-    console.log(JSON.stringify({ mode, outcome: 'error', code: e.code || e.message }));
+  } catch (error) {
+    console.log(JSON.stringify({ mode, outcome: 'error', code: error.code || error.message }));
   }
   fs.rmSync(dir, { recursive: true, force: true });
 })();

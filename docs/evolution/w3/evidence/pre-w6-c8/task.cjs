@@ -3,7 +3,6 @@
 // activated project.db. It prints what entered the assembled context (memory sources with origin/trust/authority/digest), never the note text.
 // usage (repository root): node task.cjs <project.db copy> <project_id> <label> <out.json>
 const fs = require('node:fs'),
-  path = require('node:path'),
   { createHash } = require('node:crypto');
 const root = process.cwd();
 const Database = require('node:module').createRequire(root + '/package.json')('better-sqlite3');
@@ -54,12 +53,14 @@ const [dbPath, projectId, label, output] = process.argv.slice(2);
   };
   fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ label, task_result: report.task_result, memory_sources: sources.length, blocks: blocks.length }));
-  for (const fn of cleanups.reverse()) {
+  for (const fn of cleanups.toReversed()) {
     try {
       fn();
-    } catch {}
+    } catch {
+      /* best effort */
+    }
   }
-})().catch((e) => {
-  console.error(e.code || e.message);
+})().catch((error) => {
+  console.error(error.code || error.message);
   process.exitCode = 1;
 });

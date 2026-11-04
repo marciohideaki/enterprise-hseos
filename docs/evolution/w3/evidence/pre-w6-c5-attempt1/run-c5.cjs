@@ -45,7 +45,7 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
   };
   const options = {
     tasks: { [ids.t1]: { prompt: prompts[ids.t1] }, [ids.t2]: { prompt: prompts[ids.t2] } },
-    pricing: { input_microusd_per_million: 150000, output_microusd_per_million: 600000, valid_until: Date.now() + 3 * 3600_000 },
+    pricing: { input_microusd_per_million: 150_000, output_microusd_per_million: 600_000, valid_until: Date.now() + 3 * 3_600_000 },
   };
   const manifestValue = {
     schema_version: 1,
@@ -66,18 +66,17 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
       credential_sha256: credentialFingerprint(key),
       source: 'explicit',
     },
-    billing: { kind: 'metered', currency: 'USD', max_request_microusd: 250000 },
-    limits: { max_requests: 2, max_input_tokens: 4096, max_output_tokens: 256, max_duration_ms: 60000 },
+    billing: { kind: 'metered', currency: 'USD', max_request_microusd: 250_000 },
+    limits: { max_requests: 2, max_input_tokens: 4096, max_output_tokens: 256, max_duration_ms: 60_000 },
     controls: { authority: 'kernel', resume: 'unavailable', cancel: 'not_verified', quota: 'not_verified', evidence_sha256: null },
   };
   const manifest = parseProviderControlManifest(manifestValue);
   const environment = { HSEOS_MODEL_PROVIDER_API_KEY: key };
-  const turns = path.join(out, 'turns.jsonl');
   const calls = [];
   const fetchImpl = async (url, init) => {
     calls.push({ url: String(url).replace(/\?.*$/, ''), method: init?.method });
     const response = await globalThis.fetch(url, init);
-    calls[calls.length - 1].status = response.status;
+    calls.at(-1).status = response.status;
     return response;
   };
   const configured = () => {
@@ -114,7 +113,7 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
   const deadline = Date.now() + 60 * 60_000;
   const grant = {
     max_requests: 4,
-    max_cost_microusd: 1000000,
+    max_cost_microusd: 1_000_000,
     deadline,
     binding_ids: [manifest.binding_id],
     task_ids: [ids.t1, ids.t2],
@@ -182,7 +181,8 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
   let c = await open();
   try {
     await c.campaign(env('create', { authorization_id: ids.authorizationId }, 0), 'before-restart');
-    const run1 = env('run', { binding_id: manifest.binding_id, task_id: ids.t1 }, (await c.query('before-restart')).current_sequence);
+    const beforeRestart0 = await c.query('before-restart');
+    const run1 = env('run', { binding_id: manifest.binding_id, task_id: ids.t1 }, beforeRestart0.current_sequence);
     const r1 = await c.campaign(run1, 'before-restart');
     receipts.push(r1.receipt);
     const q1 = await c.query('before-restart');
@@ -222,7 +222,6 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
     const after = await adapterBox.adapter.inspect();
     save('inspect-after.json', view(after));
     save('result.json', { receipts, final: finalState, restart });
-    const t = fs.existsSync(turns) ? fs.readFileSync(turns, 'utf8') : '';
     const texts = receipts.map((r) => r.evidence_ref?.sha256);
     const exp = ['{"value":42,"phase":"initial"}', '{"value":43,"phase":"resumed"}'].map((s) =>
       createHash('sha256').update(s).digest('hex'),
@@ -250,7 +249,9 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
     let st = null;
     try {
       st = control.providerCampaigns.query(ids.campaignId);
-    } catch {}
+    } catch {
+      /* best effort */
+    }
     failure = { code: error.code || error.message, diagnostic: error.diagnostic, state: st, receipts };
     save('failure.json', failure);
     console.log(
@@ -267,11 +268,16 @@ fs.writeFileSync(idsFile, JSON.stringify(ids));
     save('provider-calls.json', calls);
     try {
       await close();
-    } catch {}
+    } catch {
+      /* best effort */
+    }
   }
-})().catch((e) => {
+})().catch((error) => {
   console.error(
-    JSON.stringify({ code: e.code || 'SETUP_FAILED', message: /^[A-Z_]+$/.test(e.message) ? e.message : String(e.message).slice(0, 300) }),
+    JSON.stringify({
+      code: error.code || 'SETUP_FAILED',
+      message: /^[A-Z_]+$/.test(error.message) ? error.message : String(error.message).slice(0, 300),
+    }),
   );
   process.exitCode = 1;
 });
