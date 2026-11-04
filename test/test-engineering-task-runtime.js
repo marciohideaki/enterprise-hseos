@@ -8,6 +8,7 @@ const test = require('node:test');
 const { runEngineeringTask, inspectEngineeringTask, sessionEvidence } = require('../tools/cli/lib/engineering-task-runtime');
 const { engineeringVerifier } = require('../tools/cli/lib/engineering-verifier');
 const base = require('./fixtures/engineering-task/addition.json');
+const { toWireToolName } = require('../packages/model-providers/openai-compatible-provider');
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 
 async function fixture(
@@ -937,7 +938,7 @@ test('a bound provider worker is created without contacting the provider and res
               {
                 delta: {
                   tool_calls: [
-                    { index: 0, id: `call:engineering:${calls}`, function: { name: next.name, arguments: JSON.stringify(next.input) } },
+                    { index: 0, id: `call:engineering:${calls}`, function: { name: toWireToolName(next.name), arguments: JSON.stringify(next.input) } },
                   ],
                 },
                 finish_reason: 'tool_calls',

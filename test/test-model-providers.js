@@ -218,13 +218,25 @@ before(async () => {
       assert.equal(incoming.method, 'POST');
       assert.equal(incoming.url, '/chat/completions');
       assert.equal(body.stream, true);
+      // The wire only accepts [A-Za-z0-9_-]{1,64} in a tool name: every name in the request must already be encoded.
+      for (const name of [
+        ...(body.tools || []).map((tool) => tool.function.name),
+        ...body.messages.flatMap((message) => [message.name, ...(message.tool_calls || []).map((call) => call.function.name)]),
+      ].filter(Boolean)) {
+        // Like the real API: a name outside the charset is a 400, not a hung socket.
+        if (!/^[A-Za-z0-9_-]{1,64}$/.test(name)) {
+          response.writeHead(400, { 'content-type': 'application/json' });
+          response.end(JSON.stringify({ error: { message: `invalid tool name ${name}` } }));
+          return;
+        }
+      }
       if (body.messages.at(-1).role === 'tool') {
         assert.equal(body.messages.at(-1).tool_call_id, 'call:continuation');
         assert.deepEqual(body.messages.at(-2).tool_calls, [
           {
             id: 'call:continuation',
             type: 'function',
-            function: { name: 'fixture.read', arguments: '{"path":"state"}' },
+            function: { name: 'fixture_dread', arguments: '{"path":"state"}' },
           },
         ]);
         sendSse(response, [{ choices: [{ delta: { content: 'continued' }, finish_reason: 'stop' }] }]);
@@ -284,7 +296,7 @@ before(async () => {
         {
           choices: [
             {
-              delta: { tool_calls: [{ index: 0, id: 'call:one', function: { name: 'fixture.read', arguments: '{"path":' } }] },
+              delta: { tool_calls: [{ index: 0, id: 'call:one', function: { name: 'fixture_dread', arguments: '{"path":' } }] },
               finish_reason: null,
             },
           ],
@@ -319,6 +331,35 @@ test('assembles fragmented SSE tool deltas, usage and opaque response evidence',
   assert.deepEqual(events[3].payload, { input_tokens: 3, output_tokens: 2, cached_tokens: 1 });
   assert.match(events[4].payload.provider_response_ref, /^provider-response:\/\/sha256\/[a-f0-9]{64}$/);
   assert.doesNotMatch(events[4].payload.provider_response_ref, /unsafe/);
+});
+
+test('encodes dotted tool names for the wire and decodes the name the model returns', async () => {
+  const input = request('model:http', 'request:http-wire-name', 'tool');
+  const events = await collect(provider(), input);
+  assert.deepEqual(events.map((event) => event.event_type).slice(0, 2), ['reasoning.delta', 'tool_call.delta']);
+  assert.equal(events.find((event) => event.event_type === 'tool_call.delta').payload.name, 'fixture.read');
+});
+
+test('the wire name mapping is reversible, injective and bounded', () => {
+  const { toWireToolName, fromWireToolName } = require('../packages/model-providers/openai-compatible-provider');
+  const names = ['engineering.read', 'engineering.write', 'a_b', 'a.b', 'a_db', 'a__b', 'x-y', 'a b', 'é', 'plain'];
+  const wires = names.map(toWireToolName);
+  for (const [index, name] of names.entries()) {
+    assert.match(wires[index], /^[A-Za-z0-9_-]{1,64}$/);
+    assert.equal(fromWireToolName(wires[index]), name);
+  }
+  assert.equal(new Set(wires).size, names.length, 'two canonical names never share a wire name');
+  assert.equal(fromWireToolName('not_zzz'), 'not_zzz', 'a name that is not ours is passed through');
+  // A name the encoder cannot produce never resolves to a canonical one: no alias, no exception.
+  for (const invented of ['engineering_x2e_read', 'a_x41_', '_x5f_', '_xffffffff_', '_x110000_', '_x_', '_u_d_']) {
+    assert.equal(fromWireToolName(invented), invented, invented);
+  }
+  for (const odd of ['a_', '_', '__u', '_x2f_', 'x_', 'a.', '._', '😀', '😀_x', 'é.é', '\ud800']) assert.equal(fromWireToolName(toWireToolName(odd)), odd, odd);
+  assert.equal(toWireToolName('a'.repeat(64)).length, 64);
+  assert.throws(() => toWireToolName(undefined), /must be a string/);
+  assert.throws(() => toWireToolName(123), /must be a string/);
+  assert.throws(() => toWireToolName('x'.repeat(65)), /cannot be represented/);
+  assert.throws(() => toWireToolName(''), /cannot be represented/);
 });
 
 test('maps canonical assistant tool calls and tool outcomes into OpenAI-compatible continuation messages', async () => {

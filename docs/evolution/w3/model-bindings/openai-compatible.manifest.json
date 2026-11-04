@@ -26,7 +26,7 @@
   "binding_sha256": "37ddde8968b6485dfee358efc8dfbedd1f428242654fe9552902268124eb11c4",
   "provider_version": "1.0.0",
   "adapter": "openai-compatible-sse",
-  "artifact_sha256": "74b4937ba78e0e2b9851f92348771af26a57b4d42bd63ace8e8e8105e40aef22",
+  "artifact_sha256": "46c7bba1f8e382bf386522152f9076e8dfd9148fbffe306c7e17988ae9cb8f23",
   "authentication": {
     "mode": "api_key",
     "credential": {

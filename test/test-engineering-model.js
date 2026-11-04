@@ -9,6 +9,7 @@ const { engineeringDigest } = require('../tools/cli/lib/engineering-task-state')
 const YAML = require('yaml');
 const { createEngineeringExample } = require('../tools/examples/engineering-task');
 const { runEngineeringTask, inspectEngineeringTask } = require('../tools/cli/lib/engineering-task-runtime');
+const { toWireToolName } = require('../packages/model-providers/openai-compatible-provider');
 
 function response(frames) {
   return {
@@ -75,7 +76,7 @@ for (const correction of [false, true])
                   {
                     delta: {
                       tool_calls: [
-                        { index: 0, id: `call:engineering:${calls}`, function: { name: next.name, arguments: JSON.stringify(next.input) } },
+                        { index: 0, id: `call:engineering:${calls}`, function: { name: toWireToolName(next.name), arguments: JSON.stringify(next.input) } },
                       ],
                     },
                     finish_reason: 'tool_calls',

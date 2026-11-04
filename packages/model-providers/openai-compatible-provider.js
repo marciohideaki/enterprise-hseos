@@ -31,20 +31,55 @@ function normalizeEndpoint(value) {
   return url.href.replace(/\/$/, '');
 }
 
+// The chat-completions wire only accepts tool names in [A-Za-z0-9_-]{1,64}, while canonical tool names carry dots
+// (`engineering.read`). The mapping is injective, so the name the model returns decodes to exactly one canonical name:
+// `_` -> `_u`, `.` -> `_d`, any other character -> `_x<hex>_`.
+const WIRE_NAME_LIMIT = 64;
+
+function toWireToolName(name) {
+  if (typeof name !== 'string') throw new ModelProviderError('tool name must be a string', 'invalid_request');
+  const wire = name.replace(/[^A-Za-z0-9-]/gu, (character) => {
+    if (character === '_') return '_u';
+    if (character === '.') return '_d';
+    return `_x${character.codePointAt(0).toString(16)}_`;
+  });
+  if (wire.length === 0 || wire.length > WIRE_NAME_LIMIT) {
+    throw new ModelProviderError('tool name cannot be represented on the provider wire', 'invalid_request');
+  }
+  return wire;
+}
+
+// A name the encoder could not have produced (an invented tool, a non-canonical escape such as `_x2e_`, an out-of-range code point)
+// is passed through unchanged, so the kernel rejects it as unknown instead of resolving it to a real tool.
+function fromWireToolName(wire) {
+  if (typeof wire !== 'string' || !/^(?:[A-Za-z0-9-]|_u|_d|_x[0-9a-f]{1,6}_)+$/u.test(wire)) return wire;
+  let decoded;
+  try {
+    decoded = wire.replace(/_(u|d|x([0-9a-f]{1,6})_)/gu, (_match, kind, hex) => {
+      if (kind === 'u') return '_';
+      if (kind === 'd') return '.';
+      return String.fromCodePoint(Number.parseInt(hex, 16));
+    });
+    return toWireToolName(decoded) === wire ? decoded : wire;
+  } catch {
+    return wire;
+  }
+}
+
 function requestBody(input, manifest) {
   return {
     model: input.model,
     messages: input.messages.map((message) => ({
       role: message.role,
       content: message.content,
-      ...(message.name ? { name: message.name } : {}),
+      ...(message.name ? { name: toWireToolName(message.name) } : {}),
       ...(message.tool_call_id ? { tool_call_id: message.tool_call_id } : {}),
       ...(message.tool_calls
         ? {
             tool_calls: message.tool_calls.map((call) => ({
               id: call.tool_call_id,
               type: 'function',
-              function: { name: call.name, arguments: JSON.stringify(call.input) },
+              function: { name: toWireToolName(call.name), arguments: JSON.stringify(call.input) },
             })),
           }
         : {}),
@@ -54,7 +89,7 @@ function requestBody(input, manifest) {
       : {
           tools: input.tools.map((tool) => ({
             type: 'function',
-            function: { name: tool.name, description: tool.description, parameters: tool.input_schema },
+            function: { name: toWireToolName(tool.name), description: tool.description, parameters: tool.input_schema },
           })),
         }),
     max_tokens: input.parameters.max_output_tokens,
@@ -379,7 +414,7 @@ class OpenAICompatibleModelProvider {
                     if (!toolCallId) throw new ModelProviderError('tool call delta has no identity', 'protocol_error');
                     yield streamEvent(provider.providerManifest.provider_id, input.request_id, sequence++, 'tool_call.delta', {
                       tool_call_id: toolCallId,
-                      name: toolCall.function?.name ?? null,
+                      name: toolCall.function?.name == null ? null : fromWireToolName(toolCall.function.name),
                       arguments_delta: toolCall.function?.arguments ?? '',
                     });
                     emitted = true;
@@ -445,4 +480,4 @@ class OpenAICompatibleModelProvider {
   }
 }
 
-module.exports = { MAX_SSE_BUFFER_BYTES, OpenAICompatibleModelProvider, parseSse };
+module.exports = { MAX_SSE_BUFFER_BYTES, OpenAICompatibleModelProvider, fromWireToolName, parseSse, toWireToolName };
