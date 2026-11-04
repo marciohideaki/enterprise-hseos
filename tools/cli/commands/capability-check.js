@@ -222,6 +222,42 @@ function verdictFor({ mode, override, implementations, stacks, queryLower, isDir
   return { code: 'extend', text: `extend (implement the contract for ${target} in the owning core)${suffix}`, advisory };
 }
 
+const SHELL_SAFE = /^[\w@%+=:,./-]+$/;
+
+/** Python `shlex.quote`, so the command matches the ECP text byte for byte. */
+function shellQuote(value) {
+  if (value === '') return "''";
+  return SHELL_SAFE.test(value) ? value : `'${value.replaceAll("'", `'"'"'`)}'`;
+}
+
+/** The ECP scaffold command (Decision 0013); the owning repository, path and package are never inferred. */
+function scaffoldCommand(capability, stack) {
+  return `make scaffold-impl CAPABILITY=${shellQuote(capability)} STACK=${shellQuote(stack)} REPOSITORY=CORE_REPOSITORY IMPL_PATH=IMPLEMENTATION_PATH PACKAGE=PACKAGE_NAME`;
+}
+
+/**
+ * Stack to scaffold for an `extend` verdict (ECP `_scaffold_stack`): a requested stack that is a missing target
+ * wins, then any other requested stack that is not already planned; with no requested stack, the first required
+ * missing target, then the first missing one. `null` when the requested stack is only planned or none qualifies.
+ */
+function scaffoldStack({ stacks, vocabulary, missing, implementations }) {
+  const missingStacks = missing.map((item) => item.stack);
+  const planned = new Set(implementations.filter((item) => item.status === 'planned').map((item) => vocabulary.normalize(item.stack)));
+  // Without a vocabulary every non-empty requested stack counts as known.
+  const isKnown = (stack) => (vocabulary.ids ? vocabulary.ids.includes(stack) : stack !== '');
+  const known = (stacks || []).map((raw) => vocabulary.normalize(raw)).filter(isKnown);
+  if (known.length > 0) {
+    return known.find((stack) => missingStacks.includes(stack)) || known.find((stack) => !planned.has(stack)) || null;
+  }
+  const required = missing.filter((item) => item.required).map((item) => item.stack);
+  return (required.length > 0 ? required : missingStacks)[0] || null;
+}
+
+function buildScaffold(args) {
+  const stack = scaffoldStack(args);
+  return stack === null ? null : { command: scaffoldCommand(args.capability, stack), stack, missing_targets: args.missing };
+}
+
 function buildResult(entry, { mode, bindings, stacks, queryLower, vocabulary }) {
   const { capability } = entry;
   const filter = createStackFilter(stacks, vocabulary);
@@ -238,7 +274,17 @@ function buildResult(entry, { mode, bindings, stacks, queryLower, vocabulary }) 
   const verdict = verdictFor({ mode, override, implementations, stacks, queryLower, isDirect: filter.isDirect });
   // Targets are derived from the implementations, never read from `coverage`, and do not depend on the stack filter.
   const missing = missingTargets(capability.targets || [], capability.implementations, filter.vocabulary || IDENTITY_VOCABULARY);
-  return {
+  const scaffold =
+    verdict.code === 'extend'
+      ? buildScaffold({
+          capability: capability.name,
+          stacks,
+          vocabulary: filter.vocabulary || IDENTITY_VOCABULARY,
+          missing,
+          implementations,
+        })
+      : null;
+  const result = {
     capability: capability.name,
     kind: capability.kind,
     version: capability.version,
@@ -253,6 +299,8 @@ function buildResult(entry, { mode, bindings, stacks, queryLower, vocabulary }) 
     verdict_text: verdict.text,
     advisory: verdict.advisory,
   };
+  if (verdict.code === 'extend') result.scaffold = scaffold;
+  return result;
 }
 
 /**
@@ -355,6 +403,14 @@ function renderText(report) {
         lines.push(`   missing targets: ${named.join(', ')}`);
       }
       lines.push(`   verdict: ${result.verdict_text}`);
+      if (result.scaffold) {
+        lines.push(
+          `   scaffold: ${result.scaffold.command} (replace CORE_REPOSITORY, IMPLEMENTATION_PATH and PACKAGE_NAME; it only writes files under OUT)`,
+        );
+        const also = result.missing_targets.filter((target) => target.stack !== result.scaffold.stack);
+        if (also.length > 0)
+          lines.push(`   also missing: ${also.map((target) => `${target.stack}${target.required ? ' (required)' : ''}`).join(', ')}`);
+      }
     }
   }
   if (report.filesystem_candidates.length > 0) {

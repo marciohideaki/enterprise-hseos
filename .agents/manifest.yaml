@@ -7,6 +7,8 @@ adapters:
     hooks: .claude/hooks.json
     skills: .claude/skills
     agents: .claude/agents
+    settings: .claude/settings.json
+    mcp: .mcp.json
   codex:
     entrypoint: AGENTS.md
     skills: .agents/skills
@@ -88,7 +90,7 @@ skills:
     source: .enterprise/governance/agent-skills/capability-check/SKILL.md
     quick: .enterprise/governance/agent-skills/capability-check/SKILL-QUICK.md
     output: .agents/skills/capability-check/SKILL.md
-    hash: 0af45019acbfb14fc5d35df21fe88f9c15ae71637b4d778c190b5855600a3251
+    hash: 801fa1fd8092a509ace8d7a054d5072257104d25fdae9952b95ad8e13f1c732d
   - name: commit-hygiene
     source: .enterprise/governance/agent-skills/commit-hygiene/SKILL.md
     quick: .enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md
