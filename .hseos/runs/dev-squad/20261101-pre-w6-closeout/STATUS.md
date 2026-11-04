@@ -76,9 +76,9 @@ Regra de rótulo: nenhuma campanha é PASS. "L2 incompleto" e "NOT_EXERCISED" fi
 | C6 | Gemini (quarta família) | **BLOCKED por decisão do owner** (sem a chave `google/gemini-hseos`); nunca PASS | n/a | `w3/L1-GEMINI-2026-11.md` (L1 da B1) |
 | C7 | Antigravity local com filho Codex | binding em L1; L2 incompleto, sem promoção | `0dcf3276` | `w3/C7-ANTIGRAVITY-LOCAL-L2-2026-11.md` |
 | C8 (F14) | Memória gravada por cliente real, promovida pelo operador, recuperada pela tarefa | consumidor real observado, com limites | `cad5018f` | `w3/C8-F14-REAL-CONSUMER-2026-11.md` |
-| C9 (F15) | Runtime de engenharia com `gpt-4o-mini` real: compactação, SIGKILL, retomada com reconciliação, `fork` | parcial: retomada e linhagem provadas; **retomada do `fork` NÃO aprovada**; L2 incompleto, sem promoção | `f91e135c` | `w3/C9-F15-ENGINEERING-REAL-2026-11.md` |
-| C10 | Campanha agregada F02–F06, F09, F10, F12, F13, F22 | sem gasto: observação PARCIAL em F02, F03, F04 (fraca) e F09; NOT_EXERCISED em F05, F06, F10, F12, F13 e F22 | ver o commit de C10/C11 | `w3/C10-AGGREGATED-REAL-CONSUMER-2026-11.md` |
-| C11 (F20) | `environment.lsp.hover` por Claude Code 2.1.263 com lançamento delegado | consumidor real observado, com limites (uma chamada, somente leitura, workspace de teste) | ver o commit de C10/C11 | `w3/C11-F20-ENVIRONMENT-REAL-CLIENT-2026-11.md` |
+| C9 (F15) | Runtime de engenharia com `gpt-4o-mini` real: compactação, SIGKILL, retomada com reconciliação, `fork` | parcial: retomada e linhagem provadas; **retomada do `fork` NÃO aprovada**; L2 incompleto, sem promoção | `6c334965` | `w3/C9-F15-ENGINEERING-REAL-2026-11.md` |
+| C10 | Campanha agregada F02–F06, F09, F10, F12, F13, F22 | sem gasto: observação PARCIAL em F02, F03, F04 (fraca) e F09; NOT_EXERCISED em F05, F06, F10, F12, F13 e F22 | `f4ca5d0e` | `w3/C10-AGGREGATED-REAL-CONSUMER-2026-11.md` |
+| C11 (F20) | `environment.lsp.hover` por Claude Code 2.1.263 com lançamento delegado | consumidor real observado, com limites (uma chamada, somente leitura, workspace de teste) | `f4ca5d0e` | `w3/C11-F20-ENVIRONMENT-REAL-CLIENT-2026-11.md` |
 
 ### Defeitos de código achados pelas campanhas, corrigidos em tasks próprias (1 task = 1 commit, integração por fast-forward)
 
@@ -87,7 +87,7 @@ Regra de rótulo: nenhuma campanha é PASS. "L2 incompleto" e "NOT_EXERCISED" fi
 | `95e2e469` | O provider rejeitava `usage: null` dos chunks intermediários do stream oficial, e a C5 terminou com desfecho incerto. | C5, tentativa 1 | task própria, teste que falha sem a correção |
 | `66d77fbe` | `hseos memory promote` quebrava no prompt interativo: a ação recebia o objeto do parser no lugar da confirmação. | C8 | task própria; a verificação humana do prompt interativo segue para a WD |
 | `c02b5085` | O provider enviava nomes de ferramenta com ponto, que a API recusa; correção com codificação injetiva e reversível. | C9, por leitura antes de gastar | cega: aprovada com ressalvas (alias no decodificador, exceção em hexadecimal fora de faixa); confronto: reprovado na rodada 1 (4 consumidores com o nome antigo), aprovado na rodada 2 |
-| `f117bc4a` | O contrato do kernel recusa ids de chamada de caixa mista (`call_AbC…`), que a API emite: a sessão terminava em `internal_error` antes de qualquer ferramenta. | C9, tentativa 1 (1 requisição) | cega: aprovada com ressalvas (limite de 160 sem teste na fronteira); confronto: aprovado |
+| `23d2c29f` | O contrato do kernel recusa ids de chamada de caixa mista (`call_AbC…`), que a API emite: a sessão terminava em `internal_error` antes de qualquer ferramenta. | C9, tentativa 1 (1 requisição) | cega: aprovada com ressalvas (limite de 160 sem teste na fronteira); confronto: aprovado |
 
 Os dois últimos só chegam à distribuição global na reinstalação da WD, junto com `95e2e469` e `66d77fbe`.
 
@@ -107,7 +107,7 @@ Os dois últimos só chegam à distribuição global na reinstalação da WD, ju
 
 ### Pendências da WC para a WD
 
-- Reinstalar a distribuição global com `95e2e469`, `66d77fbe`, `c02b5085` e `f117bc4a`.
+- Reinstalar a distribuição global com `95e2e469`, `66d77fbe`, `c02b5085` e `23d2c29f`.
 - Verificar o prompt interativo de `memory promote` com uma segunda nota que o owner promova sem `--yes`.
 - Promoções no `requirements.json` (decisão do Commander): F20 com escopo declarado, F23 e o L1 de F08/F17/F18, mais o que os recibos da WC sustentarem, sem afrouxar nenhum gate.
 - Conferir o consumo real nas consoles da OpenAI e da Anthropic.
