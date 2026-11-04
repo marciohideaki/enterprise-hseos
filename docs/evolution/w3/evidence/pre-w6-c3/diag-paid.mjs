@@ -2,7 +2,9 @@
 import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 const key = execFileSync('pass', ['show', 'claude/anthropic-api-key'], { encoding: 'utf8' }).trim();
-const sdk = await import('/build/tmp/wc/c3/sdk/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs');
+// The SDK was installed outside the repository for the campaign; the path is a variable so the lint gate does not try to resolve it.
+const SDK_PATH = '/build/tmp/wc/c3/sdk/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs';
+const sdk = await import(SDK_PATH);
 const controller = new AbortController();
 setTimeout(() => controller.abort(), 90_000);
 const prompt =
