@@ -112,3 +112,33 @@ Os dois últimos só chegam à distribuição global na reinstalação da WD, ju
 - Promoções no `requirements.json` (decisão do Commander): F20 com escopo declarado, F23 e o L1 de F08/F17/F18, mais o que os recibos da WC sustentarem, sem afrouxar nenhum gate.
 - Conferir o consumo real nas consoles da OpenAI e da Anthropic.
 - Limpeza: `/build/tmp/wc/`, `/build/tmp/c8-live-*`, `/build/tmp/c11-live-*` e as entradas `enterprise-hseos/wc-c*-control-*` do `pass`; remover os worktrees `c5-usage-null`, `c8-memory-cli`, `c9-tool-wire-name` e `c9-tool-call-id` e as branches `task/*` integradas.
+
+## WD — fechamento, 2026-11-04
+
+### Reinstalação da distribuição global (A12)
+- Release `25e673ff9c7e9dee99ef88a554cc9144d99c5b40` (master depois do PR #274), tarball de 1542 entradas. Recibo em `~/.local/state/hseos/distributions/25e673ff…/verification.json`.
+- CLI global, hooks do Claude e do Codex, MCPs do Codex, unidade do watchdog e pin do `AGENTS.md` global repontados (20 referências, nenhuma antiga restante). Os 4 serviços `hseos-*` voltaram nas portas 3100 a 3103 e o watchdog fechou um ciclo com exit 0.
+- As quatro correções da WC (`95e2e469`, `66d77fbe`, nomes e ids de ferramenta) estão na CLI global (provider global idêntico ao do release).
+- **Desvio do procedimento:** o cache offline do npm não tem todos os pacotes (`ENOTCACHED` em `zwitch` e em `@clack/core`). O `node_modules` do release veio do release anterior (`package-lock.json` idêntico) e a CLI global foi instalada extraindo o tarball e copiando esse `node_modules`. A primeira execução da janela parou os serviços antes da falha da instalação; a segunda os subiu. Rollback: cópia da CLI anterior em `global-prev/` e backup do host; o `dist-rollback.sh` não foi executado.
+
+### Reauditoria cética focada (passagem cega, sem acesso às intenções de promoção)
+Resultado por família, e o que foi feito no `requirements.json`:
+
+| Família | Decisão | Base |
+|---|---|---|
+| F08 `deterministic` | **promovida a `verified_w3_scope_only`** | L1 liga login expirado, credencial de ambiente sobreposta e cobrança silenciosa a testes nomeados nos bindings declarados (`w3/L1-F08-F18-2026-11.md`), mais os testes do broker. `real_consumers` segue `not_verified`: nenhuma campanha L2 concluída. |
+| F17 `deterministic` | **NÃO promovida** (a proposta do Commander foi recusada pela reauditoria) | O ADR-0050 §2 exige todos os bindings de modelo, local e remoto: a composição ACP tool-free não tem backend efetivo provado, não há binding de modelo local e o modelo efetivo não é observado. `not_verified_reason` atualizado. |
+| F18 `deterministic` | **NÃO promovida** | Quarta família diferida (C6 BLOCKED por decisão do owner); o L1 da Gemini não liga F18-R1. Ambiguidade do ADR sobre o eixo registrada no `not_verified_reason`. |
+| F23 `deterministic` | **promovida a `verified_w0_scope_only`**, depois de refazer a medição | A medição da WA era de `13beca30` e 21 arquivos do gate mudaram depois. Nova medição no HEAD `25e673ff`: `npm run test:kernel-coverage` exit 0, 141 arquivos, nenhum abaixo de 90/80, "All files" 97,86 / 93,44 / 98,26 / 97,86; log arquivado com o commit no cabeçalho (sha256 do conteúdo `fa1ba688c76c683d4bcea1a36a32651dfb77b40b162598aabaf0457acac4eebb`). |
+| F20 `real_consumers` | **promovida a `verified_installed_local_scope_only`**, só com o escopo declarado em `evolution_scope` | MRTR de 2026-10-31 (`memory.write`, `memory.delete` com aprovação de uso único) e C11 (`environment.lsp.hover`); não cobre as outras ações de LSP, o DAP, o uso autônomo, o Codex nem o banco real. |
+| F14 `real_consumers` | **sem promoção** | A montagem do contexto, que é o que o F14-R1 pede, foi feita por um script de teste (consumidor sintético, ADR-0050 §5.2); o cliente real só gravou. Falta uma tarefa real de modelo lendo a memória promovida. |
+| F15 `real_consumers` | **sem promoção** | A retomada do `fork` não chegou à aceitação (C9). |
+
+Achados da reauditoria que viram pendência: ambiguidade do ADR-0050 §2 sobre o eixo da frase "três ecossistemas em L2 + quarta pendente" (F-03); N do literal `verified_w<N>` quando a prova de L1 é feita fora das ondas 0 a 8 (F-06, resolvido pelo precedente da onda da própria família); contagens e exit dos recibos L1 só em prosa, sem log arquivado (F-10); itens 2 e 3 do PLAN desatualizados (F-11, corrigidos no PLAN).
+
+### Verificação humana do prompt interativo de `hseos memory promote`
+- Janela pronta: cópia do banco ativado em `/build/tmp/wd-promote-fKGz/`, nota `wd-note-1` (origem agente, não confiável) no projeto `wd-f14`, gravada por script pelo servidor MCP da distribuição nova.
+- **Pendente do owner:** rodar `hseos memory promote` no terminal dele, sem `--yes`, e confirmar no prompt. A tentativa 1 da C8 falhava com `confirm is not a function`. Resultado a registrar abaixo quando houver.
+
+### PLAN.md
+A seção "Pendências antes de abrir a W6" foi reescrita como tabela com o estado real de cada item e a causa do que não fecha (F14 bloqueado por falta de valor no enum; F15 aberto; Codex/MRTR bloqueado pelo cliente; resíduos A-05, A-09 e A-15 declarados; A-18 fechada pela reinstalação; A-20 fechada na WA).
