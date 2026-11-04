@@ -213,6 +213,15 @@ before(async () => {
       raw += chunk;
     });
     incoming.on('end', () => {
+      try {
+        handle();
+      } catch (error) {
+        // An assertion that fails inside the handler must fail the request, not hang the socket.
+        response.writeHead(500, { 'content-type': 'application/json' });
+        response.end(JSON.stringify({ error: { message: String(error.message).slice(0, 200) } }));
+      }
+    });
+    function handle() {
       const body = JSON.parse(raw);
       const content = body.messages.at(-1).content;
       assert.equal(incoming.method, 'POST');
@@ -229,6 +238,37 @@ before(async () => {
           response.end(JSON.stringify({ error: { message: `invalid tool name ${name}` } }));
           return;
         }
+      }
+      // A provider that issues mixed-case ids (`call_AbC...`) must get the very same id back with the tool outcome.
+      if (body.messages.at(-1).role === 'tool' && body.messages.at(-1).tool_call_id.startsWith('call_')) {
+        assert.equal(body.messages.at(-1).tool_call_id, 'call_AbC123xYz-9');
+        assert.equal(body.messages.at(-2).tool_calls[0].id, 'call_AbC123xYz-9');
+        sendSse(response, [{ choices: [{ delta: { content: 'matched' }, finish_reason: 'stop' }] }]);
+        return;
+      }
+      if (content === 'openai-ids') {
+        sendSse(response, [
+          {
+            choices: [
+              {
+                index: 0,
+                delta: {
+                  role: 'assistant',
+                  content: null,
+                  tool_calls: [{ index: 0, id: 'call_AbC123xYz-9', type: 'function', function: { name: 'fixture_dread', arguments: '' } }],
+                },
+                finish_reason: null,
+              },
+            ],
+          },
+          {
+            choices: [
+              { index: 0, delta: { tool_calls: [{ index: 0, function: { arguments: '{"path":"state"}' } }] }, finish_reason: null },
+            ],
+          },
+          { choices: [{ index: 0, delta: {}, finish_reason: 'tool_calls' }] },
+        ]);
+        return;
       }
       if (body.messages.at(-1).role === 'tool') {
         assert.equal(body.messages.at(-1).tool_call_id, 'call:continuation');
@@ -306,7 +346,7 @@ before(async () => {
         },
         { choices: [], usage: { prompt_tokens: 3, completion_tokens: 2, prompt_tokens_details: { cached_tokens: 1 } } },
       ]);
-    });
+    }
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -340,6 +380,77 @@ test('encodes dotted tool names for the wire and decodes the name the model retu
   assert.equal(events.find((event) => event.event_type === 'tool_call.delta').payload.name, 'fixture.read');
 });
 
+test('a mixed-case tool call id issued by the provider is carried as a contract id and restored when it is sent back', async () => {
+  const { IdentifierSchema } = require('../packages/agent-runtime-contracts');
+  const first = await collect(provider(), request('model:http', 'request:http-openai-id', 'openai-ids'));
+  const deltas = first.filter((event) => event.event_type === 'tool_call.delta');
+  assert.ok(deltas.length >= 1);
+  for (const delta of deltas)
+    assert.equal(IdentifierSchema.safeParse(delta.payload.tool_call_id).success, true, delta.payload.tool_call_id);
+  const id = deltas[0].payload.tool_call_id;
+  assert.ok(
+    deltas.every((delta) => delta.payload.tool_call_id === id),
+    'one call keeps one id across its deltas',
+  );
+  const input = request('model:http', 'request:http-openai-id-continue', 'unused');
+  input.messages = [
+    { role: 'assistant', content: '', tool_calls: [{ tool_call_id: id, name: 'fixture.read', input: { path: 'state' } }] },
+    { role: 'tool', name: 'fixture.read', tool_call_id: id, content: '{"status":"succeeded"}' },
+  ];
+  const events = await collect(provider(), input);
+  assert.equal(events[0].payload.text, 'matched');
+});
+
+test('the tool call id mapping is reversible, injective and refuses what it cannot carry', () => {
+  const { toContractToolCallId, fromContractToolCallId } = require('../packages/model-providers/openai-compatible-provider');
+  const { IdentifierSchema } = require('../packages/agent-runtime-contracts');
+  const ids = [
+    'call_AbC123xYz-9',
+    'toolu_01ABC',
+    'call:one',
+    'a.b',
+    'a..b',
+    '.A',
+    'A',
+    'a_B',
+    'é',
+    '😀x',
+    'x:y',
+    'id with space',
+    'hseos-id:inner',
+  ];
+  const encoded = ids.map(toContractToolCallId);
+  for (const [index, id] of ids.entries()) {
+    assert.equal(IdentifierSchema.safeParse(encoded[index]).success, true, encoded[index]);
+    assert.equal(fromContractToolCallId(encoded[index]), id);
+  }
+  assert.equal(new Set(encoded).size, ids.length, 'two provider ids never share a contract id');
+  // An id the encoder could not have produced is sent back as it came; one that is not prefixed is not ours.
+  for (const foreign of [
+    'call:one',
+    'hseos-id:A',
+    'hseos-id:.X',
+    'hseos-id:.0ffffffff:',
+    'hseos-id:.0110000:',
+    'hseos-id:.041:',
+    'hseos-id:.02e:',
+    'hseos-id:.061:',
+    'hseos-id:.05f:',
+    'hseos-id:.',
+    'hseos-id:.0:',
+  ]) {
+    assert.equal(fromContractToolCallId(foreign), foreign, foreign);
+  }
+  assert.throws(() => toContractToolCallId(''), /invalid/);
+  assert.throws(() => toContractToolCallId(7), /invalid/);
+  assert.throws(() => toContractToolCallId('A'.repeat(150)), /too long/);
+  // The bound is exact: the prefix plus 151 characters is the contract maximum of 160, one more is refused.
+  const longest = toContractToolCallId('a'.repeat(151));
+  assert.equal(longest.length, 160);
+  assert.equal(IdentifierSchema.safeParse(longest).success, true);
+  assert.throws(() => toContractToolCallId('a'.repeat(152)), /too long/);
+});
+
 test('the wire name mapping is reversible, injective and bounded', () => {
   const { toWireToolName, fromWireToolName } = require('../packages/model-providers/openai-compatible-provider');
   const names = ['engineering.read', 'engineering.write', 'a_b', 'a.b', 'a_db', 'a__b', 'x-y', 'a b', 'é', 'plain'];
@@ -354,7 +465,8 @@ test('the wire name mapping is reversible, injective and bounded', () => {
   for (const invented of ['engineering_x2e_read', 'a_x41_', '_x5f_', '_xffffffff_', '_x110000_', '_x_', '_u_d_']) {
     assert.equal(fromWireToolName(invented), invented, invented);
   }
-  for (const odd of ['a_', '_', '__u', '_x2f_', 'x_', 'a.', '._', '😀', '😀_x', 'é.é', '\ud800']) assert.equal(fromWireToolName(toWireToolName(odd)), odd, odd);
+  for (const odd of ['a_', '_', '__u', '_x2f_', 'x_', 'a.', '._', '😀', '😀_x', 'é.é', '\ud800'])
+    assert.equal(fromWireToolName(toWireToolName(odd)), odd, odd);
   assert.equal(toWireToolName('a'.repeat(64)).length, 64);
   assert.throws(() => toWireToolName(undefined), /must be a string/);
   assert.throws(() => toWireToolName(123), /must be a string/);

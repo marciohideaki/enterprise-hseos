@@ -66,6 +66,42 @@ function fromWireToolName(wire) {
   }
 }
 
+// The normalized contract accepts tool call ids in [a-z0-9][a-z0-9._:-]* (at most 160), while chat-completions providers issue
+// mixed-case ids (`call_AbC123`). The id is carried through the runtime as `hseos-id:` plus an injective escape (an uppercase
+// letter becomes `.` and its lowercase letter, `.` becomes `..`, any other character outside [a-z0-9_:-] becomes `.0<hex>:`),
+// and the original id is restored when it is sent back, because the provider matches tool results by the id it issued.
+const TOOL_CALL_ID_PREFIX = 'hseos-id:';
+const TOOL_CALL_ID_LIMIT = 160;
+
+function toContractToolCallId(id) {
+  if (typeof id !== 'string' || id.length === 0) throw new ModelProviderError('tool call id is invalid', 'protocol_error');
+  const body = id.replace(/[^a-z0-9_:-]/gu, (character) => {
+    if (character === '.') return '..';
+    if (/^[A-Z]$/u.test(character)) return `.${character.toLowerCase()}`;
+    return `.0${character.codePointAt(0).toString(16)}:`;
+  });
+  const encoded = `${TOOL_CALL_ID_PREFIX}${body}`;
+  if (encoded.length > TOOL_CALL_ID_LIMIT) throw new ModelProviderError('tool call id is too long', 'protocol_error');
+  return encoded;
+}
+
+// An id that is not ours (no prefix, or an escape the encoder could not have produced) is sent back unchanged.
+function fromContractToolCallId(id) {
+  if (typeof id !== 'string' || !id.startsWith(TOOL_CALL_ID_PREFIX)) return id;
+  const body = id.slice(TOOL_CALL_ID_PREFIX.length);
+  if (!/^(?:[a-z0-9_:-]|\.\.|\.[a-z]|\.0[0-9a-f]{1,6}:)+$/u.test(body)) return id;
+  try {
+    const decoded = body.replace(/\.(?:(\.)|([a-z])|0([0-9a-f]{1,6}):)/gu, (_match, dot, letter, hex) => {
+      if (dot) return '.';
+      if (letter) return letter.toUpperCase();
+      return String.fromCodePoint(Number.parseInt(hex, 16));
+    });
+    return toContractToolCallId(decoded) === id ? decoded : id;
+  } catch {
+    return id;
+  }
+}
+
 function requestBody(input, manifest) {
   return {
     model: input.model,
@@ -73,11 +109,11 @@ function requestBody(input, manifest) {
       role: message.role,
       content: message.content,
       ...(message.name ? { name: toWireToolName(message.name) } : {}),
-      ...(message.tool_call_id ? { tool_call_id: message.tool_call_id } : {}),
+      ...(message.tool_call_id ? { tool_call_id: fromContractToolCallId(message.tool_call_id) } : {}),
       ...(message.tool_calls
         ? {
             tool_calls: message.tool_calls.map((call) => ({
-              id: call.tool_call_id,
+              id: fromContractToolCallId(call.tool_call_id),
               type: 'function',
               function: { name: toWireToolName(call.name), arguments: JSON.stringify(call.input) },
             })),
@@ -409,7 +445,7 @@ class OpenAICompatibleModelProvider {
                     }
                     const index = toolCall.index;
                     if (!Number.isInteger(index) || index < 0) throw new ModelProviderError('tool call index is invalid', 'protocol_error');
-                    if (toolCall.id) toolIds.set(index, toolCall.id);
+                    if (toolCall.id) toolIds.set(index, toContractToolCallId(toolCall.id));
                     const toolCallId = toolIds.get(index);
                     if (!toolCallId) throw new ModelProviderError('tool call delta has no identity', 'protocol_error');
                     yield streamEvent(provider.providerManifest.provider_id, input.request_id, sequence++, 'tool_call.delta', {
@@ -480,4 +516,12 @@ class OpenAICompatibleModelProvider {
   }
 }
 
-module.exports = { MAX_SSE_BUFFER_BYTES, OpenAICompatibleModelProvider, fromWireToolName, parseSse, toWireToolName };
+module.exports = {
+  MAX_SSE_BUFFER_BYTES,
+  OpenAICompatibleModelProvider,
+  fromContractToolCallId,
+  fromWireToolName,
+  parseSse,
+  toContractToolCallId,
+  toWireToolName,
+};
