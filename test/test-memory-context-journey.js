@@ -376,6 +376,54 @@ test('journey: a promotion approval is single-use end to end and a second promot
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 1);
 });
 
+test('production host with a read-only source database: a task receives the PROMOTED memory only, the database does not change, and writes are refused', async (t) => {
+  const { createProductionEnvironmentHost } = require('../tools/cli/lib/engineering-task-extensions');
+  const box = await seeded(t);
+  const countEvents = () => {
+    const db = new Database(box.databasePath, { readonly: true });
+    try {
+      return db.prepare('SELECT COUNT(*) AS n, MAX(position) AS last FROM execution_events').get();
+    } finally {
+      db.close();
+    }
+  };
+  const section = { project_id: 'proj-1', memory: { rules: [], source_db: box.databasePath } };
+
+  // Before the promotion the agent note is untrusted: it does not reach the task.
+  const before = createProductionEnvironmentHost(section, { capabilities: ['memory.retrieve'] });
+  t.after(() => before.dispose());
+  const untouched = await execute(t, project(t, ['memory.retrieve']), [], before);
+  assert.deepEqual(assembledMemories(untouched).sources, [], 'an untrusted note never reaches a production task');
+
+  const operator = operatorOver(box);
+  t.after(() => operator.close());
+  const shown = operator.inspect('proj-1', 'note-1');
+  operator.promote({ project_id: 'proj-1', memory_id: 'note-1', content_sha256: shown.content_sha256, reason: 'reviewed' });
+  const eventsBefore = countEvents();
+
+  const host = createProductionEnvironmentHost(section, { capabilities: ['memory.retrieve'] });
+  t.after(() => host.dispose());
+  const result = await execute(t, project(t, ['memory.retrieve']), [], host);
+  assert.equal(result.task_result, 'approved', JSON.stringify(result));
+  const { blocks, sources, refs } = assembledMemories(result);
+  assert.equal(sources.length, 1, JSON.stringify(sources));
+  assert.deepEqual(memoryIdOf(sources[0].source_ref), ['proj-1', 'note-1:promoted']);
+  assert.equal(sources[0].trust, 'trusted');
+  assert.equal(sources[0].authority, 'data', 'a promoted memory is data, never an instruction');
+  assert.equal(sources[0].digest, NOTE_DIGEST);
+  assert.ok(blocks[0].includes(NOTE));
+  assert.ok(!blocks.join('\n').includes('wraps at 255') && !refs.some((ref) => ref.includes('beta')), 'another project never enters');
+  assert.deepEqual(countEvents(), eventsBefore, 'the source database was only read');
+
+  for (const refused of ['memory.write', 'memory.delete'])
+    assert.throws(() => createProductionEnvironmentHost(section, { capabilities: ['memory.retrieve', refused] }), {
+      code: 'ENGINEERING_ENVIRONMENT_CONFIG_INVALID',
+    });
+  assert.throws(() => createProductionEnvironmentHost({ ...section, memory: { rules: [], source_db: 'relative/project.db' } }, {}), {
+    code: 'ENGINEERING_ENVIRONMENT_CONFIG_INVALID',
+  });
+});
+
 test('hseos memory promote: the operator command confirms on the terminal or with a declared digest, and refuses everything else', async (t) => {
   const { _internal } = require('../tools/cli/commands/agent-activation-rehearsal');
   const box = await seeded(t);
