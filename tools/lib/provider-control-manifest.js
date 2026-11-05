@@ -35,6 +35,10 @@ const ROUTES = deepFreeze({
   openai: {
     api: { kinds: ['model'], auth: 'api_key', source: 'https://platform.openai.com/docs/api-reference' },
   },
+  // A local model server reached through the OpenAI-compatible wire format. No credential, no metered billing; the identity is a pinned model profile.
+  ollama: {
+    local: { kinds: ['model'], auth: 'local', source: 'https://docs.ollama.com/api/openai-compatibility' },
+  },
   antigravity: {
     account: { kinds: ['client'], auth: 'native_account', source: 'https://antigravity.google/docs/cli/installation/' },
     api: { kinds: ['client'], auth: 'api_key', source: 'https://antigravity.google/docs/sdk/overview/' },
@@ -46,7 +50,7 @@ const ProviderControlManifestSchema = strictObject({
   schema_version: z.union([z.literal(1), z.literal(2)]),
   binding_id: IdentifierSchema,
   binding_sha256: hash,
-  vendor: z.enum(['codex', 'claude', 'deepseek', 'gemini', 'openai', 'antigravity', 'execution-plugin']),
+  vendor: z.enum(['codex', 'claude', 'deepseek', 'gemini', 'openai', 'ollama', 'antigravity', 'execution-plugin']),
   execution_plugin: strictObject({ id: IdentifierSchema, version: label, manifest_sha256: hash }).optional(),
   provider_kind: z.enum(['model', 'runtime', 'client']),
   provider_version: label,

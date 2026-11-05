@@ -1,0 +1,33 @@
+schema_version: "1.0"
+binding_id: provider-binding:ollama-local-example
+profile_id: agent-openai-compatible-candidate
+adapter: openai-compatible-sse
+provider:
+  provider_id: model:openai-compatible
+  provider_version: 1.0.0
+  # Servidor de modelo local da infraestrutura compartilhada (Ollama), pelo formato compatível com a API da OpenAI.
+  # O endpoint do cluster é o declarado; um acesso por túnel local é de campanha e não substitui esta declaração.
+  base_url: http://ollama-shared.platform-shared-dev.svc.cluster.local:11434/v1
+  model: qwen2.5:7b
+  capabilities:
+    - text_generation
+    - streaming
+    - tool_calls
+    - usage
+    - cancellation
+  limits:
+    # O servidor atende 4096 tokens de contexto (observado em `ollama ps`); não declare mais do que o backend serve.
+    context_tokens: 4096
+    max_output_tokens: 1024
+    max_parallel_requests: 1
+  secret_refs:
+    - name: api-key
+      # O servidor local ignora a chave. O esquema exige a referência; o operador injeta um valor sem valor de segredo.
+      source_ref: env://HSEOS_MODEL_PROVIDER_API_KEY
+transport:
+  max_attempts: 1
+  retry_delay_ms: 250
+# O esquema exige operational e authorized falsos; a autorização é do owner, por campanha.
+activation:
+  operational: false
+  authorized: false
