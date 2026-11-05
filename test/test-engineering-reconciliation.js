@@ -266,3 +266,13 @@ for (const workflow of [false, true])
         other.close();
       }
     }, workflow));
+
+test('the reconciliation turn does not steer the model to the diagnosis tool, which only accepts a rejected review', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../tools/cli/lib/engineering-reconciliation.js'), 'utf8');
+  const instruction = /instruction:\s*'([^']+)'/.exec(source)?.[1] ?? '';
+  assert.match(instruction, /rejected review/);
+  assert.ok(instruction.length > 200, 'instruction text not found');
+  assert.match(instruction, /expected starting point only when/);
+  assert.match(instruction, /remains uncertain/);
+  assert.doesNotMatch(instruction, /Diagnose remaining work/);
+});

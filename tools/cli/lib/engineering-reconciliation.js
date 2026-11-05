@@ -274,7 +274,7 @@ function applyReconciliation(task, assembly, inspected, decision) {
       source: 'verified-reconciliation',
       report_sha256: report.sha256,
       instruction:
-        'Continue the original task from the independently inspected current state. Previous uncertain operations were settled without replay. Diagnose remaining work before acting. Preserve all original instructions, acceptance criteria and budgets. Ask the user if any new uncertainty remains.',
+        'Continue the original task from the independently inspected current state. Previous uncertain operations were settled without replay. Inspect the listed files and decide the remaining work before acting; use the engineering diagnosis tool only after a rejected review, and otherwise act with the read, write and command tools. Preserve all original instructions, acceptance criteria and budgets. Files that are missing or empty are an expected starting point only when this session records no completed write to them. Ask the user when the inspected state contradicts the original instructions, the recorded history or the acceptance criteria, or when any operation remains uncertain.',
       files: report.files,
       files_sha256: report.files_sha256,
       verification: report.verification,
