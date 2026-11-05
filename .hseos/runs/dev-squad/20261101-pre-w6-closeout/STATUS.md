@@ -138,7 +138,9 @@ Achados da reauditoria que viram pendência: ambiguidade do ADR-0050 §2 sobre o
 
 ### Verificação humana do prompt interativo de `hseos memory promote`
 - Janela pronta: cópia do banco ativado em `/build/tmp/wd-promote-fKGz/`, nota `wd-note-1` (origem agente, não confiável) no projeto `wd-f14`, gravada por script pelo servidor MCP da distribuição nova.
-- **Pendente do owner:** rodar `hseos memory promote` no terminal dele, sem `--yes`, e confirmar no prompt. A tentativa 1 da C8 falhava com `confirm is not a function`. Resultado a registrar abaixo quando houver.
+- **Feito pelo owner (2026-11-05T01:03Z), no terminal dele, sem `--yes`:** o comando mostrou a origem e a confiança da nota, o `content sha256` e o texto, pediu `Promote wd-note-1 to trusted as owner? [y/N]`, e com `y` respondeu `promoted to trusted as wd-note-1:promoted`. A tentativa 1 da C8 falhava aqui com `confirm is not a function`: o conserto `66d77fbe` funciona no prompt interativo.
+  - **Ledger da cópia do banco (leitura depois do fato):** `memory.written` de `wd-note-1:promoted` (posição 49121) com `promotion.promoted_by: owner`, o mesmo `content_sha256` e o `approval_id` `bde3acde-edc1-4629-a4ce-93eed18d9b83`; `memory.superseded` da original (49122); aprovação com `authorizer {id: owner, type: human}`, `decision: approved`, emitida 01:03:11,189Z e consumida uma vez às 01:03:11,198Z (`execution_approval_uses`).
+  - **O que isto não prova:** que quem digitou `y` foi um humano e não um agente com pseudo-terminal (o comando só recusa a falta de TTY); a atestação é do owner, que colou a saída do terminal dele. Foi uma nota de teste numa cópia do banco, não o banco real.
 
 ### PLAN.md
 A seção "Pendências antes de abrir a W6" foi reescrita como tabela com o estado real de cada item e a causa do que não fecha (F14 bloqueado por falta de valor no enum; F15 aberto; Codex/MRTR bloqueado pelo cliente; resíduos A-05, A-09 e A-15 declarados; A-18 fechada pela reinstalação; A-20 fechada na WA).
