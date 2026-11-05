@@ -690,6 +690,14 @@ const environmentConfigSchema = z
           .object({ id: IdentifierSchema, kind: z.literal('operator') })
           .strict()
           .optional(),
+        // Operator-owned, read-only source of PROMOTED memory for engineering tasks: an activated project database.
+        // Retrieval only; a contract that declares memory.write or memory.delete is refused while this is set.
+        source_db: z
+          .string()
+          .min(1)
+          .max(4096)
+          .refine((value) => require('node:path').isAbsolute(value), 'must be an absolute path')
+          .optional(),
       })
       .strict()
       .optional(),
@@ -782,8 +790,9 @@ function parseEnvironmentSection(section) {
  * - a family whose toolchain is not provisioned (or has no preparer, such as the browser, which needs the mediated
  *   egress broker the CLI does not have) stays blocked.
  *
- * Limitation of this phase: the memory store is built over the ledger of each TASK (see `memory.create`), so memory
- * written by one task is not seen by the next. Durable memory across tasks needs the activated project database.
+ * Without `memory.source_db` the memory store is built over the ledger of each TASK (see `memory.create`), so memory
+ * written by one task is not seen by the next. With `memory.source_db` (operator configuration) the store reads the PROMOTED
+ * memory of an activated project database, read-only; the model, the contract and the CLI options cannot choose it.
  *
  * `options.capabilities` limits the toolchain preparation to the families a task declared; `options.prepare` and
  * `options.factories` replace the preparers and services (tests, alternative hosts). `host.dispose()` removes the
@@ -807,6 +816,12 @@ function createProductionEnvironmentHost(section, options = {}) {
     }
   }
   const operator = config.memory?.operator;
+  const sourceDb = config.memory?.source_db;
+  const readOnlyHandles = [];
+  if (sourceDb) {
+    const writes = (options.capabilities ?? []).filter((name) => name === 'memory.write' || name === 'memory.delete');
+    if (writes.length > 0) throw configError(`memory.source_db is read-only: the task contract may not declare ${writes.join(' or ')}`);
+  }
   return Object.freeze({
     project_id: config.project_id,
     toolchains,
@@ -818,6 +833,16 @@ function createProductionEnvironmentHost(section, options = {}) {
       rules,
       ...(operator ? { operator: { kind: operator.kind, id: operator.id } } : {}),
       create({ ledger, db }) {
+        if (sourceDb) {
+          // Durable, operator-promoted memory: a store over the activated project database opened READ-ONLY. Nothing here can
+          // append to it; promotion stays an operator command, and writes and deletions are refused above and by the handle.
+          const Database = require('better-sqlite3');
+          const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-event-ledger');
+          const { createGovernedMemory } = require('./memory-context-source');
+          const readOnly = new Database(sourceDb, { readonly: true, fileMustExist: true });
+          readOnlyHandles.push(readOnly);
+          return { store: createGovernedMemory({ ledger: new ExecutionEventLedger(readOnly), db: readOnly }), deleteApprovals: undefined };
+        }
         const { ExecutionApprovalStore } = require('../../mcp-project-state/lib/execution-approval-store');
         const { createExecutionApprovalVerifier } = require('../../../packages/agent-memory');
         const approvalStore = new ExecutionApprovalStore(db);
@@ -832,6 +857,7 @@ function createProductionEnvironmentHost(section, options = {}) {
       },
     }),
     dispose() {
+      for (const handle of readOnlyHandles.splice(0)) handle.close();
       for (const directory of scratch.splice(0)) rmSync(directory, { recursive: true, force: true });
     },
   });

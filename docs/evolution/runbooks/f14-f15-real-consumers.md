@@ -35,6 +35,23 @@ Limites e cuidados desta promoção:
 
 Prova automatizada: `test/test-memory-context-journey.js` (jornada, negativos e CLI) e `test/test-agent-memory.js`.
 
+### Memória promovida no `agent run` de produção (`environment.memory.source_db`)
+
+Por decisão do owner (2026-11-05), a configuração do **operador** pode apontar um banco de projeto ativado como fonte **somente leitura** de memória promovida:
+
+```yaml
+environment:
+  project_id: <projeto>
+  memory:
+    source_db: /caminho/absoluto/project.db
+```
+
+- A tarefa recebe só o que o produtor atesta como `trusted` (promoção do operador); a nota do agente, a não promovida e a de outro projeto não entram.
+- O banco é aberto com `readonly`; nada é gravado nele. Um contrato que declare `memory.write` ou `memory.delete` é recusado enquanto a chave existir (`ENGINEERING_ENVIRONMENT_CONFIG_INVALID`).
+- A chave vive no arquivo de configuração do operador. Não há opção de linha de comando, de contrato ou de ferramenta que a escolha.
+- Sem a chave, o comportamento anterior continua: a memória é a do ledger da própria tarefa.
+- Prova automatizada: `test/test-memory-context-journey.js` (`production host with a read-only source database…`). Não há campanha real deste caminho; a F14 `real_consumers` segue sem promoção.
+
 ### Recibo exigido
 
 Para cada memória que entrou: `memory_id`, `origin`, `trust`, `authority` e `digest`, o evento de promoção (`promoted_by`, `content_sha256`, `operation_id`), mais o par de negativos (memória de outro projeto ausente; memória `untrusted` ausente quando o host não declarou a opção). O recibo cita o identificador da tarefa e do evento, não o conteúdo da memória. Sem o recibo, o consumidor real fica **pendente, nunca PASS**.
