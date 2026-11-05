@@ -232,3 +232,12 @@ Os itens abaixo não contam para nenhum nível acima de L1, em nenhuma família:
 10. Rota de assinatura: avaliada e registrada antes de pedir chave de API (é a regra 7 dos pré-requisitos).
 11. L2 padrão = `tools/call` + MRTR. Se o cliente não fala `2026-07-28`, o binding fica em L2 parcial, com `tools/call` provado e MRTR bloqueado por protocolo, e não avança além disso.
 12. L2 da F17: geração real com recuperação de contexto, sem `tools/call`.
+
+## Respostas posteriores do owner (2026-11-05)
+
+Dadas no fechamento do plano pré-W6, sobre pontos que a reauditoria cética de 2026-11-04 apontou como ambíguos ou como decisão do owner. Elas esclarecem este ADR e não mudam nenhum status por si.
+
+1. **Eixo da frase de F18 em §2.** "Três ecossistemas em L2 e a quarta família pendente deixam F18 em `not_verified`" fala do eixo `real_consumers`, porque L2 pertence a esse eixo. O eixo `deterministic` de F18 segue a regra da tabela de §1: todos os bindings oficiais da família em L1, com cada teste ligado ao requisito. A promoção de `deterministic` de F18 continua exigindo que a reauditoria confirme essa regra sobre os recibos; esta resposta não a promove.
+2. **`verified_installed_local_scope_only` para F20.** O uso do valor para o servidor MCP instalado localmente, consumido por um cliente real, com o escopo, os limites, os clientes e os releases escritos em `evolution_scope`, foi ratificado.
+3. **Novo valor de `real_consumers`.** Nenhum valor novo é criado. O enum continua `not_verified`, `verified_installed_local_scope_only` e `verified_api_campaign_scope_only`. F14 e F15 ficam `not_verified` até haver, respectivamente, uma tarefa real de modelo que leia memória promovida e uma retomada de `fork` aprovada com modelo real.
+4. **C4 e C6.** As campanhas do ACP de terceiro e da quarta família seguem BLOCKED, sem credencial, e nenhuma delas é PASS.
