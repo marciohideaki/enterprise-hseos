@@ -1,0 +1,28 @@
+schema_version: "1.0"
+binding_id: provider-binding:openai-compatible-example
+profile_id: agent-openai-compatible-candidate
+adapter: openai-compatible-sse
+provider:
+  provider_id: model:openai-compatible
+  provider_version: 1.0.0
+  base_url: http://127.0.0.1:21434/v1
+  model: qwen2.5:7b
+  capabilities:
+    - text_generation
+    - streaming
+    - tool_calls
+    - usage
+    - cancellation
+  limits:
+    context_tokens: 8192
+    max_output_tokens: 1024
+    max_parallel_requests: 1
+  secret_refs:
+    - name: api-key
+      source_ref: env://HSEOS_MODEL_PROVIDER_API_KEY
+transport:
+  max_attempts: 1
+  retry_delay_ms: 250
+activation:
+  operational: false
+  authorized: false

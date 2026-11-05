@@ -1,0 +1,31 @@
+{
+  "model": "qwen2.5:3b",
+  "origin": "http://127.0.0.1:21434",
+  "status": 1,
+  "signal": null,
+  "result": {
+    "schema_version": 1,
+    "profile": "disposable-engineering-candidate",
+    "task_run_id": "d54a13af-80ad-4724-bd43-2cb9ec0d7567",
+    "task_id": "example-addition",
+    "state": "/build/tmp/hseos-ledger-fixture-IZk04H",
+    "session_id": "session:3e900d83-cb8a-416d-bd1c-d06ed1e0f6d7",
+    "status": "failed",
+    "task_result": "failed",
+    "reason": "session-budget-exceeded",
+    "current_sequence": 4,
+    "contract_sha256": "edbed4b25a5f4dc90f2c4a0d4aa6c81a51c6921a3ca0d30fd8385d67df48c778",
+    "token_accounting": {
+      "reported_input_tokens": 5996,
+      "reported_output_tokens": 324,
+      "conservative_estimate_tokens": 0,
+      "total_tokens": 6320,
+      "estimate_counter": "token-counter:utf8-byte-upper-bound"
+    },
+    "correction_reviews": [],
+    "correction_diagnoses": [],
+    "questions": [],
+    "operational_authorized": false
+  },
+  "stderr": ""
+}
