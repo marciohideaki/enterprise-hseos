@@ -210,7 +210,8 @@
         "test/test-provider-campaign-adapters.js",
         "test/test-acp-campaign-boundaries.js",
         "test/test-claude-account-adapter.js",
-        "test/test-provider-api-adapter.js"
+        "test/test-provider-api-adapter.js",
+        "docs/evolution/w3/evidence/l1-f08-f18-2026-11/l1-f08-f18-run.log.gz"
       ],
       "evolution_scope": "Escopo do L1 do ADR-0050 apenas (eixo deterministic): login expirado, credencial de ambiente sobreposta e mudança silenciosa de cobrança ligados a testes nomeados nos bindings declarados, mais os testes do broker (injeção pelo supervisor, cabeçalho de sobrescrita, eco bloqueado). O eixo real_consumers segue not_verified: nenhuma campanha de L2 foi concluída (C1 a C11 da WC fecham como L2 incompleto) e o ADR exige a varredura de segredos sobre uma campanha L2 completa. N=3 é a onda da própria família (precedente do inventário), porque a prova de L1 foi feita no fechamento pré-W6, que não é uma onda de 0 a 8."
     },
@@ -454,11 +455,25 @@
       ],
       "gap": "Antigravity e classificação oficial por binding pendentes.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w3_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       },
-      "not_verified_reason": "Reauditoria cética de 2026-11-04 (WD): o L1 de F18 foi entregue (docs/evolution/w3/L1-F08-F18-2026-11.md) para os bindings de runtime declarados, mas a quarta família (API Gemini) está diferida: a campanha C6 está BLOCKED por decisão do owner (sem a credencial google/gemini-hseos) e o L1 da Gemini (docs/evolution/w3/L1-GEMINI-2026-11.md) não liga F18-R1. O owner esclareceu em 2026-11-05 que a frase do ADR-0050 §2 fala do eixo real_consumers; o eixo deterministic de F18 depende de todos os bindings oficiais da família em L1 ligados ao requisito, e a reavaliação disso sobre os recibos está pendente. Antigravity foi exercitado só por rota local. Mantido not_verified_for_evolution."
+      "deterministic_evidence": [
+        "docs/evolution/w3/L1-F08-F18-2026-11.md",
+        "docs/evolution/w3/evidence/l1-f08-f18-2026-11/l1-f08-f18-run.log.gz",
+        "test/test-provider-egress-broker.js",
+        "test/test-provider-campaign-control.js",
+        "test/test-provider-campaign-adapters.js",
+        "test/test-runtime-providers.js",
+        "test/test-acp-campaign-boundaries.js",
+        "test/test-claude-account-adapter.js",
+        "test/test-provider-api-adapter.js",
+        "test/test-claude-cli-driver.js",
+        "test/test-codex-app-server-driver.js",
+        "test/test-claude-agent-sdk-driver.js"
+      ],
+      "evolution_scope": "Escopo do L1 do ADR-0050 apenas (eixo deterministic): os sete bindings oficiais de F18, por decisão do owner de 2026-11-05 (openai-compatible, claude-agent-sdk, codex-app-server, o binding ACP de terceiro e a sua composição sem ferramentas, Antigravity local e Claude Code por conta), com os itens I1 a I8 ligados a testes nomeados; os itens que não se aplicam a um binding (por exemplo tarifa em login por conta, ou credencial no Antigravity local) foram aceitos como N/A justificado pelo owner. Prova por fixtures e mocks: nenhuma chamada real, credencial real, cota ou custo. O item I8 (expiração e esgotamento preservando o estado) é coberto por testes de camada de controle e de driver, não por um teste específico de cada binding. O teste do binding ACP de terceiro e da sua composição sem ferramentas está coberto pelo glob test-delegated-d*-cli.js do recibo L1 e pelo log arquivado, e não aparece na lista de evidência para não citar o fornecedor num caminho de documento. A execução dos 11 arquivos de teste está arquivada com o commit no cabeçalho (186 de 186, exit 0). A API Gemini (quarta família) é binding de modelo e fica fora deste eixo; o L1 dela (w3/L1-GEMINI-2026-11.md) é de F17 e não liga F18-R1, e a campanha C6 está BLOCKED. real_consumers segue not_verified (campanhas L2 incompletas; três ecossistemas em L2 com a quarta pendente, ADR-0050 §2) e operational segue not_authorized. N=3 é a onda da própria família (precedente do inventário)."
     },
     {
       "id": "F19",
