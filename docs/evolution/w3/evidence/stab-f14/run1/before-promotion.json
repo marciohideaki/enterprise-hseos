@@ -1,0 +1,27 @@
+{
+  "label": "before-promotion",
+  "mode": "real",
+  "observed_at": "2026-11-05T17:27:39.385Z",
+  "task_run_id": "25117f44-0c77-434f-9705-12cc8cafb1af",
+  "session_id": "session:3f508895-a41a-4d08-a08a-a51b8cd47f92",
+  "task_result": "approved",
+  "context_assembled": true,
+  "summary": "{\"schema_version\":1,\"profile\":\"managed-project\",\"task_run_id\":\"25117f44-0c77-434f-9705-12cc8cafb1af\",\"task_id\":\"addition-fixture\",\"state\":\"/build/tmp/hseos-ledger-fixture-O5alO8\",\"session_id\":\"session:3f508895-a41a-4d08-a08a-a51b8cd47f92\",\"status\":\"completed\",\"task_result\":\"approved\",\"reason\":\"criteria-satisfied\",\"current_sequence\":6,\"contract_sha256\":\"b3521e0dd828a6a4451e6507d90e606e59584ef15d4b7c2c08945c787aabbbb1\",\"token_accounting\":{\"reported_input_tokens\":8032,\"reported_output_tokens\":327,\"conservative_estimate_tokens\":0,\"total_tokens\":8359,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[{\"kind\":\"review\",\"step_id\":\"step:556dca94ba47793058a618c4fbc5e2c6c77b3521\",\"approved\":true,\"reason\":\"criteria-satisfied\",\"files_sha256\":\"adab2bbc6d7f8c10c3e3b72c7473850085c77367199fe10f55965a7723b31af8\",\"correction_requested\":false}],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}",
+  "event_types": [
+    "session.created",
+    "turn.started",
+    "context.assembled",
+    "model.request.started",
+    "model.streamed",
+    "tool.execution.started",
+    "tool.execution.completed",
+    "tool.operation_linked",
+    "session.completed"
+  ],
+  "reason": "criteria-satisfied",
+  "memory_sources": [],
+  "memory_blocks": [],
+  "marker_in_context": false,
+  "marker_in_written_artifact": false,
+  "note_digest": "a446aa13cd46db78781c1d93a6046dcce80519b93f65da12a948e3a8999a37d8"
+}

@@ -1,0 +1,41 @@
+{
+  "label": "after-promotion",
+  "mode": "real",
+  "observed_at": "2026-11-05T17:46:04.151Z",
+  "task_run_id": "96921bb9-c601-4093-8ca3-fc138c95906f",
+  "session_id": "session:c1693de1-4600-4c8a-86cb-92214afd6268",
+  "task_result": "approved",
+  "context_assembled": true,
+  "summary": "{\"schema_version\":1,\"profile\":\"managed-project\",\"task_run_id\":\"96921bb9-c601-4093-8ca3-fc138c95906f\",\"task_id\":\"addition-fixture\",\"state\":\"/build/tmp/hseos-ledger-fixture-KHfwK8\",\"session_id\":\"session:c1693de1-4600-4c8a-86cb-92214afd6268\",\"status\":\"completed\",\"task_result\":\"approved\",\"reason\":\"criteria-satisfied\",\"current_sequence\":6,\"contract_sha256\":\"1d31e7f97a9aa3f3999d7fb3dcc2b99f83070f1ff4217a69b2c1b55def3ceb4f\",\"token_accounting\":{\"reported_input_tokens\":8658,\"reported_output_tokens\":316,\"conservative_estimate_tokens\":0,\"total_tokens\":8974,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[{\"kind\":\"review\",\"step_id\":\"step:dd9bf214ee08d1d77b99caf450746b9338bc2e3d\",\"approved\":true,\"reason\":\"criteria-satisfied\",\"files_sha256\":\"96bce2d98bb7406ec5ef7c88ef5bca647aba309c030472a1b5ee1e01dd77fc8c\",\"correction_requested\":false}],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}",
+  "event_types": [
+    "session.created",
+    "turn.started",
+    "context.assembled",
+    "model.request.started",
+    "model.streamed",
+    "tool.execution.started",
+    "tool.execution.completed",
+    "tool.operation_linked",
+    "session.completed"
+  ],
+  "reason": "criteria-satisfied",
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "a446aa13cd46db78781c1d93a6046dcce80519b93f65da12a948e3a8999a37d8",
+      "origin": "memory",
+      "source_ref": "memory://f14-live/f14-note-1:promoted",
+      "trust": "trusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "8bdeb3bba0d76728a5e0a4996b0068ca1e8dce833a0295ef75974fe9af82b2e9",
+      "bytes": 280,
+      "authority_data": true
+    }
+  ],
+  "marker_in_context": true,
+  "marker_in_written_artifact": true,
+  "note_digest": "a446aa13cd46db78781c1d93a6046dcce80519b93f65da12a948e3a8999a37d8"
+}
