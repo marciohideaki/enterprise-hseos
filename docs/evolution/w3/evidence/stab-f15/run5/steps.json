@@ -1,0 +1,110 @@
+[
+  {
+    "s": "reference",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 4,
+    "stderr": "",
+    "json": "{\"schema_version\":1,\"profile\":\"disposable-engineering-candidate\",\"task_run_id\":\"7f276053-9f80-4d8c-9074-23a1b3322328\",\"task_id\":\"example-addition\",\"state\":\"/build/tmp/hseos-ledger-fixture-J38FDv\",\"session_id\":\"session:919b1ce4-600d-4f66-9433-62459a6615b1\",\"status\":\"completed\",\"task_result\":\"approved\",\"reason\":\"criteria-satisfied\",\"current_sequence\":4,\"contract_sha256\":\"9367de2301fd8bd4fb14236a690e65c7f1d6b4f8d7626efa2dea5653a2d0db32\",\"token_accounting\":{\"reported_input_tokens\":4214,\"reported_output_tokens\":207,\"conservative_estimate_tokens\":0,\"total_tokens\":4421,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}"
+  },
+  {
+    "s": "crash",
+    "signal": "SIGKILL",
+    "record": {
+      "pid": 2315616,
+      "cmdline": [
+        "/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node",
+        "--require",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns/docs/evolution/w3/evidence/stab-f15/fetch-guard.cjs",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns/tools/cli/hseos-cli.js",
+        "agent",
+        "resume"
+      ],
+      "at_request_in_process": 3,
+      "killed_before_sending": true
+    },
+    "pid_alive_after": false,
+    "requests": 6
+  },
+  {
+    "s": "after-crash",
+    "events": 63,
+    "last_sequence": 63,
+    "compaction_sequence": 62,
+    "compaction_event_id": "event:302b45c50a727b6d38af93099807589ef84e1c22",
+    "source_event_ids": 1,
+    "writes": 1
+  },
+  {
+    "s": "resume-1",
+    "status": 1,
+    "task_result": "blocked",
+    "reason": "effect-reconciliation-required",
+    "requests": 6
+  },
+  {
+    "s": "resume-2",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 8,
+    "stderr": ""
+  },
+  {
+    "s": "compare",
+    "prefix_immutable": true,
+    "single_compaction": false,
+    "criteria_equal": true,
+    "criteria_count": 1,
+    "writes_compacted": 2,
+    "writes_reference": 1,
+    "reference_compactions": 0,
+    "command_checks_equal": true,
+    "artifacts_equal": false,
+    "verification": [
+      "approved",
+      "approved"
+    ]
+  },
+  {
+    "s": "fork",
+    "checkpoint_sequence": 58,
+    "checkpoint_event_type": "model.streamed",
+    "checkpoint_before_first_write": true,
+    "compaction_sequence_in_parent": 62,
+    "refusals_before_success": [],
+    "ancestry_recomputed": true,
+    "ancestry_event_count": true,
+    "parent_session": true,
+    "parent_sequence": true,
+    "fork_prefix_equals_parent_prefix": true,
+    "parent_unchanged_after_fork": true,
+    "fork": {
+      "schema_version": 1,
+      "parent_task_run_id": "20040911-4cfd-43d2-9800-f7df75c1c855",
+      "parent_session_id": "session:47fe7631-8979-4a2d-8ed7-d56ed791c28a",
+      "parent_sequence": 58,
+      "ancestry_event_count": 58,
+      "ancestry_sha256": "01ac0f698edf48adfc47f6c9c7f110ea349716f18bb41227cfa6a1914c30976b"
+    },
+    "requests": 8
+  },
+  {
+    "s": "fork-resume",
+    "status": 0,
+    "task_result": "approved",
+    "reason": "criteria-satisfied",
+    "requests": 12,
+    "stderr": ""
+  },
+  {
+    "s": "independence",
+    "parent_events_unchanged": true,
+    "parent_state_unchanged": true,
+    "fork": {
+      "prefix_immutable": true,
+      "criteria_equal": true,
+      "writes": 1,
+      "artifacts_equal": true
+    }
+  }
+]

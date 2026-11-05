@@ -1,0 +1,40 @@
+{
+  "completed": true,
+  "requests": 12,
+  "reference_task": "approved",
+  "compacted_task": "approved",
+  "fork_task": "failed",
+  "cmp": {
+    "prefix_immutable": true,
+    "single_compaction": false,
+    "criteria_equal": true,
+    "criteria_count": 1,
+    "writes_compacted": 2,
+    "writes_reference": 1,
+    "reference_compactions": 0,
+    "command_checks_equal": true,
+    "artifacts_equal": true,
+    "verification": [
+      "approved",
+      "approved"
+    ]
+  },
+  "forkChecks": {
+    "checkpoint_sequence": 58,
+    "checkpoint_event_type": "model.streamed",
+    "checkpoint_before_first_write": true,
+    "compaction_sequence_in_parent": 62,
+    "refusals_before_success": [],
+    "ancestry_recomputed": true,
+    "ancestry_event_count": true,
+    "parent_session": true,
+    "parent_sequence": true,
+    "fork_prefix_equals_parent_prefix": true,
+    "parent_unchanged_after_fork": true
+  },
+  "forkCmp": null,
+  "parentAfter": {
+    "parent_events_unchanged": true,
+    "parent_state_unchanged": true
+  }
+}
