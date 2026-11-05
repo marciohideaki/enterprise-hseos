@@ -38,10 +38,13 @@ const TOOL_FREE = 'deepseek-acp-tool-free.example.yaml';
 // model binding whose versioned declaration is still pending (it must stay neither operational nor authorized until then).
 // The fourth-family API binding is declared; authorization stays with the owner, per campaign.
 const GEMINI = 'gemini-api.example.yaml';
+// A local model server (no credential, no metered billing): declared with a pinned model profile instead of a credential.
+const OLLAMA = 'ollama-local.example.yaml';
 const CLASSIFICATION = Object.freeze({
   [OPENAI]: 'model',
   [TOOL_FREE]: 'model',
   [GEMINI]: 'model',
+  [OLLAMA]: 'model',
   'claude-agent-sdk.example.yaml': 'runtime',
   'codex-app-server.example.yaml': 'runtime',
   'deepseek-acp.example.yaml': 'runtime',
@@ -54,9 +57,10 @@ const MODEL_DECLARATIONS = Object.freeze([
   { file: TOOL_FREE, name: 'deepseek-acp-tool-free' },
   { file: GEMINI, name: 'gemini-api' },
 ]);
+const LOCAL_DECLARATIONS = Object.freeze([{ file: OLLAMA, name: 'ollama-local' }]);
 
 function pinnedBindingSha(file) {
-  return file === OPENAI || file === GEMINI
+  return file === OPENAI || file === GEMINI || file === OLLAMA
     ? readProviderBinding(path.join(BINDINGS, file)).binding_sha256
     : sha256(fs.readFileSync(path.join(BINDINGS, file)));
 }
@@ -70,7 +74,7 @@ test('every official binding is classified and every model binding has a version
   const gemini = readProviderBinding(path.join(BINDINGS, GEMINI)).binding;
   assert.deepEqual(gemini.activation, { operational: false, authorized: false }, 'the owner authorizes per campaign, never the file');
   const declared = fs.readdirSync(DECLARATIONS).sort();
-  assert.deepEqual(declared, MODEL_DECLARATIONS.map(({ name }) => `${name}.manifest.json`).sort());
+  assert.deepEqual(declared, [...MODEL_DECLARATIONS, ...LOCAL_DECLARATIONS].map(({ name }) => `${name}.manifest.json`).sort());
   for (const { file, name } of MODEL_DECLARATIONS) {
     const manifest = parseProviderControlManifest(declaration(name));
     assert.equal(CLASSIFICATION[file], 'model');
@@ -583,4 +587,61 @@ test('L1 fourth family: the catalog lists the vendor as implemented but pending 
   assert.equal(entry.provider_kind, 'model');
   assert.equal(entry.real_conformance, 'not_certified');
   assert.ok(catalog.pending_real_conformance.includes('gemini'));
+});
+
+test('the local model binding is declared with a pinned model profile, no credential and no paid billing', () => {
+  const { binding, binding_sha256: bindingSha } = readProviderBinding(path.join(BINDINGS, OLLAMA));
+  for (const { name } of LOCAL_DECLARATIONS) {
+    const manifest = parseProviderControlManifest(declaration(name));
+    assert.equal(manifest.vendor, 'ollama');
+    assert.equal(manifest.provider_kind, 'model');
+    assert.equal(manifest.route, 'local');
+    assert.equal(manifest.transport, 'http');
+    assert.equal(manifest.authentication.mode, 'local');
+    assert.equal(manifest.authentication.credential, null, 'a local server declares no credential source');
+    assert.equal(manifest.authentication.identity_kind, 'local_profile');
+    assert.match(manifest.authentication.profile_sha256, /^[a-f0-9]{64}$/, 'the identity is a pinned model profile');
+    assert.equal(manifest.billing.kind, 'local');
+    assert.equal(manifest.billing.max_request_microusd, 0);
+    assert.equal(manifest.binding_sha256, bindingSha, 'the declaration is pinned to the binding file');
+    assert.equal(manifest.binding_id, binding.binding_id);
+    assert.equal(manifest.adapter, binding.adapter);
+    assert.equal(manifest.provider_version, binding.provider.provider_version);
+    assert.equal(
+      manifest.artifact_sha256,
+      sha256(fs.readFileSync(path.join(ROOT, 'packages', 'model-providers', 'openai-compatible-provider.js'))),
+    );
+    // The window the binding declares must not exceed what the backend serves, which the declaration states.
+    assert.ok(binding.provider.limits.context_tokens <= manifest.limits.max_input_tokens);
+    assert.ok(binding.provider.limits.max_output_tokens <= manifest.limits.max_output_tokens);
+  }
+  assert.deepEqual(binding.activation, { operational: false, authorized: false }, 'the owner authorizes per campaign, never the file');
+  assert.equal(
+    new URL(binding.provider.base_url).hostname,
+    'ollama-shared.platform-shared-dev.svc.cluster.local',
+    'shared infrastructure, not a project-local server',
+  );
+});
+
+test('the manifest refuses a local model that carries a credential or a paid route, and an API route for the local vendor', () => {
+  const good = declaration('ollama-local');
+  const credential = { name: 'api-key', source_ref: 'env://HSEOS_MODEL_PROVIDER_API_KEY' };
+  assert.throws(() => parseProviderControlManifest({ ...good, authentication: { ...good.authentication, credential } }));
+  assert.throws(() => parseProviderControlManifest({ ...good, billing: { kind: 'metered', currency: 'USD', max_request_microusd: 1000 } }));
+  assert.throws(() => parseProviderControlManifest({ ...good, route: 'api' }));
+  assert.throws(() => parseProviderControlManifest({ ...good, provider_kind: 'client' }));
+});
+
+test('the backend a local request actually reaches is the declared one and any divergence is refused', async () => {
+  const { binding } = readProviderBinding(path.join(BINDINGS, OLLAMA));
+  const effective = await observeEffectiveBackend(binding, { HSEOS_MODEL_PROVIDER_API_KEY: 'local-backend-ignores-the-key' });
+  const declared = { origin: new URL(binding.provider.base_url).origin, model: binding.provider.model };
+  assert.deepEqual(assertEffectiveBackend(declared, effective), declared);
+  for (const divergent of [
+    { ...effective, origin: 'http://127.0.0.1:21434' },
+    { ...effective, origin: 'https://api.openai.com' },
+    { ...effective, model: 'qwen2.5:3b' },
+    { ...effective, model: undefined },
+  ])
+    assert.throws(() => assertEffectiveBackend(declared, divergent), { code: 'CONTROL_PROVIDER_BACKEND_DIVERGED' });
 });
