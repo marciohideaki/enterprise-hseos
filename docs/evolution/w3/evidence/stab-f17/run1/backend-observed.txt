@@ -1,0 +1,9 @@
+# captured 2026-11-05T17:57:31Z (read-only, operator kubectl; not seen by the binding)
+NAME                            READY   STATUS    RESTARTS   AGE   IP          NODE               NOMINATED NODE   READINESS GATES
+ollama-shared-f76db575f-ff248   1/1     Running   0          28h   10.42.0.3   virus-repository   <none>           <none>
+ollama-shared-f76db575f-ff248                         1/1     Running     0             28h     10.42.0.3     virus-repository   <none>           <none>
+image=docker.io/ollama/ollama@sha256:46399ef084d97b381955b5dc585c5d836dbe7ed3f79f170d1c04660fed511e3a
+ollama version is 0.30.7
+## ollama ps (loaded model at capture time; the 7b was the last one served)
+NAME          ID              SIZE      PROCESSOR    CONTEXT    UNTIL   
+qwen2.5:7b    845dbda0ea48    4.7 GB    100% GPU     4096       Forever    
