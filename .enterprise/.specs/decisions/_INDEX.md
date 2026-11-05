@@ -113,3 +113,5 @@ The following entries are ADR templates or placeholders for optional activation.
 - [ADR-0049 — Fork do Code OSS e política de upstream para a IDE da W6](ADR-0049-code-oss-fork-and-upstream.md) — Accepted (2026-10-31); fork do Code OSS em tag estável fixada, patches mínimos, Open VSX, repositório `hseos-code` separado; estende ADR-0043; o aceite não cria o repositório nem inicia o fork.
 
 - [ADR-0050 — Critério de certificação de bindings de provider e aceite da quarta família](ADR-0050-provider-binding-certification-criterion.md) — Accepted (2026-10-31); define níveis L0-L3, o que conta para F08/F17/F18 e a autorização por campanha; admite `verified_api_campaign_scope_only` em `real_consumers`; não autoriza gasto.
+
+- [ADR-0051 — Escopo da DG-27: checksum de integridade vs. hash irreversível de PII](ADR-0051-dg27-integrity-checksum-scope.md) — Proposed (2026-10-14); esclarece DG-27 v1.1; ratificação pelos owners e novo pin separados.
