@@ -30,7 +30,7 @@ O binding declarou `context_tokens: 8192`. O backend atende **4096**. A declara�
 
 ## Lacunas (`does_not_prove`)
 
-1. **Sem binding local declarado.** Não existe arquivo em `.agents/activation/provider-bindings/` nem manifesto de controle para um modelo local. O vocabulário do manifesto (`provider-control-manifest`) só admite rota `local` para um fornecedor de modelo em `deepseek`; acrescentar um fornecedor local é mudança de esquema governado, que exige decisão do owner. O L1 local, portanto, segue sem declaração a certificar.
+1. **Sem binding local declarado.** Não existe arquivo em `.agents/activation/provider-bindings/` nem manifesto de controle para um modelo local. O vocabulário do manifesto (`provider-control-manifest`) só admite rota `local` para um único fornecedor de modelo já existente; acrescentar um fornecedor local é mudança de esquema governado, que exige decisão do owner. O L1 local, portanto, segue sem declaração a certificar.
 2. **Backend efetivo observado pelo operador e pelo campo `model` do fio**, e não por uma verificação do próprio binding. O endpoint foi acessado por túnel local, não pelo DNS do cluster.
 3. **Nenhuma tarefa aprovada.** Isso mostra o limite dos modelos pequenos nesta tarefa, e não que o binding esteja correto ou incorreto para uma tarefa concluída.
 4. **Uma execução por modelo**, sem repetição; o resultado de um modelo pequeno varia.
