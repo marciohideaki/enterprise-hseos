@@ -1,0 +1,22 @@
+[
+  {
+    "s": "reference",
+    "status": 1,
+    "task_result": "failed",
+    "requests": 2,
+    "stderr": "",
+    "json": "{\"schema_version\":1,\"profile\":\"disposable-engineering-candidate\",\"task_run_id\":\"423d3873-0482-46e9-aa5a-cd41b99e2175\",\"task_id\":\"example-addition\",\"state\":\"/build/tmp/hseos-ledger-fixture-kFU2VQ\",\"session_id\":\"session:875838ab-8dc2-45b1-90b9-6f51daf0e1bd\",\"status\":\"failed\",\"task_result\":\"failed\",\"reason\":\"session-budget-exceeded\",\"current_sequence\":4,\"contract_sha256\":\"ceaca4725713c784cacc0201ffc611ec6575f85e486a9908302ea7785b6833da\",\"token_accounting\":{\"reported_input_tokens\":2184,\"reported_output_tokens\":273,\"conservative_estimate_tokens\":0,\"total_tokens\":2457,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}"
+  },
+  {
+    "s": "reference-evidence",
+    "err": "a9908302ea7785b6833da\",\"files_sha256\":\"0ebb0c40b22213378f0825f4e186917d7ee0a7640518f8e8b5902fff18343d17\",\"reason\":\"session-budget-exceeded\",\"schema_version\":1,\"session_failure\":{\"error_code\":\"budget_exceeded\",\"message\":\"model output limit reached\"},\"session_id\":\"session:875838ab-8dc2-45b1-90b9-6f51daf0e1bd\",\"token_accounting\":{\"conservative_estimate_tokens\":0,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\",\"reported_input_tokens\":2184,\"reported_output_tokens\":273,\"total_tokens\":2457}}}}",
+    "stderr": ""
+  },
+  {
+    "s": "STOP",
+    "why": "reference-not-approved",
+    "requests": 2,
+    "result": "failed",
+    "stderr": ""
+  }
+]

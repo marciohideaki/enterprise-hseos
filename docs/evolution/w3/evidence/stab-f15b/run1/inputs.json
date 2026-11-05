@@ -1,0 +1,19 @@
+{
+  "mode": "real",
+  "root": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-f15-compact",
+  "contract_sha256": "443b12e3bc426f65c437a7143cb7f1e9d512aa4e642d259e2cc5d7322b38eb34",
+  "binding_sha256": "2e2672cf54b8261173c4c934f040386213e6144921c8830db4a1d6b5b17f6f8b",
+  "compaction": {
+    "schema_version": 1,
+    "provider_id": "compaction:deterministic",
+    "threshold_basis_points": 600,
+    "context_tokens": 20000
+  },
+  "compaction_sha256": "4e8c43e9aaad897c4a336d1b0772abbaa9b1953592dd9f0fc145d13b3189391f",
+  "base_url": "https://api.openai.com/v1",
+  "model": "gpt-4o-mini",
+  "pad_repeat": 600,
+  "context_tokens": 20000,
+  "max_requests": 24,
+  "node": "v24.15.0"
+}

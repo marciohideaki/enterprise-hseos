@@ -1,0 +1,121 @@
+[
+  {
+    "s": "reference",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 4,
+    "stderr": "",
+    "json": "{\"schema_version\":1,\"profile\":\"disposable-engineering-candidate\",\"task_run_id\":\"5b900c0b-ec57-4499-be63-ca94d4e76327\",\"task_id\":\"example-addition\",\"state\":\"/build/tmp/hseos-ledger-fixture-neK7qU\",\"session_id\":\"session:f63ecae9-68be-4d8c-8324-3716a5b87e56\",\"status\":\"completed\",\"task_result\":\"approved\",\"reason\":\"criteria-satisfied\",\"current_sequence\":4,\"contract_sha256\":\"9367de2301fd8bd4fb14236a690e65c7f1d6b4f8d7626efa2dea5653a2d0db32\",\"token_accounting\":{\"reported_input_tokens\":4186,\"reported_output_tokens\":249,\"conservative_estimate_tokens\":0,\"total_tokens\":4435,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}"
+  },
+  {
+    "s": "crash",
+    "signal": "SIGKILL",
+    "record": {
+      "pid": 2739292,
+      "cmdline": [
+        "/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node",
+        "--require",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-f15-compact/docs/evolution/w3/evidence/stab-f15b/fetch-guard.cjs",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-f15-compact/tools/cli/hseos-cli.js",
+        "agent",
+        "resume"
+      ],
+      "at_request_in_process": 3,
+      "killed_before_sending": true
+    },
+    "pid_alive_after": false,
+    "requests": 6
+  },
+  {
+    "s": "after-crash",
+    "events": 63,
+    "last_sequence": 63,
+    "compaction_sequence": 62,
+    "compaction_event_id": "event:dae4e94e1487bc2e40bc6a94dd28b8d8b630e44f",
+    "source_event_ids": 1,
+    "writes": 1
+  },
+  {
+    "s": "resume-1",
+    "status": 1,
+    "task_result": "blocked",
+    "reason": "effect-reconciliation-required",
+    "requests": 6
+  },
+  {
+    "s": "resume-2",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 9,
+    "stderr": ""
+  },
+  {
+    "s": "compare",
+    "prefix_immutable": true,
+    "single_compaction": false,
+    "criteria_equal": true,
+    "criteria_count": 1,
+    "writes_compacted": 2,
+    "writes_reference": 1,
+    "reference_compactions": 0,
+    "command_checks_equal": true,
+    "artifacts_equal": true,
+    "artifacts_compared": {
+      "compacted_sha256": "c9453b9ee69400c37015c5f63e2471fec9a73429884629eba252cd90f25bdb53",
+      "reference_sha256": "c9453b9ee69400c37015c5f63e2471fec9a73429884629eba252cd90f25bdb53",
+      "compacted_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"function add(a, b) {\\n    return a + b;\\n}\\n\\nmodule.exports = add;\",\"sha256\":\"863b3863cb6fc35f361f1816258b9417691b6befbb8a83e06d3e45b3f4dfd3bc\"}],\"files_sha256\":\"dabbed92c810cc14f41f8a090818106d9874a3b4188d1b5990c7cad76b060b22\"}",
+      "reference_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"function add(a, b) {\\n    return a + b;\\n}\\n\\nmodule.exports = add;\",\"sha256\":\"863b3863cb6fc35f361f1816258b9417691b6befbb8a83e06d3e45b3f4dfd3bc\"}],\"files_sha256\":\"dabbed92c810cc14f41f8a090818106d9874a3b4188d1b5990c7cad76b060b22\"}"
+    },
+    "verification": [
+      "approved",
+      "approved"
+    ]
+  },
+  {
+    "s": "fork",
+    "checkpoint_sequence": 58,
+    "checkpoint_event_type": "model.streamed",
+    "checkpoint_before_first_write": true,
+    "compaction_sequence_in_parent": 62,
+    "compaction_before_checkpoint": false,
+    "compactions_in_fork_prefix": 0,
+    "refusals_before_success": [],
+    "ancestry_recomputed": true,
+    "ancestry_event_count": true,
+    "parent_session": true,
+    "parent_sequence": true,
+    "fork_prefix_equals_parent_prefix": true,
+    "parent_unchanged_after_fork": true,
+    "fork": {
+      "schema_version": 1,
+      "parent_task_run_id": "fbdad1bc-0c0e-47b5-ae0d-e6fb36fbc4e1",
+      "parent_session_id": "session:1ffa5461-110f-4260-afd7-cd073947bb0e",
+      "parent_sequence": 58,
+      "ancestry_event_count": 58,
+      "ancestry_sha256": "10e5c9ea5991994aa3c72de044f2ccd1187d610fe8290d5b8eb78c15cc363060"
+    },
+    "requests": 9
+  },
+  {
+    "s": "fork-resume",
+    "status": 0,
+    "task_result": "approved",
+    "reason": "criteria-satisfied",
+    "requests": 13,
+    "stderr": ""
+  },
+  {
+    "s": "independence",
+    "parent_events_unchanged": true,
+    "parent_state_unchanged": true,
+    "fork": {
+      "prefix_immutable": true,
+      "criteria_equal": true,
+      "writes": 1,
+      "artifacts_equal": false,
+      "artifacts_fork_sha256": "e516256cbdafdadc6a161d3a32e3f1c022644a896bf2eff19374dc4599af48a1",
+      "artifacts_fork_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"function addIntegers(a, b) {\\n    return a + b;\\n}\\n\\nmodule.exports = addIntegers;\",\"sha256\":\"d9b60fa267bdf8bf7bcc1fe35219309b3237707e7a17e804180c0a458955ac0b\"}],\"files_sha256\":\"b395bb83e9911dc46fbc1432112f57ec8171a323bd48a0edd24a515b8f011f97\"}",
+      "compactions_in_fork": 2
+    }
+  }
+]
