@@ -1,0 +1,24 @@
+{
+  "label": "before-promotion",
+  "mode": "real",
+  "observed_at": "2026-11-05T17:27:02.170Z",
+  "task_run_id": "21e2c89c-74e2-4794-a842-ce7fe6d4dea1",
+  "session_id": "session:1f886fd1-dc2a-4151-b063-1d2be4f8b785",
+  "task_result": "failed",
+  "context_assembled": true,
+  "summary": "{\"schema_version\":1,\"profile\":\"managed-project\",\"task_run_id\":\"21e2c89c-74e2-4794-a842-ce7fe6d4dea1\",\"task_id\":\"addition-fixture\",\"state\":\"/build/tmp/hseos-ledger-fixture-5yQlUS\",\"session_id\":\"session:1f886fd1-dc2a-4151-b063-1d2be4f8b785\",\"status\":\"failed\",\"task_result\":\"failed\",\"reason\":\"session-budget-exceeded\",\"current_sequence\":4,\"contract_sha256\":\"787acd195fd60b1555d5d04073edccc5229173d558b40e0d63d8b8952bc3a0f6\",\"token_accounting\":{\"reported_input_tokens\":1312,\"reported_output_tokens\":256,\"conservative_estimate_tokens\":0,\"total_tokens\":1568,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}",
+  "event_types": [
+    "session.created",
+    "turn.started",
+    "context.assembled",
+    "model.request.started",
+    "model.streamed",
+    "session.failed"
+  ],
+  "reason": "session-budget-exceeded",
+  "memory_sources": [],
+  "memory_blocks": [],
+  "marker_in_context": false,
+  "marker_in_written_artifact": false,
+  "note_digest": "a446aa13cd46db78781c1d93a6046dcce80519b93f65da12a948e3a8999a37d8"
+}

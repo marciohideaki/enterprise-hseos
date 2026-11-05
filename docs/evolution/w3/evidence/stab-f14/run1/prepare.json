@@ -1,0 +1,8 @@
+{
+  "box": "/build/tmp/f14-live-uZySWR",
+  "db": "/build/tmp/f14-live-uZySWR/state/project.db",
+  "project_id": "f14-live",
+  "memory_id": "f14-note-1",
+  "content_sha256": "a446aa13cd46db78781c1d93a6046dcce80519b93f65da12a948e3a8999a37d8",
+  "operator_command": "hseos memory promote --db /build/tmp/f14-live-uZySWR/state/project.db --project f14-live --memory f14-note-1 --reason \"F14 campaign: reviewed marker note\" --operator owner"
+}

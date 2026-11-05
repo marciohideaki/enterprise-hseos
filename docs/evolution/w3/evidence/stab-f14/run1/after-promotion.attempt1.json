@@ -1,0 +1,41 @@
+{
+  "label": "after-promotion",
+  "mode": "real",
+  "observed_at": "2026-11-05T17:45:25.657Z",
+  "task_run_id": "8a052f04-0619-40c2-be36-6c9b05da884d",
+  "session_id": "session:bd626376-e172-4e60-b311-32c49bd2a750",
+  "task_result": "failed",
+  "context_assembled": true,
+  "summary": "{\"schema_version\":1,\"profile\":\"managed-project\",\"task_run_id\":\"8a052f04-0619-40c2-be36-6c9b05da884d\",\"task_id\":\"addition-fixture\",\"state\":\"/build/tmp/hseos-ledger-fixture-kTG5Py\",\"session_id\":\"session:bd626376-e172-4e60-b311-32c49bd2a750\",\"status\":\"failed\",\"task_result\":\"failed\",\"reason\":\"session-budget-exceeded\",\"current_sequence\":4,\"contract_sha256\":\"4e1614237bad6105879da92217711d18c04d08201b5c51611151f6dbd35d2779\",\"token_accounting\":{\"reported_input_tokens\":11746,\"reported_output_tokens\":308,\"conservative_estimate_tokens\":0,\"total_tokens\":12054,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}",
+  "event_types": [
+    "session.created",
+    "turn.started",
+    "context.assembled",
+    "model.request.started",
+    "model.streamed",
+    "tool.execution.started",
+    "tool.execution.completed",
+    "tool.operation_linked",
+    "session.failed"
+  ],
+  "reason": "session-budget-exceeded",
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "a446aa13cd46db78781c1d93a6046dcce80519b93f65da12a948e3a8999a37d8",
+      "origin": "memory",
+      "source_ref": "memory://f14-live/f14-note-1:promoted",
+      "trust": "trusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "8bdeb3bba0d76728a5e0a4996b0068ca1e8dce833a0295ef75974fe9af82b2e9",
+      "bytes": 280,
+      "authority_data": true
+    }
+  ],
+  "marker_in_context": true,
+  "marker_in_written_artifact": true,
+  "note_digest": "a446aa13cd46db78781c1d93a6046dcce80519b93f65da12a948e3a8999a37d8"
+}
