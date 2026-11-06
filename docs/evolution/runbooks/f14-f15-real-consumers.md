@@ -52,6 +52,14 @@ environment:
 - Sem a chave, o comportamento anterior continua: a memória é a do ledger da própria tarefa.
 - Prova automatizada: `test/test-memory-context-journey.js` (`production host with a read-only source database…`). Não há campanha real deste caminho; a F14 `real_consumers` segue sem promoção.
 
+### Custo medido nas campanhas (guard compartilhado)
+
+Os recibos anteriores trazem o custo só como estimativa, porque o `usage` do log de requisições saía ilegível (o guard antigo lia o fluxo SSE com uma expressão regular que não acompanhava os objetos `*_tokens_details` aninhados). Campanhas novas usam o guard compartilhado:
+
+- pré-carga: `node --require docs/evolution/w3/evidence/shared/fetch-guard.cjs …` (mesmas variáveis `C9_MODE`, `C9_DIR`, `C9_MAX_REQUESTS`); cada linha de `provider-requests.jsonl` traz `usage` (`prompt_tokens`, `completion_tokens`, `total_tokens`, `cached_tokens`), `finish` e `responding_model`, lidos quadro a quadro;
+- resumo: `node docs/evolution/w3/evidence/shared/summarize-usage.cjs <dir> [--price-in N --price-out N]` soma os tokens. Uma requisição sem `usage` legível é **contada**, nunca tratada como zero, e a soma diz `complete: false`. O custo só aparece se o operador declarar o preço, e continua sendo uma estimativa pelo preço declarado, não uma fatura.
+- isto mede tokens por requisição; não substitui um ledger de custo nem a conferência na console do provedor.
+
 ### Recibo exigido
 
 Para cada memória que entrou: `memory_id`, `origin`, `trust`, `authority` e `digest`, o evento de promoção (`promoted_by`, `content_sha256`, `operation_id`), mais o par de negativos (memória de outro projeto ausente; memória `untrusted` ausente quando o host não declarou a opção). O recibo cita o identificador da tarefa e do evento, não o conteúdo da memória. Sem o recibo, o consumidor real fica **pendente, nunca PASS**.
