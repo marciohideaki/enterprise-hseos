@@ -60,3 +60,9 @@ O módulo inicial de 4,4 KB foi encolhido para 2,1 KB depois de a chamada do CLI
 9. **A causa da reprovação da `4o-3` não foi diagnosticada:** pode ser erro do modelo ou perda de informação pela compactação; o `add` final do estado compactado ainda subtrai.
 10. **Tokens em cache não receberam desconto**, então o custo estimado está levemente superestimado; o crash é limpo (entre passos, sem efeito pendente).
 11. Estados completos e SSE bruto ficam em `/build/artifacts/stab-f15c-*`, com hashes; não versionados.
+
+## Correção de 2026-11-06 (T2 e T3 da Onda A)
+
+Onde este recibo diz "limiar padrão", leia-se **o valor de 2.800 pontos-base que os roteiros de campanha passam desde a C9**. O padrão do produto é 8.500 (`packages/agent-compaction/deterministic-provider.js:63`), e com ele um arquivo de 2 KB não compactaria. Logo, a compactação não caiu "sozinha": o limiar foi escolhido pela campanha.
+
+O mesmo vale para os 20.000 tokens que a lacuna 7 chama de "padrão": são valor dos roteiros, não do produto. A T2 também mostrou que a poda remove o resultado da leitura antes de o modelo vê-lo: a primeira escrita falhou nas 6 execuções compactadas, e as aprovações dependeram do relatório de reconciliação reinjetado depois do crash. A reprovação da `4o-3` foi classificada como erro do modelo (`expected_sha256` errado), com esse defeito de produto concorrente. A frequência da poda depende do limiar de 2.800. Ver `stab2/T2.md`.

@@ -37,3 +37,7 @@ O binding declarou `context_tokens: 8192`. O backend atende **4096**. A declara�
 5. **A composição ACP tool-free de terceiro** (C4) segue BLOCKED sem chave. Por isso a F17 `deterministic` não pode ser promovida: o critério do ADR-0050 §2 exige todos os bindings.
 6. **Infraestrutura compartilhada usada sem alteração.** Os modelos ficaram carregados com `UNTIL Forever`, comportamento que já existia; não foi mudado o contexto, a cota nem a exposição do serviço.
 7. Estados completos e SSE bruto ficam em `/build/artifacts/stab-f17-run1` e `stab-f17-run2-7b`, com hashes; não versionados.
+
+## Correção de 2026-11-06 (T3 da Onda A)
+
+A causa do `session-budget-exceeded` da `run1`, antes "não estabelecida", está estabelecida: a última requisição tinha 6.808 bytes canônicos e o resultado seguinte, 542; somados superam o limite de entrada de 7.168 (a conta omite a mensagem do assistente, que só a reforça), porque a admissão compara **bytes** com `context_tokens`. Ver `stab2/T3.md`.
