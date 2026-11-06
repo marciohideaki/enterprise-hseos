@@ -36,3 +36,7 @@ A campanha local anterior achou que o binding declarava 8192 tokens enquanto o s
 4. **Modelo pequeno.** A tarefa de engenharia não foi aprovada por nenhum dos dois modelos testados; este recibo não afirma capacidade.
 5. **A composição ACP tool-free de terceiro** segue sem backend efetivo provado (C4 BLOCKED por falta de chave). Por isso a F17 `deterministic` não é promovida.
 6. **Nenhuma cota remota** foi tratada: os bindings remotos seguem com `quota: not_verified`.
+
+## Correção de 2026-11-06 (T3 da Onda A)
+
+**O binding como declarado é inutilizável para tarefa de engenharia:** com 4.096 tokens declarados, `agent run` termina em `session-budget-exceeded` antes de qualquer chamada de rede, porque a admissão compara bytes com `context_tokens`. A seção "a janela declarada não excede o backend" estava certa sobre honestidade e errada sobre utilidade, e os testes L1 não detectaram porque só comparam a declaração com o manifesto. Ver `stab2/T3.md`.
