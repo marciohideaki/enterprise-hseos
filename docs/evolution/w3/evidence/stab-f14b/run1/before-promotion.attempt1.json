@@ -1,0 +1,35 @@
+{
+  "label": "before-promotion",
+  "mode": "real",
+  "observed_at": "2026-11-05T21:53:03.603Z",
+  "cli_status": 1,
+  "cli_stderr": "",
+  "task_result": "failed",
+  "reason": "session-budget-exceeded",
+  "source_db_events_before": {
+    "n": 1,
+    "last": 1
+  },
+  "source_db_events_after": {
+    "n": 1,
+    "last": 1
+  },
+  "source_db_unchanged": true,
+  "note_digest": "b66f28ca273274d42ed1bc6867aa6632ae402f4590dad093fc0ed85148073d9e",
+  "task_run_id": "5e64c0d2-cb0b-474d-9595-434efb3374fc",
+  "session_id": "session:d2162805-c0a4-42f5-bb88-6abf795ff694",
+  "context_assembled": true,
+  "memory_sources": [],
+  "memory_blocks": [],
+  "marker_in_context": false,
+  "marker_in_written_artifact": false,
+  "tools_called": [
+    "engineering.search",
+    "engineering.search",
+    "engineering.read",
+    "engineering.read",
+    "engineering.read",
+    "engineering.write"
+  ],
+  "memory_retrieve_called_by_model": false
+}

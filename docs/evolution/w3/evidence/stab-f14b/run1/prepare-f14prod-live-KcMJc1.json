@@ -1,0 +1,8 @@
+{
+  "box": "/build/tmp/f14prod-live-KcMJc1",
+  "db": "/build/tmp/f14prod-live-KcMJc1/state/project.db",
+  "project_id": "f14-prod",
+  "memory_id": "f14-convention-1",
+  "content_sha256": "b66f28ca273274d42ed1bc6867aa6632ae402f4590dad093fc0ed85148073d9e",
+  "operator_command": "hseos memory promote --db /build/tmp/f14prod-live-KcMJc1/state/project.db --project f14-prod --memory f14-convention-1 --reason \"F14 production-path campaign: reviewed convention note\" --operator owner"
+}
