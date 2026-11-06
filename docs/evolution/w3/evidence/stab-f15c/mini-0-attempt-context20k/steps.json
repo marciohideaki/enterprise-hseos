@@ -1,0 +1,59 @@
+[
+  {
+    "s": "reference",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 4,
+    "stderr": "",
+    "json": "{\"schema_version\":1,\"profile\":\"disposable-engineering-candidate\",\"task_run_id\":\"a3bfd0e3-c689-42bb-affb-54555b781681\",\"task_id\":\"example-addition\",\"state\":\"/build/tmp/hseos-ledger-fixture-Mx41h0\",\"session_id\":\"session:efb8cafa-1f98-4e66-b07a-c023e0d4f05b\",\"status\":\"completed\",\"task_result\":\"approved\",\"reason\":\"criteria-satisfied\",\"current_sequence\":4,\"contract_sha256\":\"01a39248628455056221914883ddb3de3d2e8c9a9c1294c0c6d07ac0c1e73754\",\"token_accounting\":{\"reported_input_tokens\":8804,\"reported_output_tokens\":421,\"conservative_estimate_tokens\":0,\"total_tokens\":9225,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}"
+  },
+  {
+    "s": "crash",
+    "signal": "SIGKILL",
+    "record": {
+      "pid": 419203,
+      "cmdline": [
+        "/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node",
+        "--require",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2/docs/evolution/w3/evidence/shared/fetch-guard.cjs",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2/tools/cli/hseos-cli.js",
+        "agent",
+        "resume"
+      ],
+      "at_request_in_process": 3,
+      "killed_before_sending": true
+    },
+    "pid_alive_after": false,
+    "requests": 6
+  },
+  {
+    "s": "after-crash",
+    "events": 100,
+    "last_sequence": 100,
+    "compaction_sequence": 17,
+    "compaction_event_id": "event:046f019d02cb82c09fb0ac5dc57e084e1ab8a8df",
+    "source_event_ids": 1,
+    "writes": 1
+  },
+  {
+    "s": "resume-1",
+    "status": 1,
+    "task_result": "blocked",
+    "reason": "effect-reconciliation-required",
+    "requests": 6
+  },
+  {
+    "s": "resume-2",
+    "status": 1,
+    "task_result": "failed",
+    "requests": 8,
+    "stderr": ""
+  },
+  {
+    "s": "STOP",
+    "why": "resume-not-approved",
+    "requests": 8,
+    "result": "failed",
+    "reason": "session-budget-exceeded"
+  }
+]

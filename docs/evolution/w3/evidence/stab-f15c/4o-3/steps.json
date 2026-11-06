@@ -1,0 +1,59 @@
+[
+  {
+    "s": "reference",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 4,
+    "stderr": "",
+    "json": "{\"schema_version\":1,\"profile\":\"disposable-engineering-candidate\",\"task_run_id\":\"01446943-6fb8-4919-8838-2784e76f4d5d\",\"task_id\":\"example-addition\",\"state\":\"/build/tmp/hseos-ledger-fixture-gV9Oji\",\"session_id\":\"session:6b87a7d0-5b15-4533-a88c-05d6a6cf1c47\",\"status\":\"completed\",\"task_result\":\"approved\",\"reason\":\"criteria-satisfied\",\"current_sequence\":4,\"contract_sha256\":\"fbe994edbc0f487808f1b5e319206d08144359d3dc4ed7b22cdd44165fbe6e9d\",\"token_accounting\":{\"reported_input_tokens\":8937,\"reported_output_tokens\":804,\"conservative_estimate_tokens\":0,\"total_tokens\":9741,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}"
+  },
+  {
+    "s": "crash",
+    "signal": "SIGKILL",
+    "record": {
+      "pid": 481050,
+      "cmdline": [
+        "/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node",
+        "--require",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2/docs/evolution/w3/evidence/shared/fetch-guard.cjs",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2/tools/cli/hseos-cli.js",
+        "agent",
+        "resume"
+      ],
+      "at_request_in_process": 3,
+      "killed_before_sending": true
+    },
+    "pid_alive_after": false,
+    "requests": 6
+  },
+  {
+    "s": "after-crash",
+    "events": 57,
+    "last_sequence": 57,
+    "compaction_sequence": 17,
+    "compaction_event_id": "event:66b99f36ff5d43ab2cb726b13882abfe98103338",
+    "source_event_ids": 1,
+    "writes": 1
+  },
+  {
+    "s": "resume-1",
+    "status": 1,
+    "task_result": "blocked",
+    "reason": "effect-reconciliation-required",
+    "requests": 6
+  },
+  {
+    "s": "resume-2",
+    "status": 1,
+    "task_result": "failed",
+    "requests": 9,
+    "stderr": ""
+  },
+  {
+    "s": "STOP",
+    "why": "resume-not-approved",
+    "requests": 9,
+    "result": "failed",
+    "reason": "criteria-not-satisfied"
+  }
+]

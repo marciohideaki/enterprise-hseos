@@ -1,0 +1,58 @@
+{
+  "completed": true,
+  "requests": 12,
+  "reference_task": "approved",
+  "compacted_task": "approved",
+  "fork_task": "approved",
+  "cmp": {
+    "prefix_immutable": true,
+    "single_compaction": false,
+    "criteria_equal": true,
+    "criteria_count": 1,
+    "writes_compacted": 2,
+    "writes_reference": 1,
+    "reference_compactions": 0,
+    "command_checks_equal": true,
+    "artifacts_equal": false,
+    "artifacts_content_equal_trimmed": false,
+    "artifacts_compared": {
+      "compacted_sha256": "4fa46f20f90cc0f60dc7cca6df839ef2b5ce5a496b51ad2efaa49564ad43a9e7",
+      "reference_sha256": "05d7953915906c7ea83b0baeed9fc93201e069a5512134fa157cee71a004ca1d",
+      "compacted_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"'use strict';\\n\\n/**\\n * Numeric helpers of the report builders. Every helper is pure and accepts finite numbers only.\\n * `add` is the module itself; the other helpers are properties of it.\\n */\\n\\n/** Throws a TypeError unless the value is a finite number. */\\nfunction assertNumber(value, name) {\\n  if (typeof value !== 'number' || !Number.",
+      "reference_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"'use strict';\\n\\n/**\\n * Numeric helpers of the report builders. Every helper is pure and accepts finite numbers only.\\n * `add` is the module itself; the other helpers are properties of it.\\n */\\n\\n/** Throws a TypeError unless the value is a finite number. */\\nfunction assertNumber(value, name) {\\n  if (typeof value !== 'number' || !Number."
+    },
+    "verification": [
+      "approved",
+      "approved"
+    ]
+  },
+  "forkChecks": {
+    "checkpoint_sequence": 93,
+    "checkpoint_event_type": "model.streamed",
+    "checkpoint_before_first_write": true,
+    "compaction_sequence_in_parent": 17,
+    "compaction_before_checkpoint": true,
+    "compactions_in_fork_prefix": 1,
+    "refusals_before_success": [],
+    "ancestry_recomputed": true,
+    "ancestry_event_count": true,
+    "parent_session": true,
+    "parent_sequence": true,
+    "fork_prefix_equals_parent_prefix": true,
+    "parent_unchanged_after_fork": true
+  },
+  "forkCmp": {
+    "prefix_immutable": true,
+    "criteria_equal": true,
+    "writes": 1,
+    "artifacts_equal": false,
+    "artifacts_content_equal_trimmed": false,
+    "artifacts_fork_sha256": "59edc857a80688a7ae4553ba2c2074abdfc7d24b77e4d3793ea08dd25b2fa157",
+    "artifacts_fork_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"'use strict';\\n\\n/**\\n * Numeric helpers of the report builders. Every helper is pure and accepts finite numbers only.\\n * `add` is the module itself; the other helpers are properties of it.\\n */\\n\\n/** Throws a TypeError unless the value is a finite number. */\\nfunction assertNumber(value, name) {\\n  if (typeof value !== 'number' || !Number.",
+    "compactions_in_fork": 3
+  },
+  "parentAfter": {
+    "parent_events_unchanged": true,
+    "parent_state_unchanged": true
+  }
+}

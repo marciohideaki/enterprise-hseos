@@ -1,0 +1,9 @@
+{
+  "completed": false,
+  "why": "resume-not-approved",
+  "requests": 11,
+  "kept_states": [
+    "/build/tmp/hseos-ledger-fixture-nBzJbx",
+    "/build/tmp/hseos-ledger-fixture-GRADCL"
+  ]
+}

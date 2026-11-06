@@ -1,0 +1,123 @@
+[
+  {
+    "s": "reference",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 4,
+    "stderr": "",
+    "json": "{\"schema_version\":1,\"profile\":\"disposable-engineering-candidate\",\"task_run_id\":\"75246221-52f8-4bc2-9e10-c588bade200b\",\"task_id\":\"example-addition\",\"state\":\"/build/tmp/hseos-ledger-fixture-AWcdjp\",\"session_id\":\"session:6a2eb014-2be8-453f-bf56-51757b73d6b3\",\"status\":\"completed\",\"task_result\":\"approved\",\"reason\":\"criteria-satisfied\",\"current_sequence\":4,\"contract_sha256\":\"fbe994edbc0f487808f1b5e319206d08144359d3dc4ed7b22cdd44165fbe6e9d\",\"token_accounting\":{\"reported_input_tokens\":8909,\"reported_output_tokens\":792,\"conservative_estimate_tokens\":0,\"total_tokens\":9701,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}"
+  },
+  {
+    "s": "crash",
+    "signal": "SIGKILL",
+    "record": {
+      "pid": 469189,
+      "cmdline": [
+        "/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node",
+        "--require",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2/docs/evolution/w3/evidence/shared/fetch-guard.cjs",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2/tools/cli/hseos-cli.js",
+        "agent",
+        "resume"
+      ],
+      "at_request_in_process": 3,
+      "killed_before_sending": true
+    },
+    "pid_alive_after": false,
+    "requests": 6
+  },
+  {
+    "s": "after-crash",
+    "events": 287,
+    "last_sequence": 287,
+    "compaction_sequence": 17,
+    "compaction_event_id": "event:323ef9dd401645add0e10ced4bd50cd7beacf219",
+    "source_event_ids": 1,
+    "writes": 1
+  },
+  {
+    "s": "resume-1",
+    "status": 1,
+    "task_result": "blocked",
+    "reason": "effect-reconciliation-required",
+    "requests": 6
+  },
+  {
+    "s": "resume-2",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 9,
+    "stderr": ""
+  },
+  {
+    "s": "compare",
+    "prefix_immutable": true,
+    "single_compaction": false,
+    "criteria_equal": true,
+    "criteria_count": 1,
+    "writes_compacted": 2,
+    "writes_reference": 1,
+    "reference_compactions": 0,
+    "command_checks_equal": true,
+    "artifacts_equal": true,
+    "artifacts_content_equal_trimmed": true,
+    "artifacts_compared": {
+      "compacted_sha256": "05d7953915906c7ea83b0baeed9fc93201e069a5512134fa157cee71a004ca1d",
+      "reference_sha256": "05d7953915906c7ea83b0baeed9fc93201e069a5512134fa157cee71a004ca1d",
+      "compacted_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"'use strict';\\n\\n/**\\n * Numeric helpers of the report builders. Every helper is pure and accepts finite numbers only.\\n * `add` is the module itself; the other helpers are properties of it.\\n */\\n\\n/** Throws a TypeError unless the value is a finite number. */\\nfunction assertNumber(value, name) {\\n  if (typeof value !== 'number' || !Number.",
+      "reference_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"'use strict';\\n\\n/**\\n * Numeric helpers of the report builders. Every helper is pure and accepts finite numbers only.\\n * `add` is the module itself; the other helpers are properties of it.\\n */\\n\\n/** Throws a TypeError unless the value is a finite number. */\\nfunction assertNumber(value, name) {\\n  if (typeof value !== 'number' || !Number."
+    },
+    "verification": [
+      "approved",
+      "approved"
+    ]
+  },
+  {
+    "s": "fork",
+    "checkpoint_sequence": 282,
+    "checkpoint_event_type": "model.streamed",
+    "checkpoint_before_first_write": true,
+    "compaction_sequence_in_parent": 17,
+    "compaction_before_checkpoint": true,
+    "compactions_in_fork_prefix": 1,
+    "refusals_before_success": [],
+    "ancestry_recomputed": true,
+    "ancestry_event_count": true,
+    "parent_session": true,
+    "parent_sequence": true,
+    "fork_prefix_equals_parent_prefix": true,
+    "parent_unchanged_after_fork": true,
+    "fork": {
+      "schema_version": 1,
+      "parent_task_run_id": "f28ede23-a81d-437e-830a-40a2c6625412",
+      "parent_session_id": "session:b0dc7120-76a2-435f-a76e-838215f45d47",
+      "parent_sequence": 282,
+      "ancestry_event_count": 282,
+      "ancestry_sha256": "37e61b6c31629bd27a39b18ccd78e53e9909edd1e02ccf1a9c9956575398df54"
+    },
+    "requests": 9
+  },
+  {
+    "s": "fork-resume",
+    "status": 0,
+    "task_result": "approved",
+    "reason": "criteria-satisfied",
+    "requests": 12,
+    "stderr": ""
+  },
+  {
+    "s": "independence",
+    "parent_events_unchanged": true,
+    "parent_state_unchanged": true,
+    "fork": {
+      "prefix_immutable": true,
+      "criteria_equal": true,
+      "writes": 1,
+      "artifacts_equal": false,
+      "artifacts_content_equal_trimmed": false,
+      "artifacts_fork_sha256": "593944bbf90a3f72290388bdf99e0ea5400aa7b8bc3b24270e44d1a7fb392eb5",
+      "artifacts_fork_preview": "{\"kind\":\"snapshot\",\"files\":[{\"path\":\"add.js\",\"content\":\"'use strict';\\n\\n/** Throws a TypeError unless the value is a finite number. */\\nfunction assertNumber(value, name) {\\n  if (typeof value !== 'number' || !Number.isFinite(value)) {\\n    throw new TypeError(`${name} must be a finite number`);\\n  }\\n  return value;\\n}\\n\\n/**\\n * Adds two numbers.\\n * @param {number} a first operand\\n * @param {",
+      "compactions_in_fork": 3
+    }
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "mode": "real",
+  "root": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2",
+  "contract_sha256": "c54c3244d26aa06912a105eacdafc18cd1501d26032dc5d388271b083cecdbbe",
+  "binding_sha256": "ee15526db94c3b6ea9dd19a69ddaefb0df1473b4902e22b3c0c51eeccfc17379",
+  "compaction": {
+    "schema_version": 1,
+    "provider_id": "compaction:deterministic",
+    "threshold_basis_points": 2800,
+    "context_tokens": 32000
+  },
+  "compaction_sha256": "57cb62964a62ca1448950beb9f3daf53e002f478c356da3ea76a1a633f050643",
+  "base_url": "https://api.openai.com/v1",
+  "model": "gpt-4o-mini",
+  "max_output_tokens": 4096,
+  "pad_repeat": 600,
+  "initial_file_sha256": "e57f51931bf904a1b844e95717e09ab985f00d9e230f2bba927bbca45a95e62b",
+  "context_tokens": 32000,
+  "max_requests": 40,
+  "node": "v24.15.0"
+}
