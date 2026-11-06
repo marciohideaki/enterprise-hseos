@@ -1,0 +1,49 @@
+{
+  "label": "after-4o-2",
+  "mode": "real",
+  "observed_at": "2026-11-06T19:00:11.049Z",
+  "cli_status": 1,
+  "cli_stderr": "",
+  "task_result": "failed",
+  "reason": "criteria-not-satisfied",
+  "source_db_events_before": {
+    "n": 3,
+    "last": 3
+  },
+  "source_db_events_after": {
+    "n": 3,
+    "last": 3
+  },
+  "source_db_unchanged": true,
+  "note_digest": "e209c090bc54692410306acf022dd3c575fe5de547106ec1a31f677582d2ec66",
+  "task_run_id": "160cb093-a62f-4da8-b9bd-124633295345",
+  "session_id": "session:8f06aa78-a02b-49dc-8fb4-49639fabb9b2",
+  "context_assembled": true,
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "e209c090bc54692410306acf022dd3c575fe5de547106ec1a31f677582d2ec66",
+      "origin": "memory",
+      "source_ref": "memory://f14-cents/f14-money-1:promoted",
+      "trust": "trusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "03f8b8cc5879075c0f85d22023518509ed9c0bc7df3d400b13e6828154d64137",
+      "bytes": 360,
+      "authority_data": true
+    }
+  ],
+  "written_artifact_digest": "e5ba8812df12232400975c39ef8e2b7b62726151974be322a6e01e60ed55740d",
+  "tools_called": [
+    "engineering.read",
+    "engineering.patch",
+    "engineering.command",
+    "engineering.diagnose",
+    "engineering.patch",
+    "engineering.command",
+    "engineering.diagnose"
+  ],
+  "memory_retrieve_called_by_model": false
+}

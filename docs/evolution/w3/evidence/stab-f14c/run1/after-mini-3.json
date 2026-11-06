@@ -1,0 +1,52 @@
+{
+  "label": "after-mini-3",
+  "mode": "real",
+  "observed_at": "2026-11-06T18:59:05.800Z",
+  "cli_status": 1,
+  "cli_stderr": "",
+  "task_result": "failed",
+  "reason": "session-budget-exceeded",
+  "source_db_events_before": {
+    "n": 3,
+    "last": 3
+  },
+  "source_db_events_after": {
+    "n": 3,
+    "last": 3
+  },
+  "source_db_unchanged": true,
+  "note_digest": "e209c090bc54692410306acf022dd3c575fe5de547106ec1a31f677582d2ec66",
+  "task_run_id": "ee2e194b-3c6e-4e0f-b7ba-30e0e63e819f",
+  "session_id": "session:00ad2c57-dd03-4f5d-85b5-424c594c70eb",
+  "context_assembled": true,
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "e209c090bc54692410306acf022dd3c575fe5de547106ec1a31f677582d2ec66",
+      "origin": "memory",
+      "source_ref": "memory://f14-cents/f14-money-1:promoted",
+      "trust": "trusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "03f8b8cc5879075c0f85d22023518509ed9c0bc7df3d400b13e6828154d64137",
+      "bytes": 360,
+      "authority_data": true
+    }
+  ],
+  "written_artifact_digest": "0f8acae74fb72b1f6b8ec49b28f5375409cc69f05cfe109f7abcf4344d2f72a9",
+  "tools_called": [
+    "engineering.search",
+    "engineering.read",
+    "engineering.patch",
+    "engineering.diff",
+    "engineering.diagnose",
+    "engineering.command",
+    "engineering.read",
+    "engineering.diagnose",
+    "engineering.write",
+    "engineering.write"
+  ],
+  "memory_retrieve_called_by_model": false
+}

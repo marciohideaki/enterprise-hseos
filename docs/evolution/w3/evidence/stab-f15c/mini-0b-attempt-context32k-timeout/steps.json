@@ -1,0 +1,56 @@
+[
+  {
+    "s": "reference",
+    "status": 0,
+    "task_result": "approved",
+    "requests": 4,
+    "stderr": "",
+    "json": "{\"schema_version\":1,\"profile\":\"disposable-engineering-candidate\",\"task_run_id\":\"6a8dfa54-356d-41bc-8b1c-cad6e0f3bb10\",\"task_id\":\"example-addition\",\"state\":\"/build/tmp/hseos-ledger-fixture-nBzJbx\",\"session_id\":\"session:74eaba03-4dc2-48c7-b5d9-05ed9e700e81\",\"status\":\"completed\",\"task_result\":\"approved\",\"reason\":\"criteria-satisfied\",\"current_sequence\":4,\"contract_sha256\":\"01a39248628455056221914883ddb3de3d2e8c9a9c1294c0c6d07ac0c1e73754\",\"token_accounting\":{\"reported_input_tokens\":13854,\"reported_output_tokens\":1627,\"conservative_estimate_tokens\":0,\"total_tokens\":15481,\"estimate_counter\":\"token-counter:utf8-byte-upper-bound\"},\"correction_reviews\":[],\"correction_diagnoses\":[],\"questions\":[],\"operational_authorized\":false}"
+  },
+  {
+    "s": "crash",
+    "signal": "SIGKILL",
+    "record": {
+      "pid": 427571,
+      "cmdline": [
+        "/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node",
+        "--require",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2/docs/evolution/w3/evidence/shared/fetch-guard.cjs",
+        "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/stab-campaigns-2/tools/cli/hseos-cli.js",
+        "agent",
+        "resume"
+      ],
+      "at_request_in_process": 3,
+      "killed_before_sending": true
+    },
+    "pid_alive_after": false,
+    "requests": 6
+  },
+  {
+    "s": "after-crash",
+    "events": 102,
+    "last_sequence": 102,
+    "compaction_sequence": 17,
+    "compaction_event_id": "event:935657d93360d131ac6d663df37a91b946a0f316",
+    "source_event_ids": 1,
+    "writes": 1
+  },
+  {
+    "s": "resume-1",
+    "status": 1,
+    "task_result": "blocked",
+    "reason": "effect-reconciliation-required",
+    "requests": 6
+  },
+  {
+    "s": "resume-2",
+    "status": null,
+    "requests": 11,
+    "stderr": ""
+  },
+  {
+    "s": "STOP",
+    "why": "resume-not-approved",
+    "requests": 11
+  }
+]
