@@ -2,7 +2,7 @@
 
 Escopo: requisito F14-R1 (`docs/evolution/requirements.json`: contexto e memória mantêm fonte e autoridade). Responde às lacunas da reauditoria cega anterior: o consumidor era um roteiro com o host montado à mão, e o requisito da tarefa apontava a memória. Desta vez a tarefa roda pelo **`hseos agent run` de produção**, com a configuração do operador `environment.memory.source_db` (PR #285), modelo real (`gpt-4o-mini`, API oficial, chave `openai/api-key` do `pass`) e um requisito que **não cita a memória**: "seguir as convenções do projeto". Autorização do owner: campanha da F14 de produção, teto de US$ 1,00. Roteiro: `evidence/stab-f14b/f14prod.cjs`. Este recibo não altera `requirements.json`.
 
-**Resultado: depois da promoção feita pelo owner, a tarefa real pelo `agent run` recebeu a convenção como `trusted`/`data`, o modelo escreveu no arquivo a linha de convenção que só existia na nota, e a tarefa foi aprovada; o controle sem promoção, com o mesmo contrato, não recebeu memória e não escreveu a linha. Rótulo: uso de memória promovida por modelo real pelo caminho de produção observado em uma execução com controle; sem promoção da F14 `real_consumers`, que depende de reauditoria cega.**
+**Resultado: depois da promoção feita pelo owner, a tarefa real pelo `agent run` recebeu a convenção como `trusted`/`data`, o modelo escreveu no arquivo a linha de convenção que só existia na nota, e a tarefa foi aprovada; o controle sem promoção, com o mesmo contrato, não recebeu memória e não escreveu a linha. Rótulo: demonstração, em uma execução com controle, de que um modelo real age sobre memória promovida pelo caminho de produção; não é consumidor real nos termos do ADR-0050 §5.2 (tarefa e nota desenhadas pelo executor). A reauditoria cega concluiu manter a F14 `real_consumers` como está (`REAUDIT-BLIND-2-2026-11-06.md`).**
 
 ## Jornada
 
@@ -22,11 +22,11 @@ Escopo: requisito F14-R1 (`docs/evolution/requirements.json`: contexto e memóri
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `before-promotion.attempt1` (7 requisições) | `session-budget-exceeded`: sem a convenção, o modelo fez 2 buscas, 3 leituras e 1 escrita e atingiu o limite de 6 chamadas de ferramenta do contrato | `max_tool_calls` de 6 para 10, para o controle e para a rodada depois da promoção |
 
-Nenhum gate, critério de aceite ou limite de tokens do contrato foi alterado. Os ajustes são do contrato da campanha.
+Nenhum gate, critério de aceite ou limite de tokens do contrato foi alterado. O controle aprovado e a rodada depois da promoção usam o mesmo contrato, o mesmo requisito e o mesmo binding, com `max_tool_calls` 10; a tentativa descartada usou 6. Só a promoção difere entre eles, além do comportamento do modelo: o controle fez 2 buscas e a rodada depois da promoção leu direto. O verificador protegido aprovou os dois casos, então não exige a convenção; o efeito aparece só no artefato.
 
 ## Custo
 
-18 requisições no total (7 + 6 + 5), estimativa abaixo de US$ 0,02 (não é fatura; a rota não passa por ledger de custo). Muito abaixo do teto de US$ 1,00.
+18 requisições no total (7 + 6 + 5). **O custo não foi medido**: o campo `usage` do log de requisições está ilegível em todas as linhas e a rota não passa por ledger de custo. A ordem de grandeza (frações de centavo, pelo tamanho dos pedidos) é uma estimativa sem base de medição e não atende "custo real abaixo do teto" do ADR-0050.
 
 ## Lacunas (`does_not_prove`)
 
@@ -37,4 +37,5 @@ Nenhum gate, critério de aceite ou limite de tokens do contrato foi alterado. O
 5. **Banco de teste.** O `project.db` é um fixture temporário, não o banco real do projeto. O caminho de produção foi exercitado com a chave `source_db` do operador apontando para ele.
 6. **Garantia humana.** A promoção foi rodada pelo owner no terminal dele (declarado); o ledger prova a operação e o ator `owner`, não a presença de uma pessoa.
 7. **Isolamento entre projetos com memória confiável de outro projeto** segue provado só por `test/test-memory-context-journey.js`.
-8. Estados completos e SSE bruto ficam em `/build/artifacts/stab-f14b-run1/`, com hashes; não versionados.
+8. **O contrato e o workspace vêm de um fixture de teste** (`test/helpers/engineering-project`), e o ator `owner` da promoção é um rótulo declarado, não uma identidade verificada.
+9. Estados completos e SSE bruto ficam em `/build/artifacts/stab-f14b-run1/`, com hashes; não versionados.
