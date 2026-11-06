@@ -319,6 +319,7 @@ components:
       - inter-agent-comms
       - release-control
       - pr-review
+      - legacy-code-review
       - commit-hygiene
       - sanitize-comments
       - test-coverage
