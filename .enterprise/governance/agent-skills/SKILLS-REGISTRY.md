@@ -1,6 +1,6 @@
 ---
 type: skill-registry
-version: "1.4"
+version: "1.5"
 ---
 
 # Agent Skills Registry
@@ -143,6 +143,17 @@ version: "1.4"
 **Tier 1:** `.enterprise/governance/agent-skills/pr-review/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/pr-review/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = medium
+
+---
+
+### legacy-code-review
+**Description:** Automated, risk-based review of a legacy-system PR, branch, commit range or related PR set, with structured findings, an evidence-based gate and cross-PR interaction analysis.
+**Load when:** automating a legacy-system review that must produce structured findings and a BLOCK / HUMAN_REVIEW_REQUIRED / PASS_WITH_COMMENTS / PASS recommendation, or analyzing interactions between related PRs.
+**Triggers:** `legacy code review`, `legacy review`, `automated PR review`, `review legacy PR`, `cross-PR review`
+**Tier 1:** `.enterprise/governance/agent-skills/legacy-code-review/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/legacy-code-review/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Never replaces human approval; record the reviewed head SHA. Use `pr-review` for a human-led governance review.
 
 ---
 
