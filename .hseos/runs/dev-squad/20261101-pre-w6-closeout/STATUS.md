@@ -144,3 +144,6 @@ Achados da reauditoria que viram pendência: ambiguidade do ADR-0050 §2 sobre o
 
 ### PLAN.md
 A seção "Pendências antes de abrir a W6" foi reescrita como tabela com o estado real de cada item e a causa do que não fecha (F14 bloqueado por falta de valor no enum; F15 aberto; Codex/MRTR bloqueado pelo cliente; resíduos A-05, A-09 e A-15 declarados; A-18 fechada pela reinstalação; A-20 fechada na WA).
+
+### Estabilização depois da WD (2026-11-05 e 2026-11-06)
+O registro completo está em `docs/evolution/pendencias-w0-w5/MAPA.md` §9 ("Estabilização depois da WD"). Em resumo: PRs #220 e #280 a #286 mescladas; três mudanças de produto autorizadas pelo owner (instrução de reconciliação, fornecedor de modelo local no manifesto, `environment.memory.source_db`); campanhas reais de F14, F15 e F17 com controle, sem mudança de status em nenhuma família; duas reauditorias cegas concluindo manter `not_verified` em F14 e F15 e `not_verified_for_evolution` em F17; higiene de branches e worktrees com o trabalho único preservado em `/build/artifacts/hygiene-2026-11-06/`. C4 e C6 seguem BLOCKED e a W6 canônica segue fechada.
