@@ -1,0 +1,34 @@
+{
+  "label": "before-promotion",
+  "mode": "real",
+  "observed_at": "2026-11-05T21:53:28.687Z",
+  "cli_status": 0,
+  "cli_stderr": "",
+  "task_result": "approved",
+  "reason": "criteria-satisfied",
+  "source_db_events_before": {
+    "n": 1,
+    "last": 1
+  },
+  "source_db_events_after": {
+    "n": 1,
+    "last": 1
+  },
+  "source_db_unchanged": true,
+  "note_digest": "b66f28ca273274d42ed1bc6867aa6632ae402f4590dad093fc0ed85148073d9e",
+  "task_run_id": "6b5e2a03-34f8-4ed0-bb42-2021e1ca695b",
+  "session_id": "session:52b25867-c8b6-4ec4-8ddb-a37f65234efa",
+  "context_assembled": true,
+  "memory_sources": [],
+  "memory_blocks": [],
+  "marker_in_context": false,
+  "marker_in_written_artifact": false,
+  "tools_called": [
+    "engineering.search",
+    "engineering.search",
+    "engineering.read",
+    "engineering.patch",
+    "engineering.diff"
+  ],
+  "memory_retrieve_called_by_model": false
+}

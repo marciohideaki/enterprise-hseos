@@ -1,0 +1,47 @@
+{
+  "label": "after-promotion",
+  "mode": "real",
+  "observed_at": "2026-11-06T04:18:58.745Z",
+  "cli_status": 0,
+  "cli_stderr": "",
+  "task_result": "approved",
+  "reason": "criteria-satisfied",
+  "source_db_events_before": {
+    "n": 3,
+    "last": 3
+  },
+  "source_db_events_after": {
+    "n": 3,
+    "last": 3
+  },
+  "source_db_unchanged": true,
+  "note_digest": "b66f28ca273274d42ed1bc6867aa6632ae402f4590dad093fc0ed85148073d9e",
+  "task_run_id": "18b9cd1e-d3ab-4043-88ed-146d24063263",
+  "session_id": "session:6007d7bb-d4a4-451c-a3a0-7f3f62b92443",
+  "context_assembled": true,
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "b66f28ca273274d42ed1bc6867aa6632ae402f4590dad093fc0ed85148073d9e",
+      "origin": "memory",
+      "source_ref": "memory://f14-prod/f14-convention-1:promoted",
+      "trust": "trusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "bd7662125d85c0eb4b48d215bd71c295863cbc3c55c7f8bf36c4954c9c82fa47",
+      "bytes": 282,
+      "authority_data": true
+    }
+  ],
+  "marker_in_context": true,
+  "marker_in_written_artifact": true,
+  "tools_called": [
+    "engineering.read",
+    "engineering.patch",
+    "engineering.diff",
+    "engineering.command"
+  ],
+  "memory_retrieve_called_by_model": false
+}
