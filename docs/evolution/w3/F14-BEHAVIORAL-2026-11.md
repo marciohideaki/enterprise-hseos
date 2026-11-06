@@ -2,7 +2,7 @@
 
 Escopo: requisito F14-R1 (`docs/evolution/requirements.json`: contexto e memória mantêm fonte e autoridade). Responde às lacunas da segunda reauditoria cega: o efeito era um marcador desenhado para ser detectado, havia um só modelo e uma só execução, e o custo era estimado. Autorização do owner: "proponha e execute as novas campanhas", com teto de US$ 1,00 por campanha; a promoção da memória foi feita pelo owner no terminal dele. Caminho de produção: `hseos agent run` com a configuração do operador `environment.memory.source_db` (PR #285). Binding `openai-compatible` na API oficial, chave `openai/api-key` do `pass`. Roteiro: `evidence/stab-f14c/f14cents.cjs`; guard e resumidor: `evidence/shared/`. Este recibo não altera `requirements.json`.
 
-**Resultado: com `gpt-4o`, a tarefa passou em 1 de 3 execuções sem a memória promovida e em 2 de 3 com ela, e o modelo usou 4,7 chamadas de ferramenta em média contra 8,0. Com `gpt-4o-mini` nada passou em nenhuma condição, então não há sinal. Com n=3 por célula isso é direcional, não estatisticamente significativo, e o controle também passou uma vez. Rótulo: efeito comportamental de memória promovida observado em um modelo, com custo medido; sem promoção da F14 `real_consumers`.**
+**Resultado: com `gpt-4o`, a tarefa passou em 1 de 3 execuções sem a memória promovida e em 2 de 3 com ela, e o modelo usou 4,7 chamadas de ferramenta em média contra 8,0. Com `gpt-4o-mini` nada passou em nenhuma condição, então não há sinal. Com n=3 por célula isso é direcional, não estatisticamente significativo, e o controle também passou uma vez. Rótulo: indício direcional, sem prova de causa (o controle também passou uma vez, com o mesmo tipo de código); custo medido; sem promoção da F14 `real_consumers`. A reauditoria cega concluiu manter `not_verified` (`REAUDIT-BLIND-3-2026-11-06.md`).**
 
 ## O desenho
 
@@ -51,4 +51,6 @@ Todas as execuções do `gpt-4o-mini` reprovaram por `session-budget-exceeded` (
 6. **Memória de autoridade `data` moldou o comportamento** e, em um caso, foi aplicada errado. Se isso é desejável é questão de política, não decidida aqui.
 7. **Banco de teste.** O `project.db` é um fixture temporário, não o banco real; o contrato e o workspace vêm de um fixture de teste (`test/helpers/engineering-project`).
 8. **Custo por tokens medidos e preços declarados**, sem ledger e sem conferência na console do provedor; a conta dona da chave não foi identificada.
-9. Estados completos, SSE bruto e a cópia do banco ficam em `/build/artifacts/stab-f14c-run1/`, com hashes; não versionados.
+9. **Não há prova de causa.** Um teste exato de Fisher sobre 1 de 3 contra 2 de 3 dá p próximo de 1; o controle aprovado e as duas execuções promovidas aprovadas escrevem o mesmo tipo de código (`Math.round`), e nenhum código aprovado mostra uso da convenção além disso. Controles e promovidas rodaram em blocos separados no tempo, sem aleatorização.
+10. **O `prepare-*.json` traz outro motivo de promoção** ("production-path campaign") que o do ledger ("behavioral campaign"): o comando que o owner executou levava o segundo. O ledger é a fonte.
+11. Estados completos, SSE bruto e a cópia do banco ficam em `/build/artifacts/stab-f14c-run1/`, com hashes; não versionados.
