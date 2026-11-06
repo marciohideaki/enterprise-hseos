@@ -1,0 +1,38 @@
+{
+  "label": "control-mini-1",
+  "mode": "real",
+  "observed_at": "2026-11-06T18:07:41.696Z",
+  "cli_status": 1,
+  "cli_stderr": "",
+  "task_result": "failed",
+  "reason": "session-budget-exceeded",
+  "source_db_events_before": {
+    "n": 1,
+    "last": 1
+  },
+  "source_db_events_after": {
+    "n": 1,
+    "last": 1
+  },
+  "source_db_unchanged": true,
+  "note_digest": "e209c090bc54692410306acf022dd3c575fe5de547106ec1a31f677582d2ec66",
+  "task_run_id": "5dd3253d-e10b-478c-a100-a54b6e91ba75",
+  "session_id": "session:2176f5c0-9f1b-4c93-8e3d-9d40225c3047",
+  "context_assembled": true,
+  "memory_sources": [],
+  "memory_blocks": [],
+  "written_artifact_digest": "cdc58ce1bab2cbab2bea1e452a0c4ab9f975b85139c22dc4207844fd7a810246",
+  "tools_called": [
+    "engineering.search",
+    "engineering.search",
+    "engineering.read",
+    "engineering.read",
+    "engineering.read",
+    "engineering.write",
+    "engineering.diagnose",
+    "engineering.diff",
+    "engineering.command",
+    "engineering.diagnose"
+  ],
+  "memory_retrieve_called_by_model": false
+}

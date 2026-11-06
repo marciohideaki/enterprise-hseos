@@ -77,7 +77,7 @@ const example = structuredClone(createEngineeringExample('addition'));
 example.contract.limits = { ...example.contract.limits, max_tokens: 150_000, max_duration_ms: 600_000, max_tool_calls: 8 };
 // F15_INITIAL_FILE: the task starts from a realistic, buggy add.js (a numeric helper module whose `add` subtracts). The read result is
 // then large by itself, with no padding, so the tool-result compaction fires after the read at the DEFAULT threshold.
-const INITIAL_FILE = process.env.F15_INITIAL_FILE || path.join(__dirname, 'numeric-helpers.js');
+const INITIAL_FILE = process.env.F15_INITIAL_FILE || path.join(__dirname, 'numeric-helpers.fixture.txt');
 {
   const initial = fs.readFileSync(INITIAL_FILE, 'utf8');
   example.contract.initial_files = [{ path: 'add.js', content: initial, sha256: sha(initial) }];
@@ -103,7 +103,7 @@ save('inputs.json', {
   model: MODEL,
   max_output_tokens: MAX_OUT,
   pad_repeat: PAD,
-  initial_file_sha256: sha(fs.readFileSync(process.env.F15_INITIAL_FILE || path.join(__dirname, 'numeric-helpers.js'), 'utf8')),
+  initial_file_sha256: sha(fs.readFileSync(process.env.F15_INITIAL_FILE || path.join(__dirname, 'numeric-helpers.fixture.txt'), 'utf8')),
   context_tokens: CONTEXT_TOKENS,
   max_requests: MAXREQ,
   node: process.version,

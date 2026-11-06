@@ -1,0 +1,41 @@
+{
+  "label": "after-mini-2",
+  "mode": "real",
+  "observed_at": "2026-11-06T18:57:12.415Z",
+  "cli_status": 1,
+  "cli_stderr": "",
+  "task_result": "failed",
+  "reason": "session-budget-exceeded",
+  "source_db_events_before": {
+    "n": 3,
+    "last": 3
+  },
+  "source_db_events_after": {
+    "n": 3,
+    "last": 3
+  },
+  "source_db_unchanged": true,
+  "note_digest": "e209c090bc54692410306acf022dd3c575fe5de547106ec1a31f677582d2ec66",
+  "task_run_id": "42a10fcd-b230-4126-b387-8d6ea7802691",
+  "session_id": "session:33262fdc-dfc6-4c2f-831e-b21143be5aee",
+  "context_assembled": true,
+  "memory_sources": [
+    {
+      "authority": "data",
+      "digest": "e209c090bc54692410306acf022dd3c575fe5de547106ec1a31f677582d2ec66",
+      "origin": "memory",
+      "source_ref": "memory://f14-cents/f14-money-1:promoted",
+      "trust": "trusted"
+    }
+  ],
+  "memory_blocks": [
+    {
+      "sha256": "03f8b8cc5879075c0f85d22023518509ed9c0bc7df3d400b13e6828154d64137",
+      "bytes": 360,
+      "authority_data": true
+    }
+  ],
+  "written_artifact_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tools_called": [],
+  "memory_retrieve_called_by_model": false
+}

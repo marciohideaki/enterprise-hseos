@@ -1,0 +1,8 @@
+{
+  "box": "/build/tmp/f14prod-live-hSJCO8",
+  "db": "/build/tmp/f14prod-live-hSJCO8/state/project.db",
+  "project_id": "f14-cents",
+  "memory_id": "f14-money-1",
+  "content_sha256": "e209c090bc54692410306acf022dd3c575fe5de547106ec1a31f677582d2ec66",
+  "operator_command": "hseos memory promote --db /build/tmp/f14prod-live-hSJCO8/state/project.db --project f14-cents --memory f14-money-1 --reason \"F14 production-path campaign: reviewed convention note\" --operator owner"
+}
