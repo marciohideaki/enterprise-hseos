@@ -1,0 +1,2 @@
+NAME              ID              SIZE      PROCESSOR    CONTEXT    UNTIL   
+qwen2.5:7b-16k    0a89db422b31    5.6 GB    100% GPU     16384      Forever    
