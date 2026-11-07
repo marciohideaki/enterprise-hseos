@@ -484,3 +484,104 @@ test('a valid checkpoint from a different compaction cannot be relabelled on rec
   });
   assert.throws(() => runtime.compact(input), { code: 'COMPACTION_IDENTITY_MISMATCH' });
 });
+
+test('tool-result pruning keeps the error contract, sha256 and path needed by the next action', () => {
+  const { runtime } = fixture();
+  const failed = canonicalJson({
+    status: 'failed',
+    result: null,
+    error: { code: 'E_BUSY', message: 'resource busy', retryable: true, detail: 'x'.repeat(2000) },
+    evidence_refs: [],
+    warnings: [],
+  });
+  const written = canonicalJson({
+    status: 'succeeded',
+    result: { sha256: 'a'.repeat(64), path: 'src/a.js', body: 'y'.repeat(2000) },
+    error: null,
+    evidence_refs: [],
+    warnings: [],
+  });
+  const record = runtime.compact(
+    compactInput({
+      strategy: 'tool_result_prune',
+      trigger: 'tool_result_pressure',
+      sources: [
+        source(1, { role: 'tool', tool_call_id: 'call:f', content: failed }),
+        source(2, { role: 'tool', tool_call_id: 'call:w', content: written }),
+      ],
+    }),
+  );
+  const [f, w] = record.replacement_messages.map((message) => JSON.parse(message.content));
+  assert.deepEqual(f.error, { code: 'E_BUSY', message: 'resource busy', retryable: true });
+  assert.equal(w.sha256, 'a'.repeat(64));
+  assert.equal(w.path, 'src/a.js');
+  assert.doesNotMatch(record.replacement_messages[1].content, /yyyy/);
+});
+
+test('the default compaction threshold stays at 8500 basis points', () => {
+  const text = require('node:fs').readFileSync(require.resolve('../packages/agent-compaction/deterministic-provider'), 'utf8');
+  assert.match(text, /threshold_basis_points = 8500/);
+});
+
+// --- The shared stub definition: the replay re-derives older-results stubs through it. ---
+const { prunedStubViolation, pruneToolMessage } = require('../packages/agent-runtime-contracts');
+
+function stubFixture() {
+  const source = {
+    role: 'tool',
+    name: 'fixture.write',
+    tool_call_id: 'call:stub-1',
+    content: canonicalJson({
+      status: 'failed',
+      result: { sha256: 'b'.repeat(64), path: 'src/b.js', body: 'z'.repeat(500) },
+      error: { code: 'E_BUSY', message: 'resource busy', retryable: true },
+      evidence_refs: ['evidence://stub'],
+      warnings: [],
+    }),
+  };
+  const stub = JSON.parse(pruneToolMessage(source).content);
+  const replacement = (change) => ({ ...pruneToolMessage(source), content: canonicalJson({ ...stub, ...change }) });
+  return { source, stub, replacement };
+}
+
+test('stub check: the derived stub is faithful and malformed stubs are named', () => {
+  const { source, replacement } = stubFixture();
+  assert.equal(prunedStubViolation(source, pruneToolMessage(source)), null);
+  assert.match(prunedStubViolation(source, { ...pruneToolMessage(source), content: '{not json' }), /not valid JSON/);
+  assert.match(prunedStubViolation(source, { ...pruneToolMessage(source), content: '[]' }), /not an object/);
+  assert.match(prunedStubViolation(source, { ...pruneToolMessage(source), content: 'null' }), /not an object/);
+  assert.equal(prunedStubViolation(source, replacement({})), null);
+});
+
+test('stub check: an unmarked stub is refused', () => {
+  const { source, replacement } = stubFixture();
+  assert.match(prunedStubViolation(source, replacement({ pruned: false })), /not marked pruned/);
+});
+
+test('stub check: a stub with extra body fields is refused', () => {
+  const { source, replacement } = stubFixture();
+  assert.match(prunedStubViolation(source, replacement({ result: { body: 'x' } })), /body field/);
+  assert.match(prunedStubViolation(source, replacement({ content: 'x' })), /body field/);
+});
+
+test('stub check: another digest is refused', () => {
+  const { source, replacement } = stubFixture();
+  assert.match(prunedStubViolation(source, replacement({ result_digest: `sha256:${'1'.repeat(64)}` })), /digest differs/);
+});
+
+test('stub check: status, error, sha256 and path must match the original outcome', () => {
+  const { source, stub, replacement } = stubFixture();
+  assert.match(prunedStubViolation(source, replacement({ status: 'succeeded' })), /status differs/);
+  assert.match(prunedStubViolation(source, replacement({ error: { ...stub.error, code: 'E_OTHER' } })), /error differs/);
+  assert.match(prunedStubViolation(source, replacement({ sha256: 'c'.repeat(64) })), /sha256 differs/);
+  assert.match(prunedStubViolation(source, replacement({ path: 'src/other.js' })), /path differs/);
+  const { error: dropped, ...withoutError } = stub;
+  assert.ok(dropped);
+  assert.match(prunedStubViolation(source, { ...pruneToolMessage(source), content: canonicalJson(withoutError) }), /error differs/);
+});
+
+test('stub check: evidence references and warnings must match the original outcome', () => {
+  const { source, replacement } = stubFixture();
+  assert.match(prunedStubViolation(source, replacement({ evidence_refs: ['evidence://forged'] })), /evidence_refs differs/);
+  assert.match(prunedStubViolation(source, replacement({ warnings: ['forged warning'] })), /warnings differs/);
+});
