@@ -1,0 +1,31 @@
+{
+  "model": "qwen2.5:7b-16k",
+  "origin": "http://127.0.0.1:21434",
+  "status": 1,
+  "signal": null,
+  "result": {
+    "schema_version": 1,
+    "profile": "disposable-engineering-candidate",
+    "task_run_id": "37e622a0-ac1b-48ef-8d8e-cf2d87dbd592",
+    "task_id": "example-addition",
+    "state": "<external-ledger-path-redacted>",
+    "session_id": "session:049a93d4-f577-4740-b159-ed47b1ca1dcb",
+    "status": "completed",
+    "task_result": "failed",
+    "reason": "criteria-not-satisfied",
+    "current_sequence": 4,
+    "contract_sha256": "edbed4b25a5f4dc90f2c4a0d4aa6c81a51c6921a3ca0d30fd8385d67df48c778",
+    "token_accounting": {
+      "reported_input_tokens": 6415,
+      "reported_output_tokens": 226,
+      "conservative_estimate_tokens": 0,
+      "total_tokens": 6641,
+      "estimate_counter": "token-counter:utf8-byte-upper-bound"
+    },
+    "correction_reviews": [],
+    "correction_diagnoses": [],
+    "questions": [],
+    "operational_authorized": false
+  },
+  "stderr": ""
+}

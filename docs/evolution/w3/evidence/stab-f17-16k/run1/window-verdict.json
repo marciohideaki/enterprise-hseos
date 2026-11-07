@@ -1,0 +1,10 @@
+{
+  "verdict": "pass",
+  "failures": [],
+  "unknown": [],
+  "declared_context_tokens": 16384,
+  "max_output_tokens": 1024,
+  "model_window": 32768,
+  "effective_context": 16384,
+  "largest_request_bytes": 6884
+}
