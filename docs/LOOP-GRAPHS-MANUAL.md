@@ -25,7 +25,7 @@
 | `anchor-guard.sh`                    | `scripts/governance/anchor-guard.sh`                                                                          | Nenhum loop toca constituição/specs/policies/manifest/hooks — só `ANCHOR_OVERRIDE=1` humano                  |
 | `worktree-manager.sh`                | `scripts/governance/worktree-manager.sh`                                                                      | Isolamento por nó/loop: `create/validate/commit/merge/remove` (1 task = 1 branch `task/<id>`)                |
 | Verificador determinístico (exemplo) | `scripts/governance/verify-doc-facts.sh`                                                                      | Recomputa a verdade por contagem — padrão a imitar para novos domínios                                       |
-| Layout de estado `_graph/`           | `.enterprise/governance/agent-skills/goal-graph/templates/graph-state-layout.md`                              | Estado versionado por goal: events.jsonl (fonte) > SQLite (projeção) > markdown (render)                     |
+| Layout de estado `_graph/`           | `.enterprise/governance/agent-skills/goal-graph/graph-state-layout.md`                                        | Estado versionado por goal: events.jsonl (fonte) > SQLite (projeção) > markdown (render)                     |
 | Autonomy kit (N1)                    | `.enterprise/governance/autonomy/`                                                                            | Carta, allow-list e Readiness Gate para loops autônomos governados                                           |
 | Templates de prompt                  | vault `_prompts/18-22`                                                                                        | Anatomia de goal (ciclos, retomada, carta prompt-pointer)                                                    |
 
@@ -151,6 +151,6 @@ Para um objetivo de código (Rota A), o mesmo esqueleto com `workflow.js`: leito
 
 - Fluxo operacional de loops governados: `docs/RUNNING-GOVERNED-LOOPS.md`
 - Skills: `goal-graph` (SKILL.md §1-bis, §7-bis) · `verifier` · `hseos-goal-loop` · `dev-squad`
-- Estado versionado: `agent-skills/goal-graph/templates/graph-state-layout.md`
+- Estado versionado: `agent-skills/goal-graph/graph-state-layout.md`
 - Autonomia N1: `.enterprise/governance/autonomy/` (README com a execução provada) + runbook §6 (learnings)
 - Vault: `_learnings/2026-07-24-grafos-de-loops-runtime-compilado-axon-e-custo.md` · `_prompts/18-22` · fundamentos externos na 📚 KNOWLEDGE BASE (Notion → 🤖 Engenharia de Agentes, 12 artigos)

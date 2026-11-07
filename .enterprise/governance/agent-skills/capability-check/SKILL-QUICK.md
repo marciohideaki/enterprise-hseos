@@ -1,5 +1,6 @@
 ---
 name: capability-check
+description: "Use when creating or editing an exported component, hook, provider, utility, token, service, or infrastructure helper, to check the Capability Graph and record consume, extend, promote, keep-local, or exception before writing new code."
 tier: quick
 trigger: "before creating or editing an exported component, hook, provider, utility, token, service, or infrastructure helper"
 skip: "tests, stories, mocks, generated files, or edits without a new export"

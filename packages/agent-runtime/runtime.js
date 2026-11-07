@@ -817,50 +817,59 @@ class AgentRuntime {
       });
       if (pressure.should_compact) {
         const completedIds = calls.map((call) => turn.tool_executions[call.tool_call_id].completed_event_id);
+        const sizeOf = (messages) =>
+          Buffer.byteLength(canonicalJson({ messages, tools: step.request.tools, parameters: step.request.parameters }), 'utf8');
+        const eventSequence = new Map(this.#store.readSession(state.session_id).map((event) => [event.event_id, event.sequence]));
         let record = turn.tool_compactions.find((candidate) => equal(candidate.source_event_ids, completedIds));
+        let prefixMessages = step.request.messages;
+        let olderEventId = null;
+        // Older results of this turn are pruned first; the freshest results stay verbatim while they fit.
+        const older = this.#pruneOlderResults({ state, turn, step, profile, inputLimit, eventSequence, active, create: !record });
+        if (older) {
+          prefixMessages = older.messages;
+          olderEventId = older.event_id;
+        }
         if (!record) {
-          const compactionId = stableId('compaction', state.session_id, turn.turn_id, step.step_id, 'tools');
-          const eventSequence = new Map(this.#store.readSession(state.session_id).map((event) => [event.event_id, event.sequence]));
-          try {
-            record = this.#compactionRuntime.compact(
-              {
-                schema_version: CONTRACT_SCHEMA_VERSION,
-                provider_id: profile.compaction_provider_id,
-                compaction_id: compactionId,
-                session_id: state.session_id,
-                turn_id: turn.turn_id,
-                trigger: 'tool_result_pressure',
-                strategy: 'tool_result_prune',
-                target_tokens: Math.max(1, inputLimit - (fullInputTokens - Buffer.byteLength(canonicalJson(toolMessages), 'utf8'))),
-                sources: calls.map((call, index) => ({
-                  source_event_id: completedIds[index],
-                  source_ref: eventRef(completedIds[index]),
-                  sequence: eventSequence.get(completedIds[index]),
-                  message: toolMessages[index],
-                })),
-              },
-              [],
-              (result) => {
-                const candidateMessages = [...step.request.messages, assistant, ...result.replacement_messages];
-                const candidateTokens = Buffer.byteLength(
-                  canonicalJson({ messages: candidateMessages, tools: step.request.tools, parameters: step.request.parameters }),
-                  'utf8',
-                );
-                return candidateTokens <= inputLimit;
-              },
-            );
-          } catch (error) {
-            if (
-              fullInputTokens <= inputLimit &&
-              error instanceof CompactionRuntimeError &&
-              ['COMPACTION_PROVIDER_FAILED', 'COMPACTION_REPLACEMENT_REJECTED'].includes(error.code)
-            ) {
-              record = null;
-            } else {
+          if (older) {
+            const withOlder = [...prefixMessages, assistant, ...toolMessages];
+            if (sizeOf(withOlder) <= inputLimit) {
+              continuationMessages = withOlder;
+              sourceEventIds = [step.terminal_event_id, olderEventId, ...completedIds];
+            }
+          } else if (fullInputTokens <= inputLimit) {
+            continuationMessages = fullMessages;
+          }
+        }
+        const needsCurrent = record || sizeOf(continuationMessages) > inputLimit;
+        if (needsCurrent) {
+          if (!record) {
+            const compactionId = stableId('compaction', state.session_id, turn.turn_id, step.step_id, 'tools');
+            const olderTokens = sizeOf([...prefixMessages, assistant, ...toolMessages]);
+            try {
+              record = this.#compactionRuntime.compact(
+                {
+                  schema_version: CONTRACT_SCHEMA_VERSION,
+                  provider_id: profile.compaction_provider_id,
+                  compaction_id: compactionId,
+                  session_id: state.session_id,
+                  turn_id: turn.turn_id,
+                  trigger: 'tool_result_pressure',
+                  strategy: 'tool_result_prune',
+                  target_tokens: Math.max(1, inputLimit - (olderTokens - Buffer.byteLength(canonicalJson(toolMessages), 'utf8'))),
+                  sources: calls.map((call, index) => ({
+                    source_event_id: completedIds[index],
+                    source_ref: eventRef(completedIds[index]),
+                    sequence: eventSequence.get(completedIds[index]),
+                    message: toolMessages[index],
+                  })),
+                },
+                [],
+                (result) => sizeOf([...prefixMessages, assistant, ...result.replacement_messages]) <= inputLimit,
+              );
+            } catch (error) {
+              if (!(error instanceof CompactionRuntimeError)) throw error;
               return this.#fail(state, { code: 'budget_exceeded', message: 'tool result compaction failed' }, active);
             }
-          }
-          if (record) {
             const compactionEvent = this.#append(
               state.session_id,
               'compaction.completed',
@@ -870,10 +879,8 @@ class AgentRuntime {
             );
             record = { ...record, event_id: compactionEvent.event_id };
           }
-        }
-        if (record) {
-          continuationMessages = [...step.request.messages, assistant, ...record.replacement_messages];
-          sourceEventIds = [step.terminal_event_id, record.event_id];
+          continuationMessages = [...prefixMessages, assistant, ...record.replacement_messages];
+          sourceEventIds = [step.terminal_event_id, ...(olderEventId ? [olderEventId] : []), record.event_id];
         }
       }
     }
@@ -891,6 +898,72 @@ class AgentRuntime {
       'tool continuation model request',
     );
     return this.#startStep(state, turn, request, sourceEventIds, active);
+  }
+
+  #pruneOlderResults({ state, turn, step, profile, inputLimit, eventSequence, active, create }) {
+    const olderId = stableId('compaction', state.session_id, turn.turn_id, step.step_id, 'tools-older');
+    let record = turn.tool_compactions.find((candidate) => candidate.compaction_id === olderId);
+    if (!record) {
+      if (!create) return null;
+      const sources = [];
+      for (const message of step.request.messages) {
+        if (message.role !== 'tool') continue;
+        const execution = turn.tool_executions[message.tool_call_id];
+        if (!execution?.outcome || !execution.completed_event_id || execution.step_id === step.step_id) continue;
+        const outcome = execution.outcome;
+        const expected = {
+          role: 'tool',
+          name: execution.name,
+          tool_call_id: execution.tool_call_id,
+          content: canonicalJson({
+            status: outcome.status,
+            result: outcome.result,
+            error: outcome.error,
+            evidence_refs: outcome.evidence_refs,
+            warnings: outcome.warnings,
+          }),
+        };
+        if (!equal(expected, message)) continue;
+        sources.push({
+          source_event_id: execution.completed_event_id,
+          source_ref: eventRef(execution.completed_event_id),
+          sequence: eventSequence.get(execution.completed_event_id),
+          message,
+        });
+      }
+      if (sources.length === 0) return null;
+      try {
+        record = this.#compactionRuntime.compact({
+          schema_version: CONTRACT_SCHEMA_VERSION,
+          provider_id: profile.compaction_provider_id,
+          compaction_id: olderId,
+          session_id: state.session_id,
+          turn_id: turn.turn_id,
+          trigger: 'tool_result_pressure',
+          strategy: 'tool_result_prune',
+          target_tokens: Math.max(1, inputLimit),
+          sources,
+        });
+      } catch (error) {
+        if (error instanceof CompactionRuntimeError) return null;
+        throw error;
+      }
+      const compactionEvent = this.#append(
+        state.session_id,
+        'compaction.completed',
+        record,
+        [turn.turn_id, step.step_id, 'tool-results-older'],
+        active,
+      );
+      record = { ...record, event_id: compactionEvent.event_id };
+    }
+    const replacements = new Map(record.replacement_messages.map((message) => [message.tool_call_id, message]));
+    return {
+      event_id: record.event_id,
+      messages: step.request.messages.map((message) =>
+        message.role === 'tool' && replacements.has(message.tool_call_id) ? replacements.get(message.tool_call_id) : message,
+      ),
+    };
   }
 
   async #drive(active) {

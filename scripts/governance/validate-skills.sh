@@ -87,15 +87,20 @@ check_skill_directory() {
   fi
 
   # SKILL-03: description: field present
+  # Missing field OR empty value (only whitespace / empty quotes) fails.
+  local desc_raw
+  desc_raw=$(grep -m1 "^description:" "$primary_file" 2>/dev/null | sed 's/^description:[[:space:]]*//' | tr -d '"'"'"'[:space:]' || true)
   if ! grep -q "^description:" "$primary_file" 2>/dev/null; then
     record_fail "SKILL-03: $(basename "$primary_file") missing 'description:' in frontmatter — ${skill_name}"
+  elif [[ -z "$desc_raw" ]]; then
+    record_fail "SKILL-03: $(basename "$primary_file") has empty 'description:' in frontmatter — ${skill_name}"
   else
     pass "SKILL-03: description field present"
   fi
 
   # SKILL-04: description starts with "Use when"
   local desc
-  desc=$(grep "^description:" "$primary_file" 2>/dev/null | head -1 | sed 's/^description:\s*//' | tr -d '"'"'" | xargs)
+  desc=$(grep "^description:" "$primary_file" 2>/dev/null | head -1 | sed 's/^description:\s*//' | tr -d '"'"'" | xargs || true)
   if [[ -n "$desc" ]]; then
     if echo "$desc" | grep -qi "^Use when"; then
       pass "SKILL-04: description uses 'Use when...' trigger format"
