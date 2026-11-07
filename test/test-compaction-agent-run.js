@@ -21,7 +21,7 @@ const CLI = path.join(ROOT, 'tools', 'cli', 'hseos-cli.js');
 const PROFILE = 'disposable-engineering-candidate';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 // A context window that fits the first request but not the first request plus the tool result of the padded file.
-const CONTEXT_TOKENS = Number(process.env.HSEOS_TEST_CONTEXT_TOKENS || 20_000);
+const CONTEXT_TOKENS = Number(process.env.HSEOS_TEST_CONTEXT_TOKENS || 40_000);
 
 // A low threshold makes the tool-result pressure fire on the first read, while the window still holds the resumed turn.
 const COMPACTION = {
@@ -34,17 +34,23 @@ const COMPACTION = {
 function workspace() {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-compaction-run-'));
   const example = structuredClone(createEngineeringExample('addition'));
-  const initial = `module.exports = (a, b) => a - b;\n/* ${'padding '.repeat(400)} */\n`;
+  const initial = `module.exports = (a, b) => a - b;\n/* ${'padding '.repeat(1200)} */\n`;
   example.contract.initial_files = [{ path: 'add.js', content: initial, sha256: sha(initial) }];
   example.contract.scope = { read: ['add.js'], write: ['add.js'] };
   example.contract.limits = { ...example.contract.limits, max_tokens: 900_000, max_duration_ms: 120_000, max_tool_calls: 8 };
   const write = example.responses.find((response) => response.name === 'engineering.write');
   write.input.expected_sha256 = sha(initial);
-  example.responses = [{ name: 'engineering.read', input: { path: 'add.js' } }, ...example.responses];
+  // Three reads: the older results are pruned under pressure while the freshest one stays verbatim.
+  example.responses = [
+    { name: 'engineering.read', input: { path: 'add.js' } },
+    { name: 'engineering.read', input: { path: 'add.js' } },
+    { name: 'engineering.read', input: { path: 'add.js' } },
+    ...example.responses,
+  ];
   fs.writeFileSync(path.join(directory, 'task.json'), JSON.stringify(example.contract));
   fs.writeFileSync(path.join(directory, 'responses.json'), JSON.stringify(example.responses));
   fs.writeFileSync(path.join(directory, 'compaction.json'), JSON.stringify(COMPACTION));
-  // Kills the worker when the model is asked for the step after the compaction: the compaction event is durable, the write is not.
+  // Kills the worker when the model is asked for the step after the older-results compaction: the compaction event is durable, the write is not.
   fs.writeFileSync(
     path.join(directory, 'crash-after-compaction.cjs'),
     `const { ScriptedModelProvider } = require(${JSON.stringify(path.join(ROOT, 'packages', 'model-providers'))});
@@ -52,7 +58,7 @@ const original = ScriptedModelProvider.prototype.stream;
 let streams = 0;
 ScriptedModelProvider.prototype.stream = function (input) {
   streams += 1;
-  if (streams === 2) process.kill(process.pid, 'SIGKILL');
+  if (streams === 4) process.kill(process.pid, 'SIGKILL');
   return original.call(this, input);
 };
 `,

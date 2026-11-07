@@ -95,6 +95,10 @@ Limites do fork: recusa checkpoint terminal e checkpoint com efeito no workspace
 
 `threshold_basis_points` e `context_tokens` são opcionais. `context_tokens` só reduz a janela do modelo **scripted**; um modelo com binding ou plugin mantém a janela que declara. A configuração é gravada no evento `created`; `resume` não recebe o flag.
 
+**Semântica da poda de resultados (`tool_result_pressure`).** Quando a pressão dispara (limiar de `threshold_basis_points` sobre o limite de entrada), o runtime poda primeiro os resultados de ferramenta **mais antigos** da mesma volta que ainda estão verbatim, em um único `compaction.completed` próprio (`...tools-older`). Os resultados da etapa atual seguem **verbatim** para o modelo enquanto a requisição couber em `inputLimit`. Só se, mesmo depois da poda dos antigos, a requisição ainda exceder o limite, o resultado atual também é podado. O stub podado preserva `error` (`code`, `message`, `retryable`) e, quando existem, `sha256` e `path`.
+
+Consequências para a F15: (1) com pressão, **sem resultados antigos** e dentro do limite, **não há `compaction.completed`**; um limiar baixo sozinho já não força a poda em uma única leitura, então a série que precisa observar a poda deve ter **duas ou mais leituras** antes da escrita (ou uma janela em que o resultado atual exceda o limite); (2) a retomada pós-crash reconstrói as mesmas mensagens a partir dos eventos; (3) o limite padrão de 8.500 pontos-base não muda.
+
 ### 3. Limite desta capacidade com cliente real
 
 A compactação está ligada ao runtime de **engenharia** (`AgentRuntime`, perfil `disposable-engineering-candidate`). Os perfis **delegated** (Claude Code e Codex) **não usam `AgentRuntime`**: o cliente real mantém o próprio contexto e o HSEOS não o compacta. Portanto F15 com cliente real tem este limite: a jornada abaixo só vale para um modelo real acessado por **binding** (`--binding`) no runtime de engenharia; não existe compactação HSEOS dentro de uma sessão delegated.
