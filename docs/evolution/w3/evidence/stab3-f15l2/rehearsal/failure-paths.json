@@ -1,0 +1,148 @@
+{
+  "ok": true,
+  "cases": [
+    {
+      "case": "price-invalid-or-absent-aborts-before-the-first-call",
+      "ok": true,
+      "details": [
+        {
+          "flags": "(none)",
+          "exit": 3,
+          "why": "price-invalid",
+          "ran_nothing": true,
+          "server_requests": 0
+        },
+        {
+          "flags": "--price-in 0 --price-out 10",
+          "exit": 3,
+          "why": "price-invalid",
+          "ran_nothing": true,
+          "server_requests": 0
+        },
+        {
+          "flags": "--price-in 2.5 --price-out -1",
+          "exit": 3,
+          "why": "price-invalid",
+          "ran_nothing": true,
+          "server_requests": 0
+        },
+        {
+          "flags": "--price-in abc --price-out 10",
+          "exit": 3,
+          "why": "price-invalid",
+          "ran_nothing": true,
+          "server_requests": 0
+        },
+        {
+          "flags": "--price-in 2.5",
+          "exit": 3,
+          "why": "price-invalid",
+          "ran_nothing": true,
+          "server_requests": 0
+        },
+        {
+          "flags": "--price-in 3 --price-out 10",
+          "exit": 3,
+          "why": "price-differs-from-the-plan",
+          "ran_nothing": true,
+          "server_requests": 0
+        }
+      ]
+    },
+    {
+      "case": "non-sse-response-stops-the-campaign",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "stopped_because": "response-not-sse",
+        "server_requests": 1,
+        "spend": {
+          "spent_usd": 0.14096,
+          "pending_usd": 0,
+          "calls": 1
+        }
+      }
+    },
+    {
+      "case": "unreadable-usage-stops-the-campaign",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "stopped_because": "usage-unreadable",
+        "server_requests": 1,
+        "spend": {
+          "spent_usd": 0.14096,
+          "pending_usd": 0,
+          "calls": 1
+        }
+      }
+    },
+    {
+      "case": "cli-timeout-stops-the-campaign-and-books-the-pessimistic-cost-of-the-window-in-use",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "stopped_because": "cli-timeout",
+        "spent_usd": 0.14096,
+        "reference_window_pessimistic_usd": 0.14096
+      }
+    },
+    {
+      "case": "per-request-cap-refuses-before-sending",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "stopped_because": "budget-pre-call",
+        "server_requests": 0
+      }
+    },
+    {
+      "case": "a-stop-before-5-runs-without-decisive-failures-is-INCOMPLETE",
+      "ok": true,
+      "details": {
+        "verdict": "INCOMPLETE"
+      }
+    },
+    {
+      "case": "test-mode-cannot-reach-api-openai-com-and-is-ignored-outside-the-test-mode",
+      "ok": true,
+      "details": {
+        "to_openai_in_test_mode": {
+          "out": "F15L2_REAL_DESTINATION_REFUSED",
+          "counted": false,
+          "refusals": "{\"t\":\"2026-11-07T17:54:23.823Z\",\"mode\":\"real\",\"reason\":\"real-mode-allows-only-the-declared-origin\",\"host\":\"api.openai.com\"}\n"
+        },
+        "local_url_without_test_mode": {
+          "out": "F15L2_REAL_DESTINATION_REFUSED",
+          "counted": false,
+          "refusals": "{\"t\":\"2026-11-07T17:54:23.853Z\",\"mode\":\"real\",\"reason\":\"real-mode-allows-only-the-declared-origin\",\"host\":\"127.0.0.1:37155\"}\n"
+        },
+        "server_requests": 0
+      }
+    },
+    {
+      "case": "sigterm-removes-everything-and-exits-143",
+      "ok": true,
+      "details": {
+        "code": 143,
+        "closeSignal": null,
+        "sent": true,
+        "stderr_tail": "",
+        "left_in_tmpdir": [],
+        "containers_left": []
+      }
+    },
+    {
+      "case": "sigint-during-the-podman-phase-removes-the-container-and-exits-130",
+      "ok": true,
+      "details": {
+        "code": 130,
+        "closeSignal": null,
+        "sent": true,
+        "stderr_tail": "",
+        "left_in_tmpdir": [],
+        "containers_left": []
+      }
+    }
+  ]
+}

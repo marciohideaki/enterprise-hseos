@@ -1,0 +1,29 @@
+'use strict';
+
+/** Argument guards of the report builders. Each guard is pure and returns the value it accepted. */
+
+/** Accepts a safe integer; throws a TypeError otherwise. */
+function assertInteger(value, name) {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
+    throw new TypeError(`${name} must be a safe integer`);
+  }
+  return value;
+}
+
+/** Accepts a non-empty array; throws a TypeError for a non-array and a RangeError for an empty one. */
+function assertNonEmptyList(values, name) {
+  if (!Array.isArray(values)) {
+    throw new TypeError(`${name} must be an array`);
+  }
+  if (values.length === 0) {
+    throw new RangeError(`${name} must not be empty`);
+  }
+  return values;
+}
+
+/** Label of one list element in an error message, for example `values[2]`. */
+function describeOperand(name, index) {
+  return `${name}[${index}]`;
+}
+
+module.exports = { assertInteger, assertNonEmptyList, describeOperand };

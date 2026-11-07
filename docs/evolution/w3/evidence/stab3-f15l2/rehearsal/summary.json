@@ -1,0 +1,175 @@
+{
+  "model_source": "fixture",
+  "campaign_sha256": "4f9c173d293c5d3d7a18347c70d0e4f1667842ed95ad89a34b6de842f38d7c2b",
+  "plan_file_sha256": "33fca94f302d27384a2d124e5997994d5c5621deb349aa8396f8f7633f6062e5",
+  "cap_usd": 2,
+  "limit_usd": 1.6,
+  "runs": 10,
+  "stopped_because": null,
+  "interrupted_run": null,
+  "overall_verdict": "pass",
+  "series": {
+    "t2800": {
+      "n": 5,
+      "stage_counts": {
+        "reference_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "old_results_pruned": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "compaction_before_checkpoint": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "crash_proven": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "resume_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "whole_file_pass": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "fork_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "replay_resume_only": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "drain_clean": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "secrets_clean": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "provider_proof_pass": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "usage_complete": {
+          "passed": 5,
+          "applicable": 5
+        }
+      },
+      "lineage_intact": 5,
+      "verdict": "pass",
+      "stages_ok": true,
+      "lineage_ok": true
+    },
+    "t8500": {
+      "n": 5,
+      "stage_counts": {
+        "reference_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "old_results_pruned": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "compaction_before_checkpoint": {
+          "passed": 0,
+          "applicable": 5
+        },
+        "crash_proven": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "resume_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "whole_file_pass": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "fork_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "replay_resume_only": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "drain_clean": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "secrets_clean": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "provider_proof_pass": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "usage_complete": {
+          "passed": 5,
+          "applicable": 5
+        }
+      },
+      "lineage_intact": 5,
+      "verdict": "informative"
+    }
+  },
+  "negative_control": {
+    "reproved_as_expected": true,
+    "whole_file": "fail",
+    "failures": [
+      "segment-missing:0",
+      "segment-missing:1",
+      "segment-missing:2",
+      "segment-missing:3",
+      "segment-missing:4",
+      "segment-missing:5",
+      "segment-missing:6",
+      "segment-missing:7",
+      "function-missing:assertNumber",
+      "function-missing:sub",
+      "function-missing:mul",
+      "function-missing:clamp",
+      "function-missing:sum",
+      "export-missing:sub",
+      "export-missing:mul",
+      "export-missing:clamp",
+      "export-missing:sum",
+      "export-missing:sumIntegers",
+      "check-failed:2:.",
+      "check-failed:3:sub",
+      "check-failed:4:sub",
+      "check-failed:5:mul",
+      "check-failed:6:mul",
+      "check-failed:7:clamp",
+      "check-failed:8:clamp",
+      "check-failed:9:clamp",
+      "check-failed:10:sum",
+      "check-failed:11:sum",
+      "check-failed:12:sumIntegers",
+      "check-failed:13:sumIntegers",
+      "check-failed:14:sumIntegers",
+      "check-failed:15:sumIntegers",
+      "check-failed:16:sumIntegers"
+    ],
+    "product_resume_approved": true
+  },
+  "requests": 200,
+  "spend_ledger_usd": 1.5395999999999994,
+  "spend_ledger_note": "Booked by the guard before and after every request: worst case first, then the measured usage; pessimistic when unreadable or on timeout.",
+  "estimated_cost_usd_projected_for_plan": {
+    "estimated_total_usd": 1.5395999999999999,
+    "over_cap": false,
+    "cap_usd": 2
+  },
+  "cost_note": "Estimate from the tokens of the run and the declared price; for a fixture the tokens are synthetic (bytes/3 for the pre-call worst case, bytes/4 measured), so this is a sizing estimate, not a measurement.",
+  "elapsed_ms": 142930
+}
