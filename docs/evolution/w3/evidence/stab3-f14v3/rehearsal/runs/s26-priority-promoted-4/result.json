@@ -1,0 +1,78 @@
+{
+  "label": "s26-priority-promoted-4",
+  "kind": "series",
+  "task": "priority",
+  "condition": "promoted",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 0,
+  "task_result": "approved",
+  "reason": "criteria-satisfied",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 3,
+    "unreadable_requests": 0,
+    "prompt_tokens": 6979,
+    "completion_tokens": 149,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.0189375,
+  "stop_reason": null,
+  "responding_models": ["gpt-4o"],
+  "replay": {
+    "ok": true,
+    "session_events": 22,
+    "tool_invocations": 2,
+    "note_in_context": true,
+    "memory_sources": [
+      {
+        "trust": "trusted",
+        "authority": "data",
+        "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+      }
+    ]
+  },
+  "tool_outcomes": [
+    "f29333d70\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://f3f829522c2daddab71ac4827b20187210b1021398fea6402ef6ac40bc335413\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f3f829522c2daddab71ac4827b20187210b1021398fea6402ef6ac40bc335413\"],\"warnings\":[],\"replayed\":false}"
+  ],
+  "drain": {
+    "started": 2,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "pass",
+    "failures": [],
+    "summarizer_exit": 0,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": true,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": ["gpt-4o"],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 3,
+      "requests_verified": 3,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "state_sha256": "ef3b7eb054a7ce0e12f84e7d481bf1d0338779156fd79c8c8250aea9f72b95d2",
+  "protected": {
+    "pass": true,
+    "passed": 8,
+    "total": 8,
+    "failed": []
+  },
+  "product_verifier_approved": true,
+  "success": true
+}

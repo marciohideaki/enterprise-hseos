@@ -1,0 +1,403 @@
+{
+  "confirmation_sha256": "5071855b8cabb4ee90390bce73d84f97a4c09434b2874ff4d5a3cf8408c27c46",
+  "mode": "mock",
+  "evidence_kind": "fixture-rehearsal",
+  "model": "gpt-4o",
+  "started_at": "2026-11-07T17:11:27.930Z",
+  "database": {
+    "kind": "fixture-copy",
+    "sha256": "cbca0221e7b9744e3b866ab4d56ea318c247c29345dfaa4491fbfc694e78ba6b",
+    "bytes": 62496768,
+    "secret_scan": {
+      "clean": true,
+      "hits": 0
+    },
+    "in_repository": false
+  },
+  "boxes": {
+    "notes": [
+      {
+        "task": "invoice",
+        "memory_id": "f14v3-invoice-rule",
+        "content_sha256": "73e57bc4231922a8d7c406416d32580a83597ed47a31ad13d79dbf05d21ee9c0"
+      },
+      {
+        "task": "retry",
+        "memory_id": "f14v3-retry-rule",
+        "content_sha256": "3c63ce4c6824fb15857d5b5abf0dde89685838926af278683bca17dd048eb141"
+      },
+      {
+        "task": "priority",
+        "memory_id": "f14v3-priority-rule",
+        "content_sha256": "4e0d5333da08491dd70688e34632418628e2762643cce7e4ee4a65d35525d20f"
+      }
+    ],
+    "promotions": [
+      {
+        "task": "invoice",
+        "promoted_as": "f14v3-invoice-rule:promoted",
+        "content_sha256": "73e57bc4231922a8d7c406416d32580a83597ed47a31ad13d79dbf05d21ee9c0"
+      },
+      {
+        "task": "retry",
+        "promoted_as": "f14v3-retry-rule:promoted",
+        "content_sha256": "3c63ce4c6824fb15857d5b5abf0dde89685838926af278683bca17dd048eb141"
+      },
+      {
+        "task": "priority",
+        "promoted_as": "f14v3-priority-rule:promoted",
+        "content_sha256": "4e0d5333da08491dd70688e34632418628e2762643cce7e4ee4a65d35525d20f"
+      }
+    ],
+    "db_sha256": {
+      "box_a": "44aa4b79c72f69f817b6d5bbd162b1e262d968652c49c3343d7aab72853ed120",
+      "box_b": "aa7de7f2d9682dc883d3cf716e3024b70b6832e9659cf9026259428c193e75ce"
+    }
+  },
+  "seed_recorded_before_first_call": true,
+  "schedule": [
+    {
+      "order": 1,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 2,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 3,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 4,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 5,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 6,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 7,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 8,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 9,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 10,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 11,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 12,
+      "task": "retry",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 13,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 14,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 15,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 16,
+      "task": "retry",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 17,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 18,
+      "task": "retry",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 19,
+      "task": "retry",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 20,
+      "task": "retry",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 21,
+      "task": "priority",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 22,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 23,
+      "task": "priority",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 24,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 25,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 26,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 27,
+      "task": "priority",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 28,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 29,
+      "task": "priority",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 30,
+      "task": "priority",
+      "condition": "control",
+      "rep": 5
+    }
+  ],
+  "stopped": {
+    "reason": "ceiling-projection",
+    "after_run": "pilot-invoice",
+    "runs_done": 1,
+    "refusal": {
+      "refused": "ceiling-projection",
+      "projected_usd": 0.02118,
+      "spent_usd": 0.0244675,
+      "ceiling_usd": 0.04
+    }
+  },
+  "pilots": [
+    {
+      "task": "invoice",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    }
+  ],
+  "analysis": {
+    "complete": false,
+    "success": false,
+    "reason": "series-incomplete",
+    "per_task": [
+      {
+        "id": "invoice",
+        "promoted": {
+          "n": 0,
+          "successes": 0
+        },
+        "control": {
+          "n": 0,
+          "successes": 0
+        }
+      },
+      {
+        "id": "retry",
+        "promoted": {
+          "n": 0,
+          "successes": 0
+        },
+        "control": {
+          "n": 0,
+          "successes": 0
+        }
+      },
+      {
+        "id": "priority",
+        "promoted": {
+          "n": 0,
+          "successes": 0
+        },
+        "control": {
+          "n": 0,
+          "successes": 0
+        }
+      }
+    ]
+  },
+  "runs": [
+    {
+      "label": "pilot-invoice",
+      "kind": "pilot",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "session-failed:provider_unavailable",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 4,
+        "unreadable_requests": 0,
+        "prompt_tokens": 9339,
+        "completion_tokens": 112,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0244675,
+      "stop_reason": "ceiling-projection",
+      "refusal": {
+        "refused": "ceiling-projection",
+        "projected_usd": 0.02118,
+        "spent_usd": 0.0244675,
+        "ceiling_usd": 0.04
+      },
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 30,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "079088147e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": ["backend-not-verified", "requests-not-all-verified"],
+        "summarizer_exit": 1,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": false,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 4,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "2adcc92b1291dca1e0eb35a1d2cf534a26cc9928a9035e54e05365196f661172",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    }
+  ],
+  "totals": {
+    "runs": 1,
+    "series_runs": 0,
+    "cost_usd_estimate": 0.0244675,
+    "requests": 4,
+    "prompt_tokens": 9339,
+    "completion_tokens": 112,
+    "price_declared_usd_per_million": {
+      "in": 2.5,
+      "out": 10
+    }
+  },
+  "protocol_issues": ["pilot-invoice: provider-proof-unknown"],
+  "verdict": "STOPPED: ceiling-projection",
+  "limits": {
+    "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
+    "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
+    "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
+    "requests_per_run_cap": 8
+  },
+  "finished_at": "2026-11-07T17:11:32.993Z",
+  "artifact_scan": {
+    "clean": true,
+    "files": 5,
+    "flagged": []
+  }
+}
