@@ -11,7 +11,7 @@
   },
   "limits": {
     "max_requests": 3,
-    "max_input_tokens": 4096,
+    "max_input_tokens": 16384,
     "max_output_tokens": 1024,
     "max_duration_ms": 120000
   },
@@ -23,7 +23,7 @@
     "evidence_sha256": null
   },
   "binding_id": "provider-binding:ollama-local-example",
-  "binding_sha256": "f4e3444457614b9a95d3ad337f31c5327a6d8c7305b1569a0ae0f93f1f2617c3",
+  "binding_sha256": "832958889a3bc0823f3b984133d5a5b456707d302857c6f831003612fb2320bd",
   "provider_version": "1.0.0",
   "adapter": "openai-compatible-sse",
   "artifact_sha256": "baab75ca0525bf1ecedcfe6341fb14dcc3326edb9dd35ac0446b1da96d2479c5",
@@ -32,7 +32,7 @@
     "credential": null,
     "account_sha256": null,
     "identity_kind": "local_profile",
-    "profile_sha256": "2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730",
+    "profile_sha256": "0a89db422b314c4aa4747c1a0078e440661ac793da427d71b330bd78cf67d40c",
     "source": "explicit"
   }
 }
