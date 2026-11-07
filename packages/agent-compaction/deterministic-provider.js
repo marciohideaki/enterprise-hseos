@@ -6,6 +6,7 @@ const {
   CompactionProviderManifestSchema,
   deepFreeze,
   parseContract,
+  pruneToolMessage,
   validatePortInput,
   validatePortResult,
 } = require('../agent-runtime-contracts');
@@ -32,25 +33,7 @@ function estimatedTokens(value) {
 }
 
 function toolPruningMessage(source) {
-  if (source.message.role !== 'tool') throw new TypeError('tool_result_prune accepts only tool messages');
-  let result = null;
-  try {
-    result = JSON.parse(source.message.content);
-  } catch {
-    // The digest below still preserves identity for a non-JSON provider payload.
-  }
-  return {
-    role: 'tool',
-    ...(source.message.name ? { name: source.message.name } : {}),
-    tool_call_id: source.message.tool_call_id,
-    content: canonicalJson({
-      status: result?.status || 'unknown',
-      evidence_refs: Array.isArray(result?.evidence_refs) ? result.evidence_refs : [],
-      warnings: Array.isArray(result?.warnings) ? result.warnings : [],
-      result_digest: digest(source.message.content),
-      pruned: true,
-    }),
-  };
+  return pruneToolMessage(source.message);
 }
 
 class DeterministicCompactionProvider {
