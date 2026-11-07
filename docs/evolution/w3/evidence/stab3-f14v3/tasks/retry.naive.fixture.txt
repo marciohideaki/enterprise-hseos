@@ -1,0 +1,5 @@
+function retryDelayMs(attempt) {
+  if (!Number.isInteger(attempt) || attempt < 1) throw new RangeError('attempt must be an integer >= 1');
+  return 250 * 2 ** (attempt - 1);
+}
+module.exports = retryDelayMs;

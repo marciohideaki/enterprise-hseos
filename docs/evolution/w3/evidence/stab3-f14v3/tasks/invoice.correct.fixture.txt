@@ -1,0 +1,7 @@
+function formatInvoiceId(seq, date) {
+  const year = Number(String(date).slice(0, 4));
+  const digits = String(seq).padStart(5, '0');
+  const sum = [...digits].reduce((total, digit) => total + Number(digit), 0);
+  return `INV-${year.toString(36).toUpperCase()}-${digits}-${(sum + year) % 7}`;
+}
+module.exports = formatInvoiceId;

@@ -1,0 +1,72 @@
+{
+  "label": "s04-invoice-control-2",
+  "kind": "series",
+  "task": "invoice",
+  "condition": "control",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 1,
+  "task_result": "failed",
+  "reason": "criteria-not-satisfied",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 5,
+    "unreadable_requests": 0,
+    "prompt_tokens": 12621,
+    "completion_tokens": 121,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.0327625,
+  "stop_reason": null,
+  "responding_models": ["gpt-4o"],
+  "replay": {
+    "ok": true,
+    "session_events": 32,
+    "tool_invocations": 2,
+    "note_in_context": false,
+    "memory_sources": []
+  },
+  "tool_outcomes": [
+    "ce9834e389\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://ba83e075289198c38d0e3d505f2df91ef546c671460b241078d646dba7c86ea5\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ba83e075289198c38d0e3d505f2df91ef546c671460b241078d646dba7c86ea5\"],\"warnings\":[],\"replayed\":false}"
+  ],
+  "drain": {
+    "started": 2,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "pass",
+    "failures": [],
+    "summarizer_exit": 0,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": true,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": ["gpt-4o"],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 5,
+      "requests_verified": 5,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "state_sha256": "02e7d4f1b715b4eac76fd00d68110318a347e1b128705c5ee1307a6dff8a1846",
+  "protected": {
+    "pass": false,
+    "passed": 0,
+    "total": 5,
+    "failed": ["example", "first", "max", "mid", "old"]
+  },
+  "product_verifier_approved": false,
+  "success": false
+}
