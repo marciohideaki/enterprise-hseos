@@ -1,5 +1,6 @@
 ---
 name: security-audit-plain-language
+description: "Use when a non-technical stakeholder needs a read-only security review of a project, as a quick first-tier check before deep secure-coding analysis, reporting findings in plain language."
 tier: quick
 version: "1.0"
 ---
