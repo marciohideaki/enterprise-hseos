@@ -1,0 +1,32 @@
+{
+  "requiredExports": [".", "sub", "mul", "clamp", "sum", "sumIntegers"],
+  "preservedSegments": [
+    "if (typeof value !== 'number' || !Number.isFinite(value)) { throw new TypeError(`${name} must be a finite number`); }",
+    "if (min > max) { throw new RangeError('min must not be greater than max'); }",
+    "return Math.min(Math.max(value, min), max);",
+    "total = total + assertNumber(value, 'value');",
+    "module.exports.sub = sub;",
+    "module.exports.mul = mul;",
+    "module.exports.clamp = clamp;",
+    "module.exports.sum = sum;"
+  ],
+  "checks": [
+    { "export": ".", "args": [2, 3], "expected": 5 },
+    { "export": ".", "args": [-7, 4], "expected": -3 },
+    { "export": ".", "args": ["a", 1], "throws": "TypeError" },
+    { "export": "sub", "args": [5, 3], "expected": 2 },
+    { "export": "sub", "args": [1, "x"], "throws": "TypeError" },
+    { "export": "mul", "args": [3, 4], "expected": 12 },
+    { "export": "mul", "args": [null, 1], "throws": "TypeError" },
+    { "export": "clamp", "args": [5, 0, 3], "expected": 3 },
+    { "export": "clamp", "args": [-1, 0, 3], "expected": 0 },
+    { "export": "clamp", "args": [2, 3, 1], "throws": "RangeError" },
+    { "export": "sum", "args": [[1, 2, 3]], "expected": 6 },
+    { "export": "sum", "args": ["x"], "throws": "TypeError" },
+    { "export": "sumIntegers", "args": [[1, 2, 3]], "expected": 6 },
+    { "export": "sumIntegers", "args": [[-4, 4, 10]], "expected": 10 },
+    { "export": "sumIntegers", "args": [[1.5]], "throws": "TypeError" },
+    { "export": "sumIntegers", "args": [[]], "throws": "RangeError" },
+    { "export": "sumIntegers", "args": ["x"], "throws": "TypeError" }
+  ]
+}
