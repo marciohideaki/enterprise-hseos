@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "campaign": "f15-l2-2026-11",
+  "pre_registered_in": "docs/evolution/w3/stab2/T4.md (F15 L2 and the L2 receipt map)",
+  "hypothesis": "Compaction, crash, resume and fork preserve the criteria and the lineage, with an L2 receipt of ADR-0050. Descriptive: n=5 has no control and no inference.",
+  "model": "gpt-4o",
+  "endpoint_origin": "https://api.openai.com",
+  "binding": ".agents/activation/provider-bindings/openai-compatible.example.yaml (adapter openai-compatible-sse)",
+  "declared_window_tokens": 20000,
+  "declared_window_note": "Campaign parameter, not a product default; recorded in the receipt.",
+  "max_output_tokens": 4096,
+  "contract_limits": {
+    "max_tokens": 150000,
+    "max_duration_ms": 600000,
+    "max_tool_calls": 10
+  },
+  "cli_timeout_ms": 600000,
+  "max_requests_per_run": {
+    "reference": 8,
+    "journey": 24,
+    "basis": "Offline rehearsal needs 5 (reference) and 14 to 16 (journey, crash, resume, fork and replay); the cap is about 1.5 times that. A real model that wanders hits the cap: the run fails and is diagnosed, never retried."
+  },
+  "series": [
+    {
+      "id": "t2800",
+      "threshold_basis_points": 2800,
+      "role": "criterion",
+      "n": 5
+    },
+    {
+      "id": "t8500",
+      "threshold_basis_points": 8500,
+      "role": "informative",
+      "n": 5,
+      "note": "Product default; compaction almost never fires, so the criterion would pass empty. Informative only."
+    }
+  ],
+  "order": ["t2800", "t8500", "t2800", "t8500", "t2800", "t8500", "t2800", "t8500", "t2800", "t8500"],
+  "n_policy": "n=5 per series. If the estimate of the 10 runs exceeds the cap, do NOT reduce n: report and propose.",
+  "task": {
+    "kind": "managed project copy, realistic module of this repository family",
+    "request": "Add `sumIntegers(values)` to module A (add.js) using the guard helpers of module B (guards.js); also fix `add`, which subtracts. The request lives in the header of add.js.",
+    "reads_before_write": "at least 2 (add.js and guards.js), so that an old tool result exists to prune",
+    "product_verifier": "verifier://fixtures/integer-addition-v1 (protected, unchanged)",
+    "known_limit": "The product `check` command only loads add.js; it does not discriminate. Preservation is judged by the whole-file check."
+  },
+  "reference_run": true,
+  "verification": {
+    "whole_file_spec": "whole-file-spec.json",
+    "runner": "podman run --network=none --user 1000:1000 --cap-drop=ALL --security-opt no-new-privileges --pids-limit 256 --cpus 1 --memory 1g --read-only, via heavy-run --mem 4G --wait-max 1500",
+    "image": "docker.io/library/node:22-bookworm-slim",
+    "known_limit": "Module B is inlined into the single file the verifier loads (trusted source, require line replaced). An unexported helper emptied to a useless statement is caught only by the per-export checks, which exercise the helpers through sumIntegers. Not a sandbox against adversarial code."
+  },
+  "verifier_image": {
+    "name": "docker.io/library/node",
+    "tag": "22-bookworm-slim",
+    "digest": "sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5"
+  },
+  "stages": [
+    "reference_approved",
+    "old_results_pruned",
+    "compaction_before_checkpoint",
+    "crash_proven",
+    "resume_approved",
+    "whole_file_pass",
+    "fork_approved",
+    "replay_resume_only",
+    "drain_clean",
+    "secrets_clean",
+    "provider_proof_pass",
+    "usage_complete"
+  ],
+  "success": {
+    "series": "t2800",
+    "min_stage": 4,
+    "lineage_required": 5,
+    "rule": "With the compaction confirmed before the checkpoint: every stage in at least 4 of 5 and an intact lineage in 5 of 5. A failed run is diagnosed, never dropped. artifacts_equal is informative.",
+    "lineage_keys": [
+      "ancestry_recomputed",
+      "ancestry_event_count",
+      "parent_session",
+      "parent_sequence",
+      "fork_prefix_equals_parent_prefix",
+      "parent_unchanged_after_fork",
+      "prefix_immutable_after_resume",
+      "fork_criteria_equal"
+    ]
+  },
+  "provider_proof": {
+    "source": "agent evidence (never a loose file), passed through summarize-provider-proof.cjs",
+    "known_limit": "The request count covers only the process after the resume; the receipt says so. credential_sha256 stays out of the public receipt."
+  },
+  "credential": "Read from the environment variable F15L2_API_KEY supplied by the operator at execution time. Never read from pass, never stored, never printed.",
+  "cap_usd": 2.0,
+  "max_minutes": 45,
+  "stop_at_fraction": 0.8,
+  "price_usd_per_million": {
+    "in": 2.5,
+    "out": 10.0,
+    "note": "Registered here and declared by the operator, not verified; an estimate, not an invoice. In real mode there is no default: the flags --price-in and --price-out are mandatory, must be finite numbers above zero and must equal these values; otherwise the script aborts before the first call."
+  },
+  "console_check": "The owner checks the provider console before and after (T4 receipt map).",
+  "owner_confirmation": "Real execution requires F15L2_REAL_CONFIRMED equal to the campaign fingerprint printed by `node f15l2.cjs --fingerprint`: the sha256 of PLAN.json and of the files that decide the run (f15l2.cjs, f15l2-guard.cjs, f15l2-lib.cjs, f15l2-fake-model.cjs, whole-file-spec.json, the two project modules, whole-file-check.cjs, summarize-whole-file.cjs, summarize-provider-proof.cjs, usage-from-sse.cjs) and of the product files this campaign exercises, by content: tools/cli/lib/engineering-model.js, tools/cli/lib/provider-api-adapter.js and tools/cli/lib/engineering-task-runtime.js (relative to the repository root of the run). A change in the product voids the confirmation. Changing any byte voids the confirmation.",
+  "reference_window_tokens": 40000,
+  "reference_window_note": "The reference run (no compaction) needs a wider declared window: with 20.000 the uncompacted request of this two-module task exceeds the input limit (session-budget-exceeded, observed in the rehearsal). The reference is informative for criteria and artifacts only.",
+  "owner_decisions_pending": [
+    "Provider console check before and after.",
+    "Audited quota exception and the written justification of the API route over the subscription.",
+    "Answer on item 6 of ADR-0050 (no-surface branch) for F15."
+  ],
+  "cap_note": "Owner decision 2026-11-07 (round 1 of correction): cap raised from US$ 1,00 to US$ 2,00; n=5, 45 min and the stop at 80% (US$ 1,60) unchanged. The interleaved order is fixed and was not reordered.",
+  "budget_control": {
+    "before_each_request": "The guard projects the worst case of THAT request (real body bytes / 3 as input tokens, plus max_tokens of the request as output) and refuses to send when spent + pending + projection > limit (cap x stop_at_fraction). The reservation is booked before sending and settled with the measured usage after.",
+    "unreadable_or_not_sse": "A response that is not an SSE stream, or whose usage is unreadable, books the pessimistic cost (the whole declared window as input plus the output cap), writes STOP.json and stops the campaign at the first occurrence (exit 4, stopped_because usage-unreadable or response-not-sse).",
+    "cli_timeout": "A CLI child that times out books the pessimistic cost of the window of the run in progress (20.000 for the journey, 40.000 for the reference run), even without an answer, and stops the campaign (cli-timeout).",
+    "between_runs": "The loop also stops at 80% of the cap or of the 45 minutes.",
+    "incomplete_verdict": "If a stop falls before 5 runs of the 2.800 series, the verdict is INCOMPLETE only while pass is still mathematically reachable with the runs that are missing; when the criterion is already impossible (two failures in the same stage, or any lineage break), the verdict is fail even though the stop happened."
+  },
+  "guard_known_limit": "The guard wraps fetch only. Another network path (http/https modules, WebSocket, a spawned curl) is not intercepted.",
+  "replay_label": "replay_resume_only: resuming a completed task changes no event and sends no request. It is not a replay of an interrupted session and not a claim of engine idempotence.",
+  "credential_inheritance": "The CLI process and the guard receive HSEOS_MODEL_PROVIDER_API_KEY. The engineering command (engineering.command) does not inherit it: probed in the offline rehearsal with a file whose check printed only typeof of the variable (undefined) and the number of visible variables (2); the executor clears the environment. Valid for this product version; not verified for other tools.",
+  "tmpdir_limit": "Keep TMPDIR short (about 40 characters or less): the product provider broker listens on a unix socket under TMPDIR, whose path limit is about 107 characters.",
+  "fingerprint_excluded": "rehearsal/, f15l2-mutations.cjs, f15l2-failure-paths.cjs, f15l2-test-server.cjs and the tests are OUT of the hash on purpose: they are rehearsal tooling, and changing them does not change what a real run does.",
+  "test_mode": "Failure-path tests never reach the internet: they run the script with F15L2_TEST_MODE=1 and a base url (--base-url or F15L2_TEST_BASE_URL) on http://127.0.0.1:PORT pointing to a local test server. In test mode the guard accepts only that origin and refuses api.openai.com; outside the test mode the variable and the flag are ignored and the destination is fixed to https://api.openai.com.",
+  "cost_risk": "Honest label: with the synthetic cost of the offline rehearsal (about US$ 0,159 per execution of the 2.800 series and 0,149 of the 8.500 series, about 1,54 to 1,59 for the 10) against the stop at US$ 1,60, a complete series has a HIGH RISK of stopping INCOMPLETE; a real model that re-reads or rewrites more costs more. The synthetic tokens are an estimate, not a measurement."
+}

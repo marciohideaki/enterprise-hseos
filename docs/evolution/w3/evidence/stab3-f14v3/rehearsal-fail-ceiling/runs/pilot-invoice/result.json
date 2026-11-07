@@ -1,0 +1,78 @@
+{
+  "label": "pilot-invoice",
+  "kind": "pilot",
+  "task": "invoice",
+  "condition": "control",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 1,
+  "task_result": "failed",
+  "reason": "session-failed:provider_unavailable",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 4,
+    "unreadable_requests": 0,
+    "prompt_tokens": 9339,
+    "completion_tokens": 112,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.0244675,
+  "stop_reason": "ceiling-projection",
+  "refusal": {
+    "refused": "ceiling-projection",
+    "projected_usd": 0.02118,
+    "spent_usd": 0.0244675,
+    "ceiling_usd": 0.04
+  },
+  "responding_models": ["gpt-4o"],
+  "replay": {
+    "ok": true,
+    "session_events": 30,
+    "tool_invocations": 2,
+    "note_in_context": false,
+    "memory_sources": []
+  },
+  "tool_outcomes": [
+    "079088147e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}"
+  ],
+  "drain": {
+    "started": 2,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "unknown",
+    "failures": ["backend-not-verified", "requests-not-all-verified"],
+    "summarizer_exit": 1,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": false,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": ["gpt-4o"],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 5,
+      "requests_verified": 4,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "state_sha256": "2adcc92b1291dca1e0eb35a1d2cf534a26cc9928a9035e54e05365196f661172",
+  "protected": {
+    "pass": false,
+    "passed": 0,
+    "total": 5,
+    "failed": ["example", "first", "max", "mid", "old"]
+  },
+  "product_verifier_approved": false,
+  "success": false
+}

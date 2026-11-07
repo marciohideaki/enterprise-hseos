@@ -1,0 +1,82 @@
+'use strict';
+
+const { assertInteger, assertNonEmptyList, describeOperand } = require('./guards.js');
+
+/*
+ * CHANGE REQUEST (report builders)
+ *  1. `add` must return the sum of its operands; today it returns the difference.
+ *  2. Add the export `sumIntegers(values)`: the sum of an array of safe integers. Validate with the helpers
+ *     of ./guards.js (read it first for the exact names and signatures); do not copy their logic.
+ *     The element label in the error message is `values[<index>]`.
+ *  3. Keep every other export and helper as they are.
+ */
+
+/** Numeric helpers of the report builders. `add` is the module itself; the others are its properties. */
+
+/** Throws a TypeError unless the value is a finite number. */
+function assertNumber(value, name) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new TypeError(`${name} must be a finite number`);
+  }
+  return value;
+}
+
+/** Adds two numbers. */
+function add(a, b) {
+  assertNumber(a, 'a');
+  assertNumber(b, 'b');
+  return a + b;
+}
+
+/** Subtracts b from a. */
+function sub(a, b) {
+  assertNumber(a, 'a');
+  assertNumber(b, 'b');
+  return a - b;
+}
+
+/** Multiplies two numbers. */
+function mul(a, b) {
+  assertNumber(a, 'a');
+  assertNumber(b, 'b');
+  return a * b;
+}
+
+/** Restricts a value to [min, max]. */
+function clamp(value, min, max) {
+  assertNumber(value, 'value');
+  assertNumber(min, 'min');
+  assertNumber(max, 'max');
+  if (min > max) {
+    throw new RangeError('min must not be greater than max');
+  }
+  return Math.min(Math.max(value, min), max);
+}
+
+/** Sums a list of numbers; 0 for an empty list. */
+function sum(values) {
+  if (!Array.isArray(values)) {
+    throw new TypeError('values must be an array');
+  }
+  let total = 0;
+  for (const value of values) {
+    total = total + assertNumber(value, 'value');
+  }
+  return total;
+}
+
+function sumIntegers(values) {
+  assertNonEmptyList(values, 'values');
+  let total = 0;
+  for (const [index, value] of values.entries()) {
+    total += assertInteger(value, describeOperand('values', index));
+  }
+  return total;
+}
+
+module.exports = add;
+module.exports.sub = sub;
+module.exports.mul = mul;
+module.exports.clamp = clamp;
+module.exports.sum = sum;
+module.exports.sumIntegers = sumIntegers;
