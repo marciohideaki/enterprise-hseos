@@ -1291,3 +1291,486 @@ test('legacy terminal streams remain readable without dispatching old effects ag
     }
   }
 });
+
+// --- Tool-result pressure: older results are pruned first, the freshest ones stay verbatim while they fit. ---
+const MULTI_BODY = 'external result body '.repeat(150);
+
+function multiRoutes(seen, callCount = 2) {
+  const toolCount = (request) => request.messages.filter((message) => message.role === 'tool').length;
+  const requestBytes = (request) =>
+    Buffer.byteLength(canonicalJson({ messages: request.messages, tools: request.tools, parameters: request.parameters }), 'utf8');
+  const call = (id, value) => [
+    { event_type: 'tool_call.delta', payload: { tool_call_id: id, name: 'fixture.echo', arguments_delta: JSON.stringify({ value }) } },
+    { event_type: 'completed', payload: { finish_reason: 'tool_calls', provider_response_ref: `scripted://${id}` } },
+  ];
+  const routes = [];
+  for (let index = 0; index < callCount; index++) {
+    routes.push({
+      match: (request) => toolCount(request) === index,
+      events(request) {
+        seen.push({ bytes: requestBytes(request), messages: request.messages });
+        return call(`call:echo-${index + 1}`, `value-${index + 1}`);
+      },
+    });
+  }
+  routes.push({
+    match: (request) => toolCount(request) === callCount,
+    events(request) {
+      seen.push({ bytes: requestBytes(request), messages: request.messages });
+      return [
+        { event_type: 'content.delta', payload: { text: 'multi done' } },
+        { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://multi-done' } },
+      ];
+    },
+  });
+  return routes;
+}
+
+function multiFixture(contextTokens, callCount = 2) {
+  const boundedManifest = manifest();
+  boundedManifest.limits.context_tokens = contextTokens;
+  const seen = [];
+  const fixture = setup({
+    routes: multiRoutes(seen, callCount),
+    modelManifest: boundedManifest,
+    toolResultBody: MULTI_BODY,
+    compactionRuntime: compactionRuntimeFixture().runtime,
+    contextProfileResolver: () => ({ ...profile(), overflow_policy: 'compact', compaction_provider_id: 'compaction:runtime-fixture' }),
+  });
+  return { ...fixture, seen };
+}
+
+async function runMulti(contextTokens, callCount = 2) {
+  const fixture = multiFixture(contextTokens, callCount);
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  await fixture.runtime.send(sendCommand());
+  return fixture;
+}
+
+// Measures the three request sizes of the scripted run with a window that never presses.
+async function measureMulti(callCount = 2) {
+  const fixture = await runMulti(2_000_000, callCount);
+  const bytes = fixture.seen.map((entry) => entry.bytes);
+  fixture.db.close();
+  assert.equal(bytes.length, callCount + 1);
+  return bytes;
+}
+
+const isStub = (message) => /"pruned":true/.test(message.content);
+const toolMessage = (messages, id) => messages.find((message) => message.role === 'tool' && message.tool_call_id === id);
+const sessionEvents = (fixture) => fixture.sessionStore.readSession('session:loop');
+
+test('under pressure the older result is pruned and the freshest result reaches the model verbatim', async (context) => {
+  const s3 = (await measureMulti())[2];
+  const limit = Math.ceil(s3 * 1.03);
+  const fixture = await runMulti(limit + 64);
+  context.after(() => fixture.db.close());
+  const state = fixture.sessionStore.replay('session:loop');
+  assert.equal(state.status, 'completed', JSON.stringify(sessionEvents(fixture).at(-1)));
+  const turn = state.turns['turn:loop-1'];
+  const third = fixture.seen[2].messages;
+  assert.equal(isStub(toolMessage(third, 'call:echo-1')), true, 'the older result is pruned');
+  assert.doesNotMatch(toolMessage(third, 'call:echo-1').content, /external result body/);
+  assert.match(toolMessage(third, 'call:echo-2').content, new RegExp(MULTI_BODY.slice(0, 40)), 'the latest result is verbatim');
+  assert.equal(isStub(toolMessage(third, 'call:echo-2')), false);
+  // The second request is an immutable prefix of history: its result stays verbatim there.
+  assert.equal(isStub(toolMessage(fixture.seen[1].messages, 'call:echo-1')), false);
+  assert.equal(turn.tool_compactions.length, 1);
+  const events = sessionEvents(fixture);
+  const record = events.find((event) => event.event_type === 'compaction.completed');
+  assert.deepEqual(record.payload.source_event_ids, [turn.tool_executions['call:echo-1'].completed_event_id]);
+  assert.equal(record.payload.strategy, 'tool_result_prune');
+  assert.deepEqual(turn.model_steps[2].source_event_ids, [
+    turn.model_steps[1].terminal_event_id,
+    record.event_id,
+    turn.tool_executions['call:echo-2'].completed_event_id,
+  ]);
+  // Replay is deterministic: the same events rebuild the same messages.
+  const again = fixture.sessionStore.replay('session:loop');
+  assert.equal(canonicalJson(again.turns['turn:loop-1'].model_steps[2].request.messages), canonicalJson(third));
+});
+
+test('when even the pruned older results exceed the limit the current result is pruned too', async (context) => {
+  const s2 = (await measureMulti())[1];
+  const fixture = await runMulti(s2 + 20 + 64);
+  context.after(() => fixture.db.close());
+  const state = fixture.sessionStore.replay('session:loop');
+  assert.equal(state.status, 'completed', JSON.stringify(sessionEvents(fixture).at(-1)));
+  const turn = state.turns['turn:loop-1'];
+  assert.equal(turn.tool_compactions.length, 2);
+  const third = fixture.seen[2].messages;
+  assert.equal(isStub(toolMessage(third, 'call:echo-1')), true);
+  assert.equal(isStub(toolMessage(third, 'call:echo-2')), true);
+});
+
+test('pressure with no older candidate and a fitting request keeps the result verbatim without compacting', async (context) => {
+  const s2 = (await measureMulti())[1];
+  const fixture = await runMulti(Math.ceil(s2 * 1.03) + 64);
+  context.after(() => fixture.db.close());
+  const events = sessionEvents(fixture);
+  const secondStart = events.filter((event) => event.event_type === 'model.request.started')[1];
+  assert.ok(secondStart);
+  assert.equal(
+    events.filter((event) => event.event_type === 'compaction.completed' && event.sequence < secondStart.sequence).length,
+    0,
+    'no compaction precedes the second request',
+  );
+  assert.match(toolMessage(fixture.seen[1].messages, 'call:echo-1').content, new RegExp(MULTI_BODY.slice(0, 40)));
+});
+
+function stored(event) {
+  return {
+    schema_version: event.schema_version,
+    event_id: event.event_id,
+    session_id: event.session_id,
+    sequence: event.sequence,
+    occurred_at: event.occurred_at,
+    event_type: event.event_type,
+    payload: structuredClone(event.payload),
+  };
+}
+
+function replayInto(target, events, mutate = () => {}) {
+  const copies = events.map(stored);
+  mutate(copies);
+  for (const event of copies) {
+    target.sessionStore.append({ session_id: 'session:loop', expected_version: event.sequence - 1, events: [event] });
+  }
+}
+
+test('replay accepts only an exact, durably recorded derivation of the older prefix', async (context) => {
+  const s3 = (await measureMulti())[2];
+  const source = await runMulti(Math.ceil(s3 * 1.03) + 64);
+  context.after(() => source.db.close());
+  const events = sessionEvents(source);
+  const thirdStart = events.filter((event) => event.event_type === 'model.request.started')[2];
+  const compactionAt = events.findIndex((event) => event.event_type === 'compaction.completed');
+  const clean = multiFixture(2_000_000);
+  context.after(() => clean.db.close());
+  replayInto(clean, events);
+  assert.equal(clean.sessionStore.replay('session:loop').status, 'completed');
+
+  const rejects = async (mutate, code) => {
+    const target = multiFixture(2_000_000);
+    try {
+      assert.throws(() => replayInto(target, events, mutate), code ? { code } : /./);
+    } finally {
+      target.db.close();
+    }
+  };
+  const third = (copies) => copies.find((event) => event.event_id === thirdStart.event_id);
+  // A stub that is not the recorded replacement.
+  await rejects((copies) => {
+    const message = toolMessage(third(copies).payload.request.messages, 'call:echo-1');
+    message.content = message.content.replace('"pruned":true', '"pruned":true,"status":"forged"');
+  }, 'AGENT_SESSION_REQUEST_MISMATCH');
+  // A non-tool message altered while the stub stays correct.
+  await rejects((copies) => {
+    third(copies).payload.request.messages[1].content += ' tampered';
+  }, 'AGENT_SESSION_REQUEST_MISMATCH');
+  // A verbatim older result where the record demands the stub.
+  await rejects((copies) => {
+    const messages = third(copies).payload.request.messages;
+    messages[messages.findIndex((message) => message.tool_call_id === 'call:echo-1')] = toolMessage(
+      sessionEvents(source).filter((event) => event.event_type === 'model.request.started')[1].payload.request.messages,
+      'call:echo-1',
+    );
+  }, 'AGENT_SESSION_REQUEST_MISMATCH');
+  // Reordered messages.
+  await rejects((copies) => {
+    const messages = third(copies).payload.request.messages;
+    const index = messages.findIndex((message) => message.tool_call_id === 'call:echo-1');
+    [messages[index - 1], messages[index]] = [messages[index], messages[index - 1]];
+  }, 'AGENT_SESSION_REQUEST_MISMATCH');
+  // A record whose source is the result of the current step, or a result that does not exist.
+  await rejects((copies) => {
+    copies[compactionAt].payload.source_event_ids = [
+      events.find((event) => event.event_type === 'tool.execution.completed' && event.payload.outcome.tool_call_id === 'call:echo-2')
+        .event_id,
+    ];
+  });
+  await rejects((copies) => {
+    copies[compactionAt].payload.source_event_ids = ['event:from-another-turn'];
+  });
+});
+
+test('a crash between the older-results record and the next step resumes without a second record', async (context) => {
+  const s3 = (await measureMulti())[2];
+  const source = await runMulti(Math.ceil(s3 * 1.03) + 64);
+  context.after(() => source.db.close());
+  const events = sessionEvents(source);
+  const compactionAt = events.findIndex((event) => event.event_type === 'compaction.completed');
+  const target = multiFixture(Math.ceil(s3 * 1.03) + 64);
+  context.after(() => target.db.close());
+  replayInto(target, events.slice(0, compactionAt + 1));
+  assert.equal(target.sessionStore.recoveryPlan('session:loop').next_action, 'continue_after_tools');
+  const before = target.sessionStore.replay('session:loop').current_sequence;
+  const resumed = await target.runtime.resume({
+    schema_version: 1,
+    command: 'resume',
+    session_id: 'session:loop',
+    expected_sequence: before,
+  });
+  assert.equal(resumed.terminal, true);
+  const after = sessionEvents(target);
+  assert.equal(after.filter((event) => event.event_type === 'compaction.completed').length, 1);
+  assert.equal(target.sessionStore.replay('session:loop').status, 'completed');
+  assert.equal(
+    canonicalJson(after.find((event) => event.event_type === 'compaction.completed').payload),
+    canonicalJson(events[compactionAt].payload),
+  );
+  assert.equal(isStub(toolMessage(target.seen.at(-1).messages, 'call:echo-1')), true);
+  assert.match(toolMessage(target.seen.at(-1).messages, 'call:echo-2').content, new RegExp(MULTI_BODY.slice(0, 40)));
+});
+
+// --- Forged logs: every guard of the older-results derivation is reached by a log that passes the guards before it. ---
+const forgedScenarios = new Map();
+
+// A: 2 tool calls, one older record at the second continuation.
+// B: 3 tool calls, one older record at each continuation after the first.
+// C: 3 tool calls, one older record with two sources at the last continuation.
+// D: 2 tool calls, an older record followed by the current-results record at the same continuation.
+async function forgedScenario(kind) {
+  try {
+    if (forgedScenarios.has(kind)) {
+      const cached = forgedScenarios.get(kind);
+      assert.equal(replayLog(cached).status, 'completed', `clean scenario ${kind} replays`);
+      return structuredClone(cached);
+    }
+    const callCount = kind === 'B' || kind === 'C' ? 3 : 2;
+    const sizes = await measureMulti(callCount);
+    const limit = { A: Math.ceil(sizes[2] * 1.03), B: Math.ceil(sizes[2] * 1.03), C: Math.ceil(sizes[3] * 1.03), D: sizes[1] + 20 }[kind];
+    const fixture = await runMulti(limit + 64, callCount);
+    try {
+      assert.equal(fixture.sessionStore.replay('session:loop').status, 'completed');
+      const events = structuredClone(sessionEvents(fixture));
+      const shape = compactionsOf(events).map((event) => event.payload.source_event_ids.length);
+      assert.deepEqual(shape, { A: [1], B: [1, 1], C: [2], D: [1, 1] }[kind], `scenario ${kind}`);
+      assert.equal(replayLog(events).status, 'completed', `clean scenario ${kind} replays`);
+      forgedScenarios.set(kind, events);
+      return structuredClone(events);
+    } finally {
+      fixture.db.close();
+    }
+  } catch (error) {
+    if (error?.code === 'ERR_ASSERTION') throw error;
+    return assert.fail(`scenario ${kind} does not replay cleanly: ${error?.code} ${error?.message}`);
+  }
+}
+
+const replayLog = (events) => require('../packages/agent-session-store').replaySessionEvents(structuredClone(events));
+const compactionsOf = (events) => events.filter((event) => event.event_type === 'compaction.completed');
+const completedIdOf = (events, toolCallId) =>
+  events.find((event) => event.event_type === 'tool.execution.completed' && event.payload.outcome.tool_call_id === toolCallId).event_id;
+const renumber = (events) => events.map((event, index) => ({ ...event, sequence: index + 1 }));
+
+function restat(payload) {
+  const bytes = Buffer.byteLength(canonicalJson(payload.replacement_messages), 'utf8');
+  payload.after = { message_count: payload.replacement_messages.length, bytes, tokens: bytes };
+  payload.pruned_tool_call_ids = payload.replacement_messages.map((message) => message.tool_call_id);
+}
+
+function cloneRecord(record, label, { id = true, ref = true } = {}) {
+  const copy = structuredClone(record);
+  copy.event_id = `event:forged-${label}`;
+  if (id) copy.payload.compaction_id = `compaction:forged-${label}`;
+  if (ref) copy.payload.checkpoint_ref = `${record.payload.checkpoint_ref}-forged-${label}`;
+  return copy;
+}
+
+function insertAfter(events, anchor, ...added) {
+  const index = events.indexOf(anchor);
+  assert.ok(index !== -1);
+  return renumber([...events.slice(0, index + 1), ...added, ...events.slice(index + 1)]);
+}
+
+function assertGuard(events, code, message) {
+  assert.throws(
+    () => replayLog(renumber(events)),
+    (error) => error.code === code && message.test(error.message),
+    `${code} ${message}`,
+  );
+}
+
+const ORDER = 'AGENT_SESSION_COMPACTION_ORDER_INVALID';
+const LINEAGE = 'AGENT_SESSION_COMPACTION_LINEAGE_INVALID';
+const IDENTITY = 'AGENT_SESSION_COMPACTION_TOOL_IDENTITY_INVALID';
+
+test('forged older-results guards: clean logs of every scenario replay', async () => {
+  for (const kind of ['A', 'B', 'C', 'D']) await forgedScenario(kind);
+});
+
+test('forged older-results guard: a second pending record is refused', async () => {
+  const events = await forgedScenario('C');
+  const [older] = compactionsOf(events);
+  const second = cloneRecord(older, 'pending');
+  second.payload.source_event_ids = [older.payload.source_event_ids[0]];
+  second.payload.replacement_messages = [older.payload.replacement_messages[0]];
+  restat(second.payload);
+  assertGuard(insertAfter(events, older, second), ORDER, /already pending/);
+});
+
+test('forged older-results guard: the record must prune tool results', async () => {
+  const events = await forgedScenario('A');
+  const [older] = compactionsOf(events);
+  older.payload.strategy = 'history_summary';
+  older.payload.replacement_messages = [{ role: 'assistant', content: 'summary' }];
+  restat(older.payload);
+  older.payload.pruned_tool_call_ids = [];
+  assertGuard(events, ORDER, /must prune tool results/);
+});
+
+test('forged older-results guard: an older record cannot follow the current-results record', async () => {
+  const events = await forgedScenario('D');
+  const [older, current] = compactionsOf(events);
+  const swapped = events.map((event) => (event === older ? current : event === current ? older : event));
+  assertGuard(swapped, ORDER, /cannot follow the current-results record/);
+});
+
+test('forged older-results guard: a source must be a completed durable result', async () => {
+  const events = await forgedScenario('A');
+  compactionsOf(events)[0].payload.source_event_ids = ['event:unknown-result'];
+  assertGuard(events, LINEAGE, /not a completed durable result/);
+});
+
+test('forged older-results guard: a source of the current step is refused', async () => {
+  const events = await forgedScenario('B');
+  const older = compactionsOf(events)[1];
+  const current = completedIdOf(events, 'call:echo-3');
+  older.payload.source_event_ids = [...older.payload.source_event_ids, current];
+  older.payload.replacement_messages = [
+    ...older.payload.replacement_messages,
+    { ...older.payload.replacement_messages[0], tool_call_id: 'call:echo-3' },
+  ];
+  restat(older.payload);
+  assertGuard(events, LINEAGE, /belongs to the current step/);
+});
+
+test('forged older-results guard: sources must follow the request order', async () => {
+  const events = await forgedScenario('C');
+  const older = compactionsOf(events)[0];
+  older.payload.source_event_ids.reverse();
+  older.payload.replacement_messages.reverse();
+  restat(older.payload);
+  assertGuard(events, LINEAGE, /not in request order/);
+});
+
+test('forged older-results guard: an already pruned source reapplied at a later step is refused', async () => {
+  const events = await forgedScenario('B');
+  const [first, second] = compactionsOf(events);
+  second.payload.source_event_ids = [first.payload.source_event_ids[0], ...second.payload.source_event_ids];
+  second.payload.replacement_messages = [first.payload.replacement_messages[0], ...second.payload.replacement_messages];
+  restat(second.payload);
+  assertGuard(events, LINEAGE, /not verbatim in the last request/);
+});
+
+test('forged older-results guard: a replacement cannot change the call identity', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  older.payload.replacement_messages[0].tool_call_id = 'call:other';
+  restat(older.payload);
+  assertGuard(events, IDENTITY, /changes call identity/);
+});
+
+test('forged older-results guard: a replacement cannot change the tool name', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  older.payload.replacement_messages[0].name = 'other.tool';
+  assertGuard(events, IDENTITY, /changes the tool name/);
+});
+
+test('forged older-results guard: an extra replacement is refused', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  older.payload.replacement_messages.push({ ...older.payload.replacement_messages[0], tool_call_id: 'call:extra' });
+  restat(older.payload);
+  assertGuard(events, IDENTITY, /changed call identity or ordering/);
+});
+
+test('forged older-results guard: a stub with another digest is refused', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  const stub = JSON.parse(older.payload.replacement_messages[0].content);
+  stub.result_digest = `sha256:${'0'.repeat(64)}`;
+  older.payload.replacement_messages[0].content = canonicalJson(stub);
+  restat(older.payload);
+  assertGuard(events, 'AGENT_SESSION_COMPACTION_STUB_MISMATCH', /digest differs/);
+});
+
+test('forged older-results guard: a stub carrying the result body is refused', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  const stub = JSON.parse(older.payload.replacement_messages[0].content);
+  stub.result = { body: 'x' };
+  older.payload.replacement_messages[0].content = canonicalJson(stub);
+  restat(older.payload);
+  assertGuard(events, 'AGENT_SESSION_COMPACTION_STUB_MISMATCH', /carries a body field/);
+});
+
+test('forged older-results guard: a stub with other evidence references is refused', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  const stub = JSON.parse(older.payload.replacement_messages[0].content);
+  stub.evidence_refs = ['evidence://forged'];
+  older.payload.replacement_messages[0].content = canonicalJson(stub);
+  restat(older.payload);
+  assertGuard(events, 'AGENT_SESSION_COMPACTION_STUB_MISMATCH', /evidence_refs differs/);
+});
+
+test('forged compaction guard: a repeated compaction identifier is refused', async () => {
+  const events = await forgedScenario('C');
+  const older = compactionsOf(events)[0];
+  const copy = cloneRecord(older, 'id', { id: false });
+  copy.payload.source_event_ids = [older.payload.source_event_ids[0]];
+  copy.payload.replacement_messages = [older.payload.replacement_messages[0]];
+  restat(copy.payload);
+  assertGuard(insertAfter(events, older, copy), 'AGENT_SESSION_DUPLICATE_COMPACTION', /already recorded/);
+});
+
+test('forged compaction guard: a repeated checkpoint reference is refused', async () => {
+  const events = await forgedScenario('C');
+  const older = compactionsOf(events)[0];
+  const copy = cloneRecord(older, 'ref', { ref: false });
+  copy.payload.source_event_ids = [older.payload.source_event_ids[0]];
+  copy.payload.replacement_messages = [older.payload.replacement_messages[0]];
+  restat(copy.payload);
+  assertGuard(insertAfter(events, older, copy), 'AGENT_SESSION_DUPLICATE_COMPACTION', /already recorded/);
+});
+
+test('forged compaction guard: a repeated source set is refused', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  assertGuard(insertAfter(events, older, cloneRecord(older, 'sources')), 'AGENT_SESSION_DUPLICATE_COMPACTION', /already recorded/);
+});
+
+test('forged request guard: the continuation must cite the older record as a source', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  const third = events.filter((event) => event.event_type === 'model.request.started')[2];
+  third.payload.source_event_ids = third.payload.source_event_ids.filter((id) => id !== older.event_id);
+  assertGuard(events, 'AGENT_SESSION_REQUEST_MISMATCH', /continuation request differs from durable model and tool facts/);
+});
+
+test('forged request guard: the prefix must be the exact derivation of the previous request', async () => {
+  const events = await forgedScenario('A');
+  const third = events.filter((event) => event.event_type === 'model.request.started')[2];
+  const stubIndex = third.payload.request.messages.findIndex((message) => message.tool_call_id === 'call:echo-1');
+  const verbatim = events
+    .filter((event) => event.event_type === 'model.request.started')[1]
+    .payload.request.messages.find((message) => message.tool_call_id === 'call:echo-1');
+  third.payload.request.messages[stubIndex] = verbatim;
+  assertGuard(events, 'AGENT_SESSION_REQUEST_MISMATCH', /does not preserve its durable predecessor/);
+});
+
+test('forged request guard: a revision cannot follow an older-results record', async () => {
+  const events = await forgedScenario('A');
+  const older = compactionsOf(events)[0];
+  const step = events.filter((event) => event.event_type === 'model.request.started')[1];
+  const revision = {
+    ...structuredClone(older),
+    event_id: 'event:forged-revision',
+    event_type: 'model.revision.requested',
+    payload: { turn_id: step.payload.turn_id, step_id: step.payload.step_id, feedback: 'revise' },
+  };
+  assertGuard(insertAfter(events, older, revision), 'AGENT_SESSION_MODEL_STEP_ORDER_INVALID', /latest completed model response/);
+});
