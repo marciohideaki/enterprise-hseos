@@ -8,7 +8,7 @@ provider:
   # Servidor de modelo local da infraestrutura compartilhada (Ollama), pelo formato compatível com a API da OpenAI.
   # O endpoint do cluster é o declarado; um acesso por túnel local é de campanha e não substitui esta declaração.
   base_url: http://ollama-shared.platform-shared-dev.svc.cluster.local:11434/v1
-  model: qwen2.5:7b
+  model: qwen2.5:7b-16k
   capabilities:
     - text_generation
     - streaming
@@ -16,8 +16,10 @@ provider:
     - usage
     - cancellation
   limits:
-    # O servidor atende 4096 tokens de contexto (observado em `ollama ps`); não declare mais do que o backend serve.
-    context_tokens: 4096
+    # Modelo derivado `qwen2.5:7b-16k` (num_ctx 16384), criado no volume persistente do servidor, fora do GitOps.
+    # A admissão compara BYTES do pedido com este valor; 4096 recusava até a tarefa mais simples antes de qualquer rede.
+    # Não declare mais do que o backend serve.
+    context_tokens: 16384
     max_output_tokens: 1024
     max_parallel_requests: 1
   secret_refs:

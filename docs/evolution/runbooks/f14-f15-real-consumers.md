@@ -95,6 +95,10 @@ Limites do fork: recusa checkpoint terminal e checkpoint com efeito no workspace
 
 `threshold_basis_points` e `context_tokens` são opcionais. `context_tokens` só reduz a janela do modelo **scripted**; um modelo com binding ou plugin mantém a janela que declara. A configuração é gravada no evento `created`; `resume` não recebe o flag.
 
+**Semântica da poda de resultados (`tool_result_pressure`).** Quando a pressão dispara (limiar de `threshold_basis_points` sobre o limite de entrada), o runtime poda primeiro os resultados de ferramenta **mais antigos** da mesma volta que ainda estão verbatim, em um único `compaction.completed` próprio (`...tools-older`). Os resultados da etapa atual seguem **verbatim** para o modelo enquanto a requisição couber em `inputLimit`. Só se, mesmo depois da poda dos antigos, a requisição ainda exceder o limite, o resultado atual também é podado. O stub podado preserva `error` (`code`, `message`, `retryable`) e, quando existem, `sha256` e `path`.
+
+Consequências para a F15: (1) com pressão, **sem resultados antigos** e dentro do limite, **não há `compaction.completed`**; um limiar baixo sozinho já não força a poda em uma única leitura, então a série que precisa observar a poda deve ter **duas ou mais leituras** antes da escrita (ou uma janela em que o resultado atual exceda o limite); (2) a retomada pós-crash reconstrói as mesmas mensagens a partir dos eventos; (3) o limite padrão de 8.500 pontos-base não muda.
+
 ### 3. Limite desta capacidade com cliente real
 
 A compactação está ligada ao runtime de **engenharia** (`AgentRuntime`, perfil `disposable-engineering-candidate`). Os perfis **delegated** (Claude Code e Codex) **não usam `AgentRuntime`**: o cliente real mantém o próprio contexto e o HSEOS não o compacta. Portanto F15 com cliente real tem este limite: a jornada abaixo só vale para um modelo real acessado por **binding** (`--binding`) no runtime de engenharia; não existe compactação HSEOS dentro de uma sessão delegated.
@@ -121,3 +125,13 @@ Passos: repetir a jornada da seção 1 com `--binding` no lugar de `--scripted-r
 ### 6. Teto
 
 Teto padrão: o definido pelo owner na autorização da campanha; sem autorização o ensaio real fica **BLOCKED**. Uma única tarefa, uma janela reduzida, no máximo uma compactação, um crash, um fork. Qualquer falha encerra o ensaio sem repetir a chamada paga automaticamente.
+
+## Sonda da janela efetiva (campanha)
+
+Antes de afirmar que a janela declarada de um binding serve, registre no recibo a janela do modelo, o contexto efetivo do backend (para o servidor local, `ollama ps` com o modelo carregado) e o maior pedido enviado:
+
+```bash
+node docs/evolution/w3/evidence/shared/summarize-window.cjs <dir-da-campanha> --declared N --max-output N --effective N --model-window N
+```
+
+O comando lê `body_bytes` de `provider-requests.jsonl` e avalia `backend-window.cjs`. O veredito só é `pass` com as três medições válidas (inteiros positivos): contexto efetivo, janela do modelo e maior pedido. Qualquer uma ausente ou inválida resulta em `unknown` (nunca aprovado, exit 1); isso inclui log vazio e log sem nenhuma linha com `body_bytes`. Reprova se a declaração excede o contexto efetivo ou a janela do modelo, se o maior pedido em bytes mais a saída máxima excede a janela declarada, ou se a saída máxima é inválida. Diretório sem `provider-requests.jsonl` falha com erro. Vale só para a campanha; a admissão não consulta o backend.

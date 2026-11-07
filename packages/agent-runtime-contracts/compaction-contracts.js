@@ -1,5 +1,7 @@
 'use strict';
 
+const { createHash } = require('node:crypto');
+
 const {
   CONTRACT_SCHEMA_VERSION,
   IdentifierSchema,
@@ -252,6 +254,90 @@ const CheckpointDisposeResultSchema = strictObject({
   accepted: z.boolean(),
 });
 
+// The single definition of a pruned tool-result stub. The deterministic compaction provider produces it and the
+// session replay re-derives it, so the formula lives here and nowhere else.
+const PRUNED_STUB_KEYS = Object.freeze(['status', 'evidence_refs', 'warnings', 'error', 'sha256', 'path', 'result_digest', 'pruned']);
+
+function canonicalToolJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalToolJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalToolJson(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function toolResultDigest(value) {
+  return `sha256:${createHash('sha256').update(canonicalToolJson(value)).digest('hex')}`;
+}
+
+// What the next action needs: the error contract and the identity (sha256, path) of the produced artifact.
+function nextActionMetadata(result) {
+  const out = {};
+  const error = result?.error;
+  if (error && typeof error === 'object') {
+    const picked = {};
+    for (const key of ['code', 'message', 'retryable']) {
+      if (error[key] === undefined) continue;
+      picked[key] = error[key];
+    }
+    out.error = picked;
+  }
+  const body = result?.result;
+  if (body && typeof body === 'object') {
+    if (typeof body.sha256 === 'string') out.sha256 = body.sha256;
+    if (typeof body.path === 'string') out.path = body.path;
+  }
+  return out;
+}
+
+function pruneToolMessage(message) {
+  if (message.role !== 'tool') throw new TypeError('tool_result_prune accepts only tool messages');
+  let result = null;
+  try {
+    result = JSON.parse(message.content);
+  } catch {
+    // The digest below still preserves identity for a non-JSON provider payload.
+  }
+  return {
+    role: 'tool',
+    ...(message.name ? { name: message.name } : {}),
+    tool_call_id: message.tool_call_id,
+    content: canonicalToolJson({
+      status: result?.status || 'unknown',
+      evidence_refs: Array.isArray(result?.evidence_refs) ? result.evidence_refs : [],
+      warnings: Array.isArray(result?.warnings) ? result.warnings : [],
+      ...nextActionMetadata(result),
+      result_digest: toolResultDigest(message.content),
+      pruned: true,
+    }),
+  };
+}
+
+// Why a replacement is not a faithful stub of `source`, or null when it is.
+function prunedStubViolation(source, replacement) {
+  let stub;
+  try {
+    stub = JSON.parse(replacement.content);
+  } catch {
+    return 'stub is not valid JSON';
+  }
+  const expected = JSON.parse(pruneToolMessage(source).content);
+  if (!stub || typeof stub !== 'object' || Array.isArray(stub)) return 'stub is not an object';
+  if (stub.pruned !== true) return 'stub is not marked pruned';
+  if (Object.keys(stub).some((key) => !PRUNED_STUB_KEYS.includes(key))) return 'stub carries a body field';
+  if (stub.result_digest !== expected.result_digest) return 'stub digest differs from the original result';
+  for (const key of ['status', 'error', 'sha256', 'path']) {
+    if (canonicalToolJson(stub[key]) !== canonicalToolJson(expected[key])) return `stub ${key} differs from the original result`;
+  }
+  for (const key of ['evidence_refs', 'warnings']) {
+    if (canonicalToolJson(stub[key]) !== canonicalToolJson(expected[key])) return `stub ${key} differs from the original outcome`;
+  }
+  return null;
+}
+
 module.exports = {
   CheckpointDisposeInputSchema,
   CheckpointDisposeResultSchema,
@@ -270,4 +356,9 @@ module.exports = {
   MAX_COMPACTION_INPUT_BYTES,
   MAX_COMPACTION_OUTPUT_BYTES,
   SafeCheckpointPayloadSchema,
+  canonicalToolJson,
+  nextActionMetadata,
+  pruneToolMessage,
+  prunedStubViolation,
+  toolResultDigest,
 };

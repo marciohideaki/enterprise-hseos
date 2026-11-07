@@ -623,6 +623,34 @@ test('the local model binding is declared with a pinned model profile, no creden
   );
 });
 
+test('the local model binding admits the first real request of the engineering addition task', async (t) => {
+  const { createEngineeringExample } = require('../tools/examples/engineering-task');
+  const { runEngineeringTask } = require('../tools/cli/lib/engineering-task-runtime');
+  const directory = fs.mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'hseos-local-admission-'));
+  const task = path.join(directory, 'task.json');
+  fs.writeFileSync(task, JSON.stringify(createEngineeringExample('addition').contract));
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url: String(url), bytes: init.body.length });
+    return new Response('data: {"choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n', {
+      headers: { 'content-type': 'text/event-stream' },
+    });
+  };
+  const result = await runEngineeringTask({
+    taskContract: task,
+    binding: path.join(BINDINGS, OLLAMA),
+    fetchImpl,
+    environment: { HSEOS_MODEL_PROVIDER_API_KEY: 'local-backend-ignores-the-key' },
+  });
+  t.after(() => {
+    fs.rmSync(directory, { recursive: true, force: true });
+    if (result.state) fs.rmSync(result.state, { recursive: true, force: true });
+  });
+  assert.notEqual(result.reason, 'session-budget-exceeded', 'the declared window must admit the first request');
+  assert.ok(calls.length > 0, 'the request reached the (intercepted) network');
+  assert.match(calls[0].url, /ollama-shared\.platform-shared-dev\.svc\.cluster\.local/);
+});
+
 test('the manifest refuses a local model that carries a credential or a paid route, and an API route for the local vendor', () => {
   const good = declaration('ollama-local');
   const credential = { name: 'api-key', source_ref: 'env://HSEOS_MODEL_PROVIDER_API_KEY' };

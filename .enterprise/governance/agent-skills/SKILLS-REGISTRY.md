@@ -1,6 +1,6 @@
 ---
 type: skill-registry
-version: "1.4"
+version: "1.5"
 ---
 
 # Agent Skills Registry
@@ -117,7 +117,7 @@ version: "1.4"
 
 
 ### goal-graph
-**Description:** Compila um objetivo completo (prompt + arquivos/spec) em um grafo de loops executável — nós (mini-goals verificáveis), arestas de dependência, paralelismo entre nós independentes e fluxos dinâmicos (expansão por descoberta) onde a estrutura é desconhecida. Inclui fase Entender & Confrontar (diamond de leitura via axon → **gap-map**: existe/conflita/falta/assume-errado) antes da decomposição. Emite `GOAL-GRAPH.md` + `workflow.js` (compilação para o runtime `Workflow` — coordenação em código, checkpoint/resume idempotente) para execução via Workflow, `dev-squad` (waves) ou `hseos-goal-loop` (loop) sob os guardrails `loop-guard`/`anchor-guard`/`verifier`. Planeja, não executa. Layout de estado versionado: `templates/graph-state-layout.md`.
+**Description:** Compila um objetivo completo (prompt + arquivos/spec) em um grafo de loops executável — nós (mini-goals verificáveis), arestas de dependência, paralelismo entre nós independentes e fluxos dinâmicos (expansão por descoberta) onde a estrutura é desconhecida. Inclui fase Entender & Confrontar (diamond de leitura via axon → **gap-map**: existe/conflita/falta/assume-errado) antes da decomposição. Emite `GOAL-GRAPH.md` + `workflow.js` (compilação para o runtime `Workflow` — coordenação em código, checkpoint/resume idempotente) para execução via Workflow, `dev-squad` (waves) ou `hseos-goal-loop` (loop) sob os guardrails `loop-guard`/`anchor-guard`/`verifier`. Planeja, não executa. Layout de estado versionado: `graph-state-layout.md`.
 **Load when:** usuário entrega um objetivo grande ou heterogêneo e quer montá-lo como grafo de loops para execução em goal/loop com paralelismo e fluxo dinâmico; decomposição em waves; orquestração de objetivo em nós verificáveis.
 **Triggers:** `montar grafo`, `grafo de loops`, `compilar objetivo em grafo`, `goal graph`, `loop graph`, `orquestrar objetivo`, `planejar execução paralela`, `decompor objetivo em waves`, `executar goal/loop com paralelismo`, `fluxo dinâmico`, `gap-map`, `compilar workflow`, `/goal-graph`
 **Tier 1:** `.enterprise/governance/agent-skills/goal-graph/SKILL-QUICK.md`
@@ -143,6 +143,17 @@ version: "1.4"
 **Tier 1:** `.enterprise/governance/agent-skills/pr-review/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/pr-review/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = medium
+
+---
+
+### legacy-code-review
+**Description:** Automated, risk-based review of a legacy-system PR, branch, commit range or related PR set, with structured findings, an evidence-based gate and cross-PR interaction analysis.
+**Load when:** automating a legacy-system review that must produce structured findings and a BLOCK / HUMAN_REVIEW_REQUIRED / PASS_WITH_COMMENTS / PASS recommendation, or analyzing interactions between related PRs.
+**Triggers:** `legacy code review`, `legacy review`, `automated PR review`, `review legacy PR`, `cross-PR review`
+**Tier 1:** `.enterprise/governance/agent-skills/legacy-code-review/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/legacy-code-review/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Never replaces human approval; record the reviewed head SHA. Use `pr-review` for a human-led governance review.
 
 ---
 
