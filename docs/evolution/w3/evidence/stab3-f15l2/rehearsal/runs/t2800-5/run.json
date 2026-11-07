@@ -1,0 +1,216 @@
+{
+  "id": "t2800-5",
+  "series": "t2800",
+  "index": 5,
+  "model_source": "fixture",
+  "behavior": "good",
+  "negative_control": false,
+  "reference": {
+    "task_result": "approved",
+    "reason": "criteria-satisfied"
+  },
+  "reconciliation": {
+    "required": true,
+    "report_sha256": "2ce1222deb0cc333aae32bb42f23e28706b5c5be4b1a3aa98f3c6a9c2087654c"
+  },
+  "compactions": [
+    {
+      "sequence": 18,
+      "event_id": "event:06bd67629d122565e76c2ae03a03213c9067517b",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 26,
+      "event_id": "event:823e691a914acc577f7af3caaac17b5284b47f4a",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 34,
+      "event_id": "event:8890a729be2e38949ecaee43aff28cb678bc4cd5",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 54,
+      "event_id": "event:f97c60f8c966bc9aa64c77389b448117f67b3013",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 62,
+      "event_id": "event:fb5640d7fff9106097bd40a3da9ad810cb1f1d56",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 70,
+      "event_id": "event:121daeff2b0d628892c3d89f5a857f1c1c0cb7de",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 78,
+      "event_id": "event:41095bffccf5200f3977d1f40fefca4e06bf6090",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    }
+  ],
+  "criteria_refs": 1,
+  "observable_state_change": {
+    "writes_durable_before_crash": [
+      {
+        "outcome": "succeeded"
+      }
+    ],
+    "add_js_verbatim_read_bytes_in_order": [2215, 2215, 2588, 2588, 2588],
+    "workspace_change_observed_after_recovery": true,
+    "note": "The file the model reads after the recovery differs in size from the one it read before the crash: the write landed before the process died."
+  },
+  "provider_proof": {
+    "summarizer_verdict": "pass",
+    "failures": [],
+    "auth_mode": "credential",
+    "credential_source": "request-header",
+    "backend_verified": true,
+    "requests_total": 6,
+    "requests_verified": 6,
+    "declared": {
+      "model": "gpt-4o",
+      "origin": "https://mock.invalid"
+    },
+    "observed": {
+      "models": ["gpt-4o"],
+      "origin": "https://mock.invalid"
+    },
+    "credential_sha256": "omitted-from-public-receipt",
+    "counts_scope": "process-after-resume-only"
+  },
+  "whole_file": {
+    "verdict": "pass",
+    "failures": [],
+    "unknown": [],
+    "original_bytes": 1883,
+    "final_bytes": 3286,
+    "network_isolation": "namespace",
+    "runner": "podman --network=none --user 1000:1000 --cap-drop=ALL --security-opt no-new-privileges --pids-limit 256 --cpus 1 --memory 1g --read-only",
+    "image_digest_expected": "sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5",
+    "image_id": "6e6261159fd399ebe5a3d556b7d89da9c85c873f3f270918aad6c8107da8b411",
+    "expected_digest_is_a_repo_digest": true,
+    "pull": "never",
+    "exit": 0
+  },
+  "fork": {
+    "checkpoint_sequence": 30,
+    "ancestry_event_count": 30,
+    "compactions_in_prefix": 2
+  },
+  "drain": {
+    "orphan_tool_invocations": 0,
+    "live_processes_under_campaign": 0,
+    "requests_counted": 21,
+    "requests_logged": 21
+  },
+  "usage": {
+    "requests": 21,
+    "unreadable_requests": 0,
+    "prompt_tokens": 55760,
+    "completion_tokens": 1963,
+    "cached_tokens": 0,
+    "complete": true,
+    "estimated_cost_usd": 0.15903,
+    "note": "Price declared by the operator and not verified; cached tokens are charged at the input price; this is an estimate, not an invoice."
+  },
+  "requests_by_dir": {
+    "reference": 5,
+    "journey": 16
+  },
+  "requests": 21,
+  "responding_models": ["gpt-4o"],
+  "secret_sweep": {
+    "clean": true,
+    "files_scanned": 31,
+    "searched": ["literal-credential", "api-key-shape", "bearer-header", "credential-sha256 (public files only)"],
+    "findings": []
+  },
+  "stages": {
+    "reference_approved": true,
+    "crash_proven": true,
+    "resume_approved": true,
+    "old_results_pruned": true,
+    "provider_proof_pass": true,
+    "whole_file_pass": true,
+    "compaction_before_checkpoint": true,
+    "fork_approved": true,
+    "replay_resume_only": true,
+    "drain_clean": true,
+    "usage_complete": true,
+    "secrets_clean": true
+  },
+  "lineage": {
+    "prefix_immutable_after_resume": true,
+    "ancestry_recomputed": true,
+    "ancestry_event_count": true,
+    "parent_session": true,
+    "parent_sequence": true,
+    "fork_prefix_equals_parent_prefix": true,
+    "parent_unchanged_after_fork": true,
+    "fork_criteria_equal": true
+  },
+  "lineage_intact": true,
+  "steps": [
+    {
+      "step": "reference",
+      "status": 0,
+      "task_result": "approved",
+      "requests": 5
+    },
+    {
+      "step": "crash",
+      "signal": "SIGKILL",
+      "pid_alive_after": false,
+      "events": 35,
+      "compactions": 3,
+      "first_write_sequence": 31,
+      "writes_before_crash": [
+        {
+          "outcome": "succeeded"
+        }
+      ]
+    },
+    {
+      "step": "resume-1",
+      "task_result": "blocked",
+      "reason": "effect-reconciliation-required",
+      "requests": 4
+    },
+    {
+      "step": "resume-2",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "requests": 10
+    },
+    {
+      "step": "fork",
+      "checkpoint": 30,
+      "checkpoint_event_type": "model.streamed",
+      "compaction_sequence": 18,
+      "task_result": "approved",
+      "refusals": []
+    },
+    {
+      "step": "replay-resume-only",
+      "events": 83,
+      "requests_unchanged": true,
+      "task_result": "approved"
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "id": "t8500-1",
+  "series": "t8500",
+  "index": 1,
+  "model_source": "fixture",
+  "behavior": "good",
+  "negative_control": false,
+  "reference": {
+    "task_result": "approved",
+    "reason": "criteria-satisfied"
+  },
+  "reconciliation": {
+    "required": true,
+    "report_sha256": "77e159dfa8129c0a3c4402eb6dcb1924678e12d94a01c82911d6eda57bd33270"
+  },
+  "compactions": [
+    {
+      "sequence": 25,
+      "event_id": "event:1b57525079a595c676c7da1697f7c9ef5314ecd1",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 2
+    },
+    {
+      "sequence": 45,
+      "event_id": "event:5e5dbb248026f47bf7f34ad276fbdc1ad6d31fa1",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 53,
+      "event_id": "event:fb2e7e8d5838b0b39f8486e149a6d861fb8e747d",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 61,
+      "event_id": "event:8981556d26acc7731ca5705bc7904a683f8c7d05",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    },
+    {
+      "sequence": 69,
+      "event_id": "event:fbf00f8f8e24a3affb59c843f29f6274af8bae85",
+      "strategy": "tool_result_prune",
+      "trigger": "tool_result_pressure",
+      "sources": 1
+    }
+  ],
+  "criteria_refs": 1,
+  "observable_state_change": {
+    "writes_durable_before_crash": [
+      {
+        "outcome": "succeeded"
+      }
+    ],
+    "add_js_verbatim_read_bytes_in_order": [2215, 2215, 2588, 2588, 2588],
+    "workspace_change_observed_after_recovery": true,
+    "note": "The file the model reads after the recovery differs in size from the one it read before the crash: the write landed before the process died."
+  },
+  "provider_proof": {
+    "summarizer_verdict": "pass",
+    "failures": [],
+    "auth_mode": "credential",
+    "credential_source": "request-header",
+    "backend_verified": true,
+    "requests_total": 6,
+    "requests_verified": 6,
+    "declared": {
+      "model": "gpt-4o",
+      "origin": "https://mock.invalid"
+    },
+    "observed": {
+      "models": ["gpt-4o"],
+      "origin": "https://mock.invalid"
+    },
+    "credential_sha256": "omitted-from-public-receipt",
+    "counts_scope": "process-after-resume-only"
+  },
+  "whole_file": {
+    "verdict": "pass",
+    "failures": [],
+    "unknown": [],
+    "original_bytes": 1883,
+    "final_bytes": 3286,
+    "network_isolation": "namespace",
+    "runner": "podman --network=none --user 1000:1000 --cap-drop=ALL --security-opt no-new-privileges --pids-limit 256 --cpus 1 --memory 1g --read-only",
+    "image_digest_expected": "sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5",
+    "image_id": "6e6261159fd399ebe5a3d556b7d89da9c85c873f3f270918aad6c8107da8b411",
+    "expected_digest_is_a_repo_digest": true,
+    "pull": "never",
+    "exit": 0
+  },
+  "fork": {
+    "checkpoint_sequence": 21,
+    "ancestry_event_count": 21,
+    "compactions_in_prefix": 0
+  },
+  "drain": {
+    "orphan_tool_invocations": 0,
+    "live_processes_under_campaign": 0,
+    "requests_counted": 19,
+    "requests_logged": 19
+  },
+  "usage": {
+    "requests": 19,
+    "unreadable_requests": 0,
+    "prompt_tokens": 51744,
+    "completion_tokens": 1953,
+    "cached_tokens": 0,
+    "complete": true,
+    "estimated_cost_usd": 0.14889,
+    "note": "Price declared by the operator and not verified; cached tokens are charged at the input price; this is an estimate, not an invoice."
+  },
+  "requests_by_dir": {
+    "reference": 5,
+    "journey": 14
+  },
+  "requests": 19,
+  "responding_models": ["gpt-4o"],
+  "secret_sweep": {
+    "clean": true,
+    "files_scanned": 31,
+    "searched": ["literal-credential", "api-key-shape", "bearer-header", "credential-sha256 (public files only)"],
+    "findings": []
+  },
+  "stages": {
+    "reference_approved": true,
+    "crash_proven": true,
+    "resume_approved": true,
+    "old_results_pruned": true,
+    "provider_proof_pass": true,
+    "whole_file_pass": true,
+    "compaction_before_checkpoint": false,
+    "fork_approved": true,
+    "replay_resume_only": true,
+    "drain_clean": true,
+    "usage_complete": true,
+    "secrets_clean": true
+  },
+  "lineage": {
+    "prefix_immutable_after_resume": true,
+    "ancestry_recomputed": true,
+    "ancestry_event_count": true,
+    "parent_session": true,
+    "parent_sequence": true,
+    "fork_prefix_equals_parent_prefix": true,
+    "parent_unchanged_after_fork": true,
+    "fork_criteria_equal": true
+  },
+  "lineage_intact": true,
+  "steps": [
+    {
+      "step": "reference",
+      "status": 0,
+      "task_result": "approved",
+      "requests": 5
+    },
+    {
+      "step": "crash",
+      "signal": "SIGKILL",
+      "pid_alive_after": false,
+      "events": 26,
+      "compactions": 1,
+      "first_write_sequence": 22,
+      "writes_before_crash": [
+        {
+          "outcome": "succeeded"
+        }
+      ]
+    },
+    {
+      "step": "resume-1",
+      "task_result": "blocked",
+      "reason": "effect-reconciliation-required",
+      "requests": 3
+    },
+    {
+      "step": "resume-2",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "requests": 9
+    },
+    {
+      "step": "fork",
+      "checkpoint": 21,
+      "checkpoint_event_type": "model.streamed",
+      "compaction_sequence": 25,
+      "task_result": "approved",
+      "refusals": []
+    },
+    {
+      "step": "replay-resume-only",
+      "events": 74,
+      "requests_unchanged": true,
+      "task_result": "approved"
+    }
+  ]
+}

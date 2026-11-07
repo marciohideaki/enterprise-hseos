@@ -1,0 +1,127 @@
+{
+  "ok": true,
+  "mutants": 15,
+  "killed": 15,
+  "results": [
+    {
+      "id": "M1-pre-call-budget-check",
+      "correction": 1,
+      "file": "f15l2-guard.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M2-price-validation",
+      "correction": 2,
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M3a-not-sse-or-unreadable-usage-stops",
+      "correction": 3,
+      "file": "f15l2-guard.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M3b-cli-timeout-booked-and-stops",
+      "correction": 3,
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M4-fingerprint-omits-whole-file-check",
+      "correction": 4,
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M5a-secret-hash-not-searched",
+      "correction": 6,
+      "file": "f15l2-lib.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M5b-final-sweep-after-summary-removed",
+      "correction": 6,
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M6-signal-handler-not-installed",
+      "correction": 7,
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M7-podman-no-cap-drop",
+      "correction": 8,
+      "file": "f15l2-lib.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M8-reference-log-mixed-with-journey",
+      "correction": "minor",
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M10-decisive-failure-hidden-as-INCOMPLETE",
+      "correction": "R2-1",
+      "file": "f15l2-lib.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M11-timeout-books-the-wrong-window",
+      "correction": "R2-2",
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M12-fingerprint-omits-the-product-files",
+      "correction": "R2-3",
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M13-test-mode-may-still-reach-the-real-origin",
+      "correction": "R2-4",
+      "file": "f15l2-guard.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M9-incomplete-verdict-removed",
+      "correction": 5,
+      "file": "f15l2-lib.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    }
+  ]
+}
