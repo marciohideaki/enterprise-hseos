@@ -9,6 +9,7 @@ const {
   SessionEventSchema,
   deepFreeze,
   parseContract,
+  prunedStubViolation,
 } = require('../agent-runtime-contracts');
 
 class SessionReplayError extends Error {
@@ -375,6 +376,7 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
           tool_executions: {},
           context_compaction: null,
           tool_compactions: [],
+          pending_older_compaction: null,
           input_event_sequence: event.sequence,
         };
         state.turn_order.push(turnId);
@@ -469,6 +471,9 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
           throw new SessionReplayError('model step references a missing or future source event', 'AGENT_SESSION_SOURCE_MISMATCH');
         }
         const previous = turn.model_steps.at(-1);
+        if (turn.pending_older_compaction && (!previous || previous.revision)) {
+          throw new SessionReplayError('older tool compaction has no continuation to serve', 'AGENT_SESSION_REQUEST_MISMATCH');
+        }
         if (!previous) {
           if (
             canonicalJson(event.payload.request) !== canonicalJson(turn.request) ||
@@ -500,9 +505,18 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
           if (terminal?.event_type !== 'completed' || terminal.payload.finish_reason !== 'tool_calls') {
             throw new SessionReplayError('a continuation requires a completed tool-call step', 'AGENT_SESSION_MODEL_STEP_ORDER_INVALID');
           }
+          const olderRecord = turn.pending_older_compaction;
+          const replacements = olderRecord
+            ? new Map(olderRecord.replacement_messages.map((message) => [message.tool_call_id, message]))
+            : null;
+          const expectedPrefix = replacements
+            ? previous.request.messages.map((message) =>
+                message.role === 'tool' && replacements.has(message.tool_call_id) ? replacements.get(message.tool_call_id) : message,
+              )
+            : previous.request.messages;
           const prefix = event.payload.request.messages.slice(0, previous.request.messages.length);
           if (
-            canonicalJson(prefix) !== canonicalJson(previous.request.messages) ||
+            canonicalJson(prefix) !== canonicalJson(expectedPrefix) ||
             event.payload.request.messages.length <= previous.request.messages.length ||
             !event.payload.source_event_ids.includes(previous.terminal_event_id)
           ) {
@@ -529,12 +543,13 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
             .map((modelEvent) => modelEvent.payload.text)
             .join('');
           const expectedMessages = [
-            ...previous.request.messages,
+            ...expectedPrefix,
             { role: 'assistant', content, tool_calls: calls },
             ...(toolCompaction ? toolCompaction.replacement_messages : executions.map(toolOutcomeMessage)),
           ];
           const expectedSources = [
             previous.terminal_event_id,
+            ...(olderRecord ? [olderRecord.event_id] : []),
             ...(toolCompaction ? [toolCompaction.event_id] : executions.map((execution) => execution.completed_event_id)),
           ];
           const stableRequest = { ...event.payload.request, request_id: previous.request.request_id, messages: previous.request.messages };
@@ -559,6 +574,7 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
           model_stream_bytes: 2,
           terminal_event_id: null,
         };
+        turn.pending_older_compaction = null;
         turn.model_steps.push(step);
         turn.model_steps_by_id[step.step_id] = step;
         break;
@@ -717,6 +733,7 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
           throw new SessionReplayError('compaction identity or source set is already recorded', 'AGENT_SESSION_DUPLICATE_COMPACTION');
         }
         let sources;
+        let olderCompaction = false;
         if (event.payload.trigger === 'context_pressure') {
           if (turn.request || turn.context_compaction) {
             throw new SessionReplayError(
@@ -742,31 +759,83 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
           }
           const calls = assembledToolCalls(step.model_events);
           const executions = calls.map((call) => turn.tool_executions[call.tool_call_id]);
-          if (
-            executions.some((execution) => !execution?.outcome) ||
-            event.payload.retained_source_event_ids.length > 0 ||
-            canonicalJson(event.payload.source_event_ids) !== canonicalJson(executions.map((execution) => execution.completed_event_id))
-          ) {
+          if (executions.some((execution) => !execution?.outcome) || event.payload.retained_source_event_ids.length > 0) {
             throw new SessionReplayError(
               'tool compaction lineage differs from exact durable outcomes',
               'AGENT_SESSION_COMPACTION_LINEAGE_INVALID',
             );
           }
-          if (
-            canonicalJson(event.payload.replacement_messages.map((message) => message.tool_call_id)) !==
-            canonicalJson(calls.map((call) => call.tool_call_id))
-          ) {
-            throw new SessionReplayError(
-              'tool compaction changed call identity or ordering',
-              'AGENT_SESSION_COMPACTION_TOOL_IDENTITY_INVALID',
+          const currentIds = executions.map((execution) => execution.completed_event_id);
+          if (canonicalJson(event.payload.source_event_ids) === canonicalJson(currentIds)) {
+            if (
+              canonicalJson(event.payload.replacement_messages.map((message) => message.tool_call_id)) !==
+              canonicalJson(calls.map((call) => call.tool_call_id))
+            ) {
+              throw new SessionReplayError(
+                'tool compaction changed call identity or ordering',
+                'AGENT_SESSION_COMPACTION_TOOL_IDENTITY_INVALID',
+              );
+            }
+            sources = executions.map((execution) => ({
+              source_event_id: execution.completed_event_id,
+              source_ref: `session-event://${execution.completed_event_id}`,
+              sequence: execution.completed_event_sequence,
+              message: toolOutcomeMessage(execution),
+            }));
+          } else {
+            // Older-results compaction: exact results of earlier steps of this turn, still verbatim in the last request.
+            olderCompaction = true;
+            const orderViolation = (message) => new SessionReplayError(message, 'AGENT_SESSION_COMPACTION_ORDER_INVALID');
+            if (turn.pending_older_compaction) throw orderViolation('an older-results record is already pending for this step');
+            if (event.payload.strategy !== 'tool_result_prune') throw orderViolation('an older-results record must prune tool results');
+            if (turn.tool_compactions.some((candidate) => canonicalJson(candidate.source_event_ids) === canonicalJson(currentIds))) {
+              throw orderViolation('an older-results record cannot follow the current-results record');
+            }
+            const lineageViolation = (message) => new SessionReplayError(message, 'AGENT_SESSION_COMPACTION_LINEAGE_INVALID');
+            const identityViolation = (message) => new SessionReplayError(message, 'AGENT_SESSION_COMPACTION_TOOL_IDENTITY_INVALID');
+            const stepIndex = new Map(turn.model_steps.map((candidate, index) => [candidate.step_id, index]));
+            const lastIndex = turn.model_steps.length - 1;
+            const byCompletedEvent = new Map(
+              Object.values(turn.tool_executions).map((execution) => [execution.completed_event_id, execution]),
             );
+            let cursor = -1;
+            sources = event.payload.source_event_ids.map((eventId, index) => {
+              const execution = byCompletedEvent.get(eventId);
+              if (!execution?.outcome) throw lineageViolation('older-results source is not a completed durable result');
+              if (!(stepIndex.get(execution.step_id) < lastIndex))
+                throw lineageViolation('older-results source belongs to the current step');
+              const position = step.request.messages.findIndex((message) => message.tool_call_id === execution.tool_call_id);
+              if (position <= cursor) throw lineageViolation('older-results sources are not in request order');
+              const durable = toolOutcomeMessage(execution);
+              if (canonicalJson(step.request.messages[position]) !== canonicalJson(durable)) {
+                throw lineageViolation('older-results source is not verbatim in the last request');
+              }
+              const replacement = event.payload.replacement_messages[index];
+              if (replacement?.tool_call_id !== execution.tool_call_id)
+                throw identityViolation('older-results replacement changes call identity');
+              if (replacement.name !== execution.name) throw identityViolation('older-results replacement changes the tool name');
+              const violation = prunedStubViolation(durable, replacement);
+              if (violation) {
+                throw new SessionReplayError(
+                  `older tool compaction stub is not faithful: ${violation}`,
+                  'AGENT_SESSION_COMPACTION_STUB_MISMATCH',
+                );
+              }
+              cursor = position;
+              return {
+                source_event_id: execution.completed_event_id,
+                source_ref: `session-event://${execution.completed_event_id}`,
+                sequence: execution.completed_event_sequence,
+                message: durable,
+              };
+            });
+            if (event.payload.replacement_messages.length !== sources.length) {
+              throw new SessionReplayError(
+                'older tool compaction changed call identity or ordering',
+                'AGENT_SESSION_COMPACTION_TOOL_IDENTITY_INVALID',
+              );
+            }
           }
-          sources = executions.map((execution) => ({
-            source_event_id: execution.completed_event_id,
-            source_ref: `session-event://${execution.completed_event_id}`,
-            sequence: execution.completed_event_sequence,
-            message: toolOutcomeMessage(execution),
-          }));
         }
         if (event.payload.source_digest !== digest(sources)) {
           throw new SessionReplayError('compaction source digest differs from durable history', 'AGENT_SESSION_COMPACTION_DIGEST_INVALID');
@@ -801,6 +870,7 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
         const compaction = { ...event.payload, event_id: event.event_id };
         if (event.payload.trigger === 'context_pressure') turn.context_compaction = compaction;
         else turn.tool_compactions.push(compaction);
+        if (olderCompaction) turn.pending_older_compaction = compaction;
         state.compactions.push(compaction);
         break;
       }
