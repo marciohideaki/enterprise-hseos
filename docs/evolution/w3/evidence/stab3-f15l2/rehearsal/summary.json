@@ -1,6 +1,6 @@
 {
   "model_source": "fixture",
-  "campaign_sha256": "4f9c173d293c5d3d7a18347c70d0e4f1667842ed95ad89a34b6de842f38d7c2b",
+  "campaign_sha256": "86dee448808715092a422de1794eb05a3974b40dc378e2957e9c295f13d47d1a",
   "plan_file_sha256": "33fca94f302d27384a2d124e5997994d5c5621deb349aa8396f8f7633f6062e5",
   "cap_usd": 2,
   "limit_usd": 1.6,
@@ -171,5 +171,5 @@
     "cap_usd": 2
   },
   "cost_note": "Estimate from the tokens of the run and the declared price; for a fixture the tokens are synthetic (bytes/3 for the pre-call worst case, bytes/4 measured), so this is a sizing estimate, not a measurement.",
-  "elapsed_ms": 142930
+  "elapsed_ms": 150930
 }
