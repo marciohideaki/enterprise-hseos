@@ -8,7 +8,7 @@ const { MAX_EVIDENCE_BYTES, retainOutput } = require('./campaign-evidence-store'
 const { engineeringDigest } = require('./engineering-task-state');
 const { readProviderBinding } = require('../../lib/agent-provider-binding');
 const { selectDeclaredCredential } = require('../../lib/provider-control-manifest');
-const { createEngineeringModel, validateEngineeringBinding } = require('./engineering-model');
+const { createEngineeringModel, credentialFingerprint, validateEngineeringBinding } = require('./engineering-model');
 
 const API_ADAPTER_ID = 'hseos-api-campaign-v1';
 const API_ADAPTER_VERSION = '1.0.0';
@@ -51,9 +51,6 @@ const VENDORS = Object.freeze({
   gemini: { ambient: ['GEMINI_API_KEY', 'GOOGLE_API_KEY'], origins: null, balanceUrl: null },
   openai: { ambient: ['OPENAI_API_KEY'], origins: ['https://api.openai.com', 'https://api.openai.com/v1'], balanceUrl: null },
 });
-function credentialFingerprint(value) {
-  return createHash('sha256').update('hseos-provider-credential-v1\0').update(value).digest('hex');
-}
 function fail(code) {
   throw Object.assign(new Error(code), { code });
 }
