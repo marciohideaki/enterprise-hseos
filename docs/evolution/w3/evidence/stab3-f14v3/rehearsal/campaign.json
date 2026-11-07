@@ -1,0 +1,2749 @@
+{
+  "confirmation_sha256": "5071855b8cabb4ee90390bce73d84f97a4c09434b2874ff4d5a3cf8408c27c46",
+  "mode": "mock",
+  "evidence_kind": "fixture-rehearsal",
+  "model": "gpt-4o",
+  "started_at": "2026-11-07T17:08:46.725Z",
+  "database": {
+    "kind": "fixture-copy",
+    "sha256": "e669e959c8fba78a20a8382c5c01543226da6c486804120d24ff2e80fbd5883d",
+    "bytes": 62492672,
+    "secret_scan": {
+      "clean": true,
+      "hits": 0
+    },
+    "in_repository": false
+  },
+  "boxes": {
+    "notes": [
+      {
+        "task": "invoice",
+        "memory_id": "f14v3-invoice-rule",
+        "content_sha256": "73e57bc4231922a8d7c406416d32580a83597ed47a31ad13d79dbf05d21ee9c0"
+      },
+      {
+        "task": "retry",
+        "memory_id": "f14v3-retry-rule",
+        "content_sha256": "3c63ce4c6824fb15857d5b5abf0dde89685838926af278683bca17dd048eb141"
+      },
+      {
+        "task": "priority",
+        "memory_id": "f14v3-priority-rule",
+        "content_sha256": "4e0d5333da08491dd70688e34632418628e2762643cce7e4ee4a65d35525d20f"
+      }
+    ],
+    "promotions": [
+      {
+        "task": "invoice",
+        "promoted_as": "f14v3-invoice-rule:promoted",
+        "content_sha256": "73e57bc4231922a8d7c406416d32580a83597ed47a31ad13d79dbf05d21ee9c0"
+      },
+      {
+        "task": "retry",
+        "promoted_as": "f14v3-retry-rule:promoted",
+        "content_sha256": "3c63ce4c6824fb15857d5b5abf0dde89685838926af278683bca17dd048eb141"
+      },
+      {
+        "task": "priority",
+        "promoted_as": "f14v3-priority-rule:promoted",
+        "content_sha256": "4e0d5333da08491dd70688e34632418628e2762643cce7e4ee4a65d35525d20f"
+      }
+    ],
+    "db_sha256": {
+      "box_a": "58a75cd6c34083bc6a4b4bab1ba5921525864d8818541fa3a5861c267d75a85b",
+      "box_b": "704cd71bcd1d913363bfa3eca6c9a2a69f103b03f599b791d703af1572b65eee"
+    }
+  },
+  "seed_recorded_before_first_call": true,
+  "schedule": [
+    {
+      "order": 1,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 2,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 3,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 4,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 5,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 6,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 7,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 8,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 9,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 10,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 11,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 12,
+      "task": "retry",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 13,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 14,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 15,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 16,
+      "task": "retry",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 17,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 18,
+      "task": "retry",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 19,
+      "task": "retry",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 20,
+      "task": "retry",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 21,
+      "task": "priority",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 22,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 23,
+      "task": "priority",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 24,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 25,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 26,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 27,
+      "task": "priority",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 28,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 29,
+      "task": "priority",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 30,
+      "task": "priority",
+      "condition": "control",
+      "rep": 5
+    }
+  ],
+  "pilots": [
+    {
+      "task": "invoice",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    },
+    {
+      "task": "retry",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    },
+    {
+      "task": "priority",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    }
+  ],
+  "analysis": {
+    "complete": true,
+    "success": true,
+    "p": 1.2497650441716923e-7,
+    "observed_sum": 15,
+    "per_task": [
+      {
+        "id": "invoice",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      },
+      {
+        "id": "retry",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      },
+      {
+        "id": "priority",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      }
+    ],
+    "thresholds": {
+      "promotedMin": 4,
+      "controlMax": 1,
+      "alpha": 0.05
+    }
+  },
+  "runs": [
+    {
+      "label": "pilot-invoice",
+      "kind": "pilot",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12621,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327625,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "968bd2498a\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://2b1f58d96e7d901bf185389c98ddda71b5b7d92aee213ac43043e7c06a15bc80\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://2b1f58d96e7d901bf185389c98ddda71b5b7d92aee213ac43043e7c06a15bc80\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "c8600012049f3948c993d49f4202b9a90448b68c401e2416d9843de211dca002",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "pilot-retry",
+      "kind": "pilot",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12483,
+        "completion_tokens": 130,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0325075,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "71db16853965\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://3e6d671fa54244c9f4b2aeeae9eb8755e1efc9ededa686c629fbf813dadf515c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3e6d671fa54244c9f4b2aeeae9eb8755e1efc9ededa686c629fbf813dadf515c\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "47e68ece516dc66fbe36cad80578b427f7fea22acee2d2637a1d531e0bdb0107",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 9,
+        "failed": ["a2", "a4", "a5", "a9"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "pilot-priority",
+      "kind": "pilot",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12956,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033909999999999996,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "0a8d991c8\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://1e48fdf026f88a8bc5b34b5362ae03400754b6bafc3f812d53dc5fac190511a9\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://1e48fdf026f88a8bc5b34b5362ae03400754b6bafc3f812d53dc5fac190511a9\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "963eea26acb9db80ef94fb41c63a509042bee779567b31f709e540e591fbb979",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s01-invoice-promoted-1",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7006,
+        "completion_tokens": 143,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.018945,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "76084088e8\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://6d5460decb2b196bef3bbc0d72f21f57af5004349ef2124f99f92dc43992120c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6d5460decb2b196bef3bbc0d72f21f57af5004349ef2124f99f92dc43992120c\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "2bd303edc03ea77662fea3af9e229ffc387d8bd6aff0fcb253ebe57b4fc0edf3",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s02-invoice-promoted-2",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7006,
+        "completion_tokens": 143,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.018945,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "6e673d273c\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://5a024a6226b9b927e0cda723eaa3befd2d1926ea4480f9c62bfd5f75a304749e\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5a024a6226b9b927e0cda723eaa3befd2d1926ea4480f9c62bfd5f75a304749e\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "834031f9a6c84d4735edfde7b96fac95a958dac178051b3a76a6f5fec367004f",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s03-invoice-control-1",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12621,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327625,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "8c2db4abe0\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://3f687a0a8c439e2ac19a762c734c13750f28ffa08abca214021d37457be15732\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3f687a0a8c439e2ac19a762c734c13750f28ffa08abca214021d37457be15732\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "a2d1f615f74101c3666bdc34b61ccfea43b911f1712e527d89deb4d59fdb7256",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s04-invoice-control-2",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12621,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327625,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "ce9834e389\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://ba83e075289198c38d0e3d505f2df91ef546c671460b241078d646dba7c86ea5\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ba83e075289198c38d0e3d505f2df91ef546c671460b241078d646dba7c86ea5\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "02e7d4f1b715b4eac76fd00d68110318a347e1b128705c5ee1307a6dff8a1846",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s05-invoice-promoted-3",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7006,
+        "completion_tokens": 143,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.018945,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "4048eaaf09\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://c8112a1816442fdc5067e81958a00e8617b191719598c6d8f8bd11f64fa1deba\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c8112a1816442fdc5067e81958a00e8617b191719598c6d8f8bd11f64fa1deba\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "0b3ffb17e09be0c115e3d9a8bdca1c596436c7bdcb4a0a7a4c9d7b1df55982ad",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s06-invoice-control-3",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12621,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327625,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "69f0eb785a\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://3f4b42fdd33754e4bd1fdb0ee5c36fda8374ce645a81ef7993f710033fea625f\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3f4b42fdd33754e4bd1fdb0ee5c36fda8374ce645a81ef7993f710033fea625f\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "71bb2cbcd55d16368fd148f59ed875b665afc61e62dee416a23339a5dd6b5e12",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s07-invoice-promoted-4",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7006,
+        "completion_tokens": 143,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.018945,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "11f1985df8\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://43a4dfe5111f9bac2def91178d8ec004e61530023d1149b331983b65453621b6\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://43a4dfe5111f9bac2def91178d8ec004e61530023d1149b331983b65453621b6\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "056c662e181f5c8c49ad12892e594099bf6543eba1da50a83b4c5a503d6c4aae",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s08-invoice-control-4",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12621,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327625,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "8c7668b539\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://b98e9df37cbe4b0cf3f0514bb606756908492f63fee7036c2b4b4e96c82e49b6\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b98e9df37cbe4b0cf3f0514bb606756908492f63fee7036c2b4b4e96c82e49b6\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "81f196987e4cb029de337982286f30db285bdb047f903eddbd3d3f4c26ccad3c",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s09-invoice-promoted-5",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7006,
+        "completion_tokens": 143,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.018945,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "2ad1b824b7\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://cef36dac89d8df66c04ff8d84f820b0ef0f06b81b19f6767e52ab882be6077db\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://cef36dac89d8df66c04ff8d84f820b0ef0f06b81b19f6767e52ab882be6077db\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "fdd222ea86c6123a0228cd75db00f57b416360635e0bd69eae5f854ede52ada7",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s10-invoice-control-5",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12621,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327625,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "4b418587da\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://5e0a02eacd588cc0ff499d92baa41169ea4085bfbd6731fadcfe6c7a32af8c55\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5e0a02eacd588cc0ff499d92baa41169ea4085bfbd6731fadcfe6c7a32af8c55\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "71ac45310aaf4f9e3dfb53a94de7907167769685181555fe2279d2fa8241ffab",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s11-retry-promoted-1",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6776,
+        "completion_tokens": 123,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01817,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "b858c5589e13\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://39ceb831adfee650bc9fd71b2c462a2a984a88ca992bfcb5352c3633f4179d09\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://39ceb831adfee650bc9fd71b2c462a2a984a88ca992bfcb5352c3633f4179d09\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "01c2ba3d46310d58d415a1e9d7f66eb458cb1de4a4999a1a9635db002fa30e23",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s12-retry-control-1",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12483,
+        "completion_tokens": 130,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0325075,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "0a3b866ff374\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://ddadb027b975ad09fd0feb912f2cdcdbf12ab521e93ed794bdd2bf8d94369584\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ddadb027b975ad09fd0feb912f2cdcdbf12ab521e93ed794bdd2bf8d94369584\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "4478c8e02ab48b5d5e3c83f05b392534e75937b1270fe7dd79e26486174bd63f",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 9,
+        "failed": ["a2", "a4", "a5", "a9"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s13-retry-promoted-2",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6776,
+        "completion_tokens": 123,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01817,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "c5781398abf3\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://720b797832c02d6d760fd182719ebde2a844a9f47536ce528ea5551389de3e67\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://720b797832c02d6d760fd182719ebde2a844a9f47536ce528ea5551389de3e67\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "5c0d014e8c5c3f763e34f01f675e3a15a5e8c8ba00471a1422539a44adcc86fa",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s14-retry-promoted-3",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6776,
+        "completion_tokens": 123,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01817,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "8ab5675287a5\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://347fd80afae1225875a2f190658bb0536484bfd1f7a8049afb48d0265e624bab\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://347fd80afae1225875a2f190658bb0536484bfd1f7a8049afb48d0265e624bab\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "95dc25bb9e7cfe14e1919e851ead8aa837a3fe99ef0fa6b5121e303188fbc30e",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s15-retry-promoted-4",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6776,
+        "completion_tokens": 123,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01817,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "9e8155b85d79\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://c0b9f3efbcb5c7d8f8afd4a26ebd0d0bc74667cd9aa55f697b8991949ad28943\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c0b9f3efbcb5c7d8f8afd4a26ebd0d0bc74667cd9aa55f697b8991949ad28943\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "97aa327ce7f420c319ec4f78227a186e7a1e201f3c862e455fa307df77cbd854",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s16-retry-control-2",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12483,
+        "completion_tokens": 130,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0325075,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "bce5e19ce025\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://c1f4e353b716285fe0abd8adc86dde31ef2cc4455a361368a708312d373f0ec1\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c1f4e353b716285fe0abd8adc86dde31ef2cc4455a361368a708312d373f0ec1\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "1dbc5352b507a0824219fbab8b4544c092fa5fdc7c2204024945840205efd053",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 9,
+        "failed": ["a2", "a4", "a5", "a9"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s17-retry-promoted-5",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6776,
+        "completion_tokens": 123,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01817,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "ef4801d9c791\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://75715424601b45cbf532fede3feef3bc58c7add1cdefabe56c635d299a9365d5\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://75715424601b45cbf532fede3feef3bc58c7add1cdefabe56c635d299a9365d5\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "aabd7aa836636de796ccc76f3f8fad7e04a660bbcf9ea29623bee97f7d572c36",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s18-retry-control-3",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12483,
+        "completion_tokens": 130,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0325075,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "d6291da0df91\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://f0a6f29e5f34eaa81de0ea2d85e5a2d86e369f668c44f27ef8c7d0a133415e61\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f0a6f29e5f34eaa81de0ea2d85e5a2d86e369f668c44f27ef8c7d0a133415e61\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "dc83ac0560dd97500f7b49b3f60563371c79fbc9c161d29218869c8325897735",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 9,
+        "failed": ["a2", "a4", "a5", "a9"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s19-retry-control-4",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12483,
+        "completion_tokens": 130,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0325075,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "9361df382e0b\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://27efb8e52abd5b8a089e9ffd79a6a678a6edd759d461e0a93ee8d75f8545ddaf\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://27efb8e52abd5b8a089e9ffd79a6a678a6edd759d461e0a93ee8d75f8545ddaf\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "5a5c65859b2139ce133eed988774eb2f936e964e10318d37628e58b703e8543b",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 9,
+        "failed": ["a2", "a4", "a5", "a9"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s20-retry-control-5",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12483,
+        "completion_tokens": 130,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0325075,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "c84233bc37d2\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://1644ea0aba03273a0e8a551d1e5971b519f7a325141cb3ec6e1edd0fcf3b43b3\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://1644ea0aba03273a0e8a551d1e5971b519f7a325141cb3ec6e1edd0fcf3b43b3\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "78b7ad8b7e2d9dbd73826133e7be20b960e7f1cd2aa4cdca9cc1399e00c2e6f9",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 9,
+        "failed": ["a2", "a4", "a5", "a9"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s21-priority-control-1",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12956,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033909999999999996,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "59b4593fa\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://ad2d5f78428a879711697b93a2f24c51e336f29351609f5d23b2e05f8fd77e3a\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ad2d5f78428a879711697b93a2f24c51e336f29351609f5d23b2e05f8fd77e3a\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "0506e22d663f0907b5f2d9e7f6089883affcf3fd029356b493616e698cda4838",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s22-priority-promoted-1",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6979,
+        "completion_tokens": 149,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0189375,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "4bbbc6f1d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://b65987b1a13d0122e953b366dc0b04a2be0858236df7e17463e439ad7ce50a4d\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b65987b1a13d0122e953b366dc0b04a2be0858236df7e17463e439ad7ce50a4d\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "a529523a92c466db30f75a9bb4e667bf2c798ea362ec7144068c4cc713896d7c",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s23-priority-control-2",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12956,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033909999999999996,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "eb224855e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://a7ae5516f6569fc1df7a8ee52c391f589149f8eddaea36571236c960a39f638f\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://a7ae5516f6569fc1df7a8ee52c391f589149f8eddaea36571236c960a39f638f\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "3cbd58cd60f04709f89e9f933b2c89a0c19253a303e82556772b373499152fac",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s24-priority-promoted-2",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6979,
+        "completion_tokens": 149,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0189375,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "3b4634498\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://8bea22d6df342c660cf39f0ecddae1f08c38daa4f509e6d6f9b1e48c3c8803b7\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://8bea22d6df342c660cf39f0ecddae1f08c38daa4f509e6d6f9b1e48c3c8803b7\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "ea5204d081aced0aa32a67a8878c0edb89b63fb5419b7b93027764ed74868774",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s25-priority-promoted-3",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6979,
+        "completion_tokens": 149,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0189375,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "6c221109d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://d30859109b682d44fa4b2158bc75b59011b955f431eff9da029220f0e1d13eb7\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d30859109b682d44fa4b2158bc75b59011b955f431eff9da029220f0e1d13eb7\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "b1f8f59f70622830ba6b4425f42b2f0cdf68f38d05bd27562992ba1a013e477c",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s26-priority-promoted-4",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6979,
+        "completion_tokens": 149,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0189375,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "f29333d70\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://f3f829522c2daddab71ac4827b20187210b1021398fea6402ef6ac40bc335413\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f3f829522c2daddab71ac4827b20187210b1021398fea6402ef6ac40bc335413\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "ef3b7eb054a7ce0e12f84e7d481bf1d0338779156fd79c8c8250aea9f72b95d2",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s27-priority-control-3",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12956,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033909999999999996,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "a4c18689a\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://93b35a191d32858227a98796686c065d8712b3c219aa9a216de34caddebbbe35\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://93b35a191d32858227a98796686c065d8712b3c219aa9a216de34caddebbbe35\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "db9a2f97a072504fe2cb5331c4e961084792c9ce80e24bb897eb55c5b5605cad",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s28-priority-promoted-5",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6979,
+        "completion_tokens": 149,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0189375,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "1e17970bd\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://6c0ec6dfb09dc7aba7bef35dfe30ca551938834754cc7e54e067aca3a3054a75\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6c0ec6dfb09dc7aba7bef35dfe30ca551938834754cc7e54e067aca3a3054a75\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "77c57216aaaef9228873c19305a01fae7f175f34a248373b3d454725239a8468",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s29-priority-control-4",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12956,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033909999999999996,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "25c766eb0\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://aa5118e4c6c18f4c95103656b5b66923f258f4ae989108e0f0da3c9758e01633\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://aa5118e4c6c18f4c95103656b5b66923f258f4ae989108e0f0da3c9758e01633\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "a7ad846291ca974241a00f0bdb616b0f4553ebfab9bc5083f19801ff2fda7041",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s30-priority-control-5",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12956,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033909999999999996,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o"],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "8227fa1f8\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://428cca7401f87cf15a9aa9cc7f86c58d07e6c4b6d3f5f8ee38d24bbbe09c7b9a\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://428cca7401f87cf15a9aa9cc7f86c58d07e6c4b6d3f5f8ee38d24bbbe09c7b9a\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "3a2bc4ac161e22e0fa51244750a69b586c200db06588d15f20478856aff2baf6",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    }
+  ],
+  "totals": {
+    "runs": 33,
+    "series_runs": 30,
+    "cost_usd_estimate": 0.8753425000000005,
+    "requests": 135,
+    "prompt_tokens": 332165,
+    "completion_tokens": 4493,
+    "price_declared_usd_per_million": {
+      "in": 2.5,
+      "out": 10
+    }
+  },
+  "protocol_issues": [],
+  "verdict": "CRITERION MET",
+  "limits": {
+    "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
+    "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
+    "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
+    "requests_per_run_cap": 8
+  },
+  "finished_at": "2026-11-07T17:10:14.542Z",
+  "artifact_scan": {
+    "clean": true,
+    "files": 101,
+    "flagged": []
+  }
+}

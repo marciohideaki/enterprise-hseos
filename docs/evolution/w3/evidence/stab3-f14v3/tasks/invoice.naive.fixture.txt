@@ -1,0 +1,5 @@
+function formatInvoiceId(seq, date) {
+  const year = String(date).slice(0, 4);
+  return `INV-${year}-${String(seq).padStart(5, '0')}`;
+}
+module.exports = formatInvoiceId;

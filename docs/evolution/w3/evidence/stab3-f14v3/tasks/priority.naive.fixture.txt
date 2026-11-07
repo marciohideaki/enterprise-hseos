@@ -1,0 +1,7 @@
+const BY_SEVERITY = { critical: 'P1', high: 'P2', medium: 'P3', low: 'P4' };
+function classifyPriority(ticket) {
+  const priority = BY_SEVERITY[ticket.severity];
+  if (!priority) throw new Error(`unknown severity: ${ticket.severity}`);
+  return priority;
+}
+module.exports = classifyPriority;

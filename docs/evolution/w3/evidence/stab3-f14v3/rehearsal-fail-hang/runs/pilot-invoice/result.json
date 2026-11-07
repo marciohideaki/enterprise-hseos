@@ -1,0 +1,32 @@
+{
+  "label": "pilot-invoice",
+  "kind": "pilot",
+  "task": "invoice",
+  "condition": "control",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": null,
+  "task_result": null,
+  "reason": null,
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "interrupted_request": true,
+  "usage": {
+    "requests": 1,
+    "unreadable_requests": 1,
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "cached_tokens": 0,
+    "complete": false
+  },
+  "cost_usd": 0.26024,
+  "stop_reason": "interrupted-timeout",
+  "responding_models": [],
+  "protected": {
+    "pass": false,
+    "passed": 0,
+    "total": 5,
+    "failed": ["no-final-write"]
+  },
+  "product_verifier_approved": false,
+  "success": false
+}
