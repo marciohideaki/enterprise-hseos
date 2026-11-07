@@ -1,0 +1,81 @@
+{
+  "schema": "f14v3-plan/1",
+  "registered_in": "docs/evolution/w3/stab2/T4.md (F14 v3)",
+  "hypothesis": "Promoted memory delivered by the production agent run with source_db changes the task result, as judged by the protected tests.",
+  "model": "gpt-4o",
+  "tasks": [
+    {
+      "id": "invoice",
+      "file": "invoice.js",
+      "project_id": "f14v3-invoice",
+      "memory_id": "f14v3-invoice-rule",
+      "protected_cases": 5
+    },
+    {
+      "id": "retry",
+      "file": "retry.js",
+      "project_id": "f14v3-retry",
+      "memory_id": "f14v3-retry-rule",
+      "protected_cases": 9
+    },
+    {
+      "id": "priority",
+      "file": "priority.js",
+      "project_id": "f14v3-priority",
+      "memory_id": "f14v3-priority-rule",
+      "protected_cases": 8
+    }
+  ],
+  "n_per_task_per_condition": 5,
+  "conditions": {
+    "control": "box A: note written, NOT promoted",
+    "promoted": "box B: same note promoted through the operator promotion API"
+  },
+  "pilots": {
+    "per_task": 1,
+    "condition": "control",
+    "rule": "a pilot that passes the protected tests rejects the task; the series then cannot run"
+  },
+  "series_runs": 30,
+  "total_runs": 33,
+  "seed": {
+    "drawn": "at campaign start, from the OS entropy source",
+    "recorded_in": "<out>/seed.json",
+    "recorded_before_first_call": true,
+    "value": null
+  },
+  "order": "per task a seeded Fisher-Yates shuffle of 5 control + 5 promoted runs; task order also shuffled; pilots first",
+  "analysis": {
+    "unit": "task",
+    "test": "exact conditional stratified (convolution of hypergeometrics), two-sided, p = sum of probabilities <= observed",
+    "pooled_fisher": "forbidden",
+    "success": "in EVERY task promoted >= 4/5 and control <= 1/5, AND p < 0.05",
+    "preregistered_examples": {
+      "4/5 x 1/5 in all three": 0.0041,
+      "3/5 x 1/5 in all three": 0.0708
+    }
+  },
+  "budget": {
+    "ceiling_usd": 3,
+    "stop_fraction": 0.8,
+    "price_usd_per_million": {
+      "in": 2.5,
+      "out": 10
+    },
+    "price_rule": "real mode needs --price-in and --price-out explicitly (finite, > 0) and equal to this registered price; otherwise it aborts before the first call. There is no built-in price for real mode",
+    "price_note": "operator-declared USD per million tokens; cached input charged at the input price; an estimate, not an invoice",
+    "max_requests_per_run": 8,
+    "max_requests_note": "the rehearsal needs at most 5 requests per run (write, check, answer plus context); 8 leaves 3 of slack. A run that needs more fails as cap-reached instead of spending without a bound",
+    "per_request_check": "before each call: spent + worst-case projection (body bytes / 3 as tokens + max_tokens at the output price) > ceiling refuses the call",
+    "unreadable_usage": "the first request with unreadable usage ends the run as usage-unreadable and the campaign stops; the call is charged at the worst-case projection",
+    "interrupted_request": "a request cut by the 280 s timeout is charged with the declared context window as input plus max_tokens as output and is written to the request log",
+    "declared_context_tokens": 100000
+  },
+  "confirmation": {
+    "env": "F14V3_REAL_CONFIRMED",
+    "rule": "real mode runs only when the variable equals the hash printed by `f14v3.cjs --print-confirmation`; otherwise BLOCKED before any call",
+    "covers": "this plan, the prices, the protected cases and the content of the scripts listed in confirmation.cjs (GATED_FILES); not the rehearsal results"
+  },
+  "stop": "failed series ends the campaign with no extra round; spend at 80% of the ceiling stops and reports",
+  "credential": "read from an environment variable the operator provides at execution time; never from pass; never written or printed"
+}

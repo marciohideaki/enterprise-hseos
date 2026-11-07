@@ -1,0 +1,78 @@
+{
+  "label": "s02-invoice-promoted-2",
+  "kind": "series",
+  "task": "invoice",
+  "condition": "promoted",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 0,
+  "task_result": "approved",
+  "reason": "criteria-satisfied",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 3,
+    "unreadable_requests": 0,
+    "prompt_tokens": 7006,
+    "completion_tokens": 143,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.018945,
+  "stop_reason": null,
+  "responding_models": ["gpt-4o"],
+  "replay": {
+    "ok": true,
+    "session_events": 22,
+    "tool_invocations": 2,
+    "note_in_context": true,
+    "memory_sources": [
+      {
+        "trust": "trusted",
+        "authority": "data",
+        "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+      }
+    ]
+  },
+  "tool_outcomes": [
+    "6e673d273c\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://5a024a6226b9b927e0cda723eaa3befd2d1926ea4480f9c62bfd5f75a304749e\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5a024a6226b9b927e0cda723eaa3befd2d1926ea4480f9c62bfd5f75a304749e\"],\"warnings\":[],\"replayed\":false}"
+  ],
+  "drain": {
+    "started": 2,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "pass",
+    "failures": [],
+    "summarizer_exit": 0,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": true,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": ["gpt-4o"],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 3,
+      "requests_verified": 3,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "state_sha256": "834031f9a6c84d4735edfde7b96fac95a958dac178051b3a76a6f5fec367004f",
+  "protected": {
+    "pass": true,
+    "passed": 5,
+    "total": 5,
+    "failed": []
+  },
+  "product_verifier_approved": true,
+  "success": true
+}
