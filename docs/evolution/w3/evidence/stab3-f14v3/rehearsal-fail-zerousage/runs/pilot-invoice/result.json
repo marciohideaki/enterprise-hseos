@@ -1,0 +1,69 @@
+{
+  "label": "pilot-invoice",
+  "kind": "pilot",
+  "task": "invoice",
+  "condition": "control",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 1,
+  "task_result": "failed",
+  "reason": "session-failed:provider_unavailable",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 1,
+    "unreadable_requests": 0,
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.016635,
+  "stop_reason": "usage-unreadable",
+  "responding_models": ["gpt-4o"],
+  "replay": {
+    "ok": true,
+    "session_events": 6,
+    "tool_invocations": 0,
+    "note_in_context": false,
+    "memory_sources": []
+  },
+  "tool_outcomes": [],
+  "drain": {
+    "started": 0,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "unknown",
+    "failures": ["backend-not-verified", "requests-not-all-verified"],
+    "summarizer_exit": 1,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": false,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": [],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 1,
+      "requests_verified": 0,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "state_sha256": "a687d01738637830e412efd014637727ca9b160e524a92bd2b8ac9ee7e92014b",
+  "protected": {
+    "pass": false,
+    "passed": 0,
+    "total": 5,
+    "failed": ["no-final-write"]
+  },
+  "product_verifier_approved": false,
+  "success": false
+}

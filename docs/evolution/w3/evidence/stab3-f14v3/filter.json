@@ -1,0 +1,57 @@
+{
+  "filter": "i-naive-fails-correct-passes",
+  "accepted": true,
+  "tasks": [
+    {
+      "id": "invoice",
+      "naive": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "correct": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "stub_fails": true,
+      "accepted": true
+    },
+    {
+      "id": "retry",
+      "naive": {
+        "pass": false,
+        "passed": 5,
+        "total": 9,
+        "failed": ["a2", "a4", "a5", "a9"]
+      },
+      "correct": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "stub_fails": true,
+      "accepted": true
+    },
+    {
+      "id": "priority",
+      "naive": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+      },
+      "correct": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "stub_fails": true,
+      "accepted": true
+    }
+  ]
+}
