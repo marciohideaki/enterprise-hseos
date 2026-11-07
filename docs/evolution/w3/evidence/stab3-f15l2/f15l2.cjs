@@ -51,6 +51,14 @@ const fingerprintFor = (root) => lib.campaignFingerprint([...FINGERPRINT_FILES, 
 let CAMPAIGN_SHA256 = null; // computed from the root the run uses (main) or the root given to --fingerprint
 const PROFILE = 'disposable-engineering-candidate';
 
+/** The only door to Podman. Real by default; a test may inject a fake with F15L2_PODMAN_EXECUTOR (module path), and only under F15L2_TEST_MODE=1. */
+const realPodman = {
+  inspect: (ref) => execFileSync('podman', ['image', 'inspect', '--format', '{{.Id}}|{{json .RepoDigests}}', ref], { encoding: 'utf8' }),
+  run: ({ args, runChild, env, timeout }) =>
+    runChild('heavy-run', ['--mem', '4G', '--wait-max', '1500', '--', 'podman', ...args], { env, timeout }),
+  rm: (name) => spawnSync('podman', ['rm', '-f', name], { stdio: 'ignore' }),
+};
+
 function findKey(value, key) {
   if (!value || typeof value !== 'object') return;
   if (value[key] && typeof value[key] === 'object') return value[key];
@@ -140,6 +148,7 @@ async function main(options) {
   const { root: ROOT, mode: MODE, out: OUT } = options;
   CAMPAIGN_SHA256 = fingerprintFor(ROOT);
   const TEST_MODE = process.env.F15L2_TEST_MODE === '1';
+  const podman = TEST_MODE && process.env.F15L2_PODMAN_EXECUTOR ? require(process.env.F15L2_PODMAN_EXECUTOR) : realPodman;
   if (MODE === 'real') {
     if (!process.env.F15L2_API_KEY) return blocked('operator-credential-missing: set F15L2_API_KEY in the environment');
     if (process.env.F15L2_REAL_CONFIRMED !== CAMPAIGN_SHA256)
@@ -197,7 +206,7 @@ async function main(options) {
   let aborted = null;
   const knownHashes = [];
   const removeContainers = () => {
-    for (const name of containers) spawnSync('podman', ['rm', '-f', name], { stdio: 'ignore' });
+    for (const name of containers) podman.rm(name);
     containers.clear();
   };
   const removeScratch = () => {
@@ -688,13 +697,7 @@ activation:
   async function runWholeFile(caseDir, id) {
     const image = (() => {
       try {
-        const [imageId, repoDigests] = execFileSync(
-          'podman',
-          ['image', 'inspect', '--format', '{{.Id}}|{{json .RepoDigests}}', `${PLAN.verifier_image.name}@${PLAN.verifier_image.digest}`],
-          { encoding: 'utf8' },
-        )
-          .trim()
-          .split('|');
+        const [imageId, repoDigests] = podman.inspect(`${PLAN.verifier_image.name}@${PLAN.verifier_image.digest}`).trim().split('|');
         return {
           image_id: imageId,
           expected_digest_is_a_repo_digest: JSON.parse(repoDigests).some((item) => item.endsWith(`@${PLAN.verifier_image.digest}`)),
@@ -706,23 +709,13 @@ activation:
     const name = `f15l2-${id}-${process.pid}`;
     execFileSync('chmod', ['-R', 'a+rX', caseDir]);
     containers.add(name);
-    const run = await runChild(
-      'heavy-run',
-      [
-        '--mem',
-        '4G',
-        '--wait-max',
-        '1500',
-        '--',
-        'podman',
-        ...lib.podmanArgs({ image: `${PLAN.verifier_image.name}@${PLAN.verifier_image.digest}`, name, bundle, caseDir }),
-      ],
-      {
-        env: { PATH: process.env.PATH, HOME: process.env.HOME, TMPDIR: TMP, XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR },
-        timeout: 1_800_000,
-      },
-    );
-    spawnSync('podman', ['rm', '-f', name], { stdio: 'ignore' });
+    const run = await podman.run({
+      args: lib.podmanArgs({ image: `${PLAN.verifier_image.name}@${PLAN.verifier_image.digest}`, name, bundle, caseDir }),
+      runChild,
+      env: { PATH: process.env.PATH, HOME: process.env.HOME, TMPDIR: TMP, XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR },
+      timeout: 1_800_000,
+    });
+    podman.rm(name);
     containers.delete(name);
     if (aborted) throw Object.assign(new Error(`F15L2_ABORTED:${aborted.signal}`), { code: 'F15L2_ABORTED' });
     let parsed = null;

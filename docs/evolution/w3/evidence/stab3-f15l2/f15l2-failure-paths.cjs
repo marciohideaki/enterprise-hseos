@@ -21,7 +21,13 @@ function run(script, args, { env = {}, root } = {}) {
 }
 
 /** Starts the script, waits for `until()`, sends the signal, resolves with the exit code and what is left behind. */
-function signalCase({ script, root, work, signal, until, tmp }) {
+/** Containers named f15l2-* that are still around. Real Podman by default; the CI test injects a stub because Podman cannot run there. */
+const realListContainers = () =>
+  spawnSync('podman', ['ps', '-a', '--format', '{{.Names}}'], { encoding: 'utf8' })
+    .stdout.split('\n')
+    .filter((name) => name.startsWith('f15l2-'));
+
+function signalCase({ script, root, work, signal, until, tmp, listContainers }) {
   return new Promise((resolve) => {
     const out = path.join(work, 'out');
     fs.mkdirSync(out, { recursive: true });
@@ -43,9 +49,7 @@ function signalCase({ script, root, work, signal, until, tmp }) {
     child.on('close', (code, closeSignal) => {
       clearInterval(poll);
       clearTimeout(guard);
-      const containers = spawnSync('podman', ['ps', '-a', '--format', '{{.Names}}'], { encoding: 'utf8' })
-        .stdout.split('\n')
-        .filter((name) => name.startsWith('f15l2-'));
+      const containers = listContainers();
       resolve({ code, closeSignal, sent, stderr_tail: stderr, left_in_tmpdir: fs.readdirSync(tmp), containers_left: containers });
     });
   });
@@ -69,7 +73,7 @@ function runAsync(script, args, env) {
   });
 }
 
-async function runCases({ root, work, only = null, scriptDir = HERE }) {
+async function runCases({ root, work, only = null, scriptDir = HERE, listContainers = realListContainers }) {
   const SCRIPT = path.join(scriptDir, 'f15l2.cjs');
   const want = (key) => !only || only.includes(key);
   fs.mkdirSync(work, { recursive: true });
@@ -236,6 +240,7 @@ async function runCases({ root, work, only = null, scriptDir = HERE }) {
     // 6. signals: exit code, scratch, bundle, states and containers all removed
     const sigterm = await signalCase({
       script: SCRIPT,
+      listContainers,
       root,
       work: path.join(work, 'sigterm'),
       signal: 'SIGTERM',
@@ -262,6 +267,7 @@ async function runCases({ root, work, only = null, scriptDir = HERE }) {
       });
     const sigint = await signalCase({
       script: SCRIPT,
+      listContainers,
       root,
       work: path.join(work, 'sigint'),
       signal: 'SIGINT',

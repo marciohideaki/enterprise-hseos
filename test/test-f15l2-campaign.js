@@ -401,10 +401,100 @@ test('failure paths: invalid price, non-SSE, timeout, per-request cap, test mode
   const { runCases } = require(path.join(DIR, 'f15l2-failure-paths.cjs'));
   const work = scratch();
   try {
-    const cases = await runCases({ root: REPO, work, only: ['price', 'non-sse', 'timeout', 'per-request', 'test-mode', 'sigterm'] });
+    // No Podman here: the container listing is stubbed (the real one runs only in the integration test below).
+    const cases = await runCases({
+      root: REPO,
+      work,
+      only: ['price', 'non-sse', 'timeout', 'per-request', 'test-mode', 'sigterm'],
+      listContainers: () => [],
+    });
     assert.equal(cases.length, 7);
     for (const item of cases) assert.equal(item.ok, true, `${item.case}: ${JSON.stringify(item.details).slice(0, 300)}`);
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
   }
 });
+
+const FAKE_PODMAN = path.join(__dirname, 'fixtures/f15l2-fake-podman.cjs');
+
+test('the whole-file verification goes through an injectable Podman executor; the CI test never starts a real Podman', () => {
+  const work = scratch();
+  try {
+    const record = path.join(work, 'podman-record.jsonl');
+    const out = path.join(work, 'out');
+    // PATH holds only node, cp and chmod: `podman` and `heavy-run` are not even findable, so a call that bypassed the executor would fail.
+    const bin = path.join(work, 'bin');
+    fs.mkdirSync(bin);
+    for (const tool of ['node', 'cp', 'chmod']) {
+      const found = (tool === 'node' ? [path.dirname(process.execPath)] : process.env.PATH.split(path.delimiter))
+        .map((dir) => path.join(dir, tool))
+        .find((file) => fs.existsSync(file));
+      fs.symlinkSync(found, path.join(bin, tool));
+    }
+    const result = spawnSync(process.execPath, [path.join(DIR, 'f15l2.cjs'), REPO, 'fixture', out, '--runs', '1'], {
+      encoding: 'utf8',
+      env: {
+        PATH: bin,
+        HOME: process.env.HOME,
+        TMPDIR: work,
+        F15L2_TEST_MODE: '1',
+        F15L2_PODMAN_EXECUTOR: FAKE_PODMAN,
+        F15L2_PODMAN_RECORD: record,
+      },
+    });
+    assert.equal(result.status, 1, result.stderr); // one run only: the criterion series is INCOMPLETE, which exits 1
+    const calls = fs
+      .readFileSync(record, 'utf8')
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+    const runs = calls.filter((call) => call.call === 'run');
+    assert.equal(runs.length, 1);
+    assert.deepEqual(runs[0].problems, []);
+    const args = runs[0].args;
+    const at = (flag) => args[args.indexOf(flag) + 1];
+    for (const flag of ['--network=none', '--cap-drop=ALL', '--pull=never', '--read-only']) assert.ok(args.includes(flag), flag);
+    assert.match(at('--user'), /^[1-9]\d*:\d+$/);
+    assert.equal(at('--security-opt'), 'no-new-privileges');
+    assert.ok(Number(at('--pids-limit')) > 0);
+    assert.ok(args.some((item) => item.endsWith('@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5')));
+    assert.ok(calls.some((call) => call.call === 'inspect'));
+    assert.ok(calls.some((call) => call.call === 'rm'));
+    const run = JSON.parse(fs.readFileSync(path.join(out, 'runs/t2800-1/run.json'), 'utf8'));
+    assert.equal(run.stages.whole_file_pass, true, JSON.stringify(run.whole_file));
+    // The stand-in cannot isolate the network and says so: this test proves the arguments and the plumbing, not the container.
+    assert.equal(run.whole_file.accepted_no_network_isolation, true);
+  } finally {
+    fs.rmSync(work, { recursive: true, force: true });
+  }
+});
+
+// Real Podman. NOT run in CI (a rootless Podman leaves `catatonit -P` alive and the orphan detector fails the suite).
+// Locally:  F15L2_PODMAN_INTEGRATION=1 node --test test/test-f15l2-campaign.js
+test(
+  'integration: the real Podman verifies the whole file and SIGINT removes the container',
+  { skip: process.env.F15L2_PODMAN_INTEGRATION !== '1' },
+  async () => {
+    const work = scratch();
+    try {
+      const out = path.join(work, 'out');
+      const result = spawnSync(
+        'heavy-run',
+        ['--mem', '4G', '--wait-max', '1500', '--', process.execPath, path.join(DIR, 'f15l2.cjs'), REPO, 'fixture', out, '--runs', '1'],
+        {
+          encoding: 'utf8',
+          env: { PATH: process.env.PATH, HOME: process.env.HOME, XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR, TMPDIR: work },
+        },
+      );
+      assert.equal(result.status, 1, result.stderr);
+      const run = JSON.parse(fs.readFileSync(path.join(out, 'runs/t2800-1/run.json'), 'utf8'));
+      assert.equal(run.stages.whole_file_pass, true);
+      assert.equal(run.whole_file.network_isolation, 'namespace');
+      const { runCases } = require(path.join(DIR, 'f15l2-failure-paths.cjs'));
+      const cases = await runCases({ root: REPO, work: path.join(work, 'cases'), only: ['sigint'] });
+      assert.equal(cases[0].ok, true, JSON.stringify(cases[0].details));
+    } finally {
+      fs.rmSync(work, { recursive: true, force: true });
+    }
+  },
+);
