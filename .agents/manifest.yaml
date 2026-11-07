@@ -24,7 +24,7 @@ platforms:
   - codex
   - goose
 counts:
-  skills: 53
+  skills: 54
   hooks: 47
   commands: 9
   handlers: 30
@@ -171,6 +171,11 @@ skills:
     quick: .enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md
     output: .agents/skills/inter-agent-comms/SKILL.md
     hash: 85f0101fc771fe9604d7ddeeebc291a9bd9456acb11430acc1bb6ce5b640d1aa
+  - name: legacy-code-review
+    source: .enterprise/governance/agent-skills/legacy-code-review/SKILL.md
+    quick: .enterprise/governance/agent-skills/legacy-code-review/SKILL-QUICK.md
+    output: .agents/skills/legacy-code-review/SKILL.md
+    hash: 742df579271c8f8efd981c0afa6c303502da9ebc8f91b948884ca6978eff20a0
   - name: mcp-governance
     source: .enterprise/governance/agent-skills/mcp-governance/SKILL.md
     quick: .enterprise/governance/agent-skills/mcp-governance/SKILL-QUICK.md

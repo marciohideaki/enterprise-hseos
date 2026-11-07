@@ -128,11 +128,13 @@ test('published package exposes runtime and governance assets only', () => {
   // tools 4, packages 2, .agents 1, src 1, .hseos 1. The area budgets sum to the ceiling, so none can grow at the
   // expense of another without an explicit change here. The owner approved .hseos 64 and the ceiling 1556 on
   // 2026-10-12 (G3) for the W5 liveness and coordination contracts.
+  // The owner approved moving 2 entries from src (250 to 248) to .agents (205 to 207) on 2026-11-06 for the
+  // legacy-code-review skill mirror. The ceiling did not change.
   const areaBudgets = {
     '.enterprise': 472,
     tools: 393,
-    src: 250,
-    '.agents': 205,
+    src: 248,
+    '.agents': 207,
     packages: 137,
     '.hseos': 64,
     scripts: 21,
