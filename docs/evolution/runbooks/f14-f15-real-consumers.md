@@ -125,3 +125,13 @@ Passos: repetir a jornada da seção 1 com `--binding` no lugar de `--scripted-r
 ### 6. Teto
 
 Teto padrão: o definido pelo owner na autorização da campanha; sem autorização o ensaio real fica **BLOCKED**. Uma única tarefa, uma janela reduzida, no máximo uma compactação, um crash, um fork. Qualquer falha encerra o ensaio sem repetir a chamada paga automaticamente.
+
+## Sonda da janela efetiva (campanha)
+
+Antes de afirmar que a janela declarada de um binding serve, registre no recibo a janela do modelo, o contexto efetivo do backend (para o servidor local, `ollama ps` com o modelo carregado) e o maior pedido enviado:
+
+```bash
+node docs/evolution/w3/evidence/shared/summarize-window.cjs <dir-da-campanha> --declared N --max-output N --effective N --model-window N
+```
+
+O comando lê `body_bytes` de `provider-requests.jsonl` e avalia `backend-window.cjs`. O veredito só é `pass` com as três medições válidas (inteiros positivos): contexto efetivo, janela do modelo e maior pedido. Qualquer uma ausente ou inválida resulta em `unknown` (nunca aprovado, exit 1); isso inclui log vazio e log sem nenhuma linha com `body_bytes`. Reprova se a declaração excede o contexto efetivo ou a janela do modelo, se o maior pedido em bytes mais a saída máxima excede a janela declarada, ou se a saída máxima é inválida. Diretório sem `provider-requests.jsonl` falha com erro. Vale só para a campanha; a admissão não consulta o backend.
