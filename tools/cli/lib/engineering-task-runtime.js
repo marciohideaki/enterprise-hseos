@@ -123,7 +123,11 @@ function getEngineeringModelManifest() {
   };
 }
 
-function assemble(handle, created, { environment, fetchImpl, extensionCatalog = {}, campaigns, resourceId, environmentHost } = {}) {
+function assemble(
+  handle,
+  created,
+  { environment, fetchImpl, extensionCatalog = {}, controlManifest, campaigns, resourceId, environmentHost } = {},
+) {
   require('../../mcp-project-state/lib/execution-ledger-schema').assertExecutionLedgerView(handle.db, handle.directory);
   const { contract, responses, session_id: sessionId, deadline } = created;
   const responseOrigin = created.response_source?.ref || 'scripted://engineering';
@@ -302,6 +306,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
           deadline,
           environment,
           fetchImpl,
+          manifest: controlManifest,
         })
       : null;
   const guardedModels = new ModelProviderRegistry();
@@ -632,6 +637,7 @@ async function runEngineeringTask({
   environment,
   fetchImpl,
   extensionCatalog = {},
+  controlManifest,
   extensionIds = [],
   pluginModel,
   campaigns,
@@ -715,7 +721,15 @@ async function runEngineeringTask({
     // is blocked there. Accepting a host requires the contract to be admitted (the read above admits by default).
     if (contract.environment && !environmentHost)
       throw Object.assign(new Error('ENGINEERING_ENVIRONMENT_HOST_REQUIRED'), { code: 'ENGINEERING_ENVIRONMENT_HOST_REQUIRED' });
-    assembly = assemble(handle, created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
+    assembly = assemble(handle, created, {
+      environment,
+      fetchImpl,
+      extensionCatalog,
+      controlManifest,
+      campaigns,
+      resourceId,
+      environmentHost,
+    });
     await attestExecutor(assembly.policy, created.deadline);
     await assembly.runtime.create({
       schema_version: 1,
@@ -848,6 +862,7 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
         evidence: {
           ...verified,
           ...overBudgetEvidence(ended, contract),
+          ...(assembly.modelConnection?.proof ? { provider_proof: assembly.modelConnection.proof() } : {}),
           schema_version: 1,
           contract_sha256: created.contract_sha256,
           session_id: created.session_id,
@@ -901,6 +916,7 @@ async function inspectEngineeringTask({
   fetchImpl,
   reconciliationDecision,
   extensionCatalog = {},
+  controlManifest,
   campaigns,
   resourceId,
   environmentHost,
@@ -933,7 +949,15 @@ async function inspectEngineeringTask({
         directory: handle.directory,
       });
     if (action === 'reconcile') {
-      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
+      assembly = assemble(handle, state.created, {
+        environment,
+        fetchImpl,
+        extensionCatalog,
+        controlManifest,
+        campaigns,
+        resourceId,
+        environmentHost,
+      });
       const { report } = await require('./engineering-reconciliation').inspectReconciliation(task, assembly, attestExecutor);
       return { ...summary(handle, id, task, assembly), reconciliation: report, questions: report.questions };
     }
@@ -944,7 +968,15 @@ async function inspectEngineeringTask({
       if (action === 'cancel') {
         if (state.owner && !isExecutorOwnerAlive(state.owner)) {
           await reapExecutorOwner(state.owner);
-          assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
+          assembly = assemble(handle, state.created, {
+            environment,
+            fetchImpl,
+            extensionCatalog,
+            controlManifest,
+            campaigns,
+            resourceId,
+            environmentHost,
+          });
           await assembly.runtime.cancel({
             schema_version: 1,
             command: 'cancel',
@@ -964,7 +996,15 @@ async function inspectEngineeringTask({
         if (task.read().result) return summary(handle, id, task);
         return { ...summary(handle, id, task), task_result: 'blocked', reason: 'cancellation-unconfirmed' };
       }
-      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
+      assembly = assemble(handle, state.created, {
+        environment,
+        fetchImpl,
+        extensionCatalog,
+        controlManifest,
+        campaigns,
+        resourceId,
+        environmentHost,
+      });
       const { inspectReconciliation, applyReconciliation } = require('./engineering-reconciliation');
       const inspected = await inspectReconciliation(task, assembly, attestExecutor);
       if (!inspected.report.prerequisites_verified || (inspected.report.questions.length > 0 && !reconciliationDecision))
@@ -991,7 +1031,15 @@ async function inspectEngineeringTask({
       return summary(handle, id, task, assembly);
     }
 
-    assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
+    assembly = assemble(handle, state.created, {
+      environment,
+      fetchImpl,
+      extensionCatalog,
+      controlManifest,
+      campaigns,
+      resourceId,
+      environmentHost,
+    });
     if (action === 'cancel') {
       await assembly.runtime.cancel({
         schema_version: 1,
