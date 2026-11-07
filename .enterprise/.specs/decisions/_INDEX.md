@@ -115,3 +115,5 @@ The following entries are ADR templates or placeholders for optional activation.
 - [ADR-0050 — Critério de certificação de bindings de provider e aceite da quarta família](ADR-0050-provider-binding-certification-criterion.md) — Accepted (2026-10-31); define níveis L0-L3, o que conta para F08/F17/F18 e a autorização por campanha; admite `verified_api_campaign_scope_only` em `real_consumers`; não autoriza gasto.
 
 - [ADR-0051 — Escopo da DG-27: checksum de integridade vs. hash irreversível de PII](ADR-0051-dg27-integrity-checksum-scope.md) — Proposed (2026-10-14); esclarece DG-27 v1.1; ratificação pelos owners e novo pin separados.
+
+- [ADR-0052 — Política determinístico primeiro](ADR-0052-deterministic-first.md) — Proposed (2026-11-07); cria `policies/deterministic-first.md` (DF-1..DF-7); não altera a Constituição; aceite pela liderança.
