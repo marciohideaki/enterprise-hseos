@@ -1,6 +1,6 @@
 # ADR-0052 — Deterministic-first policy
 
-**Status:** Proposed. Acceptance belongs to Engineering Leadership; this ADR activates nothing until accepted.
+**Status:** Accepted (2026-11-08, by the owner as Engineering Leadership).
 **Date:** 2026-11-07
 **Authors:** Platform Architecture Owners (proposal requested by the owner)
 **Affects Standards:** New policy `.enterprise/policies/deterministic-first.md` (v1.0); `policies/README.md` index
@@ -61,10 +61,10 @@ change control.
 
 ## Compliance
 
-- [ ] Approved by Engineering Leadership
+- [x] Approved by Engineering Leadership (owner, 2026-11-08)
 - [ ] Affected standards updated to reference this ADR
 - [ ] Teams notified
-- [ ] Activation date: on acceptance
+- [x] Activation date: 2026-11-08
 - [ ] Review date: 2027-05-07
 
 ## Alternatives Considered
