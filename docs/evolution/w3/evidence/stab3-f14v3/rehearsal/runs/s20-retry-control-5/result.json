@@ -12,14 +12,16 @@
   "usage": {
     "requests": 5,
     "unreadable_requests": 0,
-    "prompt_tokens": 12483,
+    "prompt_tokens": 12496,
     "completion_tokens": 130,
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.0325075,
+  "cost_usd": 0.03254,
   "stop_reason": null,
-  "responding_models": ["gpt-4o"],
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
   "replay": {
     "ok": true,
     "session_events": 32,
@@ -28,8 +30,8 @@
     "memory_sources": []
   },
   "tool_outcomes": [
-    "c84233bc37d2\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://1644ea0aba03273a0e8a551d1e5971b519f7a325141cb3ec6e1edd0fcf3b43b3\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://1644ea0aba03273a0e8a551d1e5971b519f7a325141cb3ec6e1edd0fcf3b43b3\"],\"warnings\":[],\"replayed\":false}"
+    "8ede1e1d889b\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://3918fd15add365caed523f8180db22cf67655c905344a8bfca6582d1f7fde3ec\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3918fd15add365caed523f8180db22cf67655c905344a8bfca6582d1f7fde3ec\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -46,12 +48,14 @@
       "credential_pool": false,
       "credential_source": "request-header",
       "declared": {
-        "model": "gpt-4o",
+        "model": "gpt-4o-2024-08-06",
         "origin": "https://mock.invalid"
       },
       "fallback": false,
       "observed": {
-        "models": ["gpt-4o"],
+        "models": [
+          "gpt-4o-2024-08-06"
+        ],
         "origin": "https://mock.invalid"
       },
       "requests_total": 5,
@@ -60,12 +64,17 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "78b7ad8b7e2d9dbd73826133e7be20b960e7f1cd2aa4cdca9cc1399e00c2e6f9",
+  "state_sha256": "cd133d8da5dcd668c5f669740f8e3cb960b3376f4102c4bf4abaf57b90876674",
   "protected": {
     "pass": false,
     "passed": 5,
     "total": 9,
-    "failed": ["a2", "a4", "a5", "a9"]
+    "failed": [
+      "a2",
+      "a4",
+      "a5",
+      "a9"
+    ]
   },
   "product_verifier_approved": false,
   "success": false

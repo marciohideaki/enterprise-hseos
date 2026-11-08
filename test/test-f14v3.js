@@ -112,7 +112,7 @@ test('PLAN.json is the registered plan and the seed is still to be drawn', () =>
   assert.deepEqual(registered, structuredClone(PLAN));
   assert.equal(registered.seed.value, null);
   assert.equal(registered.total_runs, 33);
-  assert.equal(registered.model, 'gpt-4o');
+  assert.equal(registered.model, 'gpt-4o-2024-08-06');
   assert.equal(registered.budget.ceiling_usd, 3);
 });
 
@@ -429,6 +429,179 @@ test('the guard fails closed on its own: empty price, bad max_tokens, zero usage
     const receipt = JSON.parse(fs.readFileSync(path.join(out, 'campaign.json'), 'utf8'));
     assert.equal(receipt.totals.runs, 1);
     assert.equal(receipt.runs[0].stop_reason, 'usage-unreadable');
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+// ---- protocol failure stops the campaign (P10): dated model, alias divergence, stop at the first failure ----
+
+/** A runnable copy of the campaign directory, with the repository root symlinked, so a test can mutate the copy. */
+function runnableCopy(scratch) {
+  const root = path.join(scratch, 'root');
+  fs.mkdirSync(root);
+  for (const name of fs.readdirSync(repoRoot)) {
+    if (['docs', '.git', '.worktrees'].includes(name)) continue;
+    fs.symlinkSync(path.join(repoRoot, name), path.join(root, name));
+  }
+  const evidence = path.join(root, 'docs', 'evolution', 'w3', 'evidence');
+  fs.mkdirSync(evidence, { recursive: true });
+  const copy = path.join(evidence, 'stab3-f14v3');
+  spawnSync('cp', ['-r', dir, copy], { stdio: 'ignore' });
+  for (const name of fs.readdirSync(copy))
+    if (name.startsWith('rehearsal')) fs.rmSync(path.join(copy, name), { recursive: true, force: true });
+  spawnSync('cp', ['-r', path.join(dir, '..', 'shared'), path.join(evidence, 'shared')], { stdio: 'ignore' });
+  return { root, copy };
+}
+
+function campaignFrom(copy, root, db, out, extra = [], env = {}) {
+  const run = spawnSync(
+    process.execPath,
+    [
+      path.join(copy, 'f14v3.cjs'),
+      'campaign',
+      '--root',
+      root,
+      '--mode',
+      'mock',
+      '--source-db',
+      db,
+      '--out',
+      out,
+      '--seed',
+      'p10',
+      ...extra,
+    ],
+    { encoding: 'utf8', timeout: 400_000, env: { PATH: process.env.PATH, TMPDIR: tmpBase(), F14V3_OFFLINE: '1', ...env } },
+  );
+  const file = path.join(out, 'campaign.json');
+  return { run, receipt: fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null };
+}
+
+const pinAlias = (copy) => {
+  const file = path.join(copy, 'plan.cjs');
+  fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace("model: 'gpt-4o-2024-08-06',", "model: 'gpt-4o',"));
+};
+
+test('the plan declares the dated model and the rehearsal provider answers a dated name for an alias', async () => {
+  assert.equal(PLAN.model, 'gpt-4o-2024-08-06');
+  assert.equal(PLAN.budget.prior_spend_usd, 0.124);
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-alias-'));
+  try {
+    const db = await fixtureDatabase(scratch);
+    const { root, copy } = runnableCopy(scratch);
+    const dated = campaignFrom(copy, root, db, path.join(scratch, 'dated'), ['--pilots-only']);
+    assert.equal(dated.run.status, 0, dated.run.stderr);
+    assert.deepEqual(dated.receipt.runs[0].responding_models, ['gpt-4o-2024-08-06']);
+    pinAlias(copy);
+    const alias = campaignFrom(copy, root, db, path.join(scratch, 'alias'), ['--pilots-only']);
+    assert.notEqual(alias.run.status, 0);
+    assert.equal(alias.receipt.runs[0].reason, 'CONTROL_PROVIDER_BACKEND_DIVERGED');
+    assert.deepEqual(alias.receipt.runs[0].responding_models, ['gpt-4o-2024-08-06']);
+    assert.equal(alias.receipt.verdict, 'STOPPED: protocol failure');
+    assert.equal(alias.receipt.totals.runs, 1, 'the pilot failure stops everything: one execution, not three');
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('a protocol failure in the first series run ends the campaign with one series execution', async () => {
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-series-stop-'));
+  try {
+    const db = await fixtureDatabase(scratch);
+    const { run, receipt } = campaignFrom(dir, repoRoot, db, path.join(scratch, 'out'), [], { F14V3_MOCK_FAULT: 'diverge-series' });
+    assert.equal(run.status, 5, run.stderr);
+    assert.equal(receipt.verdict, 'STOPPED: protocol failure');
+    assert.equal(receipt.totals.runs, 4, '3 pilots pass, then the first series run stops the campaign');
+    assert.equal(receipt.totals.series_runs, 1);
+    assert.match(receipt.runs[3].reason, /^CONTROL_PROVIDER_/);
+    assert.equal(receipt.stopped.runs_done, 4);
+    const reasons = receipt.runs.map((item) => item.reason).filter((item) => String(item).startsWith('CONTROL_PROVIDER_'));
+    assert.equal(reasons.length, 1, 'the same protocol reason never repeats');
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('mutations: dropping the protocol stop or reverting to the alias breaks a test', async () => {
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-mutation-'));
+  try {
+    const db = await fixtureDatabase(scratch);
+    // Mutation 1: the protocol stop is removed; the failing series run no longer ends the campaign.
+    const one = runnableCopy(path.join(fs.mkdtempSync(path.join(scratch, 'm1-'))));
+    const campaignFile = path.join(one.copy, 'f14v3.cjs');
+    const source = fs.readFileSync(campaignFile, 'utf8');
+    const mutated = source.replace('if (failure) {', 'if (false && failure) {');
+    assert.notEqual(mutated, source, 'the mutation must apply');
+    fs.writeFileSync(campaignFile, mutated);
+    pinAlias(one.copy);
+    const m1 = campaignFrom(one.copy, one.root, db, path.join(scratch, 'm1-out'), ['--pilots-only']);
+    assert.equal(m1.receipt.totals.runs, 3, 'without the stop the three pilots all run: the "one execution" assertion would fail');
+    assert.notEqual(m1.receipt.verdict, 'STOPPED: protocol failure');
+    // Mutation 2: the declared model goes back to the alias; the rehearsal no longer passes.
+    const two = runnableCopy(fs.mkdtempSync(path.join(scratch, 'm2-')));
+    pinAlias(two.copy);
+    const m2 = campaignFrom(two.copy, two.root, db, path.join(scratch, 'm2-out'), ['--pilots-only']);
+    assert.notEqual(m2.run.status, 0);
+    assert.equal(m2.receipt.runs[0].reason, 'CONTROL_PROVIDER_BACKEND_DIVERGED');
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+// ---- P10 round 1: exhausting the request cap is a task failure, not a protocol failure ----
+
+test('an execution that exhausts the request cap fails the task and the campaign goes on; a diverged model still stops it', async () => {
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-cap-'));
+  try {
+    const db = await fixtureDatabase(scratch);
+    const capped = campaignFrom(dir, repoRoot, db, path.join(scratch, 'cap'), ['--pilots-only'], { F14V3_MOCK_FAULT: 'cap-loop' });
+    assert.ok(capped.receipt, capped.run.stderr);
+    assert.equal(capped.receipt.totals.runs, 3, 'all three pilots run');
+    assert.equal(capped.receipt.stopped, undefined);
+    assert.notEqual(capped.receipt.verdict, 'STOPPED: protocol failure');
+    for (const item of capped.receipt.runs) {
+      assert.equal(item.task_result, 'failed');
+      assert.equal(item.reason, 'request-cap-reached');
+      assert.equal(item.success, false);
+      assert.equal(item.provider_proof.verdict, 'pass', 'proof judged over the requests that were made');
+      assert.equal(item.cap_adjustment.requests_made, 8);
+    }
+    // A diverged model still stops the campaign at once.
+    const { root, copy } = runnableCopy(scratch);
+    pinAlias(copy);
+    const diverged = campaignFrom(copy, root, db, path.join(scratch, 'div'), ['--pilots-only']);
+    assert.equal(diverged.receipt.verdict, 'STOPPED: protocol failure');
+    assert.equal(diverged.receipt.totals.runs, 1);
+    // Mutation: without the cap adjustment the capped execution is read as a protocol failure.
+    const mut = runnableCopy(fs.mkdtempSync(path.join(scratch, 'mc-')));
+    const file = path.join(mut.copy, 'f14v3.cjs');
+    const source = fs.readFileSync(file, 'utf8');
+    const mutated = source.replace('if (capReached) {\n        const original', 'if (false && capReached) {\n        const original');
+    assert.notEqual(mutated, source);
+    fs.writeFileSync(file, mutated);
+    const m = campaignFrom(mut.copy, mut.root, db, path.join(scratch, 'mc-out'), ['--pilots-only'], { F14V3_MOCK_FAULT: 'cap-loop' });
+    assert.equal(m.receipt.totals.runs, 1, 'the mutant stops the campaign, so the test above would fail');
+    assert.equal(m.receipt.verdict, 'STOPPED: protocol failure');
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('one byte in the shared usage or proof code changes the confirmation hash', () => {
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-shared-'));
+  try {
+    const copy = copyCampaign(scratch);
+    const baseline = printConfirmation(copy);
+    for (const name of ['usage-from-sse.cjs', 'summarize-provider-proof.cjs']) {
+      assert.ok(GATED_FILES.includes(`../shared/${name}`), name);
+      const file = path.join(copy, '..', 'shared', name);
+      const original = fs.readFileSync(file);
+      fs.appendFileSync(file, '\n// one byte more\n');
+      assert.notEqual(printConfirmation(copy), baseline, name);
+      fs.writeFileSync(file, original);
+    }
+    assert.equal(printConfirmation(copy), baseline);
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
   }

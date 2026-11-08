@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "5071855b8cabb4ee90390bce73d84f97a4c09434b2874ff4d5a3cf8408c27c46",
+  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
-  "model": "gpt-4o",
-  "started_at": "2026-11-07T17:11:27.930Z",
+  "model": "gpt-4o-2024-08-06",
+  "started_at": "2026-11-08T03:01:10.201Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "cbca0221e7b9744e3b866ab4d56ea318c247c29345dfaa4491fbfc694e78ba6b",
-    "bytes": 62496768,
+    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
+    "bytes": 258048,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,82 +50,82 @@
       }
     ],
     "db_sha256": {
-      "box_a": "44aa4b79c72f69f817b6d5bbd162b1e262d968652c49c3343d7aab72853ed120",
-      "box_b": "aa7de7f2d9682dc883d3cf716e3024b70b6832e9659cf9026259428c193e75ce"
+      "box_a": "22ce8cd0ccaa60f7161b95665f825838b1460d8936059fd6672e30560eee0f54",
+      "box_b": "83a923414efdb17857014798c4f2442bdc9f07f94b18ee411e5c8054205e2a60"
     }
   },
   "seed_recorded_before_first_call": true,
   "schedule": [
     {
       "order": 1,
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "rep": 1
     },
     {
       "order": 2,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 2
-    },
-    {
-      "order": 3,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
       "rep": 1
     },
     {
-      "order": 4,
-      "task": "invoice",
+      "order": 3,
+      "task": "priority",
       "condition": "control",
       "rep": 2
     },
     {
-      "order": 5,
-      "task": "invoice",
-      "condition": "promoted",
+      "order": 4,
+      "task": "priority",
+      "condition": "control",
       "rep": 3
+    },
+    {
+      "order": 5,
+      "task": "priority",
+      "condition": "control",
+      "rep": 4
     },
     {
       "order": 6,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
-      "rep": 3
-    },
-    {
-      "order": 7,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 8,
-      "task": "invoice",
-      "condition": "control",
-      "rep": 4
-    },
-    {
-      "order": 9,
-      "task": "invoice",
-      "condition": "promoted",
       "rep": 5
     },
     {
+      "order": 7,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 8,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 9,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
       "order": 10,
-      "task": "invoice",
-      "condition": "control",
+      "task": "priority",
+      "condition": "promoted",
       "rep": 5
     },
     {
       "order": 11,
       "task": "retry",
-      "condition": "promoted",
+      "condition": "control",
       "rep": 1
     },
     {
       "order": 12,
       "task": "retry",
-      "condition": "control",
+      "condition": "promoted",
       "rep": 1
     },
     {
@@ -137,20 +137,20 @@
     {
       "order": 14,
       "task": "retry",
-      "condition": "promoted",
-      "rep": 3
+      "condition": "control",
+      "rep": 2
     },
     {
       "order": 15,
       "task": "retry",
       "condition": "promoted",
-      "rep": 4
+      "rep": 3
     },
     {
       "order": 16,
       "task": "retry",
-      "condition": "control",
-      "rep": 2
+      "condition": "promoted",
+      "rep": 4
     },
     {
       "order": 17,
@@ -178,62 +178,62 @@
     },
     {
       "order": 21,
-      "task": "priority",
-      "condition": "control",
-      "rep": 1
-    },
-    {
-      "order": 22,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 1
     },
     {
+      "order": 22,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 1
+    },
+    {
       "order": 23,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 2
     },
     {
       "order": 24,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 2
     },
     {
       "order": 25,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 3
     },
     {
       "order": 26,
-      "task": "priority",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 27,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 3
     },
     {
-      "order": 28,
-      "task": "priority",
+      "order": 27,
+      "task": "invoice",
       "condition": "promoted",
-      "rep": 5
+      "rep": 4
     },
     {
-      "order": 29,
-      "task": "priority",
+      "order": 28,
+      "task": "invoice",
       "condition": "control",
       "rep": 4
     },
     {
-      "order": 30,
-      "task": "priority",
+      "order": 29,
+      "task": "invoice",
       "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 30,
+      "task": "invoice",
+      "condition": "promoted",
       "rep": 5
     }
   ],
@@ -243,8 +243,8 @@
     "runs_done": 1,
     "refusal": {
       "refused": "ceiling-projection",
-      "projected_usd": 0.02118,
-      "spent_usd": 0.0244675,
+      "projected_usd": 0.02119,
+      "spent_usd": 0.024495,
       "ceiling_usd": 0.04
     }
   },
@@ -309,20 +309,22 @@
       "usage": {
         "requests": 4,
         "unreadable_requests": 0,
-        "prompt_tokens": 9339,
+        "prompt_tokens": 9350,
         "completion_tokens": 112,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0244675,
+      "cost_usd": 0.024495,
       "stop_reason": "ceiling-projection",
       "refusal": {
         "refused": "ceiling-projection",
-        "projected_usd": 0.02118,
-        "spent_usd": 0.0244675,
+        "projected_usd": 0.02119,
+        "spent_usd": 0.024495,
         "ceiling_usd": 0.04
       },
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 30,
@@ -331,8 +333,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "079088147e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}"
+        "ab7a8ad80e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://b05c823b66e370204082ff1821089ae407a493e1aa43117511b5fd905e2e992c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b05c823b66e370204082ff1821089ae407a493e1aa43117511b5fd905e2e992c\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -340,7 +342,10 @@
       },
       "provider_proof": {
         "verdict": "unknown",
-        "failures": ["backend-not-verified", "requests-not-all-verified"],
+        "failures": [
+          "backend-not-verified",
+          "requests-not-all-verified"
+        ],
         "summarizer_exit": 1,
         "proof_present": true,
         "proof": {
@@ -349,12 +354,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -363,12 +370,18 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "2adcc92b1291dca1e0eb35a1d2cf534a26cc9928a9035e54e05365196f661172",
+      "state_sha256": "ba233bf8720b09e94256ed5bdeda1c2aa322af427c6918b91f18f2f73a3d13ad",
       "protected": {
         "pass": false,
         "passed": 0,
         "total": 5,
-        "failed": ["example", "first", "max", "mid", "old"]
+        "failed": [
+          "example",
+          "first",
+          "max",
+          "mid",
+          "old"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -377,16 +390,18 @@
   "totals": {
     "runs": 1,
     "series_runs": 0,
-    "cost_usd_estimate": 0.0244675,
+    "cost_usd_estimate": 0.024495,
     "requests": 4,
-    "prompt_tokens": 9339,
+    "prompt_tokens": 9350,
     "completion_tokens": 112,
     "price_declared_usd_per_million": {
       "in": 2.5,
       "out": 10
     }
   },
-  "protocol_issues": ["pilot-invoice: provider-proof-unknown"],
+  "protocol_issues": [
+    "pilot-invoice: provider-proof-unknown"
+  ],
   "verdict": "STOPPED: ceiling-projection",
   "limits": {
     "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
@@ -394,7 +409,7 @@
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
     "requests_per_run_cap": 8
   },
-  "finished_at": "2026-11-07T17:11:32.993Z",
+  "finished_at": "2026-11-08T03:01:12.941Z",
   "artifact_scan": {
     "clean": true,
     "files": 5,
