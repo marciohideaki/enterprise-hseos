@@ -357,3 +357,9 @@ Regressão afetada: 101/101 Node 22 e 101/101 Node 24. Lint/formato verificados 
 CI com zero falhas, um alerta preexistente; markdownlint indisponível. Hash do
 adapter da campanha final coincide com a fonte entregue. Evidências anteriores
 permanecem imutáveis; merge e certificação integral W3 ainda não realizados.
+
+Nota de 2026-11-08: F14 v3 executada (3 tentativas pagas); a terceira deu
+`CRITERION MET` (promovida 5/5 x controle 0/5 nas três tarefas, p = 1,25e-7),
+custo cerca de US$ 0,95 pela console. `real_consumers` da F14 segue
+`not_verified`: faltam a reauditoria cega e a decisão do owner. Recibo:
+[F14-V3-2026-11.md](F14-V3-2026-11.md).
