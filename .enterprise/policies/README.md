@@ -19,7 +19,7 @@ Policies are **enforceable rules**, not recommendations or best-practice guides.
 | `adr-policy.md` | How ADRs are created, approved, and maintained | All contributors |
 | `automated-validation.md` | What checks run automatically in CI/CD | CI/CD pipelines |
 | `capability-reuse.md` | Core-first reuse decision, write-time enforcement, and merge ratchet | Contributors, agents, CI/CD |
-| `deterministic-first.md` | Whatever can be decided or triggered by code must be; model judgment only behind a deterministic gate (ADR-0052, proposed) | Agents, contributors, CI/CD |
+| `deterministic-first.md` | Whatever can be decided or triggered by code must be; model judgment only behind a deterministic gate (ADR-0052, accepted 2026-11-08) | Agents, contributors, CI/CD |
 | `documentation-policy.md` | What must be documented and how | All contributors |
 | `exceptions.md` | How deviations are approved, scoped, and expired | All contributors |
 | `minimal-wiring.md` | Minimum required connections between governance artifacts | Agents |

@@ -1,5 +1,5 @@
 # Deterministic-First Policy
-**Status:** Proposed (ADR-0052)
+**Status:** Mandatory (ADR-0052, accepted 2026-11-08)
 **Scope:** All AI agent work, skills, workflows, hooks and the systems agents build
 **Version:** 1.0
 

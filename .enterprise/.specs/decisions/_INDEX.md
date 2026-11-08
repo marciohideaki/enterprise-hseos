@@ -116,4 +116,4 @@ The following entries are ADR templates or placeholders for optional activation.
 
 - [ADR-0051 — Escopo da DG-27: checksum de integridade vs. hash irreversível de PII](ADR-0051-dg27-integrity-checksum-scope.md) — Proposed (2026-10-14); esclarece DG-27 v1.1; ratificação pelos owners e novo pin separados.
 
-- [ADR-0052 — Política determinístico primeiro](ADR-0052-deterministic-first.md) — Proposed (2026-11-07); cria `policies/deterministic-first.md` (DF-1..DF-7); não altera a Constituição; aceite pela liderança.
+- [ADR-0052 — Política determinístico primeiro](ADR-0052-deterministic-first.md) — Accepted (2026-11-08); cria `policies/deterministic-first.md` (DF-1..DF-7); não altera a Constituição; aceite pela liderança.
