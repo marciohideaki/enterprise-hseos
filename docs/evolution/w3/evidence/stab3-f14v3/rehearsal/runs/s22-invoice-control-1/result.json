@@ -1,0 +1,82 @@
+{
+  "label": "s22-invoice-control-1",
+  "kind": "series",
+  "task": "invoice",
+  "condition": "control",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 1,
+  "task_result": "failed",
+  "reason": "criteria-not-satisfied",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 5,
+    "unreadable_requests": 0,
+    "prompt_tokens": 12635,
+    "completion_tokens": 121,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.0327975,
+  "stop_reason": null,
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
+  "replay": {
+    "ok": true,
+    "session_events": 32,
+    "tool_invocations": 2,
+    "note_in_context": false,
+    "memory_sources": []
+  },
+  "tool_outcomes": [
+    "2bfcfd67a7\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://9de1c830e4748ab253ecd96c46b925c2664e44b98c1fab9b246469548e2dde29\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://9de1c830e4748ab253ecd96c46b925c2664e44b98c1fab9b246469548e2dde29\"],\"warnings\":[],\"replayed\":false}"
+  ],
+  "drain": {
+    "started": 2,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "pass",
+    "failures": [],
+    "summarizer_exit": 0,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": true,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o-2024-08-06",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": [
+          "gpt-4o-2024-08-06"
+        ],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 5,
+      "requests_verified": 5,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "state_sha256": "d99f37494141d5ee048391ff8bf29b9484f27175c88270bcd6a778d8c16942e7",
+  "protected": {
+    "pass": false,
+    "passed": 0,
+    "total": 5,
+    "failed": [
+      "example",
+      "first",
+      "max",
+      "mid",
+      "old"
+    ]
+  },
+  "product_verifier_approved": false,
+  "success": false
+}

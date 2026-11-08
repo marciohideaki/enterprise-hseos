@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "5071855b8cabb4ee90390bce73d84f97a4c09434b2874ff4d5a3cf8408c27c46",
+  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
-  "model": "gpt-4o",
-  "started_at": "2026-11-07T17:10:58.129Z",
+  "model": "gpt-4o-2024-08-06",
+  "started_at": "2026-11-08T03:01:13.062Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "cbca0221e7b9744e3b866ab4d56ea318c247c29345dfaa4491fbfc694e78ba6b",
-    "bytes": 62496768,
+    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
+    "bytes": 258048,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,82 +50,82 @@
       }
     ],
     "db_sha256": {
-      "box_a": "8f86139c426032740dbd43c921b05cf910f17c6abcb452ceebacf0fbea9e04ed",
-      "box_b": "e4834a697962534b4cc8855e9540bbb78e743074a02edfd71266d868acea12d8"
+      "box_a": "840b6681c5e1bc44d0a071f49c4aec893ca0c72179c9d4d5e9b8e053301cdff3",
+      "box_b": "c27cc845daee97b3bda0e6e7f736949acdbdf7cf17f0fca4a8021303450b061f"
     }
   },
   "seed_recorded_before_first_call": true,
   "schedule": [
     {
       "order": 1,
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "rep": 1
     },
     {
       "order": 2,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 2
-    },
-    {
-      "order": 3,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
       "rep": 1
     },
     {
-      "order": 4,
-      "task": "invoice",
+      "order": 3,
+      "task": "priority",
       "condition": "control",
       "rep": 2
     },
     {
-      "order": 5,
-      "task": "invoice",
-      "condition": "promoted",
+      "order": 4,
+      "task": "priority",
+      "condition": "control",
       "rep": 3
+    },
+    {
+      "order": 5,
+      "task": "priority",
+      "condition": "control",
+      "rep": 4
     },
     {
       "order": 6,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
-      "rep": 3
-    },
-    {
-      "order": 7,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 8,
-      "task": "invoice",
-      "condition": "control",
-      "rep": 4
-    },
-    {
-      "order": 9,
-      "task": "invoice",
-      "condition": "promoted",
       "rep": 5
     },
     {
+      "order": 7,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 8,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 9,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
       "order": 10,
-      "task": "invoice",
-      "condition": "control",
+      "task": "priority",
+      "condition": "promoted",
       "rep": 5
     },
     {
       "order": 11,
       "task": "retry",
-      "condition": "promoted",
+      "condition": "control",
       "rep": 1
     },
     {
       "order": 12,
       "task": "retry",
-      "condition": "control",
+      "condition": "promoted",
       "rep": 1
     },
     {
@@ -137,20 +137,20 @@
     {
       "order": 14,
       "task": "retry",
-      "condition": "promoted",
-      "rep": 3
+      "condition": "control",
+      "rep": 2
     },
     {
       "order": 15,
       "task": "retry",
       "condition": "promoted",
-      "rep": 4
+      "rep": 3
     },
     {
       "order": 16,
       "task": "retry",
-      "condition": "control",
-      "rep": 2
+      "condition": "promoted",
+      "rep": 4
     },
     {
       "order": 17,
@@ -178,62 +178,62 @@
     },
     {
       "order": 21,
-      "task": "priority",
-      "condition": "control",
-      "rep": 1
-    },
-    {
-      "order": 22,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 1
     },
     {
+      "order": 22,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 1
+    },
+    {
       "order": 23,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 2
     },
     {
       "order": 24,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 2
     },
     {
       "order": 25,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 3
     },
     {
       "order": 26,
-      "task": "priority",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 27,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 3
     },
     {
-      "order": 28,
-      "task": "priority",
+      "order": 27,
+      "task": "invoice",
       "condition": "promoted",
-      "rep": 5
+      "rep": 4
     },
     {
-      "order": 29,
-      "task": "priority",
+      "order": 28,
+      "task": "invoice",
       "condition": "control",
       "rep": 4
     },
     {
-      "order": 30,
-      "task": "priority",
+      "order": 29,
+      "task": "invoice",
       "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 30,
+      "task": "invoice",
+      "condition": "promoted",
       "rep": 5
     }
   ],
@@ -321,7 +321,9 @@
         "pass": false,
         "passed": 0,
         "total": 5,
-        "failed": ["no-final-write"]
+        "failed": [
+          "no-final-write"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -352,7 +354,9 @@
         "pass": false,
         "passed": 0,
         "total": 9,
-        "failed": ["no-final-write"]
+        "failed": [
+          "no-final-write"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -383,7 +387,9 @@
         "pass": false,
         "passed": 0,
         "total": 8,
-        "failed": ["no-final-write"]
+        "failed": [
+          "no-final-write"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -425,7 +431,7 @@
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
     "requests_per_run_cap": 8
   },
-  "finished_at": "2026-11-07T17:11:27.780Z",
+  "finished_at": "2026-11-08T03:01:40.540Z",
   "artifact_scan": {
     "clean": true,
     "files": 11,

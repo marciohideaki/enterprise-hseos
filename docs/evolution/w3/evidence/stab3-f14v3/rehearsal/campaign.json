@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "5071855b8cabb4ee90390bce73d84f97a4c09434b2874ff4d5a3cf8408c27c46",
+  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
-  "model": "gpt-4o",
-  "started_at": "2026-11-07T17:08:46.725Z",
+  "model": "gpt-4o-2024-08-06",
+  "started_at": "2026-11-08T02:59:12.802Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "e669e959c8fba78a20a8382c5c01543226da6c486804120d24ff2e80fbd5883d",
-    "bytes": 62492672,
+    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
+    "bytes": 258048,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,82 +50,82 @@
       }
     ],
     "db_sha256": {
-      "box_a": "58a75cd6c34083bc6a4b4bab1ba5921525864d8818541fa3a5861c267d75a85b",
-      "box_b": "704cd71bcd1d913363bfa3eca6c9a2a69f103b03f599b791d703af1572b65eee"
+      "box_a": "e88a228b368fb9d757e68b1a1eb88a9822748d1b9fb259f4d3e7fb69b4e44bb7",
+      "box_b": "a51019f495ffea0de040e0e4ce5e59ecb87014e2a546df1dac00484becf75c43"
     }
   },
   "seed_recorded_before_first_call": true,
   "schedule": [
     {
       "order": 1,
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "rep": 1
     },
     {
       "order": 2,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 2
-    },
-    {
-      "order": 3,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
       "rep": 1
     },
     {
-      "order": 4,
-      "task": "invoice",
+      "order": 3,
+      "task": "priority",
       "condition": "control",
       "rep": 2
     },
     {
-      "order": 5,
-      "task": "invoice",
-      "condition": "promoted",
+      "order": 4,
+      "task": "priority",
+      "condition": "control",
       "rep": 3
+    },
+    {
+      "order": 5,
+      "task": "priority",
+      "condition": "control",
+      "rep": 4
     },
     {
       "order": 6,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
-      "rep": 3
-    },
-    {
-      "order": 7,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 8,
-      "task": "invoice",
-      "condition": "control",
-      "rep": 4
-    },
-    {
-      "order": 9,
-      "task": "invoice",
-      "condition": "promoted",
       "rep": 5
     },
     {
+      "order": 7,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 8,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 9,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
       "order": 10,
-      "task": "invoice",
-      "condition": "control",
+      "task": "priority",
+      "condition": "promoted",
       "rep": 5
     },
     {
       "order": 11,
       "task": "retry",
-      "condition": "promoted",
+      "condition": "control",
       "rep": 1
     },
     {
       "order": 12,
       "task": "retry",
-      "condition": "control",
+      "condition": "promoted",
       "rep": 1
     },
     {
@@ -137,20 +137,20 @@
     {
       "order": 14,
       "task": "retry",
-      "condition": "promoted",
-      "rep": 3
+      "condition": "control",
+      "rep": 2
     },
     {
       "order": 15,
       "task": "retry",
       "condition": "promoted",
-      "rep": 4
+      "rep": 3
     },
     {
       "order": 16,
       "task": "retry",
-      "condition": "control",
-      "rep": 2
+      "condition": "promoted",
+      "rep": 4
     },
     {
       "order": 17,
@@ -178,62 +178,62 @@
     },
     {
       "order": 21,
-      "task": "priority",
-      "condition": "control",
-      "rep": 1
-    },
-    {
-      "order": 22,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 1
     },
     {
+      "order": 22,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 1
+    },
+    {
       "order": 23,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 2
     },
     {
       "order": 24,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 2
     },
     {
       "order": 25,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 3
     },
     {
       "order": 26,
-      "task": "priority",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 27,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 3
     },
     {
-      "order": 28,
-      "task": "priority",
+      "order": 27,
+      "task": "invoice",
       "condition": "promoted",
-      "rep": 5
+      "rep": 4
     },
     {
-      "order": 29,
-      "task": "priority",
+      "order": 28,
+      "task": "invoice",
       "condition": "control",
       "rep": 4
     },
     {
-      "order": 30,
-      "task": "priority",
+      "order": 29,
+      "task": "invoice",
       "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 30,
+      "task": "invoice",
+      "condition": "promoted",
       "rep": 5
     }
   ],
@@ -299,14 +299,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12621,
+        "prompt_tokens": 12635,
         "completion_tokens": 121,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327625,
+      "cost_usd": 0.0327975,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -315,8 +317,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "968bd2498a\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://2b1f58d96e7d901bf185389c98ddda71b5b7d92aee213ac43043e7c06a15bc80\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://2b1f58d96e7d901bf185389c98ddda71b5b7d92aee213ac43043e7c06a15bc80\"],\"warnings\":[],\"replayed\":false}"
+        "f5b4db127d\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://0695709496a338bf05cdb75cc4d712c3e4959021eb09461b60ed67574fb56cba\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://0695709496a338bf05cdb75cc4d712c3e4959021eb09461b60ed67574fb56cba\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -333,12 +335,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -347,12 +351,18 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "c8600012049f3948c993d49f4202b9a90448b68c401e2416d9843de211dca002",
+      "state_sha256": "ded28ea16127f4a8f25194ffdbc4702e562eacbde14faaacfd794097fdd232c1",
       "protected": {
         "pass": false,
         "passed": 0,
         "total": 5,
-        "failed": ["example", "first", "max", "mid", "old"]
+        "failed": [
+          "example",
+          "first",
+          "max",
+          "mid",
+          "old"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -370,14 +380,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12483,
+        "prompt_tokens": 12496,
         "completion_tokens": 130,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0325075,
+      "cost_usd": 0.03254,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -386,8 +398,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "71db16853965\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://3e6d671fa54244c9f4b2aeeae9eb8755e1efc9ededa686c629fbf813dadf515c\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3e6d671fa54244c9f4b2aeeae9eb8755e1efc9ededa686c629fbf813dadf515c\"],\"warnings\":[],\"replayed\":false}"
+        "ef81cb638e59\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://909c019c5b4534059a428fde309c530fb262a57e7d6b0df593af50076d567218\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://909c019c5b4534059a428fde309c530fb262a57e7d6b0df593af50076d567218\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -404,12 +416,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -418,12 +432,17 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "47e68ece516dc66fbe36cad80578b427f7fea22acee2d2637a1d531e0bdb0107",
+      "state_sha256": "ea85777ac15e9e5a00f2d02f6e1c181fceed3807e303b2730e29173eb8c65f86",
       "protected": {
         "pass": false,
         "passed": 5,
         "total": 9,
-        "failed": ["a2", "a4", "a5", "a9"]
+        "failed": [
+          "a2",
+          "a4",
+          "a5",
+          "a9"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -441,14 +460,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12956,
+        "prompt_tokens": 12970,
         "completion_tokens": 152,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033909999999999996,
+      "cost_usd": 0.033945,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -457,8 +478,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "0a8d991c8\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://1e48fdf026f88a8bc5b34b5362ae03400754b6bafc3f812d53dc5fac190511a9\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://1e48fdf026f88a8bc5b34b5362ae03400754b6bafc3f812d53dc5fac190511a9\"],\"warnings\":[],\"replayed\":false}"
+        "e264462b9\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://774cf26cc647aa27e83dcecf345e015d376574abac0b3512cd03010f4dae9ecf\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://774cf26cc647aa27e83dcecf345e015d376574abac0b3512cd03010f4dae9ecf\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -475,12 +496,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -489,20 +512,24 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "963eea26acb9db80ef94fb41c63a509042bee779567b31f709e540e591fbb979",
+      "state_sha256": "a06961edaa4045e5667a803b924f6c70a21a4aa4656aefb30deac0f997912ce4",
       "protected": {
         "pass": false,
         "passed": 5,
         "total": 8,
-        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+        "failed": [
+          "billing-low",
+          "billing-critical",
+          "billing-unknown"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
     },
     {
-      "label": "s01-invoice-promoted-1",
+      "label": "s01-priority-promoted-1",
       "kind": "series",
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 0,
@@ -512,14 +539,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7006,
-        "completion_tokens": 143,
+        "prompt_tokens": 6987,
+        "completion_tokens": 149,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018945,
+      "cost_usd": 0.0189575,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -529,13 +558,13 @@
           {
             "trust": "trusted",
             "authority": "data",
-            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
           }
         ]
       },
       "tool_outcomes": [
-        "76084088e8\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://6d5460decb2b196bef3bbc0d72f21f57af5004349ef2124f99f92dc43992120c\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6d5460decb2b196bef3bbc0d72f21f57af5004349ef2124f99f92dc43992120c\"],\"warnings\":[],\"replayed\":false}"
+        "1886f490d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://6b68eb01b8b044ab4ca777d74a4a1df7b01504b3dbc5479430cc4c71b8799bd4\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6b68eb01b8b044ab4ca777d74a4a1df7b01504b3dbc5479430cc4c71b8799bd4\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -552,12 +581,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -566,20 +597,415 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "2bd303edc03ea77662fea3af9e229ffc387d8bd6aff0fcb253ebe57b4fc0edf3",
+      "state_sha256": "9d3fb474df50d7954122a222f97e88f625f9c246db10137600700fb709726c91",
       "protected": {
         "pass": true,
-        "passed": 5,
-        "total": 5,
+        "passed": 8,
+        "total": 8,
         "failed": []
       },
       "product_verifier_approved": true,
       "success": true
     },
     {
-      "label": "s02-invoice-promoted-2",
+      "label": "s02-priority-control-1",
       "kind": "series",
-      "task": "invoice",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12970,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033945,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "dc5faf46d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://fddab724351533f77106600e5027c133106c0dc26fe057d6177adabf96c46ace\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://fddab724351533f77106600e5027c133106c0dc26fe057d6177adabf96c46ace\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "a0b33743b3f99ce5f549490626c3b9c01bd4ca9583abcb01b190bef4fe86815c",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": [
+          "billing-low",
+          "billing-critical",
+          "billing-unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s03-priority-control-2",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12970,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033945,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "2c7dc8cc4\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://40a0d4181abcbedc27e18025e7dea0e50ac615f52081634d147137392e7ad19d\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://40a0d4181abcbedc27e18025e7dea0e50ac615f52081634d147137392e7ad19d\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "04c0b01ecc4f41e325e1ac18b9f5a9aacdc7ce11c469b21529301bc251c7e7c4",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": [
+          "billing-low",
+          "billing-critical",
+          "billing-unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s04-priority-control-3",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12970,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033945,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "1341d892d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://5d672b4a194940a336f6987f4e9833b5744b236775882fc129306bb73f6c2d62\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5d672b4a194940a336f6987f4e9833b5744b236775882fc129306bb73f6c2d62\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "c7e9625340e9e4f73d5397c8d666436de9addef7a75fe01b6d39547704544daa",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": [
+          "billing-low",
+          "billing-critical",
+          "billing-unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s05-priority-control-4",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12970,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033945,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "fcd80e64a\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://4bceff302fb58498da669aad6924c7a7575e9d0ee060e6afab8eb640cc052b3f\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://4bceff302fb58498da669aad6924c7a7575e9d0ee060e6afab8eb640cc052b3f\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "bd53ab95e38c38071cc38c34bc1703c418f4d4283778e4ef1570de9f1757fb88",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": [
+          "billing-low",
+          "billing-critical",
+          "billing-unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s06-priority-control-5",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12970,
+        "completion_tokens": 152,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.033945,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "e17ecfcd3\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://d2080d814d46781bc2a932090dd7db92a56e20ba78bc662e62589d2538057e15\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d2080d814d46781bc2a932090dd7db92a56e20ba78bc662e62589d2538057e15\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "8b4388bc4167f3664c86c3459b412f58237e1c3e722e8fd769e2d823e107278b",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 8,
+        "failed": [
+          "billing-low",
+          "billing-critical",
+          "billing-unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s07-priority-promoted-2",
+      "kind": "series",
+      "task": "priority",
       "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 0,
@@ -589,14 +1015,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7006,
-        "completion_tokens": 143,
+        "prompt_tokens": 6987,
+        "completion_tokens": 149,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018945,
+      "cost_usd": 0.0189575,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -606,13 +1034,13 @@
           {
             "trust": "trusted",
             "authority": "data",
-            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
           }
         ]
       },
       "tool_outcomes": [
-        "6e673d273c\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://5a024a6226b9b927e0cda723eaa3befd2d1926ea4480f9c62bfd5f75a304749e\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5a024a6226b9b927e0cda723eaa3befd2d1926ea4480f9c62bfd5f75a304749e\"],\"warnings\":[],\"replayed\":false}"
+        "cc05dbcd7\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://18387576ff6162c289a03f9748a8cb023d006611a9f3d3459bb44695690c8983\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://18387576ff6162c289a03f9748a8cb023d006611a9f3d3459bb44695690c8983\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -629,12 +1057,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -643,162 +1073,20 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "834031f9a6c84d4735edfde7b96fac95a958dac178051b3a76a6f5fec367004f",
+      "state_sha256": "b94316d53cb7c433ba84f5ea86ab137cd344117acfa83e185f345aaa5a7485f7",
       "protected": {
         "pass": true,
-        "passed": 5,
-        "total": 5,
+        "passed": 8,
+        "total": 8,
         "failed": []
       },
       "product_verifier_approved": true,
       "success": true
     },
     {
-      "label": "s03-invoice-control-1",
+      "label": "s08-priority-promoted-3",
       "kind": "series",
-      "task": "invoice",
-      "condition": "control",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 1,
-      "task_result": "failed",
-      "reason": "criteria-not-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 5,
-        "unreadable_requests": 0,
-        "prompt_tokens": 12621,
-        "completion_tokens": 121,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.0327625,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 32,
-        "tool_invocations": 2,
-        "note_in_context": false,
-        "memory_sources": []
-      },
-      "tool_outcomes": [
-        "8c2db4abe0\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://3f687a0a8c439e2ac19a762c734c13750f28ffa08abca214021d37457be15732\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3f687a0a8c439e2ac19a762c734c13750f28ffa08abca214021d37457be15732\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 5,
-          "requests_verified": 5,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "a2d1f615f74101c3666bdc34b61ccfea43b911f1712e527d89deb4d59fdb7256",
-      "protected": {
-        "pass": false,
-        "passed": 0,
-        "total": 5,
-        "failed": ["example", "first", "max", "mid", "old"]
-      },
-      "product_verifier_approved": false,
-      "success": false
-    },
-    {
-      "label": "s04-invoice-control-2",
-      "kind": "series",
-      "task": "invoice",
-      "condition": "control",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 1,
-      "task_result": "failed",
-      "reason": "criteria-not-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 5,
-        "unreadable_requests": 0,
-        "prompt_tokens": 12621,
-        "completion_tokens": 121,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.0327625,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 32,
-        "tool_invocations": 2,
-        "note_in_context": false,
-        "memory_sources": []
-      },
-      "tool_outcomes": [
-        "ce9834e389\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://ba83e075289198c38d0e3d505f2df91ef546c671460b241078d646dba7c86ea5\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ba83e075289198c38d0e3d505f2df91ef546c671460b241078d646dba7c86ea5\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 5,
-          "requests_verified": 5,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "02e7d4f1b715b4eac76fd00d68110318a347e1b128705c5ee1307a6dff8a1846",
-      "protected": {
-        "pass": false,
-        "passed": 0,
-        "total": 5,
-        "failed": ["example", "first", "max", "mid", "old"]
-      },
-      "product_verifier_approved": false,
-      "success": false
-    },
-    {
-      "label": "s05-invoice-promoted-3",
-      "kind": "series",
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 0,
@@ -808,14 +1096,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7006,
-        "completion_tokens": 143,
+        "prompt_tokens": 6987,
+        "completion_tokens": 149,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018945,
+      "cost_usd": 0.0189575,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -825,13 +1115,13 @@
           {
             "trust": "trusted",
             "authority": "data",
-            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
           }
         ]
       },
       "tool_outcomes": [
-        "4048eaaf09\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://c8112a1816442fdc5067e81958a00e8617b191719598c6d8f8bd11f64fa1deba\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c8112a1816442fdc5067e81958a00e8617b191719598c6d8f8bd11f64fa1deba\"],\"warnings\":[],\"replayed\":false}"
+        "e88d5c60e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://ad33395e4fdd38dbe46ad246082dd76fe343cdaf04353fb67091adc0490df26c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ad33395e4fdd38dbe46ad246082dd76fe343cdaf04353fb67091adc0490df26c\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -848,12 +1138,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -862,91 +1154,20 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "0b3ffb17e09be0c115e3d9a8bdca1c596436c7bdcb4a0a7a4c9d7b1df55982ad",
+      "state_sha256": "59f56c11f761aeebb4dcb57eedde59215323e7c8a39edb74631c482baa59a55e",
       "protected": {
         "pass": true,
-        "passed": 5,
-        "total": 5,
+        "passed": 8,
+        "total": 8,
         "failed": []
       },
       "product_verifier_approved": true,
       "success": true
     },
     {
-      "label": "s06-invoice-control-3",
+      "label": "s09-priority-promoted-4",
       "kind": "series",
-      "task": "invoice",
-      "condition": "control",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 1,
-      "task_result": "failed",
-      "reason": "criteria-not-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 5,
-        "unreadable_requests": 0,
-        "prompt_tokens": 12621,
-        "completion_tokens": 121,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.0327625,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 32,
-        "tool_invocations": 2,
-        "note_in_context": false,
-        "memory_sources": []
-      },
-      "tool_outcomes": [
-        "69f0eb785a\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://3f4b42fdd33754e4bd1fdb0ee5c36fda8374ce645a81ef7993f710033fea625f\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3f4b42fdd33754e4bd1fdb0ee5c36fda8374ce645a81ef7993f710033fea625f\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 5,
-          "requests_verified": 5,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "71bb2cbcd55d16368fd148f59ed875b665afc61e62dee416a23339a5dd6b5e12",
-      "protected": {
-        "pass": false,
-        "passed": 0,
-        "total": 5,
-        "failed": ["example", "first", "max", "mid", "old"]
-      },
-      "product_verifier_approved": false,
-      "success": false
-    },
-    {
-      "label": "s07-invoice-promoted-4",
-      "kind": "series",
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 0,
@@ -956,14 +1177,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7006,
-        "completion_tokens": 143,
+        "prompt_tokens": 6987,
+        "completion_tokens": 149,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018945,
+      "cost_usd": 0.0189575,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -973,13 +1196,13 @@
           {
             "trust": "trusted",
             "authority": "data",
-            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
           }
         ]
       },
       "tool_outcomes": [
-        "11f1985df8\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://43a4dfe5111f9bac2def91178d8ec004e61530023d1149b331983b65453621b6\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://43a4dfe5111f9bac2def91178d8ec004e61530023d1149b331983b65453621b6\"],\"warnings\":[],\"replayed\":false}"
+        "f427a6ae5\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://ce877487130e30bd38c6fc67f9b25c7e84ea1da03e756f61c50126e2e49c6702\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ce877487130e30bd38c6fc67f9b25c7e84ea1da03e756f61c50126e2e49c6702\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -996,12 +1219,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -1010,91 +1235,20 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "056c662e181f5c8c49ad12892e594099bf6543eba1da50a83b4c5a503d6c4aae",
+      "state_sha256": "9115aa35e5d553d70d169ba38aaadfd87b2659acb7839bd6f2e9b65576ed8940",
       "protected": {
         "pass": true,
-        "passed": 5,
-        "total": 5,
+        "passed": 8,
+        "total": 8,
         "failed": []
       },
       "product_verifier_approved": true,
       "success": true
     },
     {
-      "label": "s08-invoice-control-4",
+      "label": "s10-priority-promoted-5",
       "kind": "series",
-      "task": "invoice",
-      "condition": "control",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 1,
-      "task_result": "failed",
-      "reason": "criteria-not-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 5,
-        "unreadable_requests": 0,
-        "prompt_tokens": 12621,
-        "completion_tokens": 121,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.0327625,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 32,
-        "tool_invocations": 2,
-        "note_in_context": false,
-        "memory_sources": []
-      },
-      "tool_outcomes": [
-        "8c7668b539\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://b98e9df37cbe4b0cf3f0514bb606756908492f63fee7036c2b4b4e96c82e49b6\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b98e9df37cbe4b0cf3f0514bb606756908492f63fee7036c2b4b4e96c82e49b6\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 5,
-          "requests_verified": 5,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "81f196987e4cb029de337982286f30db285bdb047f903eddbd3d3f4c26ccad3c",
-      "protected": {
-        "pass": false,
-        "passed": 0,
-        "total": 5,
-        "failed": ["example", "first", "max", "mid", "old"]
-      },
-      "product_verifier_approved": false,
-      "success": false
-    },
-    {
-      "label": "s09-invoice-promoted-5",
-      "kind": "series",
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 0,
@@ -1104,14 +1258,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7006,
-        "completion_tokens": 143,
+        "prompt_tokens": 6987,
+        "completion_tokens": 149,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018945,
+      "cost_usd": 0.0189575,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -1121,13 +1277,13 @@
           {
             "trust": "trusted",
             "authority": "data",
-            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
           }
         ]
       },
       "tool_outcomes": [
-        "2ad1b824b7\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://cef36dac89d8df66c04ff8d84f820b0ef0f06b81b19f6767e52ab882be6077db\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://cef36dac89d8df66c04ff8d84f820b0ef0f06b81b19f6767e52ab882be6077db\"],\"warnings\":[],\"replayed\":false}"
+        "02213b0d4\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://38689ba200d122e5b26558097301d0f393f148a62c0680bbd8c6a65afaabcdf5\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://38689ba200d122e5b26558097301d0f393f148a62c0680bbd8c6a65afaabcdf5\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1144,12 +1300,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -1158,20 +1316,20 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "fdd222ea86c6123a0228cd75db00f57b416360635e0bd69eae5f854ede52ada7",
+      "state_sha256": "32d12bd73601f1bcb32a096fdce0240030dea0e785c05f48b9eecd93c64351dd",
       "protected": {
         "pass": true,
-        "passed": 5,
-        "total": 5,
+        "passed": 8,
+        "total": 8,
         "failed": []
       },
       "product_verifier_approved": true,
       "success": true
     },
     {
-      "label": "s10-invoice-control-5",
+      "label": "s11-retry-control-1",
       "kind": "series",
-      "task": "invoice",
+      "task": "retry",
       "condition": "control",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 1,
@@ -1181,14 +1339,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12621,
-        "completion_tokens": 121,
+        "prompt_tokens": 12496,
+        "completion_tokens": 130,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327625,
+      "cost_usd": 0.03254,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -1197,8 +1357,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "4b418587da\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://5e0a02eacd588cc0ff499d92baa41169ea4085bfbd6731fadcfe6c7a32af8c55\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5e0a02eacd588cc0ff499d92baa41169ea4085bfbd6731fadcfe6c7a32af8c55\"],\"warnings\":[],\"replayed\":false}"
+        "cf743b7eb112\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://574743191e18341baf2023c509bdfb08e58ddfaf6a6c8d77555ad24c8a4f37cb\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://574743191e18341baf2023c509bdfb08e58ddfaf6a6c8d77555ad24c8a4f37cb\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1215,12 +1375,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -1229,18 +1391,23 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "71ac45310aaf4f9e3dfb53a94de7907167769685181555fe2279d2fa8241ffab",
+      "state_sha256": "4b5808733844a1db56110c60a7cb0af1fec7b3b5103811c3261be57261ce3263",
       "protected": {
         "pass": false,
-        "passed": 0,
-        "total": 5,
-        "failed": ["example", "first", "max", "mid", "old"]
+        "passed": 5,
+        "total": 9,
+        "failed": [
+          "a2",
+          "a4",
+          "a5",
+          "a9"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
     },
     {
-      "label": "s11-retry-promoted-1",
+      "label": "s12-retry-promoted-1",
       "kind": "series",
       "task": "retry",
       "condition": "promoted",
@@ -1252,14 +1419,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6776,
+        "prompt_tokens": 6783,
         "completion_tokens": 123,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.01817,
+      "cost_usd": 0.0181875,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -1274,8 +1443,8 @@
         ]
       },
       "tool_outcomes": [
-        "b858c5589e13\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://39ceb831adfee650bc9fd71b2c462a2a984a88ca992bfcb5352c3633f4179d09\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://39ceb831adfee650bc9fd71b2c462a2a984a88ca992bfcb5352c3633f4179d09\"],\"warnings\":[],\"replayed\":false}"
+        "e9331813c3b8\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://c8824a521120db3fbc1a426d07db41cd74de0953aedfdce6043d7ff49d406768\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c8824a521120db3fbc1a426d07db41cd74de0953aedfdce6043d7ff49d406768\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1292,12 +1461,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -1306,7 +1477,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "01c2ba3d46310d58d415a1e9d7f66eb458cb1de4a4999a1a9635db002fa30e23",
+      "state_sha256": "9e8650fa0a05bbd010fe1092f5e85a5b71f8a18fd3907866850db3cf8782b07f",
       "protected": {
         "pass": true,
         "passed": 9,
@@ -1315,77 +1486,6 @@
       },
       "product_verifier_approved": true,
       "success": true
-    },
-    {
-      "label": "s12-retry-control-1",
-      "kind": "series",
-      "task": "retry",
-      "condition": "control",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 1,
-      "task_result": "failed",
-      "reason": "criteria-not-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 5,
-        "unreadable_requests": 0,
-        "prompt_tokens": 12483,
-        "completion_tokens": 130,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.0325075,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 32,
-        "tool_invocations": 2,
-        "note_in_context": false,
-        "memory_sources": []
-      },
-      "tool_outcomes": [
-        "0a3b866ff374\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://ddadb027b975ad09fd0feb912f2cdcdbf12ab521e93ed794bdd2bf8d94369584\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ddadb027b975ad09fd0feb912f2cdcdbf12ab521e93ed794bdd2bf8d94369584\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 5,
-          "requests_verified": 5,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "4478c8e02ab48b5d5e3c83f05b392534e75937b1270fe7dd79e26486174bd63f",
-      "protected": {
-        "pass": false,
-        "passed": 5,
-        "total": 9,
-        "failed": ["a2", "a4", "a5", "a9"]
-      },
-      "product_verifier_approved": false,
-      "success": false
     },
     {
       "label": "s13-retry-promoted-2",
@@ -1400,14 +1500,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6776,
+        "prompt_tokens": 6783,
         "completion_tokens": 123,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.01817,
+      "cost_usd": 0.0181875,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -1422,8 +1524,8 @@
         ]
       },
       "tool_outcomes": [
-        "c5781398abf3\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://720b797832c02d6d760fd182719ebde2a844a9f47536ce528ea5551389de3e67\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://720b797832c02d6d760fd182719ebde2a844a9f47536ce528ea5551389de3e67\"],\"warnings\":[],\"replayed\":false}"
+        "db8fdfe64f46\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://d8a7e181c4c7e4fb83a7a6e2ed2d603a706cb427fe8470679983c8623e7193ea\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d8a7e181c4c7e4fb83a7a6e2ed2d603a706cb427fe8470679983c8623e7193ea\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1440,12 +1542,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -1454,7 +1558,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "5c0d014e8c5c3f763e34f01f675e3a15a5e8c8ba00471a1422539a44adcc86fa",
+      "state_sha256": "4023cf07a66f44686790725d8861621000e9dbff0c58040fd663bf0a823f44d2",
       "protected": {
         "pass": true,
         "passed": 9,
@@ -1465,161 +1569,7 @@
       "success": true
     },
     {
-      "label": "s14-retry-promoted-3",
-      "kind": "series",
-      "task": "retry",
-      "condition": "promoted",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 0,
-      "task_result": "approved",
-      "reason": "criteria-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 3,
-        "unreadable_requests": 0,
-        "prompt_tokens": 6776,
-        "completion_tokens": 123,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.01817,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 22,
-        "tool_invocations": 2,
-        "note_in_context": true,
-        "memory_sources": [
-          {
-            "trust": "trusted",
-            "authority": "data",
-            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
-          }
-        ]
-      },
-      "tool_outcomes": [
-        "8ab5675287a5\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://347fd80afae1225875a2f190658bb0536484bfd1f7a8049afb48d0265e624bab\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://347fd80afae1225875a2f190658bb0536484bfd1f7a8049afb48d0265e624bab\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 3,
-          "requests_verified": 3,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "95dc25bb9e7cfe14e1919e851ead8aa837a3fe99ef0fa6b5121e303188fbc30e",
-      "protected": {
-        "pass": true,
-        "passed": 9,
-        "total": 9,
-        "failed": []
-      },
-      "product_verifier_approved": true,
-      "success": true
-    },
-    {
-      "label": "s15-retry-promoted-4",
-      "kind": "series",
-      "task": "retry",
-      "condition": "promoted",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 0,
-      "task_result": "approved",
-      "reason": "criteria-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 3,
-        "unreadable_requests": 0,
-        "prompt_tokens": 6776,
-        "completion_tokens": 123,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.01817,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 22,
-        "tool_invocations": 2,
-        "note_in_context": true,
-        "memory_sources": [
-          {
-            "trust": "trusted",
-            "authority": "data",
-            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
-          }
-        ]
-      },
-      "tool_outcomes": [
-        "9e8155b85d79\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://c0b9f3efbcb5c7d8f8afd4a26ebd0d0bc74667cd9aa55f697b8991949ad28943\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c0b9f3efbcb5c7d8f8afd4a26ebd0d0bc74667cd9aa55f697b8991949ad28943\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 3,
-          "requests_verified": 3,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "97aa327ce7f420c319ec4f78227a186e7a1e201f3c862e455fa307df77cbd854",
-      "protected": {
-        "pass": true,
-        "passed": 9,
-        "total": 9,
-        "failed": []
-      },
-      "product_verifier_approved": true,
-      "success": true
-    },
-    {
-      "label": "s16-retry-control-2",
+      "label": "s14-retry-control-2",
       "kind": "series",
       "task": "retry",
       "condition": "control",
@@ -1631,14 +1581,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12483,
+        "prompt_tokens": 12496,
         "completion_tokens": 130,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0325075,
+      "cost_usd": 0.03254,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -1647,8 +1599,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "bce5e19ce025\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://c1f4e353b716285fe0abd8adc86dde31ef2cc4455a361368a708312d373f0ec1\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c1f4e353b716285fe0abd8adc86dde31ef2cc4455a361368a708312d373f0ec1\"],\"warnings\":[],\"replayed\":false}"
+        "578a70364a36\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://d75a8272f48b3ab583e4ffe165480f1e815dcc5af9a9e6234227696d8e5e8179\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d75a8272f48b3ab583e4ffe165480f1e815dcc5af9a9e6234227696d8e5e8179\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1665,12 +1617,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -1679,15 +1633,182 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "1dbc5352b507a0824219fbab8b4544c092fa5fdc7c2204024945840205efd053",
+      "state_sha256": "cc8f19001706be836ed90cc6862af5dfd621c8f2812b5437989e73205a9214e2",
       "protected": {
         "pass": false,
         "passed": 5,
         "total": 9,
-        "failed": ["a2", "a4", "a5", "a9"]
+        "failed": [
+          "a2",
+          "a4",
+          "a5",
+          "a9"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
+    },
+    {
+      "label": "s15-retry-promoted-3",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6783,
+        "completion_tokens": 123,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0181875,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "d900c2d36b24\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://4ad6b72f88633623337567d615d96832d97db47d36445b10750f182b1001f504\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://4ad6b72f88633623337567d615d96832d97db47d36445b10750f182b1001f504\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "ee2c56a94b9320314fbc381d6a8e7350a82cb932adca613f7c2c34962678b7c7",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s16-retry-promoted-4",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6783,
+        "completion_tokens": 123,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0181875,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "9a784b86484a\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://ab795f1722cea1449ac2c7c1bf68cfb98439d00d28fe9c4da3fd77632a857cfb\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ab795f1722cea1449ac2c7c1bf68cfb98439d00d28fe9c4da3fd77632a857cfb\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "77709046367962d2546c8d5cb79d7d073f1d4aaa28095b1e78eb23eefcd18f4a",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
     },
     {
       "label": "s17-retry-promoted-5",
@@ -1702,14 +1823,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6776,
+        "prompt_tokens": 6783,
         "completion_tokens": 123,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.01817,
+      "cost_usd": 0.0181875,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -1724,8 +1847,8 @@
         ]
       },
       "tool_outcomes": [
-        "ef4801d9c791\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://75715424601b45cbf532fede3feef3bc58c7add1cdefabe56c635d299a9365d5\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://75715424601b45cbf532fede3feef3bc58c7add1cdefabe56c635d299a9365d5\"],\"warnings\":[],\"replayed\":false}"
+        "e91c43dc3377\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://b2d94ee6cbe603cc7006e646cefa884cdbb40355e766949363c307bfd9b53772\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b2d94ee6cbe603cc7006e646cefa884cdbb40355e766949363c307bfd9b53772\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1742,12 +1865,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -1756,7 +1881,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "aabd7aa836636de796ccc76f3f8fad7e04a660bbcf9ea29623bee97f7d572c36",
+      "state_sha256": "8105a33b279b01cb74e154c1270fce82bcd4ecc69130da70d346b47a13867f7e",
       "protected": {
         "pass": true,
         "passed": 9,
@@ -1779,14 +1904,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12483,
+        "prompt_tokens": 12496,
         "completion_tokens": 130,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0325075,
+      "cost_usd": 0.03254,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -1795,8 +1922,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "d6291da0df91\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://f0a6f29e5f34eaa81de0ea2d85e5a2d86e369f668c44f27ef8c7d0a133415e61\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f0a6f29e5f34eaa81de0ea2d85e5a2d86e369f668c44f27ef8c7d0a133415e61\"],\"warnings\":[],\"replayed\":false}"
+        "6ae60f967bda\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://cb4e1656ee63235ca94e96469a19c3346e952af5b6ec0f3d4f4cad63dc003671\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://cb4e1656ee63235ca94e96469a19c3346e952af5b6ec0f3d4f4cad63dc003671\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1813,12 +1940,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -1827,12 +1956,17 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "dc83ac0560dd97500f7b49b3f60563371c79fbc9c161d29218869c8325897735",
+      "state_sha256": "5458e1d35257e8a7372426461667ada7ef1f4ac36ab658bbdc308af3d40b29ed",
       "protected": {
         "pass": false,
         "passed": 5,
         "total": 9,
-        "failed": ["a2", "a4", "a5", "a9"]
+        "failed": [
+          "a2",
+          "a4",
+          "a5",
+          "a9"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -1850,14 +1984,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12483,
+        "prompt_tokens": 12496,
         "completion_tokens": 130,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0325075,
+      "cost_usd": 0.03254,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -1866,8 +2002,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "9361df382e0b\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://27efb8e52abd5b8a089e9ffd79a6a678a6edd759d461e0a93ee8d75f8545ddaf\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://27efb8e52abd5b8a089e9ffd79a6a678a6edd759d461e0a93ee8d75f8545ddaf\"],\"warnings\":[],\"replayed\":false}"
+        "c94782199ee6\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://63a492d9eeb241ee2df44621c4b914f441072afb80244e84c0ebfd5b3cec7ffa\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://63a492d9eeb241ee2df44621c4b914f441072afb80244e84c0ebfd5b3cec7ffa\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1884,12 +2020,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -1898,12 +2036,17 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "5a5c65859b2139ce133eed988774eb2f936e964e10318d37628e58b703e8543b",
+      "state_sha256": "e7063e31e34f8f8b1596b5b0fd1aaf9646b0ec5aed77fff24a7a065165f01ab2",
       "protected": {
         "pass": false,
         "passed": 5,
         "total": 9,
-        "failed": ["a2", "a4", "a5", "a9"]
+        "failed": [
+          "a2",
+          "a4",
+          "a5",
+          "a9"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -1921,14 +2064,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12483,
+        "prompt_tokens": 12496,
         "completion_tokens": 130,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0325075,
+      "cost_usd": 0.03254,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -1937,8 +2082,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "c84233bc37d2\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://1644ea0aba03273a0e8a551d1e5971b519f7a325141cb3ec6e1edd0fcf3b43b3\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://1644ea0aba03273a0e8a551d1e5971b519f7a325141cb3ec6e1edd0fcf3b43b3\"],\"warnings\":[],\"replayed\":false}"
+        "8ede1e1d889b\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://3918fd15add365caed523f8180db22cf67655c905344a8bfca6582d1f7fde3ec\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3918fd15add365caed523f8180db22cf67655c905344a8bfca6582d1f7fde3ec\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1955,12 +2100,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -1969,91 +2116,25 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "78b7ad8b7e2d9dbd73826133e7be20b960e7f1cd2aa4cdca9cc1399e00c2e6f9",
+      "state_sha256": "cd133d8da5dcd668c5f669740f8e3cb960b3376f4102c4bf4abaf57b90876674",
       "protected": {
         "pass": false,
         "passed": 5,
         "total": 9,
-        "failed": ["a2", "a4", "a5", "a9"]
+        "failed": [
+          "a2",
+          "a4",
+          "a5",
+          "a9"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
     },
     {
-      "label": "s21-priority-control-1",
+      "label": "s21-invoice-promoted-1",
       "kind": "series",
-      "task": "priority",
-      "condition": "control",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 1,
-      "task_result": "failed",
-      "reason": "criteria-not-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 5,
-        "unreadable_requests": 0,
-        "prompt_tokens": 12956,
-        "completion_tokens": 152,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.033909999999999996,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 32,
-        "tool_invocations": 2,
-        "note_in_context": false,
-        "memory_sources": []
-      },
-      "tool_outcomes": [
-        "59b4593fa\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://ad2d5f78428a879711697b93a2f24c51e336f29351609f5d23b2e05f8fd77e3a\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ad2d5f78428a879711697b93a2f24c51e336f29351609f5d23b2e05f8fd77e3a\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 5,
-          "requests_verified": 5,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "0506e22d663f0907b5f2d9e7f6089883affcf3fd029356b493616e698cda4838",
-      "protected": {
-        "pass": false,
-        "passed": 5,
-        "total": 8,
-        "failed": ["billing-low", "billing-critical", "billing-unknown"]
-      },
-      "product_verifier_approved": false,
-      "success": false
-    },
-    {
-      "label": "s22-priority-promoted-1",
-      "kind": "series",
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 0,
@@ -2063,14 +2144,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6979,
-        "completion_tokens": 149,
+        "prompt_tokens": 7014,
+        "completion_tokens": 143,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189375,
+      "cost_usd": 0.018965000000000003,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -2080,13 +2163,13 @@
           {
             "trust": "trusted",
             "authority": "data",
-            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
           }
         ]
       },
       "tool_outcomes": [
-        "4bbbc6f1d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://b65987b1a13d0122e953b366dc0b04a2be0858236df7e17463e439ad7ce50a4d\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b65987b1a13d0122e953b366dc0b04a2be0858236df7e17463e439ad7ce50a4d\"],\"warnings\":[],\"replayed\":false}"
+        "da6f855c96\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://add43e38dc4f4988bfd70990c89499551e408efd299744474eeb9eb9ebf68c3a\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://add43e38dc4f4988bfd70990c89499551e408efd299744474eeb9eb9ebf68c3a\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2103,12 +2186,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -2117,20 +2202,20 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "a529523a92c466db30f75a9bb4e667bf2c798ea362ec7144068c4cc713896d7c",
+      "state_sha256": "37ecb2bf68a46e623c404d2d804c0e992e7e1ed1aae94e7d069fe11d7704277c",
       "protected": {
         "pass": true,
-        "passed": 8,
-        "total": 8,
+        "passed": 5,
+        "total": 5,
         "failed": []
       },
       "product_verifier_approved": true,
       "success": true
     },
     {
-      "label": "s23-priority-control-2",
+      "label": "s22-invoice-control-1",
       "kind": "series",
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 1,
@@ -2140,14 +2225,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12956,
-        "completion_tokens": 152,
+        "prompt_tokens": 12635,
+        "completion_tokens": 121,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033909999999999996,
+      "cost_usd": 0.0327975,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -2156,8 +2243,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "eb224855e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://a7ae5516f6569fc1df7a8ee52c391f589149f8eddaea36571236c960a39f638f\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://a7ae5516f6569fc1df7a8ee52c391f589149f8eddaea36571236c960a39f638f\"],\"warnings\":[],\"replayed\":false}"
+        "2bfcfd67a7\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://9de1c830e4748ab253ecd96c46b925c2664e44b98c1fab9b246469548e2dde29\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://9de1c830e4748ab253ecd96c46b925c2664e44b98c1fab9b246469548e2dde29\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2174,12 +2261,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -2188,251 +2277,26 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "3cbd58cd60f04709f89e9f933b2c89a0c19253a303e82556772b373499152fac",
+      "state_sha256": "d99f37494141d5ee048391ff8bf29b9484f27175c88270bcd6a778d8c16942e7",
       "protected": {
         "pass": false,
-        "passed": 5,
-        "total": 8,
-        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "example",
+          "first",
+          "max",
+          "mid",
+          "old"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
     },
     {
-      "label": "s24-priority-promoted-2",
+      "label": "s23-invoice-control-2",
       "kind": "series",
-      "task": "priority",
-      "condition": "promoted",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 0,
-      "task_result": "approved",
-      "reason": "criteria-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 3,
-        "unreadable_requests": 0,
-        "prompt_tokens": 6979,
-        "completion_tokens": 149,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.0189375,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 22,
-        "tool_invocations": 2,
-        "note_in_context": true,
-        "memory_sources": [
-          {
-            "trust": "trusted",
-            "authority": "data",
-            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
-          }
-        ]
-      },
-      "tool_outcomes": [
-        "3b4634498\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://8bea22d6df342c660cf39f0ecddae1f08c38daa4f509e6d6f9b1e48c3c8803b7\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://8bea22d6df342c660cf39f0ecddae1f08c38daa4f509e6d6f9b1e48c3c8803b7\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 3,
-          "requests_verified": 3,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "ea5204d081aced0aa32a67a8878c0edb89b63fb5419b7b93027764ed74868774",
-      "protected": {
-        "pass": true,
-        "passed": 8,
-        "total": 8,
-        "failed": []
-      },
-      "product_verifier_approved": true,
-      "success": true
-    },
-    {
-      "label": "s25-priority-promoted-3",
-      "kind": "series",
-      "task": "priority",
-      "condition": "promoted",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 0,
-      "task_result": "approved",
-      "reason": "criteria-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 3,
-        "unreadable_requests": 0,
-        "prompt_tokens": 6979,
-        "completion_tokens": 149,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.0189375,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 22,
-        "tool_invocations": 2,
-        "note_in_context": true,
-        "memory_sources": [
-          {
-            "trust": "trusted",
-            "authority": "data",
-            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
-          }
-        ]
-      },
-      "tool_outcomes": [
-        "6c221109d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://d30859109b682d44fa4b2158bc75b59011b955f431eff9da029220f0e1d13eb7\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d30859109b682d44fa4b2158bc75b59011b955f431eff9da029220f0e1d13eb7\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 3,
-          "requests_verified": 3,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "b1f8f59f70622830ba6b4425f42b2f0cdf68f38d05bd27562992ba1a013e477c",
-      "protected": {
-        "pass": true,
-        "passed": 8,
-        "total": 8,
-        "failed": []
-      },
-      "product_verifier_approved": true,
-      "success": true
-    },
-    {
-      "label": "s26-priority-promoted-4",
-      "kind": "series",
-      "task": "priority",
-      "condition": "promoted",
-      "evidence_kind": "fixture-rehearsal",
-      "cli_status": 0,
-      "task_result": "approved",
-      "reason": "criteria-satisfied",
-      "source_db_unchanged": true,
-      "usage": {
-        "requests": 3,
-        "unreadable_requests": 0,
-        "prompt_tokens": 6979,
-        "completion_tokens": 149,
-        "cached_tokens": 0,
-        "complete": true
-      },
-      "cost_usd": 0.0189375,
-      "stop_reason": null,
-      "responding_models": ["gpt-4o"],
-      "replay": {
-        "ok": true,
-        "session_events": 22,
-        "tool_invocations": 2,
-        "note_in_context": true,
-        "memory_sources": [
-          {
-            "trust": "trusted",
-            "authority": "data",
-            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
-          }
-        ]
-      },
-      "tool_outcomes": [
-        "f29333d70\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://f3f829522c2daddab71ac4827b20187210b1021398fea6402ef6ac40bc335413\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f3f829522c2daddab71ac4827b20187210b1021398fea6402ef6ac40bc335413\"],\"warnings\":[],\"replayed\":false}"
-      ],
-      "drain": {
-        "started": 2,
-        "orphans": 0
-      },
-      "provider_proof": {
-        "verdict": "pass",
-        "failures": [],
-        "summarizer_exit": 0,
-        "proof_present": true,
-        "proof": {
-          "auth_mode": "credential",
-          "backend_verified": true,
-          "credential_pool": false,
-          "credential_source": "request-header",
-          "declared": {
-            "model": "gpt-4o",
-            "origin": "https://mock.invalid"
-          },
-          "fallback": false,
-          "observed": {
-            "models": ["gpt-4o"],
-            "origin": "https://mock.invalid"
-          },
-          "requests_total": 3,
-          "requests_verified": 3,
-          "schema_version": 1,
-          "credential_sha256_present": true
-        }
-      },
-      "state_sha256": "ef3b7eb054a7ce0e12f84e7d481bf1d0338779156fd79c8c8250aea9f72b95d2",
-      "protected": {
-        "pass": true,
-        "passed": 8,
-        "total": 8,
-        "failed": []
-      },
-      "product_verifier_approved": true,
-      "success": true
-    },
-    {
-      "label": "s27-priority-control-3",
-      "kind": "series",
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 1,
@@ -2442,14 +2306,16 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12956,
-        "completion_tokens": 152,
+        "prompt_tokens": 12635,
+        "completion_tokens": 121,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033909999999999996,
+      "cost_usd": 0.0327975,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 32,
@@ -2458,8 +2324,8 @@
         "memory_sources": []
       },
       "tool_outcomes": [
-        "a4c18689a\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://93b35a191d32858227a98796686c065d8712b3c219aa9a216de34caddebbbe35\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://93b35a191d32858227a98796686c065d8712b3c219aa9a216de34caddebbbe35\"],\"warnings\":[],\"replayed\":false}"
+        "bcd9cee33c\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://ece899f8bb49ab1cb334ce4a37c1110f2428e0b0d840dee27086e8467939c7fb\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ece899f8bb49ab1cb334ce4a37c1110f2428e0b0d840dee27086e8467939c7fb\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2476,12 +2342,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -2490,20 +2358,26 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "db9a2f97a072504fe2cb5331c4e961084792c9ce80e24bb897eb55c5b5605cad",
+      "state_sha256": "3bcd51ec5cbdab7fc1bad11e839c48baa54f5bc70f21cf05b2dd65507cd30af2",
       "protected": {
         "pass": false,
-        "passed": 5,
-        "total": 8,
-        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "example",
+          "first",
+          "max",
+          "mid",
+          "old"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
     },
     {
-      "label": "s28-priority-promoted-5",
+      "label": "s24-invoice-promoted-2",
       "kind": "series",
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
       "cli_status": 0,
@@ -2513,14 +2387,16 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6979,
-        "completion_tokens": 149,
+        "prompt_tokens": 7014,
+        "completion_tokens": 143,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189375,
+      "cost_usd": 0.018965000000000003,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
         "session_events": 22,
@@ -2530,13 +2406,13 @@
           {
             "trust": "trusted",
             "authority": "data",
-            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
           }
         ]
       },
       "tool_outcomes": [
-        "1e17970bd\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://6c0ec6dfb09dc7aba7bef35dfe30ca551938834754cc7e54e067aca3a3054a75\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6c0ec6dfb09dc7aba7bef35dfe30ca551938834754cc7e54e067aca3a3054a75\"],\"warnings\":[],\"replayed\":false}"
+        "af3cb2d62f\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://fcb097d85f0cfcf03081e9c9faeb3232dec0f903d05c6371f3dfe504b870b53e\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://fcb097d85f0cfcf03081e9c9faeb3232dec0f903d05c6371f3dfe504b870b53e\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2553,12 +2429,14 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 3,
@@ -2567,47 +2445,55 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "77c57216aaaef9228873c19305a01fae7f175f34a248373b3d454725239a8468",
+      "state_sha256": "aaa139b5f30325b279ab6bd49dc545be3710bf5b4ce9e86b221ff465f573dee8",
       "protected": {
         "pass": true,
-        "passed": 8,
-        "total": 8,
+        "passed": 5,
+        "total": 5,
         "failed": []
       },
       "product_verifier_approved": true,
       "success": true
     },
     {
-      "label": "s29-priority-control-4",
+      "label": "s25-invoice-promoted-3",
       "kind": "series",
-      "task": "priority",
-      "condition": "control",
+      "task": "invoice",
+      "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
-      "cli_status": 1,
-      "task_result": "failed",
-      "reason": "criteria-not-satisfied",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
       "source_db_unchanged": true,
       "usage": {
-        "requests": 5,
+        "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 12956,
-        "completion_tokens": 152,
+        "prompt_tokens": 7014,
+        "completion_tokens": 143,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033909999999999996,
+      "cost_usd": 0.018965000000000003,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
-        "session_events": 32,
+        "session_events": 22,
         "tool_invocations": 2,
-        "note_in_context": false,
-        "memory_sources": []
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
       },
       "tool_outcomes": [
-        "25c766eb0\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://aa5118e4c6c18f4c95103656b5b66923f258f4ae989108e0f0da3c9758e01633\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://aa5118e4c6c18f4c95103656b5b66923f258f4ae989108e0f0da3c9758e01633\"],\"warnings\":[],\"replayed\":false}"
+        "c5a1146e0e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://cdd1de348a9e5c8f82ac97e429a857fbb31ec219d4228bd4fb4991e3e0d45cf3\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://cdd1de348a9e5c8f82ac97e429a857fbb31ec219d4228bd4fb4991e3e0d45cf3\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2624,12 +2510,89 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "ecc0d0ebf343b22d0c430c964b48068cc71b35778dac98c8ab63e0d9ddad09d6",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s26-invoice-control-3",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12635,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327975,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "50c576bb49\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://e486daf21409a4c75f27bcbb8516217a763261d91357f0f7137003b5636c1f45\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://e486daf21409a4c75f27bcbb8516217a763261d91357f0f7137003b5636c1f45\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -2638,47 +2601,61 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "a7ad846291ca974241a00f0bdb616b0f4553ebfab9bc5083f19801ff2fda7041",
+      "state_sha256": "0aadeac4023576be84160df660c82a2c56f53529137ba750a51aef6e15a926a3",
       "protected": {
         "pass": false,
-        "passed": 5,
-        "total": 8,
-        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "example",
+          "first",
+          "max",
+          "mid",
+          "old"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
     },
     {
-      "label": "s30-priority-control-5",
+      "label": "s27-invoice-promoted-4",
       "kind": "series",
-      "task": "priority",
-      "condition": "control",
+      "task": "invoice",
+      "condition": "promoted",
       "evidence_kind": "fixture-rehearsal",
-      "cli_status": 1,
-      "task_result": "failed",
-      "reason": "criteria-not-satisfied",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
       "source_db_unchanged": true,
       "usage": {
-        "requests": 5,
+        "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 12956,
-        "completion_tokens": 152,
+        "prompt_tokens": 7014,
+        "completion_tokens": 143,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033909999999999996,
+      "cost_usd": 0.018965000000000003,
       "stop_reason": null,
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
       "replay": {
         "ok": true,
-        "session_events": 32,
+        "session_events": 22,
         "tool_invocations": 2,
-        "note_in_context": false,
-        "memory_sources": []
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
       },
       "tool_outcomes": [
-        "8227fa1f8\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://428cca7401f87cf15a9aa9cc7f86c58d07e6c4b6d3f5f8ee38d24bbbe09c7b9a\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://428cca7401f87cf15a9aa9cc7f86c58d07e6c4b6d3f5f8ee38d24bbbe09c7b9a\"],\"warnings\":[],\"replayed\":false}"
+        "7abeaa3670\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://28de6f3f8213b70f3c579a0478eaeed918e0095c2b11ac0d239e6c67040a03f9\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://28de6f3f8213b70f3c579a0478eaeed918e0095c2b11ac0d239e6c67040a03f9\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2695,12 +2672,89 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
           "observed": {
-            "models": ["gpt-4o"],
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "c0812a459439851c804b7b6ba00778599d0ba9681d491907da1c1f53dc2863de",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s28-invoice-control-4",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12635,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327975,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "705c0fb4eb\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://b1897a7863b3cad6abcb415386820ca11c6f031a596cee847f17833b466a8950\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b1897a7863b3cad6abcb415386820ca11c6f031a596cee847f17833b466a8950\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
             "origin": "https://mock.invalid"
           },
           "requests_total": 5,
@@ -2709,23 +2763,191 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "3a2bc4ac161e22e0fa51244750a69b586c200db06588d15f20478856aff2baf6",
+      "state_sha256": "1a87ee7f4dbbf18812b736658a67e858168297723fa804ecb713d7e6e2f33b16",
       "protected": {
         "pass": false,
-        "passed": 5,
-        "total": 8,
-        "failed": ["billing-low", "billing-critical", "billing-unknown"]
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "example",
+          "first",
+          "max",
+          "mid",
+          "old"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
+    },
+    {
+      "label": "s29-invoice-control-5",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12635,
+        "completion_tokens": 121,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0327975,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "d9659c1e8d\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://deecf9ed9de39db31ace70cdd131a9b57b84e4fb1a28d4a778fa2b15e4736c9b\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://deecf9ed9de39db31ace70cdd131a9b57b84e4fb1a28d4a778fa2b15e4736c9b\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "c7fc3ae54d5a606dd968ceb28d6df9f78ae789df4e5969e0b78cf34684e350e5",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "example",
+          "first",
+          "max",
+          "mid",
+          "old"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s30-invoice-promoted-5",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7014,
+        "completion_tokens": 143,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.018965000000000003,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "033ca68ba9\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://542b22e16551b32fd3ac3a5f0edc7824846cf6a4fc8b90ecbdccc99168a7cfc6\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://542b22e16551b32fd3ac3a5f0edc7824846cf6a4fc8b90ecbdccc99168a7cfc6\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "93d45a0d7f79ead8e1e6d4589ec2e8ce9604edb260217a2e5503b257caf6b192",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
     }
   ],
   "totals": {
     "runs": 33,
     "series_runs": 30,
-    "cost_usd_estimate": 0.8753425000000005,
+    "cost_usd_estimate": 0.8762450000000005,
     "requests": 135,
-    "prompt_tokens": 332165,
+    "prompt_tokens": 332526,
     "completion_tokens": 4493,
     "price_declared_usd_per_million": {
       "in": 2.5,
@@ -2740,7 +2962,7 @@
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
     "requests_per_run_cap": 8
   },
-  "finished_at": "2026-11-07T17:10:14.542Z",
+  "finished_at": "2026-11-08T03:00:40.123Z",
   "artifact_scan": {
     "clean": true,
     "files": 101,

@@ -44,6 +44,14 @@ const sse = (frames) =>
   });
 const tokens = (value) => Math.ceil(String(value).length / 4);
 
+// Like the real provider: an alias is answered with the dated snapshot it resolves to; a dated name answers as itself.
+const MOCK_ALIAS_SNAPSHOT = Object.freeze({ 'gpt-4o': 'gpt-4o-2024-08-06' });
+function respondingModel(declared) {
+  // Rehearsal fault: the backend of the SERIES runs (labels s01...) answers with another model than declared.
+  if (fault === 'diverge-series' && path.basename(dir).startsWith('s')) return 'diverged-backend-model';
+  return MOCK_ALIAS_SNAPSHOT[declared] ?? declared;
+}
+
 function mockAnswer(body) {
   const messages = body.messages;
   const text = messages.map((message) => String(message.content ?? '')).join('\n');
@@ -57,7 +65,7 @@ function mockAnswer(body) {
   const find = (suffix) => names.find((name) => name.endsWith(suffix));
   const tool = (name, args) => ({
     frame: {
-      model: body.model,
+      model: respondingModel(body.model),
       choices: [
         {
           index: 0,
@@ -79,7 +87,12 @@ function mockAnswer(body) {
   });
   const results = messages.filter((message) => message.role === 'tool');
   if (!task)
-    return { frame: { model: body.model, choices: [{ index: 0, delta: { content: 'done' }, finish_reason: 'stop' }] }, out: 'done' };
+    return {
+      frame: { model: respondingModel(body.model), choices: [{ index: 0, delta: { content: 'done' }, finish_reason: 'stop' }] },
+      out: 'done',
+    };
+  // Rehearsal fault: a model that keeps calling tools until the request cap is exhausted.
+  if (fault === 'cap-loop') return tool(find('command'), { id: 'check' });
   if (results.length === 0)
     return tool(find('write'), {
       path: task.file,
@@ -87,7 +100,10 @@ function mockAnswer(body) {
       content: promotedNoteInContext ? task.correct : task.naive,
     });
   if (results.length === 1) return tool(find('command'), { id: 'check' });
-  return { frame: { model: body.model, choices: [{ index: 0, delta: { content: 'done' }, finish_reason: 'stop' }] }, out: 'done' };
+  return {
+    frame: { model: respondingModel(body.model), choices: [{ index: 0, delta: { content: 'done' }, finish_reason: 'stop' }] },
+    out: 'done',
+  };
 }
 
 function carriesContent(text) {
@@ -147,7 +163,11 @@ globalThis.fetch = async (url, init) => {
     throw refuse('F14V3_CEILING_PROJECTION', target);
   }
   const total = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
-  if (total >= max) throw refuse('F14V3_REQUEST_CAP_REACHED', target);
+  if (total >= max) {
+    // Marker for the campaign: a refused call is not a request that reached the provider.
+    fs.writeFileSync(path.join(dir, 'cap-reached.json'), JSON.stringify({ made: total, max }));
+    throw refuse('F14V3_REQUEST_CAP_REACHED', target);
+  }
   fs.writeFileSync(counter, String(total + 1));
   const entry = {
     n: total + 1,
@@ -170,7 +190,10 @@ globalThis.fetch = async (url, init) => {
   if (isMock) {
     if (fault === 'zerousage') {
       const answer = mockAnswer(body);
-      response = sse([answer.frame, { model: body.model, choices: [], usage: { prompt_tokens: 0, completion_tokens: 0 } }]);
+      response = sse([
+        answer.frame,
+        { model: respondingModel(body.model), choices: [], usage: { prompt_tokens: 0, completion_tokens: 0 } },
+      ]);
     } else if (fault === 'nonsse') {
       response = new Response('{"error":"not an event stream"}', { status: 200, headers: { 'content-type': 'application/json' } });
     } else {
@@ -180,7 +203,7 @@ globalThis.fetch = async (url, init) => {
         completion_tokens: tokens(answer.out) + 8,
         prompt_tokens_details: { cached_tokens: 0 },
       };
-      response = sse([answer.frame, { model: body.model, choices: [], usage }]);
+      response = sse([answer.frame, { model: respondingModel(body.model), choices: [], usage }]);
     }
   } else {
     response = await realFetch(url, init);
