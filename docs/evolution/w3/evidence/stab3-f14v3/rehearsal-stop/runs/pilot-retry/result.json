@@ -12,26 +12,32 @@
   "usage": {
     "requests": 5,
     "unreadable_requests": 0,
-    "prompt_tokens": 12496,
-    "completion_tokens": 130,
+    "prompt_tokens": 12497,
+    "completion_tokens": 154,
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.03254,
+  "cost_usd": 0.0327825,
   "stop_reason": null,
   "responding_models": [
     "gpt-4o-2024-08-06"
   ],
+  "measure": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
+  },
   "replay": {
     "ok": true,
     "session_events": 32,
     "tool_invocations": 2,
+    "contract_residue": false,
     "note_in_context": false,
     "memory_sources": []
   },
   "tool_outcomes": [
-    "099960222fcd\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://f15177e687ce8b05b5da2386ea16b618a414c32c5803410481f8b281131e0c37\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f15177e687ce8b05b5da2386ea16b618a414c32c5803410481f8b281131e0c37\"],\"warnings\":[],\"replayed\":false}"
+    "cc256a2bd196\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://52cdf5a893bef530c4376c2e57bf57a68c61f0bdd223d3de87d9b1ecb8aef3cb\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://52cdf5a893bef530c4376c2e57bf57a68c61f0bdd223d3de87d9b1ecb8aef3cb\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -64,7 +70,7 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "de6b5ecd9ca83b780fe50568abc168b38c09025b3ef2b32b60b1123790415091",
+  "state_sha256": "ef6466bf05b3fe09b942ea788f9c3fc8252a6e98a02a628dd35c7d1763dba447",
   "protected": {
     "pass": false,
     "passed": 5,

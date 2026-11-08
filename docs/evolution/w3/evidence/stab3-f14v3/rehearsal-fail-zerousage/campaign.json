@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
+  "confirmation_sha256": "4254d873980356584b2b004de3cc9b3da0384c07ffe3b9943c0f56f57f914bc6",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
   "model": "gpt-4o-2024-08-06",
-  "started_at": "2026-11-08T03:01:43.334Z",
+  "started_at": "2026-11-08T07:04:55.445Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
-    "bytes": 258048,
+    "sha256": "b83d709a5b8a48ad55f882f695a22746d1b2d439900234588aca8ad476204954",
+    "bytes": 67796992,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,8 +50,8 @@
       }
     ],
     "db_sha256": {
-      "box_a": "642ae263c9a6de9315c4d18b9d35465f563805109db8961bd602d24df90c98a3",
-      "box_b": "885dfb764557c81d5fe169a6ea2d1a7d7dc210d80a5c7d6994ca40b8aac6fc65"
+      "box_a": "4b36be9869308ff9777c5144a24cec3f58f80de3ea99a21b9d6ba7a88074474d",
+      "box_b": "89ad140e20a529bf61ea53d0506ef29dcd09db175a3599c62b2a6466ead878f1"
     }
   },
   "seed_recorded_before_first_call": true,
@@ -287,7 +287,9 @@
           "successes": 0
         }
       }
-    ]
+    ],
+    "controls_at_request_limit": 0,
+    "controls": 0
   },
   "runs": [
     {
@@ -308,15 +310,21 @@
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.016645,
+      "cost_usd": 0.016595,
       "stop_reason": "usage-unreadable",
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "no-write",
+        "applied": 0,
+        "sha_checked": 0
+      },
       "replay": {
         "ok": true,
         "session_events": 6,
         "tool_invocations": 0,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
@@ -353,7 +361,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "e63787042d561b2e721fd461d6f7f2e1ae35fa0f9499c08ce342de50510a0045",
+      "state_sha256": "0411ece2dd67260da039a035ba33cdf216084b8d1667fe17180a7146dea6d368",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -369,7 +377,9 @@
   "totals": {
     "runs": 1,
     "series_runs": 0,
-    "cost_usd_estimate": 0.016645,
+    "cost_usd_estimate": 0.016595,
+    "prior_spend_usd": 1.5009,
+    "cumulative_cost_usd": 1.5174949999999998,
     "requests": 1,
     "prompt_tokens": 0,
     "completion_tokens": 0,
@@ -386,9 +396,10 @@
     "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
     "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
-    "requests_per_run_cap": 8
+    "requests_per_run_cap": 8,
+    "request_cap_effect": "The cap of 8 requests per execution punishes the control by exhaustion: it confounds \"memory helps to get it right\" with \"memory helps to finish within the limit\". The analysis reports how many controls hit the limit (analysis.controls_at_request_limit)."
   },
-  "finished_at": "2026-11-08T03:01:45.788Z",
+  "finished_at": "2026-11-08T07:05:00.339Z",
   "artifact_scan": {
     "clean": true,
     "files": 5,

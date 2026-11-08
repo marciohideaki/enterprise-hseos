@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
+  "confirmation_sha256": "4254d873980356584b2b004de3cc9b3da0384c07ffe3b9943c0f56f57f914bc6",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
   "model": "gpt-4o-2024-08-06",
-  "started_at": "2026-11-08T03:01:13.062Z",
+  "started_at": "2026-11-08T07:05:00.525Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
-    "bytes": 258048,
+    "sha256": "b83d709a5b8a48ad55f882f695a22746d1b2d439900234588aca8ad476204954",
+    "bytes": 67796992,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,8 +50,8 @@
       }
     ],
     "db_sha256": {
-      "box_a": "840b6681c5e1bc44d0a071f49c4aec893ca0c72179c9d4d5e9b8e053301cdff3",
-      "box_b": "c27cc845daee97b3bda0e6e7f736949acdbdf7cf17f0fca4a8021303450b061f"
+      "box_a": "ca6999de7bea5bbf9bcfe6a988e956b881f25b791e3e64accdc8dc03d11a0cd0",
+      "box_b": "a62fb32e7aff61c232d6b5f432512a11dbc6446d2d35f4276e54ba230a6ddf89"
     }
   },
   "seed_recorded_before_first_call": true,
@@ -292,7 +292,9 @@
           "successes": 0
         }
       }
-    ]
+    ],
+    "controls_at_request_limit": 0,
+    "controls": 0
   },
   "runs": [
     {
@@ -317,6 +319,11 @@
       "cost_usd": 0.26024,
       "stop_reason": "interrupted-timeout",
       "responding_models": [],
+      "measure": {
+        "reason": "no-ledger",
+        "applied": 0,
+        "sha_checked": 0
+      },
       "protected": {
         "pass": false,
         "passed": 0,
@@ -350,6 +357,11 @@
       "cost_usd": 0.26024,
       "stop_reason": "interrupted-timeout",
       "responding_models": [],
+      "measure": {
+        "reason": "no-ledger",
+        "applied": 0,
+        "sha_checked": 0
+      },
       "protected": {
         "pass": false,
         "passed": 0,
@@ -383,6 +395,11 @@
       "cost_usd": 0.26024,
       "stop_reason": "interrupted-timeout",
       "responding_models": [],
+      "measure": {
+        "reason": "no-ledger",
+        "applied": 0,
+        "sha_checked": 0
+      },
       "protected": {
         "pass": false,
         "passed": 0,
@@ -399,6 +416,8 @@
     "runs": 3,
     "series_runs": 0,
     "cost_usd_estimate": 0.7807200000000001,
+    "prior_spend_usd": 1.5009,
+    "cumulative_cost_usd": 2.28162,
     "requests": 3,
     "prompt_tokens": 0,
     "completion_tokens": 0,
@@ -411,16 +430,19 @@
     "pilot-invoice: usage-incomplete",
     "pilot-invoice: provider-proof-absent",
     "pilot-invoice: replay-failed",
+    "pilot-invoice: contract-residue",
     "pilot-invoice: drain-orphans",
     "pilot-invoice: box-mismatch",
     "pilot-retry: usage-incomplete",
     "pilot-retry: provider-proof-absent",
     "pilot-retry: replay-failed",
+    "pilot-retry: contract-residue",
     "pilot-retry: drain-orphans",
     "pilot-retry: box-mismatch",
     "pilot-priority: usage-incomplete",
     "pilot-priority: provider-proof-absent",
     "pilot-priority: replay-failed",
+    "pilot-priority: contract-residue",
     "pilot-priority: drain-orphans",
     "pilot-priority: box-mismatch"
   ],
@@ -429,9 +451,10 @@
     "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
     "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
-    "requests_per_run_cap": 8
+    "requests_per_run_cap": 8,
+    "request_cap_effect": "The cap of 8 requests per execution punishes the control by exhaustion: it confounds \"memory helps to get it right\" with \"memory helps to finish within the limit\". The analysis reports how many controls hit the limit (analysis.controls_at_request_limit)."
   },
-  "finished_at": "2026-11-08T03:01:40.540Z",
+  "finished_at": "2026-11-08T07:05:30.562Z",
   "artifact_scan": {
     "clean": true,
     "files": 11,
