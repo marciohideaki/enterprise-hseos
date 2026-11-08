@@ -12,20 +12,22 @@
   "usage": {
     "requests": 4,
     "unreadable_requests": 0,
-    "prompt_tokens": 9339,
+    "prompt_tokens": 9350,
     "completion_tokens": 112,
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.0244675,
+  "cost_usd": 0.024495,
   "stop_reason": "ceiling-projection",
   "refusal": {
     "refused": "ceiling-projection",
-    "projected_usd": 0.02118,
-    "spent_usd": 0.0244675,
+    "projected_usd": 0.02119,
+    "spent_usd": 0.024495,
     "ceiling_usd": 0.04
   },
-  "responding_models": ["gpt-4o"],
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
   "replay": {
     "ok": true,
     "session_events": 30,
@@ -34,8 +36,8 @@
     "memory_sources": []
   },
   "tool_outcomes": [
-    "079088147e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}"
+    "ab7a8ad80e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://b05c823b66e370204082ff1821089ae407a493e1aa43117511b5fd905e2e992c\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b05c823b66e370204082ff1821089ae407a493e1aa43117511b5fd905e2e992c\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -43,7 +45,10 @@
   },
   "provider_proof": {
     "verdict": "unknown",
-    "failures": ["backend-not-verified", "requests-not-all-verified"],
+    "failures": [
+      "backend-not-verified",
+      "requests-not-all-verified"
+    ],
     "summarizer_exit": 1,
     "proof_present": true,
     "proof": {
@@ -52,12 +57,14 @@
       "credential_pool": false,
       "credential_source": "request-header",
       "declared": {
-        "model": "gpt-4o",
+        "model": "gpt-4o-2024-08-06",
         "origin": "https://mock.invalid"
       },
       "fallback": false,
       "observed": {
-        "models": ["gpt-4o"],
+        "models": [
+          "gpt-4o-2024-08-06"
+        ],
         "origin": "https://mock.invalid"
       },
       "requests_total": 5,
@@ -66,12 +73,18 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "2adcc92b1291dca1e0eb35a1d2cf534a26cc9928a9035e54e05365196f661172",
+  "state_sha256": "ba233bf8720b09e94256ed5bdeda1c2aa322af427c6918b91f18f2f73a3d13ad",
   "protected": {
     "pass": false,
     "passed": 0,
     "total": 5,
-    "failed": ["example", "first", "max", "mid", "old"]
+    "failed": [
+      "example",
+      "first",
+      "max",
+      "mid",
+      "old"
+    ]
   },
   "product_verifier_approved": false,
   "success": false

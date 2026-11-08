@@ -9,7 +9,7 @@ const PLAN = Object.freeze({
   registered_in: 'docs/evolution/w3/stab2/T4.md (F14 v3)',
   hypothesis:
     'Promoted memory delivered by the production agent run with source_db changes the task result, as judged by the protected tests.',
-  model: 'gpt-4o',
+  model: 'gpt-4o-2024-08-06',
   tasks: TASKS.map((task) => ({
     id: task.id,
     file: task.file,
@@ -42,6 +42,9 @@ const PLAN = Object.freeze({
   },
   budget: {
     ceiling_usd: 3,
+    prior_spend_usd: 0.124,
+    prior_spend_note:
+      'attempt 1 (2026-11-07) spent US$ 0.124 and stopped on CONTROL_PROVIDER_BACKEND_DIVERGED; informational only, not part of this execution ceiling gate',
     stop_fraction: 0.8,
     price_usd_per_million: { in: 2.5, out: 10 },
     price_rule:

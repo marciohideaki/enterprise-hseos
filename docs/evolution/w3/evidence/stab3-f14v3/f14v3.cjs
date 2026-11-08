@@ -249,6 +249,8 @@ async function runOne(ctx, task, condition, label, kind) {
       fs.rmSync(inflightFile, { force: true });
       record.interrupted_request = true;
     }
+    const capFile = path.join(runDir, 'cap-reached.json');
+    const capReached = fs.existsSync(capFile) ? JSON.parse(fs.readFileSync(capFile, 'utf8')) : null;
     const allLines = fs.existsSync(logFile)
       ? fs
           .readFileSync(logFile, 'utf8')
@@ -340,6 +342,16 @@ async function runOne(ctx, task, condition, label, kind) {
         encoding: 'utf8',
       });
       const evidenceJson = lastJson(evidence.stdout) || safeParse(evidence.stdout);
+      // The guard refused a call past the request cap: the adapter counted it in `requests_total` but it never reached the
+      // provider. The proof is judged over the requests that were made (all of them must still be verified).
+      if (capReached) {
+        const original = findProofObject(evidenceJson);
+        if (original) {
+          record.cap_adjustment = { requests_total_reported: original.requests_total, requests_made: capReached.made };
+          original.requests_total = capReached.made;
+          original.backend_verified = original.requests_verified === capReached.made && capReached.made > 0;
+        }
+      }
       const proof = summarizeProviderProof(evidenceJson);
       record.provider_proof = {
         verdict: proof.verdict,
@@ -361,6 +373,13 @@ async function runOne(ctx, task, condition, label, kind) {
     };
     record.product_verifier_approved = record.task_result === 'approved';
     record.success = record.protected.pass && record.product_verifier_approved;
+    if (capReached) {
+      // Too many tool calls is a legitimate task failure, not a protocol failure.
+      record.task_result = 'failed';
+      record.reason = 'request-cap-reached';
+      record.success = false;
+      record.product_verifier_approved = false;
+    }
     write(path.join(runDir, 'result.json'), record);
     return record;
   } finally {
@@ -379,6 +398,16 @@ function safeParse(text) {
 }
 
 /** The public form of the proof: everything except the credential hash, which stays out of the receipt. */
+function findProofObject(value) {
+  if (!value || typeof value !== 'object') return null;
+  if (value.provider_proof && typeof value.provider_proof === 'object') return value.provider_proof;
+  for (const child of Object.values(value)) {
+    const found = findProofObject(child);
+    if (found) return found;
+  }
+  return null;
+}
+
 function publicProof(evidence) {
   const find = (value) => {
     if (!value || typeof value !== 'object') return null;
@@ -531,7 +560,20 @@ async function campaign(args) {
       }
       return true;
     };
+    // A protocol failure (control-provider refusal or a failed adapter proof) ends the campaign at once: the same
+    // failure must never be paid for twice.
+    const protocolFailure = (record) => {
+      if (record.stop_reason) return null;
+      if (String(record.reason ?? '').startsWith('CONTROL_PROVIDER_')) return record.reason;
+      if (record.provider_proof?.verdict !== 'pass') return `provider-proof-${record.provider_proof?.verdict ?? 'absent'}`;
+      return null;
+    };
     const halted = (record) => {
+      const failure = protocolFailure(record);
+      if (failure) {
+        result.stopped = { reason: 'protocol failure', detail: failure, after_run: record.label, runs_done: records.length };
+        return true;
+      }
       if (record.stop_reason !== 'usage-unreadable' && record.stop_reason !== 'ceiling-projection') return false;
       result.stopped = {
         reason: record.stop_reason,

@@ -25,7 +25,9 @@
     "pass": false,
     "passed": 0,
     "total": 8,
-    "failed": ["no-final-write"]
+    "failed": [
+      "no-final-write"
+    ]
   },
   "product_verifier_approved": false,
   "success": false

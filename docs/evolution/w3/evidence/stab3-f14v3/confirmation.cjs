@@ -15,6 +15,8 @@ const GATED_FILES = Object.freeze([
   'plan.cjs',
   'secret-scan.cjs',
   'confirmation.cjs',
+  '../shared/usage-from-sse.cjs',
+  '../shared/summarize-provider-proof.cjs',
   'tasks/invoice.naive.fixture.txt',
   'tasks/invoice.correct.fixture.txt',
   'tasks/retry.naive.fixture.txt',

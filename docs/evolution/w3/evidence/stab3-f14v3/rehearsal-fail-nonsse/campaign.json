@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "5071855b8cabb4ee90390bce73d84f97a4c09434b2874ff4d5a3cf8408c27c46",
+  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
-  "model": "gpt-4o",
-  "started_at": "2026-11-07T17:10:48.862Z",
+  "model": "gpt-4o-2024-08-06",
+  "started_at": "2026-11-08T03:01:40.686Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "cbca0221e7b9744e3b866ab4d56ea318c247c29345dfaa4491fbfc694e78ba6b",
-    "bytes": 62496768,
+    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
+    "bytes": 258048,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,82 +50,82 @@
       }
     ],
     "db_sha256": {
-      "box_a": "a5fde1f3a5e0d1ca0abe0fa429f59c922867fd31b41f1e3e893f1cb3edcee0bf",
-      "box_b": "f5bc6a8a695ff118e00b7c361d408718a7e3ce0f3d972d6320d48c66eb64d899"
+      "box_a": "278c212f04a1d93efaf3aa56b4c63ebbdcd6634b75177a5962b926f5d97e5957",
+      "box_b": "25a25c63f8672e9cbc23a4c5c795e8eb670ae4b53d4e4b3077a2e82a6afc53e4"
     }
   },
   "seed_recorded_before_first_call": true,
   "schedule": [
     {
       "order": 1,
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "rep": 1
     },
     {
       "order": 2,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 2
-    },
-    {
-      "order": 3,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
       "rep": 1
     },
     {
-      "order": 4,
-      "task": "invoice",
+      "order": 3,
+      "task": "priority",
       "condition": "control",
       "rep": 2
     },
     {
-      "order": 5,
-      "task": "invoice",
-      "condition": "promoted",
+      "order": 4,
+      "task": "priority",
+      "condition": "control",
       "rep": 3
+    },
+    {
+      "order": 5,
+      "task": "priority",
+      "condition": "control",
+      "rep": 4
     },
     {
       "order": 6,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
-      "rep": 3
-    },
-    {
-      "order": 7,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 8,
-      "task": "invoice",
-      "condition": "control",
-      "rep": 4
-    },
-    {
-      "order": 9,
-      "task": "invoice",
-      "condition": "promoted",
       "rep": 5
     },
     {
+      "order": 7,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 8,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 9,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
       "order": 10,
-      "task": "invoice",
-      "condition": "control",
+      "task": "priority",
+      "condition": "promoted",
       "rep": 5
     },
     {
       "order": 11,
       "task": "retry",
-      "condition": "promoted",
+      "condition": "control",
       "rep": 1
     },
     {
       "order": 12,
       "task": "retry",
-      "condition": "control",
+      "condition": "promoted",
       "rep": 1
     },
     {
@@ -137,20 +137,20 @@
     {
       "order": 14,
       "task": "retry",
-      "condition": "promoted",
-      "rep": 3
+      "condition": "control",
+      "rep": 2
     },
     {
       "order": 15,
       "task": "retry",
       "condition": "promoted",
-      "rep": 4
+      "rep": 3
     },
     {
       "order": 16,
       "task": "retry",
-      "condition": "control",
-      "rep": 2
+      "condition": "promoted",
+      "rep": 4
     },
     {
       "order": 17,
@@ -178,62 +178,62 @@
     },
     {
       "order": 21,
-      "task": "priority",
-      "condition": "control",
-      "rep": 1
-    },
-    {
-      "order": 22,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 1
     },
     {
+      "order": 22,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 1
+    },
+    {
       "order": 23,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 2
     },
     {
       "order": 24,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 2
     },
     {
       "order": 25,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 3
     },
     {
       "order": 26,
-      "task": "priority",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 27,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 3
     },
     {
-      "order": 28,
-      "task": "priority",
+      "order": 27,
+      "task": "invoice",
       "condition": "promoted",
-      "rep": 5
+      "rep": 4
     },
     {
-      "order": 29,
-      "task": "priority",
+      "order": 28,
+      "task": "invoice",
       "condition": "control",
       "rep": 4
     },
     {
-      "order": 30,
-      "task": "priority",
+      "order": 29,
+      "task": "invoice",
       "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 30,
+      "task": "invoice",
+      "condition": "promoted",
       "rep": 5
     }
   ],
@@ -308,7 +308,7 @@
         "cached_tokens": 0,
         "complete": false
       },
-      "cost_usd": 0.016635,
+      "cost_usd": 0.016645,
       "stop_reason": "usage-unreadable",
       "responding_models": [],
       "replay": {
@@ -325,7 +325,10 @@
       },
       "provider_proof": {
         "verdict": "unknown",
-        "failures": ["backend-not-verified", "requests-not-all-verified"],
+        "failures": [
+          "backend-not-verified",
+          "requests-not-all-verified"
+        ],
         "summarizer_exit": 1,
         "proof_present": true,
         "proof": {
@@ -334,7 +337,7 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
@@ -348,12 +351,14 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "7a3a639c6900d78edfd4cc6a6c31c4a5e551dface26897bb89bca50a9ac611f0",
+      "state_sha256": "d3bb84ba7741741c48a14f80ba39e8d94ee60224375aebe825cb512435844265",
       "protected": {
         "pass": false,
         "passed": 0,
         "total": 5,
-        "failed": ["no-final-write"]
+        "failed": [
+          "no-final-write"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -362,7 +367,7 @@
   "totals": {
     "runs": 1,
     "series_runs": 0,
-    "cost_usd_estimate": 0.016635,
+    "cost_usd_estimate": 0.016645,
     "requests": 1,
     "prompt_tokens": 0,
     "completion_tokens": 0,
@@ -371,7 +376,10 @@
       "out": 10
     }
   },
-  "protocol_issues": ["pilot-invoice: usage-incomplete", "pilot-invoice: provider-proof-unknown"],
+  "protocol_issues": [
+    "pilot-invoice: usage-incomplete",
+    "pilot-invoice: provider-proof-unknown"
+  ],
   "verdict": "STOPPED: usage-unreadable",
   "limits": {
     "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
@@ -379,7 +387,7 @@
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
     "requests_per_run_cap": 8
   },
-  "finished_at": "2026-11-07T17:10:53.311Z",
+  "finished_at": "2026-11-08T03:01:43.169Z",
   "artifact_scan": {
     "clean": true,
     "files": 5,
