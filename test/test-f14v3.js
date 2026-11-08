@@ -10,7 +10,7 @@ const { spawnSync } = require('node:child_process');
 const dir = process.env.F14V3_DIR || path.join(__dirname, '..', 'docs', 'evolution', 'w3', 'evidence', 'stab3-f14v3');
 const repoRoot = path.join(__dirname, '..');
 const { stratifiedExactTest, evaluateCriterion } = require(path.join(dir, 'stats.cjs'));
-const { PLAN, buildSchedule, budgetDecision, costUsd, validateRealPrice, projectCallUsd, interruptedCallUsd } = require(
+const { PLAN, buildSchedule, cumulativeDecision, costUsd, validateRealPrice, projectCallUsd, interruptedCallUsd } = require(
   path.join(dir, 'plan.cjs'),
 );
 const { TASKS, runFilter, runProtected } = require(path.join(dir, 'tasks.cjs'));
@@ -98,9 +98,24 @@ test('schedule is deterministic, balanced 5 x 5 per task and interleaved', () =>
   assert.ok(new Set(lengths).size > 1, 'order depends on the seed');
 });
 
-test('cost and stop rule: stop at 80% of the US$ 3 ceiling', () => {
-  assert.equal(budgetDecision(2.39).stop, false);
-  assert.equal(budgetDecision(2.4).stop, true);
+test('cost and stop rule: the US$ 3 ceiling is cumulative and a hard stop', () => {
+  assert.equal(PLAN.budget.prior_spend_usd, 1.5009);
+  assert.equal(PLAN.budget.stop_fraction, undefined, 'the 80% rule is gone');
+  const prior = PLAN.budget.prior_spend_usd;
+  assert.equal(cumulativeDecision({ priorUsd: prior, spentUsd: 1.4 }).stop, false);
+  assert.equal(cumulativeDecision({ priorUsd: prior, spentUsd: 1.4, projectedUsd: 0.09 }).stop, false, '2.9909 is within the ceiling');
+  assert.equal(
+    cumulativeDecision({ priorUsd: prior, spentUsd: 1.4, projectedUsd: 0.1 }).stop,
+    true,
+    'current spend 1.40 plus a projection past 3.00',
+  );
+  assert.equal(
+    cumulativeDecision({ priorUsd: 0, spentUsd: 1.4, projectedUsd: 0.1 }).stop,
+    false,
+    'without the prior spend it would have gone on',
+  );
+  assert.equal(cumulativeDecision({ priorUsd: prior, spentUsd: 1.4991 }).stop, true, 'a run does not start at the ceiling');
+  assert.equal(cumulativeDecision({ priorUsd: Number.NaN, spentUsd: 0 }).stop, true, 'fail closed on a non-number');
   assert.ok(
     Math.abs(costUsd({ prompt_tokens: 1_000_000, completion_tokens: 100_000 }, { priceInPerMillion: 2.5, priceOutPerMillion: 10 }) - 3.5) <
       1e-9,
@@ -185,6 +200,19 @@ test('the rehearsal receipt covers 33 runs with all protocol checks clean', () =
   assert.equal(receipt.database.secret_scan.clean, true);
   assert.equal(receipt.database.in_repository, false);
   assert.equal(JSON.stringify(receipt).includes('"credential_sha256":'), false);
+  // P12: the rehearsal passes the criterion only through the meter that rebuilds the file from the patch events.
+  assert.equal(receipt.verdict, 'CRITERION MET');
+  assert.ok(receipt.runs.every((run) => run.measure.reason === 'ok' && run.measure.applied >= 1 && run.measure.sha_checked >= 1));
+  assert.ok(receipt.runs.filter((run) => run.condition === 'promoted').every((run) => run.protected.pass));
+  assert.ok(
+    receipt.runs
+      .filter((run) => run.condition === 'control')
+      .every((run) => !run.protected.pass && run.protected.failed[0] !== 'no-final-write'),
+  );
+  assert.equal(receipt.totals.prior_spend_usd, PLAN.budget.prior_spend_usd);
+  // P12 A2: the context of the 3 pilots and of both arms carries nothing of the addition example.
+  assert.equal(receipt.runs.length, 33);
+  assert.ok(receipt.runs.every((run) => run.replay.contract_residue === false));
 });
 
 // ---- cost failure paths (round 1): price, non-SSE response, timeout and per-request ceiling ----
@@ -276,7 +304,9 @@ test('failure paths of the campaign stop it: non-SSE, timeout and per-request ce
     // Per-request ceiling: the projection overflows in the MIDDLE of a run, between two requests of the same execution.
     const capped = go('ceiling', ['--ceiling', '0.04'], {});
     assert.equal(capped.run.status, 5, capped.run.stderr);
-    assert.equal(capped.receipt.stopped.reason, 'ceiling-projection');
+    assert.equal(capped.receipt.stopped.reason, 'cumulative ceiling');
+    assert.equal(capped.receipt.verdict, 'STOPPED: cumulative ceiling');
+    assert.equal(capped.receipt.runs[0].stop_reason, 'ceiling-projection');
     assert.equal(capped.receipt.totals.runs, 1);
     const first = capped.receipt.runs[0];
     assert.ok(first.usage.requests >= 1 && first.usage.requests < 5, `stopped mid-run after ${first.usage.requests} requests`);
@@ -330,7 +360,16 @@ test('the confirmation hash changes with one byte of any gated file, the plan, t
     const baseline = printConfirmation(copy);
     assert.equal(baseline, confirmationHash());
     assert.match(baseline, /^[0-9a-f]{64}$/);
-    const required = ['f14v3.cjs', 'guard.cjs', 'stats.cjs', 'protected-runner.cjs', 'tasks.cjs', 'plan.cjs', 'secret-scan.cjs'];
+    const required = [
+      'f14v3.cjs',
+      'guard.cjs',
+      'stats.cjs',
+      'protected-runner.cjs',
+      'tasks.cjs',
+      'plan.cjs',
+      'secret-scan.cjs',
+      'measure.cjs',
+    ];
     for (const name of required) assert.ok(GATED_FILES.includes(name), `${name} must be listed in the gate`);
     for (const name of new Set([...required, ...GATED_FILES])) {
       const file = path.join(copy, name);
@@ -485,7 +524,7 @@ const pinAlias = (copy) => {
 
 test('the plan declares the dated model and the rehearsal provider answers a dated name for an alias', async () => {
   assert.equal(PLAN.model, 'gpt-4o-2024-08-06');
-  assert.equal(PLAN.budget.prior_spend_usd, 0.124);
+  assert.equal(PLAN.budget.prior_spend_usd, 1.5009);
   const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-alias-'));
   try {
     const db = await fixtureDatabase(scratch);
@@ -602,6 +641,252 @@ test('one byte in the shared usage or proof code changes the confirmation hash',
       fs.writeFileSync(file, original);
     }
     assert.equal(printConfirmation(copy), baseline);
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+// ---- P12: the meter rebuilds the final file from the patch events; the cumulative ceiling counts earlier spend ----
+
+const { reconstructFinalSource } = require(path.join(dir, 'measure.cjs'));
+const shaOf = (value) => require('node:crypto').createHash('sha256').update(value).digest('hex');
+const retry = TASKS.find((task) => task.id === 'retry');
+
+/** Ledger-shaped events for one tool call, as the product writes them (name with a dot, input, outcome.result). */
+function toolCall(step, name, input, { status = 'succeeded', result = {}, error = null } = {}) {
+  return [
+    { event_type: 'tool.execution.started', payload: { step_id: step, name, input } },
+    { event_type: 'tool.execution.completed', payload: { step_id: step, outcome: { name, status, result, error } } },
+  ];
+}
+const patchInput = (before, after, expectedSource = retry.stub) => ({
+  path: retry.file,
+  expected_sha256: shaOf(expectedSource),
+  before,
+  after,
+});
+
+test('meter (a): a patch in the real format applied to the skeleton gives the final source, and the protected tests judge it', () => {
+  for (const [after, passes] of [
+    [retry.correct, true],
+    [retry.naive, false],
+  ]) {
+    const events = toolCall('s1', 'engineering.patch', patchInput(retry.stub, after), {
+      result: { path: retry.file, sha256: shaOf(after) },
+    });
+    const rebuilt = reconstructFinalSource(events, retry.stub, retry.file);
+    assert.equal(rebuilt.reason, 'ok');
+    assert.equal(rebuilt.source, after);
+    assert.equal(rebuilt.sha_checked, 1);
+    assert.equal(runProtected(retry, rebuilt.source).pass, passes);
+  }
+  // Two patches in order, the second anchored on the result of the first; a failed call in between changes nothing.
+  const first = retry.stub.replace('not implemented', 'todo');
+  const events = [
+    ...toolCall('s1', 'engineering.patch', patchInput('not implemented', 'todo'), { result: { sha256: shaOf(first) } }),
+    ...toolCall('s2', 'engineering.patch', patchInput('zzz', 'yyy', first), { status: 'failed', error: { code: 'X' } }),
+    ...toolCall(
+      's3',
+      'engineering.write',
+      { path: retry.file, expected_sha256: shaOf(first), content: retry.correct },
+      { result: { sha256: shaOf(retry.correct) } },
+    ),
+  ];
+  const rebuilt = reconstructFinalSource(events, retry.stub, retry.file);
+  assert.equal(rebuilt.source, retry.correct);
+  assert.equal(rebuilt.applied, 2);
+  // The `within` anchor narrows a repeated `before`.
+  const twice = 'a\nb\na\n';
+  const within = reconstructFinalSource(
+    toolCall('s1', 'engineering.patch', {
+      path: 'f.js',
+      expected_sha256: shaOf(twice),
+      before: 'a',
+      after: 'X',
+      within: { start_line: 3, end_line: 3 },
+    }),
+    twice,
+    'f.js',
+  );
+  assert.equal(within.source, 'a\nb\nX\n');
+});
+
+test('meter (b): a patch that does not apply, an unknown format or a hash divergence is no-final-write WITH a reason', () => {
+  const miss = reconstructFinalSource(
+    toolCall('s1', 'engineering.patch', patchInput('text that is not there', 'x')),
+    retry.stub,
+    retry.file,
+  );
+  assert.deepEqual([miss.source, miss.reason], [null, 'patch-failed']);
+  const stale = reconstructFinalSource(
+    toolCall('s1', 'engineering.patch', patchInput(retry.stub, 'x', 'other source')),
+    retry.stub,
+    retry.file,
+  );
+  assert.equal(stale.reason, 'patch-failed');
+  const ambiguous = reconstructFinalSource(toolCall('s1', 'engineering.patch', patchInput('e', 'x')), retry.stub, retry.file);
+  assert.equal(ambiguous.reason, 'patch-failed', '`before` occurring more than once is refused, as the product does');
+  const unknown = reconstructFinalSource(toolCall('s1', 'engineering.edit', { path: retry.file, text: 'x' }), retry.stub, retry.file);
+  assert.deepEqual([unknown.source, unknown.reason], [null, 'unknown-tool-format']);
+  const malformed = reconstructFinalSource(
+    toolCall('s1', 'engineering.patch', { path: retry.file, expected_sha256: 'x' }),
+    retry.stub,
+    retry.file,
+  );
+  assert.equal(malformed.reason, 'unknown-tool-format');
+  const diverged = reconstructFinalSource(
+    toolCall('s1', 'engineering.patch', patchInput(retry.stub, retry.correct), { result: { sha256: shaOf('something else') } }),
+    retry.stub,
+    retry.file,
+  );
+  assert.deepEqual([diverged.source, diverged.reason, diverged.sha_mismatch], [null, 'sha-mismatch', true]);
+  const none = reconstructFinalSource(toolCall('s1', 'engineering.command', { id: 'check' }), retry.stub, retry.file);
+  assert.deepEqual([none.source, none.reason], [null, 'no-write']);
+});
+
+test('the re-scoring of execution 2 is labelled post hoc, covers 33 runs and holds no secret', () => {
+  const file = path.join(dir, 'real-attempt2', 'campaign.json');
+  const text = fs.readFileSync(file, 'utf8');
+  const summary = JSON.parse(text);
+  assert.match(summary.label, /post-hoc re-scoring with a corrected meter; it does not replace the pre-registered criterion/);
+  assert.equal(summary.runs, 33);
+  assert.ok(summary.executions.every((item) => item.rescored === true));
+  assert.deepEqual(summary.meter_failures, []);
+  assert.equal(/sk-[A-Za-z0-9]{10}|"authorization"/i.test(text), false);
+  assert.equal(summary.controls_at_request_limit, '15/15');
+});
+
+/** Calls the guard with a request that carries max_tokens, in a fresh log directory; returns the guard's verdict. */
+function guardVerdict(guardFile, env, maxTokens) {
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-cum-'));
+  try {
+    const body = JSON.stringify({ model: 'm', messages: [], max_tokens: maxTokens });
+    const run = spawnSync(
+      process.execPath,
+      [
+        '--require',
+        guardFile,
+        '-e',
+        `fetch('https://mock.invalid/v1/chat/completions', { method: 'POST', body: ${JSON.stringify(body)} }).then(() => process.stdout.write('ALLOWED'), (e) => process.stdout.write(e.code || 'ERR'))`,
+      ],
+      {
+        encoding: 'utf8',
+        timeout: 20_000,
+        env: {
+          PATH: process.env.PATH,
+          F14V3_MODE: 'mock',
+          F14V3_OFFLINE: '1',
+          C9_DIR: scratch,
+          F14V3_PRICE_IN: '2.5',
+          F14V3_PRICE_OUT: '10',
+          F14V3_CEILING_USD: '3',
+          ...env,
+        },
+      },
+    );
+    return run.stdout;
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+}
+
+test('cumulative ceiling (d): the guard refuses a call that would pass US$ 3.00 counting the prior spend', () => {
+  const env = { F14V3_PRIOR_SPEND_USD: String(PLAN.budget.prior_spend_usd), F14V3_SPENT_USD: '1.40' };
+  assert.equal(guardVerdict(path.join(dir, 'guard.cjs'), env, 8000), 'ALLOWED', '2.9009 + 0.08 stays under 3.00');
+  assert.equal(guardVerdict(path.join(dir, 'guard.cjs'), env, 12_000), 'F14V3_CEILING_PROJECTION', '2.9009 + 0.12 passes 3.00');
+  assert.equal(guardVerdict(path.join(dir, 'guard.cjs'), { ...env, F14V3_PRIOR_SPEND_USD: '-1' }, 1000), 'F14V3_CEILING_INVALID');
+});
+
+test('mutations (e): looking for a name ending in write, or ignoring the cumulative spend, breaks a test', async () => {
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-p12-mut-'));
+  try {
+    const db = await fixtureDatabase(scratch);
+    const mutate = (copy, name, from, to) => {
+      const file = path.join(copy, name);
+      const source = fs.readFileSync(file, 'utf8');
+      const mutated = source.replace(from, to);
+      assert.notEqual(mutated, source, `the mutation must apply to ${name}`);
+      fs.writeFileSync(file, mutated);
+    };
+    // The unmutated copy reads the final source of the three pilots through the patch events.
+    const clean = runnableCopy(fs.mkdtempSync(path.join(scratch, 'c-')));
+    const base = campaignFrom(clean.copy, clean.root, db, path.join(scratch, 'c-out'), ['--pilots-only']);
+    assert.deepEqual(
+      base.receipt.runs.map((run) => run.measure.reason),
+      ['ok', 'ok', 'ok'],
+      base.run.stderr,
+    );
+    // Mutation 1: the meter goes back to a tool name ending in write; the patch is never seen.
+    const one = runnableCopy(fs.mkdtempSync(path.join(scratch, 'm1-')));
+    mutate(one.copy, 'measure.cjs', '/write|patch|edit/i.test(name)', '/write$/i.test(name)');
+    const m1 = campaignFrom(one.copy, one.root, db, path.join(scratch, 'm1-out'), ['--pilots-only']);
+    assert.deepEqual(
+      m1.receipt.runs.map((run) => run.measure.reason),
+      ['no-write', 'no-write', 'no-write'],
+    );
+    assert.ok(m1.receipt.runs.every((run) => run.protected.failed[0] === 'no-final-write'));
+    // Mutation 2: the guard ignores the prior spend; the cumulative test (d) would see ALLOWED.
+    const two = runnableCopy(fs.mkdtempSync(path.join(scratch, 'm2-')));
+    mutate(
+      two.copy,
+      'guard.cjs',
+      'priorSpendUsd + spentBeforeUsd + runCost + projected > ceilingUsd',
+      'spentBeforeUsd + runCost + projected > ceilingUsd',
+    );
+    const env = { F14V3_PRIOR_SPEND_USD: String(PLAN.budget.prior_spend_usd), F14V3_SPENT_USD: '1.40' };
+    assert.equal(guardVerdict(path.join(two.copy, 'guard.cjs'), env, 12_000), 'ALLOWED', 'the mutant lets the call through');
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('A3: real mode without a valid prior spend fails closed in the guard, before any call; the mock may omit it', () => {
+  const guard = path.join(dir, 'guard.cjs');
+  const real = (extra) => {
+    const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-prior-'));
+    try {
+      const body = JSON.stringify({ model: 'm', messages: [], max_tokens: 100 });
+      const run = spawnSync(
+        process.execPath,
+        [
+          '--require',
+          guard,
+          '-e',
+          `fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', body: ${JSON.stringify(body)} }).then(() => process.stdout.write('ALLOWED'), (e) => process.stdout.write(e.code || 'ERR'))`,
+        ],
+        {
+          encoding: 'utf8',
+          timeout: 20_000,
+          env: {
+            PATH: process.env.PATH,
+            F14V3_MODE: 'real',
+            C9_DIR: scratch,
+            F14V3_PRICE_IN: '2.5',
+            F14V3_PRICE_OUT: '10',
+            F14V3_CEILING_USD: '3',
+            ...extra,
+          },
+        },
+      );
+      assert.equal(fs.existsSync(path.join(scratch, 'request-count.txt')), false, 'no request was counted');
+      return run.stdout;
+    } finally {
+      fs.rmSync(scratch, { recursive: true, force: true });
+    }
+  };
+  assert.equal(real({}), 'F14V3_CEILING_INVALID', 'absent');
+  assert.equal(real({ F14V3_PRIOR_SPEND_USD: 'abc' }), 'F14V3_CEILING_INVALID', 'not a number');
+  assert.equal(real({ F14V3_PRIOR_SPEND_USD: '-1' }), 'F14V3_CEILING_INVALID', 'negative');
+  assert.equal(guardVerdict(guard, {}, 100), 'ALLOWED', 'the rehearsal may omit it');
+});
+
+test('A2/hash: one byte in measure.cjs changes the confirmation hash', () => {
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v3-measure-hash-'));
+  try {
+    const copy = copyCampaign(scratch);
+    const baseline = printConfirmation(copy);
+    fs.appendFileSync(path.join(copy, 'measure.cjs'), ' ');
+    assert.notEqual(printConfirmation(copy), baseline);
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
   }

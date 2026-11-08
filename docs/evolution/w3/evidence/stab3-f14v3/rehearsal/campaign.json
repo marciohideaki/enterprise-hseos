@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
+  "confirmation_sha256": "4254d873980356584b2b004de3cc9b3da0384c07ffe3b9943c0f56f57f914bc6",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
   "model": "gpt-4o-2024-08-06",
-  "started_at": "2026-11-08T02:59:12.802Z",
+  "started_at": "2026-11-08T07:02:33.929Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
-    "bytes": 258048,
+    "sha256": "65878e26159de5182a7080536d1af8531dcc33e5656e455ec6d8a6451d32d308",
+    "bytes": 67768320,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,8 +50,8 @@
       }
     ],
     "db_sha256": {
-      "box_a": "e88a228b368fb9d757e68b1a1eb88a9822748d1b9fb259f4d3e7fb69b4e44bb7",
-      "box_b": "a51019f495ffea0de040e0e4ce5e59ecb87014e2a546df1dac00484becf75c43"
+      "box_a": "4d0c530482f0df0c4e1cfb00bdb992c3b035e1d162721ad9fb92154c4c6ec6f2",
+      "box_b": "0b9823e1174903a0055e7fa91352d8a38931cbdecda01e637d6de6bfd9e2a1c3"
     }
   },
   "seed_recorded_before_first_call": true,
@@ -283,7 +283,9 @@
       "promotedMin": 4,
       "controlMax": 1,
       "alpha": 0.05
-    }
+    },
+    "controls_at_request_limit": 0,
+    "controls": 15
   },
   "runs": [
     {
@@ -299,26 +301,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12635,
-        "completion_tokens": 121,
+        "prompt_tokens": 12662,
+        "completion_tokens": 146,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327975,
+      "cost_usd": 0.033115000000000006,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "f5b4db127d\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://0695709496a338bf05cdb75cc4d712c3e4959021eb09461b60ed67574fb56cba\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://0695709496a338bf05cdb75cc4d712c3e4959021eb09461b60ed67574fb56cba\"],\"warnings\":[],\"replayed\":false}"
+        "1361e4dfcd\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://f534ba31fca1487c8e01a0fb6849457296ce5c0448a699830652776ca9e4261a\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f534ba31fca1487c8e01a0fb6849457296ce5c0448a699830652776ca9e4261a\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -351,7 +359,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "ded28ea16127f4a8f25194ffdbc4702e562eacbde14faaacfd794097fdd232c1",
+      "state_sha256": "9984e9e578c5ece0f7f11ae9adf282874bec64b61419d2de0f59dcdf12f14a76",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -380,26 +388,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12496,
-        "completion_tokens": 130,
+        "prompt_tokens": 12497,
+        "completion_tokens": 154,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.03254,
+      "cost_usd": 0.0327825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "ef81cb638e59\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://909c019c5b4534059a428fde309c530fb262a57e7d6b0df593af50076d567218\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://909c019c5b4534059a428fde309c530fb262a57e7d6b0df593af50076d567218\"],\"warnings\":[],\"replayed\":false}"
+        "be958232ea00\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://3a59e9c2be69e63e70ae6104b98e9effab694fa4db77eb5abf8cec9baab5ca76\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3a59e9c2be69e63e70ae6104b98e9effab694fa4db77eb5abf8cec9baab5ca76\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -432,7 +446,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "ea85777ac15e9e5a00f2d02f6e1c181fceed3807e303b2730e29173eb8c65f86",
+      "state_sha256": "cd3e64a3dfabbe156b612c0941b200352515f280602c36e22a060c3117ac4ca2",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -460,26 +474,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "e264462b9\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://774cf26cc647aa27e83dcecf345e015d376574abac0b3512cd03010f4dae9ecf\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://774cf26cc647aa27e83dcecf345e015d376574abac0b3512cd03010f4dae9ecf\"],\"warnings\":[],\"replayed\":false}"
+        "6f6223f31\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://fb98a818552a7f36483a4104025e8289010593f1934b86618381bfffcc71d5ff\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://fb98a818552a7f36483a4104025e8289010593f1934b86618381bfffcc71d5ff\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -512,7 +532,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "a06961edaa4045e5667a803b924f6c70a21a4aa4656aefb30deac0f997912ce4",
+      "state_sha256": "375cef6b6630d6326b919c022dfb4b9d06ee83bad98af92894bfc5f6b68006b1",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -539,20 +559,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6987,
-        "completion_tokens": 149,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189575,
+      "cost_usd": 0.0192525,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -563,8 +589,8 @@
         ]
       },
       "tool_outcomes": [
-        "1886f490d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://6b68eb01b8b044ab4ca777d74a4a1df7b01504b3dbc5479430cc4c71b8799bd4\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6b68eb01b8b044ab4ca777d74a4a1df7b01504b3dbc5479430cc4c71b8799bd4\"],\"warnings\":[],\"replayed\":false}"
+        "c0ca485fc\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://7198e5d2037a59987aaf2ef049f3594bc8adcce7374204103712745577d8c5a5\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://7198e5d2037a59987aaf2ef049f3594bc8adcce7374204103712745577d8c5a5\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -597,7 +623,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "9d3fb474df50d7954122a222f97e88f625f9c246db10137600700fb709726c91",
+      "state_sha256": "39fa20e208a9ccdb022b1a19a3d2dafd2f204129e153ef5e1dbb1a2f973f1d07",
       "protected": {
         "pass": true,
         "passed": 8,
@@ -620,26 +646,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "dc5faf46d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://fddab724351533f77106600e5027c133106c0dc26fe057d6177adabf96c46ace\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://fddab724351533f77106600e5027c133106c0dc26fe057d6177adabf96c46ace\"],\"warnings\":[],\"replayed\":false}"
+        "52f4fca35\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://d1963f0613b9787937ef951081a992eb1e13767a9d81a7c8ff67e13c84f4aa72\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d1963f0613b9787937ef951081a992eb1e13767a9d81a7c8ff67e13c84f4aa72\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -672,7 +704,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "a0b33743b3f99ce5f549490626c3b9c01bd4ca9583abcb01b190bef4fe86815c",
+      "state_sha256": "45ea60e6b3eeacc1a43796f73b88b1a2430cc182b849a66ba57aa17e4e447465",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -699,26 +731,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "2c7dc8cc4\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://40a0d4181abcbedc27e18025e7dea0e50ac615f52081634d147137392e7ad19d\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://40a0d4181abcbedc27e18025e7dea0e50ac615f52081634d147137392e7ad19d\"],\"warnings\":[],\"replayed\":false}"
+        "296dd2554\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://c04b1f83249442b1907d3989321aff09a9410cbcdf23206410371a47c5b09b47\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c04b1f83249442b1907d3989321aff09a9410cbcdf23206410371a47c5b09b47\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -751,7 +789,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "04c0b01ecc4f41e325e1ac18b9f5a9aacdc7ce11c469b21529301bc251c7e7c4",
+      "state_sha256": "4c471c6a33636c6fe59e2235456ed0787e5d75a85825d870b865108fff2758b9",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -778,26 +816,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "1341d892d\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://5d672b4a194940a336f6987f4e9833b5744b236775882fc129306bb73f6c2d62\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5d672b4a194940a336f6987f4e9833b5744b236775882fc129306bb73f6c2d62\"],\"warnings\":[],\"replayed\":false}"
+        "fd546302f\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://503ceaed5f9ffd186c2db98b05eddd005fe5e9fb149284e21ec04ea87577d708\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://503ceaed5f9ffd186c2db98b05eddd005fe5e9fb149284e21ec04ea87577d708\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -830,7 +874,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "c7e9625340e9e4f73d5397c8d666436de9addef7a75fe01b6d39547704544daa",
+      "state_sha256": "900bbc728a48d7d1b3d7aecafbd323ca7e64d369fab791a219d99f31675c1afe",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -857,26 +901,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "fcd80e64a\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://4bceff302fb58498da669aad6924c7a7575e9d0ee060e6afab8eb640cc052b3f\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://4bceff302fb58498da669aad6924c7a7575e9d0ee060e6afab8eb640cc052b3f\"],\"warnings\":[],\"replayed\":false}"
+        "ab7df043e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://cb9a4482b289603338036027338465d60c99b6ef85995739b8c318166a13dd31\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://cb9a4482b289603338036027338465d60c99b6ef85995739b8c318166a13dd31\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -909,7 +959,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "bd53ab95e38c38071cc38c34bc1703c418f4d4283778e4ef1570de9f1757fb88",
+      "state_sha256": "6bee6b13473acd31a3a0f2c572accfda13e57d1ce72bc05675386e3308a600a9",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -936,26 +986,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "e17ecfcd3\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://d2080d814d46781bc2a932090dd7db92a56e20ba78bc662e62589d2538057e15\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d2080d814d46781bc2a932090dd7db92a56e20ba78bc662e62589d2538057e15\"],\"warnings\":[],\"replayed\":false}"
+        "424d738be\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://4c7e3a8538f829f8b040f43f0f46c8877c1265a3b793746a0de978567ac6b125\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://4c7e3a8538f829f8b040f43f0f46c8877c1265a3b793746a0de978567ac6b125\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -988,7 +1044,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "8b4388bc4167f3664c86c3459b412f58237e1c3e722e8fd769e2d823e107278b",
+      "state_sha256": "a8bff00253e10149f513b71bd2be619eb7de1da369eb0ed2b6c374aa16501b50",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -1015,20 +1071,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6987,
-        "completion_tokens": 149,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189575,
+      "cost_usd": 0.0192525,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1039,8 +1101,8 @@
         ]
       },
       "tool_outcomes": [
-        "cc05dbcd7\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://18387576ff6162c289a03f9748a8cb023d006611a9f3d3459bb44695690c8983\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://18387576ff6162c289a03f9748a8cb023d006611a9f3d3459bb44695690c8983\"],\"warnings\":[],\"replayed\":false}"
+        "0c9669f92\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://018c89f9a679bf8f4897bf97b9cb2364bb805a65f2fe7ba4f59a4c642f1ce561\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://018c89f9a679bf8f4897bf97b9cb2364bb805a65f2fe7ba4f59a4c642f1ce561\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1073,7 +1135,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "b94316d53cb7c433ba84f5ea86ab137cd344117acfa83e185f345aaa5a7485f7",
+      "state_sha256": "517b4d02351d96a17630cdeeefb62718ba1e666c1fbc7e4610bbbd0a3f64830e",
       "protected": {
         "pass": true,
         "passed": 8,
@@ -1096,20 +1158,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6987,
-        "completion_tokens": 149,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189575,
+      "cost_usd": 0.0192525,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1120,8 +1188,8 @@
         ]
       },
       "tool_outcomes": [
-        "e88d5c60e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://ad33395e4fdd38dbe46ad246082dd76fe343cdaf04353fb67091adc0490df26c\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ad33395e4fdd38dbe46ad246082dd76fe343cdaf04353fb67091adc0490df26c\"],\"warnings\":[],\"replayed\":false}"
+        "cd95c2381\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://97d3df20dde8ada05d0a921d20de415d6026b62a33098bb3bf3f287bfe37a05c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://97d3df20dde8ada05d0a921d20de415d6026b62a33098bb3bf3f287bfe37a05c\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1154,7 +1222,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "59f56c11f761aeebb4dcb57eedde59215323e7c8a39edb74631c482baa59a55e",
+      "state_sha256": "d20bbcef73e60fed96a1b63084d57189222eb628be4aa949e420dcb7f1f574c8",
       "protected": {
         "pass": true,
         "passed": 8,
@@ -1177,20 +1245,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6987,
-        "completion_tokens": 149,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189575,
+      "cost_usd": 0.0192525,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1201,8 +1275,8 @@
         ]
       },
       "tool_outcomes": [
-        "f427a6ae5\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://ce877487130e30bd38c6fc67f9b25c7e84ea1da03e756f61c50126e2e49c6702\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ce877487130e30bd38c6fc67f9b25c7e84ea1da03e756f61c50126e2e49c6702\"],\"warnings\":[],\"replayed\":false}"
+        "468d4ff13\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://b87c004df9ebb70e891261d00dfd3dc4443207256d2197ce36833117eefd0ff2\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b87c004df9ebb70e891261d00dfd3dc4443207256d2197ce36833117eefd0ff2\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1235,7 +1309,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "9115aa35e5d553d70d169ba38aaadfd87b2659acb7839bd6f2e9b65576ed8940",
+      "state_sha256": "da29f78deb64dc9a70fe0b38b754c7a694299b7888e8fb038e4eb15be4c4133b",
       "protected": {
         "pass": true,
         "passed": 8,
@@ -1258,20 +1332,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6987,
-        "completion_tokens": 149,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189575,
+      "cost_usd": 0.0192525,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1282,8 +1362,8 @@
         ]
       },
       "tool_outcomes": [
-        "02213b0d4\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://38689ba200d122e5b26558097301d0f393f148a62c0680bbd8c6a65afaabcdf5\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://38689ba200d122e5b26558097301d0f393f148a62c0680bbd8c6a65afaabcdf5\"],\"warnings\":[],\"replayed\":false}"
+        "ae807cfef\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://3056b4b2873ac2bf34b3758164f7e585eb6e3c7e067f82933fea23317debfd4a\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3056b4b2873ac2bf34b3758164f7e585eb6e3c7e067f82933fea23317debfd4a\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1316,7 +1396,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "32d12bd73601f1bcb32a096fdce0240030dea0e785c05f48b9eecd93c64351dd",
+      "state_sha256": "7dd7f29426990cd0450f825d8915185ff38fc2ada0ba5d5114d893e9412939a5",
       "protected": {
         "pass": true,
         "passed": 8,
@@ -1339,26 +1419,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12496,
-        "completion_tokens": 130,
+        "prompt_tokens": 12497,
+        "completion_tokens": 154,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.03254,
+      "cost_usd": 0.0327825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "cf743b7eb112\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://574743191e18341baf2023c509bdfb08e58ddfaf6a6c8d77555ad24c8a4f37cb\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://574743191e18341baf2023c509bdfb08e58ddfaf6a6c8d77555ad24c8a4f37cb\"],\"warnings\":[],\"replayed\":false}"
+        "54c50dc75459\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://c625acfa047e7bcec56b3caf0e74388043641ba2260eb587c5c43a9fb4c9196c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c625acfa047e7bcec56b3caf0e74388043641ba2260eb587c5c43a9fb4c9196c\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1391,7 +1477,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "4b5808733844a1db56110c60a7cb0af1fec7b3b5103811c3261be57261ce3263",
+      "state_sha256": "e1d0cfb1e27b456e23f1d50cd4b61a5a537eb272a938732184daed3de867e081",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -1419,20 +1505,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6783,
-        "completion_tokens": 123,
+        "prompt_tokens": 6778,
+        "completion_tokens": 147,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0181875,
+      "cost_usd": 0.018415,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1443,8 +1535,8 @@
         ]
       },
       "tool_outcomes": [
-        "e9331813c3b8\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://c8824a521120db3fbc1a426d07db41cd74de0953aedfdce6043d7ff49d406768\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c8824a521120db3fbc1a426d07db41cd74de0953aedfdce6043d7ff49d406768\"],\"warnings\":[],\"replayed\":false}"
+        "9533ef9dd71e\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://e1b08607a742a7bf015de2d957aea6c1f0de03a4ef0d180f6818685214bc77de\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://e1b08607a742a7bf015de2d957aea6c1f0de03a4ef0d180f6818685214bc77de\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1477,7 +1569,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "9e8650fa0a05bbd010fe1092f5e85a5b71f8a18fd3907866850db3cf8782b07f",
+      "state_sha256": "e6582011d736f625fe6e9f8d42b554a0d68180cc2627084d2b9daf08f279fad0",
       "protected": {
         "pass": true,
         "passed": 9,
@@ -1500,20 +1592,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6783,
-        "completion_tokens": 123,
+        "prompt_tokens": 6778,
+        "completion_tokens": 147,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0181875,
+      "cost_usd": 0.018415,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1524,8 +1622,8 @@
         ]
       },
       "tool_outcomes": [
-        "db8fdfe64f46\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://d8a7e181c4c7e4fb83a7a6e2ed2d603a706cb427fe8470679983c8623e7193ea\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d8a7e181c4c7e4fb83a7a6e2ed2d603a706cb427fe8470679983c8623e7193ea\"],\"warnings\":[],\"replayed\":false}"
+        "0226bc9b2ed6\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://61e4f471ff20ac322e18ad3ba6abfa32204696d84bf00ec7ccae506f6c7c23b9\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://61e4f471ff20ac322e18ad3ba6abfa32204696d84bf00ec7ccae506f6c7c23b9\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1558,7 +1656,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "4023cf07a66f44686790725d8861621000e9dbff0c58040fd663bf0a823f44d2",
+      "state_sha256": "f16ba7f4539e354250124bb65d1f9882894ebd6c4492afda792cf4aae8798235",
       "protected": {
         "pass": true,
         "passed": 9,
@@ -1581,26 +1679,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12496,
-        "completion_tokens": 130,
+        "prompt_tokens": 12497,
+        "completion_tokens": 154,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.03254,
+      "cost_usd": 0.0327825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "578a70364a36\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://d75a8272f48b3ab583e4ffe165480f1e815dcc5af9a9e6234227696d8e5e8179\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d75a8272f48b3ab583e4ffe165480f1e815dcc5af9a9e6234227696d8e5e8179\"],\"warnings\":[],\"replayed\":false}"
+        "5e53b3ff4e48\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://612f8f3a6ddefd250db7fa742003e9e6b0a1c04c89398c0a723bebbe20f7fde4\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://612f8f3a6ddefd250db7fa742003e9e6b0a1c04c89398c0a723bebbe20f7fde4\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1633,7 +1737,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "cc8f19001706be836ed90cc6862af5dfd621c8f2812b5437989e73205a9214e2",
+      "state_sha256": "0c28030bd937e7354d367d284546312ebf9fdd351e2992d1fe0b53450b27b465",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -1661,20 +1765,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6783,
-        "completion_tokens": 123,
+        "prompt_tokens": 6778,
+        "completion_tokens": 147,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0181875,
+      "cost_usd": 0.018415,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1685,8 +1795,8 @@
         ]
       },
       "tool_outcomes": [
-        "d900c2d36b24\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://4ad6b72f88633623337567d615d96832d97db47d36445b10750f182b1001f504\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://4ad6b72f88633623337567d615d96832d97db47d36445b10750f182b1001f504\"],\"warnings\":[],\"replayed\":false}"
+        "6dfc977023f0\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://6e375b145fb92babf4e8b398b6cf85496a444ae1d53b10f164797a724a6d327f\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6e375b145fb92babf4e8b398b6cf85496a444ae1d53b10f164797a724a6d327f\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1719,7 +1829,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "ee2c56a94b9320314fbc381d6a8e7350a82cb932adca613f7c2c34962678b7c7",
+      "state_sha256": "b299a1ae770db30a4c820d23b872885b0a5c8c254607dee4b54deee3ad2bf82a",
       "protected": {
         "pass": true,
         "passed": 9,
@@ -1742,20 +1852,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6783,
-        "completion_tokens": 123,
+        "prompt_tokens": 6778,
+        "completion_tokens": 147,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0181875,
+      "cost_usd": 0.018415,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1766,8 +1882,8 @@
         ]
       },
       "tool_outcomes": [
-        "9a784b86484a\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://ab795f1722cea1449ac2c7c1bf68cfb98439d00d28fe9c4da3fd77632a857cfb\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ab795f1722cea1449ac2c7c1bf68cfb98439d00d28fe9c4da3fd77632a857cfb\"],\"warnings\":[],\"replayed\":false}"
+        "2910750c6c7a\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://9b1a1d9f5aee8e435f650c0fc5ab449d2f63e27a0d412c4dfdb69c1dd03d5a6c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://9b1a1d9f5aee8e435f650c0fc5ab449d2f63e27a0d412c4dfdb69c1dd03d5a6c\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1800,7 +1916,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "77709046367962d2546c8d5cb79d7d073f1d4aaa28095b1e78eb23eefcd18f4a",
+      "state_sha256": "096f5552cabbb0d61be686003346f3bff3bb0e0207edcf06f03a3d334e1a54c9",
       "protected": {
         "pass": true,
         "passed": 9,
@@ -1823,20 +1939,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6783,
-        "completion_tokens": 123,
+        "prompt_tokens": 6778,
+        "completion_tokens": 147,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0181875,
+      "cost_usd": 0.018415,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1847,8 +1969,8 @@
         ]
       },
       "tool_outcomes": [
-        "e91c43dc3377\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://b2d94ee6cbe603cc7006e646cefa884cdbb40355e766949363c307bfd9b53772\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b2d94ee6cbe603cc7006e646cefa884cdbb40355e766949363c307bfd9b53772\"],\"warnings\":[],\"replayed\":false}"
+        "ee0f6b813224\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"46f295d41f997a80808e6223521842e274afb34de5057ff1f1d154b49a58ecfb\"},\"error\":null,\"evidence_refs\":[\"isolation://2de4f0f2322c929f1255924993a71d8efc310017532639feb2cfb0f753f16dad\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://2de4f0f2322c929f1255924993a71d8efc310017532639feb2cfb0f753f16dad\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1881,7 +2003,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "8105a33b279b01cb74e154c1270fce82bcd4ecc69130da70d346b47a13867f7e",
+      "state_sha256": "d30fc93965620e66a253a0378b208de9cee7ea68a040ee6e91e2d7c3a1f1df4d",
       "protected": {
         "pass": true,
         "passed": 9,
@@ -1904,26 +2026,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12496,
-        "completion_tokens": 130,
+        "prompt_tokens": 12497,
+        "completion_tokens": 154,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.03254,
+      "cost_usd": 0.0327825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "6ae60f967bda\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://cb4e1656ee63235ca94e96469a19c3346e952af5b6ec0f3d4f4cad63dc003671\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://cb4e1656ee63235ca94e96469a19c3346e952af5b6ec0f3d4f4cad63dc003671\"],\"warnings\":[],\"replayed\":false}"
+        "23ed68a9bdda\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://67b2a2994a7449240ce43947e48f62888db52e283ca7501e9b5cf21aa53412c4\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://67b2a2994a7449240ce43947e48f62888db52e283ca7501e9b5cf21aa53412c4\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1956,7 +2084,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "5458e1d35257e8a7372426461667ada7ef1f4ac36ab658bbdc308af3d40b29ed",
+      "state_sha256": "f70324a2d0b254186995d15b4f3b5869af20dd6f8fc2902dc2f6cd5b24006581",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -1984,26 +2112,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12496,
-        "completion_tokens": 130,
+        "prompt_tokens": 12497,
+        "completion_tokens": 154,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.03254,
+      "cost_usd": 0.0327825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "c94782199ee6\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://63a492d9eeb241ee2df44621c4b914f441072afb80244e84c0ebfd5b3cec7ffa\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://63a492d9eeb241ee2df44621c4b914f441072afb80244e84c0ebfd5b3cec7ffa\"],\"warnings\":[],\"replayed\":false}"
+        "42b1a9a3cbe5\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://021f050d759c58854230dbebbdb4e61560fe7e729003ea9f3f42d847fdf1c9fc\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://021f050d759c58854230dbebbdb4e61560fe7e729003ea9f3f42d847fdf1c9fc\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2036,7 +2170,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "e7063e31e34f8f8b1596b5b0fd1aaf9646b0ec5aed77fff24a7a065165f01ab2",
+      "state_sha256": "150d611ad1f06da0878284d380127e7b44a62f8701aa744f088f524fcbe93bc6",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -2064,26 +2198,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12496,
-        "completion_tokens": 130,
+        "prompt_tokens": 12497,
+        "completion_tokens": 154,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.03254,
+      "cost_usd": 0.0327825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "8ede1e1d889b\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://3918fd15add365caed523f8180db22cf67655c905344a8bfca6582d1f7fde3ec\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3918fd15add365caed523f8180db22cf67655c905344a8bfca6582d1f7fde3ec\"],\"warnings\":[],\"replayed\":false}"
+        "4a6eb16ab395\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://904670ee95e4b814267e399850fb872b07ee1980bc2462ff54040cf39143ac6d\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://904670ee95e4b814267e399850fb872b07ee1980bc2462ff54040cf39143ac6d\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2116,7 +2256,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "cd133d8da5dcd668c5f669740f8e3cb960b3376f4102c4bf4abaf57b90876674",
+      "state_sha256": "26a7a888aec8ec9f4990fb4a81efe685bf88dafcbbc596a807ac21f6364d2571",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -2144,20 +2284,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7014,
-        "completion_tokens": 143,
+        "prompt_tokens": 7023,
+        "completion_tokens": 168,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018965000000000003,
+      "cost_usd": 0.0192375,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -2168,8 +2314,8 @@
         ]
       },
       "tool_outcomes": [
-        "da6f855c96\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://add43e38dc4f4988bfd70990c89499551e408efd299744474eeb9eb9ebf68c3a\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://add43e38dc4f4988bfd70990c89499551e408efd299744474eeb9eb9ebf68c3a\"],\"warnings\":[],\"replayed\":false}"
+        "50d1672ca6\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://b6463ede16937706deedc6449b5641425ecc3b764b0745cd2cb081e49f80f20d\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b6463ede16937706deedc6449b5641425ecc3b764b0745cd2cb081e49f80f20d\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2202,7 +2348,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "37ecb2bf68a46e623c404d2d804c0e992e7e1ed1aae94e7d069fe11d7704277c",
+      "state_sha256": "b3a84a1329e94c7d223565cc7e3da2d6c378ed736865e4f52208e28f603372f8",
       "protected": {
         "pass": true,
         "passed": 5,
@@ -2225,26 +2371,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12635,
-        "completion_tokens": 121,
+        "prompt_tokens": 12662,
+        "completion_tokens": 146,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327975,
+      "cost_usd": 0.033115000000000006,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "2bfcfd67a7\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://9de1c830e4748ab253ecd96c46b925c2664e44b98c1fab9b246469548e2dde29\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://9de1c830e4748ab253ecd96c46b925c2664e44b98c1fab9b246469548e2dde29\"],\"warnings\":[],\"replayed\":false}"
+        "e8f3c9a440\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://421409be0e20c899b4124322b7ae689fa20e147be7cbf1008a8b83b8cf7a04c8\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://421409be0e20c899b4124322b7ae689fa20e147be7cbf1008a8b83b8cf7a04c8\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2277,7 +2429,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "d99f37494141d5ee048391ff8bf29b9484f27175c88270bcd6a778d8c16942e7",
+      "state_sha256": "8915c34c07564eae75f33db02608bf0465beddd3afe74edc043558169732a8bc",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -2306,26 +2458,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12635,
-        "completion_tokens": 121,
+        "prompt_tokens": 12662,
+        "completion_tokens": 146,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327975,
+      "cost_usd": 0.033115000000000006,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "bcd9cee33c\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://ece899f8bb49ab1cb334ce4a37c1110f2428e0b0d840dee27086e8467939c7fb\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ece899f8bb49ab1cb334ce4a37c1110f2428e0b0d840dee27086e8467939c7fb\"],\"warnings\":[],\"replayed\":false}"
+        "89ab33c3ac\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://bf969eda450cbe38883e800b9c9eb9e3a82fca6430ba8d2818014d544d5cb67f\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://bf969eda450cbe38883e800b9c9eb9e3a82fca6430ba8d2818014d544d5cb67f\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2358,7 +2516,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "3bcd51ec5cbdab7fc1bad11e839c48baa54f5bc70f21cf05b2dd65507cd30af2",
+      "state_sha256": "7e1ed202874279739d2e5a91b0ac388263a9c6c0f30fef8bef9aa9e2f5a5f3d6",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -2387,20 +2545,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7014,
-        "completion_tokens": 143,
+        "prompt_tokens": 7023,
+        "completion_tokens": 168,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018965000000000003,
+      "cost_usd": 0.0192375,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -2411,8 +2575,8 @@
         ]
       },
       "tool_outcomes": [
-        "af3cb2d62f\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://fcb097d85f0cfcf03081e9c9faeb3232dec0f903d05c6371f3dfe504b870b53e\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://fcb097d85f0cfcf03081e9c9faeb3232dec0f903d05c6371f3dfe504b870b53e\"],\"warnings\":[],\"replayed\":false}"
+        "fda0418280\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://9124d4651da2233ef6d6512bd7b8a76778e0807587c28d52ea08ea6773023c32\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://9124d4651da2233ef6d6512bd7b8a76778e0807587c28d52ea08ea6773023c32\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2445,7 +2609,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "aaa139b5f30325b279ab6bd49dc545be3710bf5b4ce9e86b221ff465f573dee8",
+      "state_sha256": "73a417b09e279d049b3c6af07f1cddd97c179ad0e4fbe808cfbb9bd01ee5adea",
       "protected": {
         "pass": true,
         "passed": 5,
@@ -2468,20 +2632,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7014,
-        "completion_tokens": 143,
+        "prompt_tokens": 7023,
+        "completion_tokens": 168,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018965000000000003,
+      "cost_usd": 0.0192375,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -2492,8 +2662,8 @@
         ]
       },
       "tool_outcomes": [
-        "c5a1146e0e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://cdd1de348a9e5c8f82ac97e429a857fbb31ec219d4228bd4fb4991e3e0d45cf3\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://cdd1de348a9e5c8f82ac97e429a857fbb31ec219d4228bd4fb4991e3e0d45cf3\"],\"warnings\":[],\"replayed\":false}"
+        "bcb7194922\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://d72e0c5451736d73a0836bb163cb0264fb49af7eadbc114913c23d5413cc935d\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d72e0c5451736d73a0836bb163cb0264fb49af7eadbc114913c23d5413cc935d\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2526,7 +2696,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "ecc0d0ebf343b22d0c430c964b48068cc71b35778dac98c8ab63e0d9ddad09d6",
+      "state_sha256": "ea07a62b76b0b1ae5880ff5d109905aae1d4a8e12929dd25946ba7128f43e620",
       "protected": {
         "pass": true,
         "passed": 5,
@@ -2549,26 +2719,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12635,
-        "completion_tokens": 121,
+        "prompt_tokens": 12662,
+        "completion_tokens": 146,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327975,
+      "cost_usd": 0.033115000000000006,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "50c576bb49\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://e486daf21409a4c75f27bcbb8516217a763261d91357f0f7137003b5636c1f45\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://e486daf21409a4c75f27bcbb8516217a763261d91357f0f7137003b5636c1f45\"],\"warnings\":[],\"replayed\":false}"
+        "e695c842b1\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://2d2a828e34a08478a455c34d4056008b4fa0cef61c4b3cfb91911139e91cc43b\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://2d2a828e34a08478a455c34d4056008b4fa0cef61c4b3cfb91911139e91cc43b\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2601,7 +2777,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "0aadeac4023576be84160df660c82a2c56f53529137ba750a51aef6e15a926a3",
+      "state_sha256": "f377c1323f02d2d73f1601982da5a92fc5fe7787517cb795df4312e61c5def0e",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -2630,20 +2806,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7014,
-        "completion_tokens": 143,
+        "prompt_tokens": 7023,
+        "completion_tokens": 168,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018965000000000003,
+      "cost_usd": 0.0192375,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -2654,8 +2836,8 @@
         ]
       },
       "tool_outcomes": [
-        "7abeaa3670\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://28de6f3f8213b70f3c579a0478eaeed918e0095c2b11ac0d239e6c67040a03f9\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://28de6f3f8213b70f3c579a0478eaeed918e0095c2b11ac0d239e6c67040a03f9\"],\"warnings\":[],\"replayed\":false}"
+        "e7364d8496\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://6911231937c0be6b5112dbb2e1a82bd6ab17440bac9fa8ed1b61a4a7775508ce\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6911231937c0be6b5112dbb2e1a82bd6ab17440bac9fa8ed1b61a4a7775508ce\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2688,7 +2870,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "c0812a459439851c804b7b6ba00778599d0ba9681d491907da1c1f53dc2863de",
+      "state_sha256": "389923b8677d6ddcaacb20c23e4793249617f8567839bc5a82981634289997a9",
       "protected": {
         "pass": true,
         "passed": 5,
@@ -2711,26 +2893,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12635,
-        "completion_tokens": 121,
+        "prompt_tokens": 12662,
+        "completion_tokens": 146,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327975,
+      "cost_usd": 0.033115000000000006,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "705c0fb4eb\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://b1897a7863b3cad6abcb415386820ca11c6f031a596cee847f17833b466a8950\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b1897a7863b3cad6abcb415386820ca11c6f031a596cee847f17833b466a8950\"],\"warnings\":[],\"replayed\":false}"
+        "34f313c5c6\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://adb1b5cfd86bff60fc270df6f23a4a5760d90565b7f12eb33c646ec1ffb10111\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://adb1b5cfd86bff60fc270df6f23a4a5760d90565b7f12eb33c646ec1ffb10111\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2763,7 +2951,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "1a87ee7f4dbbf18812b736658a67e858168297723fa804ecb713d7e6e2f33b16",
+      "state_sha256": "70fdc533974e4e13d695331f75834d82fca5bef9e381a70651a04838687fb9e8",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -2792,26 +2980,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12635,
-        "completion_tokens": 121,
+        "prompt_tokens": 12662,
+        "completion_tokens": 146,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327975,
+      "cost_usd": 0.033115000000000006,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "d9659c1e8d\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://deecf9ed9de39db31ace70cdd131a9b57b84e4fb1a28d4a778fa2b15e4736c9b\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://deecf9ed9de39db31ace70cdd131a9b57b84e4fb1a28d4a778fa2b15e4736c9b\"],\"warnings\":[],\"replayed\":false}"
+        "32969b5f8d\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://5629eaedd2f56bbf38ece9e1aadcf91f5369029743f92792fd487316598acbc7\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5629eaedd2f56bbf38ece9e1aadcf91f5369029743f92792fd487316598acbc7\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2844,7 +3038,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "c7fc3ae54d5a606dd968ceb28d6df9f78ae789df4e5969e0b78cf34684e350e5",
+      "state_sha256": "aa1f8aacaa9aaa15d0f3da8ea0ac396b1c7ef0f23f0f29de262a3bc1bc964a61",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -2873,20 +3067,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 7014,
-        "completion_tokens": 143,
+        "prompt_tokens": 7023,
+        "completion_tokens": 168,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.018965000000000003,
+      "cost_usd": 0.0192375,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -2897,8 +3097,8 @@
         ]
       },
       "tool_outcomes": [
-        "033ca68ba9\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://542b22e16551b32fd3ac3a5f0edc7824846cf6a4fc8b90ecbdccc99168a7cfc6\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://542b22e16551b32fd3ac3a5f0edc7824846cf6a4fc8b90ecbdccc99168a7cfc6\"],\"warnings\":[],\"replayed\":false}"
+        "4ea7435f59\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://5079f959b2293ffa6a323bf2946b03d15f97016e4890a0214abd1f46b751b6af\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5079f959b2293ffa6a323bf2946b03d15f97016e4890a0214abd1f46b751b6af\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -2931,7 +3131,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "93d45a0d7f79ead8e1e6d4589ec2e8ce9604edb260217a2e5503b257caf6b192",
+      "state_sha256": "8fadd705d62a3b542cd57c370e884c8cf5c1cb269cf0bfc03c51d3c6dd162dca",
       "protected": {
         "pass": true,
         "passed": 5,
@@ -2945,10 +3145,12 @@
   "totals": {
     "runs": 33,
     "series_runs": 30,
-    "cost_usd_estimate": 0.8762450000000005,
+    "cost_usd_estimate": 0.8856050000000002,
+    "prior_spend_usd": 1.5009,
+    "cumulative_cost_usd": 2.386505,
     "requests": 135,
-    "prompt_tokens": 332526,
-    "completion_tokens": 4493,
+    "prompt_tokens": 332994,
+    "completion_tokens": 5312,
     "price_declared_usd_per_million": {
       "in": 2.5,
       "out": 10
@@ -2960,9 +3162,10 @@
     "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
     "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
-    "requests_per_run_cap": 8
+    "requests_per_run_cap": 8,
+    "request_cap_effect": "The cap of 8 requests per execution punishes the control by exhaustion: it confounds \"memory helps to get it right\" with \"memory helps to finish within the limit\". The analysis reports how many controls hit the limit (analysis.controls_at_request_limit)."
   },
-  "finished_at": "2026-11-08T03:00:40.123Z",
+  "finished_at": "2026-11-08T07:04:04.346Z",
   "artifact_scan": {
     "clean": true,
     "files": 101,

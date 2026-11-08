@@ -17,15 +17,21 @@
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.016645,
+  "cost_usd": 0.016595,
   "stop_reason": "usage-unreadable",
   "responding_models": [
     "gpt-4o-2024-08-06"
   ],
+  "measure": {
+    "reason": "no-write",
+    "applied": 0,
+    "sha_checked": 0
+  },
   "replay": {
     "ok": true,
     "session_events": 6,
     "tool_invocations": 0,
+    "contract_residue": false,
     "note_in_context": false,
     "memory_sources": []
   },
@@ -62,7 +68,7 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "e63787042d561b2e721fd461d6f7f2e1ae35fa0f9499c08ce342de50510a0045",
+  "state_sha256": "0411ece2dd67260da039a035ba33cdf216084b8d1667fe17180a7146dea6d368",
   "protected": {
     "pass": false,
     "passed": 0,

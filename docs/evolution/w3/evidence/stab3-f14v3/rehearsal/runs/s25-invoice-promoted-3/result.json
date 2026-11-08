@@ -12,20 +12,26 @@
   "usage": {
     "requests": 3,
     "unreadable_requests": 0,
-    "prompt_tokens": 7014,
-    "completion_tokens": 143,
+    "prompt_tokens": 7023,
+    "completion_tokens": 168,
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.018965000000000003,
+  "cost_usd": 0.0192375,
   "stop_reason": null,
   "responding_models": [
     "gpt-4o-2024-08-06"
   ],
+  "measure": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
+  },
   "replay": {
     "ok": true,
     "session_events": 22,
     "tool_invocations": 2,
+    "contract_residue": false,
     "note_in_context": true,
     "memory_sources": [
       {
@@ -36,8 +42,8 @@
     ]
   },
   "tool_outcomes": [
-    "c5a1146e0e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://cdd1de348a9e5c8f82ac97e429a857fbb31ec219d4228bd4fb4991e3e0d45cf3\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://cdd1de348a9e5c8f82ac97e429a857fbb31ec219d4228bd4fb4991e3e0d45cf3\"],\"warnings\":[],\"replayed\":false}"
+    "bcb7194922\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"7ebb391347ec557d18c3087a4d4d363b8347b13f493d3ee41a19426aa4e14604\"},\"error\":null,\"evidence_refs\":[\"isolation://d72e0c5451736d73a0836bb163cb0264fb49af7eadbc114913c23d5413cc935d\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d72e0c5451736d73a0836bb163cb0264fb49af7eadbc114913c23d5413cc935d\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -70,7 +76,7 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "ecc0d0ebf343b22d0c430c964b48068cc71b35778dac98c8ab63e0d9ddad09d6",
+  "state_sha256": "ea07a62b76b0b1ae5880ff5d109905aae1d4a8e12929dd25946ba7128f43e620",
   "protected": {
     "pass": true,
     "passed": 5,

@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
+  "confirmation_sha256": "4254d873980356584b2b004de3cc9b3da0384c07ffe3b9943c0f56f57f914bc6",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
   "model": "gpt-4o-2024-08-06",
-  "started_at": "2026-11-08T03:01:10.201Z",
+  "started_at": "2026-11-08T07:04:44.878Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
-    "bytes": 258048,
+    "sha256": "b83d709a5b8a48ad55f882f695a22746d1b2d439900234588aca8ad476204954",
+    "bytes": 67796992,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,8 +50,8 @@
       }
     ],
     "db_sha256": {
-      "box_a": "22ce8cd0ccaa60f7161b95665f825838b1460d8936059fd6672e30560eee0f54",
-      "box_b": "83a923414efdb17857014798c4f2442bdc9f07f94b18ee411e5c8054205e2a60"
+      "box_a": "0ae1ad30503d85cfb3fb7ffc44596a491cd3678aeaa4cfd105d99027c757fbff",
+      "box_b": "35539d265c62613dee129d872a07673898374896aae8b054a9157ae11f255284"
     }
   },
   "seed_recorded_before_first_call": true,
@@ -238,13 +238,16 @@
     }
   ],
   "stopped": {
-    "reason": "ceiling-projection",
+    "reason": "cumulative ceiling",
+    "detail": "ceiling-projection",
     "after_run": "pilot-invoice",
     "runs_done": 1,
     "refusal": {
       "refused": "ceiling-projection",
-      "projected_usd": 0.02119,
-      "spent_usd": 0.024495,
+      "projected_usd": 0.021215,
+      "spent_usd": 0.024792500000000002,
+      "prior_spend_usd": 0,
+      "cumulative_usd": 0.04600750000000001,
       "ceiling_usd": 0.04
     }
   },
@@ -293,7 +296,9 @@
           "successes": 0
         }
       }
-    ]
+    ],
+    "controls_at_request_limit": 0,
+    "controls": 0
   },
   "runs": [
     {
@@ -309,32 +314,40 @@
       "usage": {
         "requests": 4,
         "unreadable_requests": 0,
-        "prompt_tokens": 9350,
-        "completion_tokens": 112,
+        "prompt_tokens": 9369,
+        "completion_tokens": 137,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.024495,
+      "cost_usd": 0.024792500000000002,
       "stop_reason": "ceiling-projection",
       "refusal": {
         "refused": "ceiling-projection",
-        "projected_usd": 0.02119,
-        "spent_usd": 0.024495,
+        "projected_usd": 0.021215,
+        "spent_usd": 0.024792500000000002,
+        "prior_spend_usd": 0,
+        "cumulative_usd": 0.04600750000000001,
         "ceiling_usd": 0.04
       },
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 30,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "ab7a8ad80e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://b05c823b66e370204082ff1821089ae407a493e1aa43117511b5fd905e2e992c\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b05c823b66e370204082ff1821089ae407a493e1aa43117511b5fd905e2e992c\"],\"warnings\":[],\"replayed\":false}"
+        "a6867329d0\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://da58830db0b18123f286a91148c24baeae1f12532f7f504c2620f20b1123447d\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://da58830db0b18123f286a91148c24baeae1f12532f7f504c2620f20b1123447d\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -370,7 +383,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "ba233bf8720b09e94256ed5bdeda1c2aa322af427c6918b91f18f2f73a3d13ad",
+      "state_sha256": "9a4d58a1bfb70a63cd6fbcdb92ba98da51f73d88bb82110b3b1964ec09758a58",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -390,10 +403,12 @@
   "totals": {
     "runs": 1,
     "series_runs": 0,
-    "cost_usd_estimate": 0.024495,
+    "cost_usd_estimate": 0.024792500000000002,
+    "prior_spend_usd": 0,
+    "cumulative_cost_usd": 0.024792500000000002,
     "requests": 4,
-    "prompt_tokens": 9350,
-    "completion_tokens": 112,
+    "prompt_tokens": 9369,
+    "completion_tokens": 137,
     "price_declared_usd_per_million": {
       "in": 2.5,
       "out": 10
@@ -402,14 +417,15 @@
   "protocol_issues": [
     "pilot-invoice: provider-proof-unknown"
   ],
-  "verdict": "STOPPED: ceiling-projection",
+  "verdict": "STOPPED: cumulative ceiling",
   "limits": {
     "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
     "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
-    "requests_per_run_cap": 8
+    "requests_per_run_cap": 8,
+    "request_cap_effect": "The cap of 8 requests per execution punishes the control by exhaustion: it confounds \"memory helps to get it right\" with \"memory helps to finish within the limit\". The analysis reports how many controls hit the limit (analysis.controls_at_request_limit)."
   },
-  "finished_at": "2026-11-08T03:01:12.941Z",
+  "finished_at": "2026-11-08T07:04:50.378Z",
   "artifact_scan": {
     "clean": true,
     "files": 5,
