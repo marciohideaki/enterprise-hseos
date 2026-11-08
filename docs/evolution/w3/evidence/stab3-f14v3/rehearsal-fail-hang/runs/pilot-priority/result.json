@@ -21,6 +21,11 @@
   "cost_usd": 0.26024,
   "stop_reason": "interrupted-timeout",
   "responding_models": [],
+  "measure": {
+    "reason": "no-ledger",
+    "applied": 0,
+    "sha_checked": 0
+  },
   "protected": {
     "pass": false,
     "passed": 0,

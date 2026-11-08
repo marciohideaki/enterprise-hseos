@@ -12,32 +12,40 @@
   "usage": {
     "requests": 4,
     "unreadable_requests": 0,
-    "prompt_tokens": 9350,
-    "completion_tokens": 112,
+    "prompt_tokens": 9369,
+    "completion_tokens": 137,
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.024495,
+  "cost_usd": 0.024792500000000002,
   "stop_reason": "ceiling-projection",
   "refusal": {
     "refused": "ceiling-projection",
-    "projected_usd": 0.02119,
-    "spent_usd": 0.024495,
+    "projected_usd": 0.021215,
+    "spent_usd": 0.024792500000000002,
+    "prior_spend_usd": 0,
+    "cumulative_usd": 0.04600750000000001,
     "ceiling_usd": 0.04
   },
   "responding_models": [
     "gpt-4o-2024-08-06"
   ],
+  "measure": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
+  },
   "replay": {
     "ok": true,
     "session_events": 30,
     "tool_invocations": 2,
+    "contract_residue": false,
     "note_in_context": false,
     "memory_sources": []
   },
   "tool_outcomes": [
-    "ab7a8ad80e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://b05c823b66e370204082ff1821089ae407a493e1aa43117511b5fd905e2e992c\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b05c823b66e370204082ff1821089ae407a493e1aa43117511b5fd905e2e992c\"],\"warnings\":[],\"replayed\":false}"
+    "a6867329d0\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://da58830db0b18123f286a91148c24baeae1f12532f7f504c2620f20b1123447d\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://da58830db0b18123f286a91148c24baeae1f12532f7f504c2620f20b1123447d\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -73,7 +81,7 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "ba233bf8720b09e94256ed5bdeda1c2aa322af427c6918b91f18f2f73a3d13ad",
+  "state_sha256": "9a4d58a1bfb70a63cd6fbcdb92ba98da51f73d88bb82110b3b1964ec09758a58",
   "protected": {
     "pass": false,
     "passed": 0,

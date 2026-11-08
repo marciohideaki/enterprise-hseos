@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "25bc79b5f01fd08f10b2edd0f43f35f2a2905ec5db69160162b0a42700a7a282",
+  "confirmation_sha256": "4254d873980356584b2b004de3cc9b3da0384c07ffe3b9943c0f56f57f914bc6",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
   "model": "gpt-4o-2024-08-06",
-  "started_at": "2026-11-08T03:00:40.280Z",
+  "started_at": "2026-11-08T07:04:04.556Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "5347a50cdb1e8033e4deb150780f133f612e27d41e67178a716446e9faedb277",
-    "bytes": 258048,
+    "sha256": "02d94d2313ebf7317d66af1690cd4988a81c345f1bbf7526a336f159fd3ce7ae",
+    "bytes": 67792896,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,8 +50,8 @@
       }
     ],
     "db_sha256": {
-      "box_a": "df59ad71982ee1ef05a96aeb11e22af2f60b27cebb6f9a74228cb2d20b80d42f",
-      "box_b": "4b1deb0e26454bf0e8c4f402fbcfcef4290771785a1ce0462800c5d3455a3d67"
+      "box_a": "7ff779ddce522f10ac6f80bd3e0972624a54cc68c1ace94f783e7794eed0213c",
+      "box_b": "c46e55f5a257a9e7d42bba3d5de9a877b9bd7d0dff709c3d5fd8e3f2c2b298a9"
     }
   },
   "seed_recorded_before_first_call": true,
@@ -255,12 +255,18 @@
     }
   ],
   "stopped": {
-    "reason": "cost-at-80-percent-of-ceiling",
-    "stop": true,
-    "spent_usd": 0.32588000000000006,
-    "stop_at_usd": 0.32,
-    "ceiling_usd": 0.4,
-    "runs_done": 11
+    "reason": "cumulative ceiling",
+    "detail": "ceiling-projection",
+    "after_run": "s11-retry-control-1",
+    "runs_done": 14,
+    "refusal": {
+      "refused": "ceiling-projection",
+      "projected_usd": 0.01965,
+      "spent_usd": 0.38527,
+      "prior_spend_usd": 0,
+      "cumulative_usd": 0.40492,
+      "ceiling_usd": 0.4
+    }
   },
   "analysis": {
     "complete": false,
@@ -285,22 +291,24 @@
           "successes": 0
         },
         "control": {
-          "n": 0,
+          "n": 1,
           "successes": 0
         }
       },
       {
         "id": "priority",
         "promoted": {
-          "n": 3,
-          "successes": 3
+          "n": 5,
+          "successes": 5
         },
         "control": {
           "n": 5,
           "successes": 0
         }
       }
-    ]
+    ],
+    "controls_at_request_limit": 0,
+    "controls": 6
   },
   "runs": [
     {
@@ -316,26 +324,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12635,
-        "completion_tokens": 121,
+        "prompt_tokens": 12662,
+        "completion_tokens": 146,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0327975,
+      "cost_usd": 0.033115000000000006,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "821e32cf10\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://a3ea0e9f5b2a4a62465544a033ae1e5f872f8a6cf3d2a9811df3a19b4d7a4201\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://a3ea0e9f5b2a4a62465544a033ae1e5f872f8a6cf3d2a9811df3a19b4d7a4201\"],\"warnings\":[],\"replayed\":false}"
+        "c900a66448\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://783ae63ab9019dea79c603783c1696983c2a31b0f67f932ec49c4d5082330888\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://783ae63ab9019dea79c603783c1696983c2a31b0f67f932ec49c4d5082330888\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -368,7 +382,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "ad0751b93013a2b937f5983bc24be0d87281473c40f7cb51d1bc9da57f2b6391",
+      "state_sha256": "79c0ef6ff9b29c27bfc3351f036c398b333f3d9b2c6570b090f711562cf3bd6c",
       "protected": {
         "pass": false,
         "passed": 0,
@@ -397,26 +411,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12496,
-        "completion_tokens": 130,
+        "prompt_tokens": 12497,
+        "completion_tokens": 154,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.03254,
+      "cost_usd": 0.0327825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "099960222fcd\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://f15177e687ce8b05b5da2386ea16b618a414c32c5803410481f8b281131e0c37\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f15177e687ce8b05b5da2386ea16b618a414c32c5803410481f8b281131e0c37\"],\"warnings\":[],\"replayed\":false}"
+        "cc256a2bd196\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://52cdf5a893bef530c4376c2e57bf57a68c61f0bdd223d3de87d9b1ecb8aef3cb\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://52cdf5a893bef530c4376c2e57bf57a68c61f0bdd223d3de87d9b1ecb8aef3cb\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -449,7 +469,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "de6b5ecd9ca83b780fe50568abc168b38c09025b3ef2b32b60b1123790415091",
+      "state_sha256": "ef6466bf05b3fe09b942ea788f9c3fc8252a6e98a02a628dd35c7d1763dba447",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -477,26 +497,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "425b42514\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://b95a453b005c194dd97d7d8c2cb97217cb32691fdf89bdce225d32ca05b3b782\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b95a453b005c194dd97d7d8c2cb97217cb32691fdf89bdce225d32ca05b3b782\"],\"warnings\":[],\"replayed\":false}"
+        "b1bdffefe\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://11aab7c676e28776b1029db4e52d36eac4f91d913eaec14ab7e641fb546e8043\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://11aab7c676e28776b1029db4e52d36eac4f91d913eaec14ab7e641fb546e8043\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -529,7 +555,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "2161c6b88c358eb30f050a781712b65345852f8461276df3af2ee708b42c4079",
+      "state_sha256": "5edd37c23fca5831a8b0611d0f9ef20985b0c7b370268ff1d52fadd3b991ba5b",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -556,20 +582,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6987,
-        "completion_tokens": 149,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189575,
+      "cost_usd": 0.0192525,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -580,8 +612,8 @@
         ]
       },
       "tool_outcomes": [
-        "fc4264e49\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://421cd72dde5e66a2b527516a09245ad55550b01ec0c350752c52fec9dd321fa3\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://421cd72dde5e66a2b527516a09245ad55550b01ec0c350752c52fec9dd321fa3\"],\"warnings\":[],\"replayed\":false}"
+        "bd90d84a3\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://6ba8ade23fe8f5f2ac3359d8ec84d65109322dbe4544993dd4ec0a75ea05a568\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6ba8ade23fe8f5f2ac3359d8ec84d65109322dbe4544993dd4ec0a75ea05a568\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -614,7 +646,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "1b3011a5dfcd5be322d3ada0a220bf43cb8ecb9967b10e95118a77b8b56eba20",
+      "state_sha256": "00e0c9fed976261a011080dc78aed59559de77cdcfec6d66c071835488446910",
       "protected": {
         "pass": true,
         "passed": 8,
@@ -637,26 +669,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "628177338\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://eec3d288474e58b0af6a44927f684d87741f3d0568af3e348e61c6cc6a67f3d3\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://eec3d288474e58b0af6a44927f684d87741f3d0568af3e348e61c6cc6a67f3d3\"],\"warnings\":[],\"replayed\":false}"
+        "9c84311dd\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://77a7acfc5dedc681d37112d382e93ad4c1fff3aa2631008bb17dcd9a62bfbc8c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://77a7acfc5dedc681d37112d382e93ad4c1fff3aa2631008bb17dcd9a62bfbc8c\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -689,7 +727,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "152b7ecfb9606ad4ddd3ad414645d7a70adc976bbd04a4fa1e4a8900458f5b0e",
+      "state_sha256": "2ae84734f8244dd3a8ff5d33f8773a6e69349dad26e17822480e36f5a90aceb9",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -716,26 +754,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "19cfadefd\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://0b5b932b33eb53037e53441519e061ec7c9a5c21465cc87eeb916ec03482847f\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://0b5b932b33eb53037e53441519e061ec7c9a5c21465cc87eeb916ec03482847f\"],\"warnings\":[],\"replayed\":false}"
+        "2982d03dd\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://7ad216335f40e0037fe8fe900c0426c678ef2961ca21f723f14ae5263713ea44\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://7ad216335f40e0037fe8fe900c0426c678ef2961ca21f723f14ae5263713ea44\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -768,7 +812,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "ac3044d32ee2d3e0c5067e28462e3c591d7e45f56e4334fa9b90291f2b635eab",
+      "state_sha256": "34ba3de119b0a7faaa2d77c504173cdf9aa8820411e0da6b5e0a26ec432c9501",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -795,26 +839,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "fdcba7948\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://2fa08afc1bad8a35aea53b3733daf39ff6f167e118c227b4c1122337fb853454\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://2fa08afc1bad8a35aea53b3733daf39ff6f167e118c227b4c1122337fb853454\"],\"warnings\":[],\"replayed\":false}"
+        "8f0d3819b\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://56b02f18bccf5885e087c27dcf2439fa0c70c912989a975dbf87a7e0b2f5e983\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://56b02f18bccf5885e087c27dcf2439fa0c70c912989a975dbf87a7e0b2f5e983\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -847,7 +897,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "6c2f5c0bebed06e7daa3bc7ec8ece3e3fef99de2acbbc93e7a0113e9576dd5b3",
+      "state_sha256": "ad95e37a2099caaf7f0ff447abf6a13e0c0587b816165c6543759e44529c1dbb",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -874,26 +924,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "2c5553384\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://df72afd1449f9040cdf6edf06a066f2391cce38c24dab70b9146532a05b4b4e8\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://df72afd1449f9040cdf6edf06a066f2391cce38c24dab70b9146532a05b4b4e8\"],\"warnings\":[],\"replayed\":false}"
+        "640b7183e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://82f5654a7d952cdb8ec31937a3b0b2edbbb375232b718ea5506f996fd2be3882\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://82f5654a7d952cdb8ec31937a3b0b2edbbb375232b718ea5506f996fd2be3882\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -926,7 +982,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "7a7755217f6851574afadf9d0f66cf1cc4592ea73d78803adac9edbaaf82e810",
+      "state_sha256": "543755aebf29bb4ff1d73be574bbf5ac7b5d3f3ac26411a8378ba2883f72f09f",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -953,26 +1009,32 @@
       "usage": {
         "requests": 5,
         "unreadable_requests": 0,
-        "prompt_tokens": 12970,
-        "completion_tokens": 152,
+        "prompt_tokens": 13005,
+        "completion_tokens": 177,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.033945,
+      "cost_usd": 0.0342825,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 32,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
       "tool_outcomes": [
-        "f527be801\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://b52613519c58f1592bcd5b28c925c283f465c54ab3349d392fb3091cadf6eef5\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b52613519c58f1592bcd5b28c925c283f465c54ab3349d392fb3091cadf6eef5\"],\"warnings\":[],\"replayed\":false}"
+        "866812ebb\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://319df5ea6dc0b7de24c04dce3eafe49012e9b0c16126386eafa667be710a19f8\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://319df5ea6dc0b7de24c04dce3eafe49012e9b0c16126386eafa667be710a19f8\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1005,7 +1067,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "c05d2465f3da1dd91c6fd5f56087b9df795828189ffba9f491975a875a4a5ffa",
+      "state_sha256": "579f52ef3ed590d2c5c00398c0384bb713c6a85d5ca112d4a11c06328f8fa271",
       "protected": {
         "pass": false,
         "passed": 5,
@@ -1032,20 +1094,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6987,
-        "completion_tokens": 149,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189575,
+      "cost_usd": 0.0192525,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1056,8 +1124,8 @@
         ]
       },
       "tool_outcomes": [
-        "fddcd5942\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://49dd26109e2154f80c83dadd8720fe2d502e9a345daa792c06d283c5347f88c1\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://49dd26109e2154f80c83dadd8720fe2d502e9a345daa792c06d283c5347f88c1\"],\"warnings\":[],\"replayed\":false}"
+        "1c377244e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://600628e59e118409e64546cd3b54c0cbe795a4a93cda1c29fad98c6159a479da\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://600628e59e118409e64546cd3b54c0cbe795a4a93cda1c29fad98c6159a479da\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1090,7 +1158,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "14fc25e15692a8fae0ac71f4831deb246f484bd576254b01dbea155de6cf3820",
+      "state_sha256": "8f99033ee10461b7ba0cb6d89318c061d2ca0421d3098115aa60479c1cfb58ae",
       "protected": {
         "pass": true,
         "passed": 8,
@@ -1113,20 +1181,26 @@
       "usage": {
         "requests": 3,
         "unreadable_requests": 0,
-        "prompt_tokens": 6987,
-        "completion_tokens": 149,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.0189575,
+      "cost_usd": 0.0192525,
       "stop_reason": null,
       "responding_models": [
         "gpt-4o-2024-08-06"
       ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
       "replay": {
         "ok": true,
         "session_events": 22,
         "tool_invocations": 2,
+        "contract_residue": false,
         "note_in_context": true,
         "memory_sources": [
           {
@@ -1137,8 +1211,8 @@
         ]
       },
       "tool_outcomes": [
-        "1262d638e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://4eff1a9bff513c9c5d22a5febc43072d449aebf879b32d204a6f09d854abec3b\"],\"warnings\":[],\"replayed\":false}",
-        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://4eff1a9bff513c9c5d22a5febc43072d449aebf879b32d204a6f09d854abec3b\"],\"warnings\":[],\"replayed\":false}"
+        "72b6ddffd\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://3dab1ace73705990a0d63f2bd93d730e67dc6d1c266bc8908aff032e0b042fde\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3dab1ace73705990a0d63f2bd93d730e67dc6d1c266bc8908aff032e0b042fde\"],\"warnings\":[],\"replayed\":false}"
       ],
       "drain": {
         "started": 2,
@@ -1171,7 +1245,7 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "1c5e2458ccaffbb3f55692262de3c79acc1189151a58e1a58f1e174a1650f241",
+      "state_sha256": "5ef81e80f7b657179d938201b62920cdfe9e6941e78cc9d219b298674ae81870",
       "protected": {
         "pass": true,
         "passed": 8,
@@ -1180,32 +1254,308 @@
       },
       "product_verifier_approved": true,
       "success": true
+    },
+    {
+      "label": "s09-priority-promoted-4",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0192525,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "4057021b8\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://62e616ff6fa68cafc137e6d149120161c69d00035d9a5bb6361bea6d75c054d1\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://62e616ff6fa68cafc137e6d149120161c69d00035d9a5bb6361bea6d75c054d1\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "280d1386b9f9265e397bdc23e22faa0714d7fb8a2c9467521ea48b734f6e12af",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s10-priority-promoted-5",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7001,
+        "completion_tokens": 175,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0192525,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "ec71805b6\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"f40f4a4f0ce3c6e9e546bfca6ceeb32a69ca7afaff357b69ce8159a220c6b5a7\"},\"error\":null,\"evidence_refs\":[\"isolation://bb4bce8a349e36d9e6a71975449afab079cf2563f95e1580933e77932ff698ba\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://bb4bce8a349e36d9e6a71975449afab079cf2563f95e1580933e77932ff698ba\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "c5a7ec097a73cd4e4efbc1fa930e929fcdf7b39f7db44cc5c15038f10559069e",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s11-retry-control-1",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "session-failed:provider_unavailable",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6422,
+        "completion_tokens": 136,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.017415,
+      "stop_reason": "ceiling-projection",
+      "refusal": {
+        "refused": "ceiling-projection",
+        "projected_usd": 0.01965,
+        "spent_usd": 0.38527,
+        "prior_spend_usd": 0,
+        "cumulative_usd": 0.40492,
+        "ceiling_usd": 0.4
+      },
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 25,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "c939670e3ba5\",\"result\":{\"path\":\"retry.js\",\"sha256\":\"845224b2f1dbc5f5375c8e8e1bd00e510ab49e0ba8d662782bc7b838ef5ac4d7\"},\"error\":null,\"evidence_refs\":[\"isolation://6081809c6894775f7466221623ba5371326d7d1b49a061d641d9fefe3c5c5e43\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6081809c6894775f7466221623ba5371326d7d1b49a061d641d9fefe3c5c5e43\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "backend-not-verified",
+          "requests-not-all-verified"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": false,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": [
+              "gpt-4o-2024-08-06"
+            ],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 4,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "state_sha256": "9825d44c1446a6c7b664264be938ed7a2028a14a9c33455df4aebcbfddf558f5",
+      "protected": {
+        "pass": false,
+        "passed": 5,
+        "total": 9,
+        "failed": [
+          "a2",
+          "a4",
+          "a5",
+          "a9"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
     }
   ],
   "totals": {
-    "runs": 11,
-    "series_runs": 8,
-    "cost_usd_estimate": 0.32588000000000006,
-    "requests": 49,
-    "prompt_tokens": 123912,
-    "completion_tokens": 1610,
+    "runs": 14,
+    "series_runs": 11,
+    "cost_usd_estimate": 0.38527,
+    "prior_spend_usd": 0,
+    "cumulative_cost_usd": 0.38527,
+    "requests": 58,
+    "prompt_tokens": 144616,
+    "completion_tokens": 2373,
     "price_declared_usd_per_million": {
       "in": 2.5,
       "out": 10
     }
   },
-  "protocol_issues": [],
-  "verdict": "STOPPED: cost-at-80-percent-of-ceiling",
+  "protocol_issues": [
+    "s11-retry-control-1: provider-proof-unknown"
+  ],
+  "verdict": "STOPPED: cumulative ceiling",
   "limits": {
     "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
     "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
-    "requests_per_run_cap": 8
+    "requests_per_run_cap": 8,
+    "request_cap_effect": "The cap of 8 requests per execution punishes the control by exhaustion: it confounds \"memory helps to get it right\" with \"memory helps to finish within the limit\". The analysis reports how many controls hit the limit (analysis.controls_at_request_limit)."
   },
-  "finished_at": "2026-11-08T03:01:10.067Z",
+  "finished_at": "2026-11-08T07:04:44.681Z",
   "artifact_scan": {
     "clean": true,
-    "files": 35,
+    "files": 44,
     "flagged": []
   }
 }

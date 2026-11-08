@@ -13,6 +13,7 @@ const GATED_FILES = Object.freeze([
   'protected-runner.cjs',
   'tasks.cjs',
   'plan.cjs',
+  'measure.cjs',
   'secret-scan.cjs',
   'confirmation.cjs',
   '../shared/usage-from-sse.cjs',

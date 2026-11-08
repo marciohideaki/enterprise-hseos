@@ -1,0 +1,1083 @@
+{
+  "label": "post-hoc re-scoring with a corrected meter; it does not replace the pre-registered criterion",
+  "rescored": true,
+  "evidence_kind": "real-posthoc-rescoring",
+  "model": "gpt-4o-2024-08-06",
+  "meter": "measure.cjs: final source rebuilt from the successful engineering.write / engineering.patch events of the ledger",
+  "runs": 33,
+  "per_task": [
+    {
+      "id": "invoice",
+      "promoted": "5/5",
+      "control": "0/5",
+      "pass": true
+    },
+    {
+      "id": "retry",
+      "promoted": "5/5",
+      "control": "0/5",
+      "pass": true
+    },
+    {
+      "id": "priority",
+      "promoted": "5/5",
+      "control": "0/5",
+      "pass": true
+    }
+  ],
+  "p": 1.2497650441716923e-7,
+  "criterion_applied_as_information": true,
+  "criterion_note": "information only; the pre-registered criterion is not re-decided by this re-scoring",
+  "ignoring_request_limit": {
+    "per_task": [
+      {
+        "id": "invoice",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      },
+      {
+        "id": "retry",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      },
+      {
+        "id": "priority",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      }
+    ],
+    "p": 1.2497650441716923e-7,
+    "note": "success = protected tests pass, ignoring the product verifier and the request-limit rule (tests whether the limit alone decides the contrast)"
+  },
+  "controls_at_request_limit": "15/15",
+  "meter_failures": [],
+  "cost_usd": 1.3768949999999998,
+  "executions": [
+    {
+      "label": "pilot-invoice",
+      "kind": "pilot",
+      "task": "invoice",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.056825,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "pilot-priority",
+      "kind": "pilot",
+      "task": "priority",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["critical", "high", "medium", "low", "billing-low", "billing-critical", "billing-unknown", "unknown"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.05452,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "pilot-retry",
+      "kind": "pilot",
+      "task": "retry",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["a1", "a2", "a3", "a4", "a5", "a9", "zero", "fraction", "string"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.051574999999999996,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s01-retry-control-1",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["a1", "a2", "a3", "a4", "a5", "a9", "zero", "fraction", "string"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["a1", "a2", "a3", "a4", "a5", "a9", "zero", "fraction", "string"]
+      },
+      "requests": 8,
+      "cost_usd": 0.04683,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s02-retry-control-2",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["a1", "a2", "a3", "a4", "a5", "a9", "zero", "fraction", "string"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.05215499999999999,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s03-retry-promoted-1",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": null
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.02708,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s04-retry-control-3",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["a1", "a2", "a3", "a4", "a5", "a9", "zero", "fraction", "string"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.058627500000000006,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s05-retry-control-4",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["a1", "a2", "a3", "a4", "a5", "a9", "zero", "fraction", "string"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.055682499999999996,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s06-retry-promoted-2",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.02651,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s07-retry-promoted-3",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.027039999999999998,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s08-retry-promoted-4",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.026957500000000002,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s09-retry-promoted-5",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 9,
+        "total": 9,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.027367499999999996,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s10-retry-control-5",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["a1", "a2", "a3", "a4", "a5", "a9", "zero", "fraction", "string"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.0561875,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s11-priority-control-1",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["critical", "high", "medium", "low", "billing-low", "billing-critical", "billing-unknown", "unknown"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.057552500000000006,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s12-priority-promoted-1",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.028664999999999996,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s13-priority-promoted-2",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 4,
+      "cost_usd": 0.0213725,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s14-priority-control-2",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 1,
+        "total": 8,
+        "failed": ["critical", "high", "medium", "low", "billing-low", "billing-critical", "billing-unknown"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.0588225,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s15-priority-control-3",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["critical", "high", "medium", "low", "billing-low", "billing-critical", "billing-unknown", "unknown"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["critical", "high", "medium", "low", "billing-low", "billing-critical", "billing-unknown", "unknown"]
+      },
+      "requests": 8,
+      "cost_usd": 0.0549525,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s16-priority-promoted-3",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.0265275,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s17-priority-control-4",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["critical", "high", "medium", "low", "billing-low", "billing-critical", "billing-unknown", "unknown"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.058127500000000006,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s18-priority-promoted-4",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.0266975,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s19-priority-control-5",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["critical", "high", "medium", "low", "billing-low", "billing-critical", "billing-unknown", "unknown"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.0525375,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s20-priority-promoted-5",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.0268275,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s21-invoice-control-1",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.0525775,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s22-invoice-control-2",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.048425,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s23-invoice-promoted-1",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.028050000000000002,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s24-invoice-control-3",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.049944999999999996,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s25-invoice-promoted-2",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 6,
+      "cost_usd": 0.034682500000000005,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s26-invoice-promoted-3",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.027909999999999997,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s27-invoice-promoted-4",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.0285225,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s28-invoice-promoted-5",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "protected": {
+        "pass": true,
+        "passed": 5,
+        "total": 5,
+        "failed": []
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 5,
+      "cost_usd": 0.0282825,
+      "success": true,
+      "protected_pass_ignoring_request_limit": true,
+      "rescored": true
+    },
+    {
+      "label": "s29-invoice-control-4",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.049005,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    },
+    {
+      "label": "s30-invoice-control-5",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "task_result": "failed",
+      "reason": "request-cap-reached",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["example", "first", "max", "mid", "old"]
+      },
+      "meter": {
+        "reason": "ok",
+        "applied": 2,
+        "sha_checked": 2,
+        "workspace_match": true
+      },
+      "original_protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": ["no-final-write"]
+      },
+      "requests": 8,
+      "cost_usd": 0.050055,
+      "success": false,
+      "protected_pass_ignoring_request_limit": false,
+      "rescored": true
+    }
+  ]
+}

@@ -12,26 +12,32 @@
   "usage": {
     "requests": 5,
     "unreadable_requests": 0,
-    "prompt_tokens": 12970,
-    "completion_tokens": 152,
+    "prompt_tokens": 13005,
+    "completion_tokens": 177,
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.033945,
+  "cost_usd": 0.0342825,
   "stop_reason": null,
   "responding_models": [
     "gpt-4o-2024-08-06"
   ],
+  "measure": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
+  },
   "replay": {
     "ok": true,
     "session_events": 32,
     "tool_invocations": 2,
+    "contract_residue": false,
     "note_in_context": false,
     "memory_sources": []
   },
   "tool_outcomes": [
-    "fdcba7948\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://2fa08afc1bad8a35aea53b3733daf39ff6f167e118c227b4c1122337fb853454\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://2fa08afc1bad8a35aea53b3733daf39ff6f167e118c227b4c1122337fb853454\"],\"warnings\":[],\"replayed\":false}"
+    "8f0d3819b\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://56b02f18bccf5885e087c27dcf2439fa0c70c912989a975dbf87a7e0b2f5e983\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://56b02f18bccf5885e087c27dcf2439fa0c70c912989a975dbf87a7e0b2f5e983\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -64,7 +70,7 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "6c2f5c0bebed06e7daa3bc7ec8ece3e3fef99de2acbbc93e7a0113e9576dd5b3",
+  "state_sha256": "ad95e37a2099caaf7f0ff447abf6a13e0c0587b816165c6543759e44529c1dbb",
   "protected": {
     "pass": false,
     "passed": 5,
