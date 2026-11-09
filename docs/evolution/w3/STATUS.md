@@ -371,3 +371,10 @@ executada uma vez com a API real: veredito do roteiro `fail` na série de 2.800
 (linhagem 3 de 5, arquivo inteiro 2 de 5, `fork` 3 de 5), custo cerca de US$ 0,93
 pela console, sem falha de protocolo. `real_consumers` da F15 segue `not_verified`.
 Recibo: [F15-L2-2026-11.md](F15-L2-2026-11.md).
+
+Nota de 2026-11-09 (decisões do owner): a terceira execução paga da F14 v3 foi
+ratificada, o ajuste de prova por limite de requisições foi aceito, o ramo "sem
+superfície" vale para a F14 e a promoção só ocorre com tarefas do owner; a F14
+`real_consumers` segue `not_verified`. A F15 L2 foi encerrada com o resultado
+registrado, sem nova execução por ora. Ver "Respostas posteriores do owner
+(2026-11-09)" no ADR-0050.
