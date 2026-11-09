@@ -73,14 +73,20 @@ function runAsync(script, args, env) {
   });
 }
 
-async function runCases({ root, work, only = null, scriptDir = HERE, listContainers = realListContainers }) {
+async function runCases({ root, work, only = null, scriptDir = HERE, listContainers = realListContainers, podmanExecutor = null }) {
   const SCRIPT = path.join(scriptDir, 'f15l2.cjs');
   const want = (key) => !only || only.includes(key);
   fs.mkdirSync(work, { recursive: true });
   const cases = [];
   const add = (name, ok, details) => cases.push({ case: name, ok, details });
   const confirmation = JSON.parse(run(SCRIPT, ['--fingerprint', root], { root: '' }).stdout || '{}').campaign_sha256;
-  const baseEnv = { HOME: process.env.HOME, XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR, TMPDIR: TMP };
+  // The CI test passes a Podman stand-in: it needs F15L2_TEST_MODE=1, which the cases that reach the verifier set.
+  const baseEnv = {
+    HOME: process.env.HOME,
+    XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR,
+    TMPDIR: TMP,
+    ...(podmanExecutor ? { F15L2_PODMAN_EXECUTOR: podmanExecutor, F15L2_PODMAN_RECORD: path.join(work, 'podman-record.jsonl') } : {}),
+  };
   // Real code path (key, confirmation, price, real fetch), but TEST MODE: the only reachable destination is the local server.
   const testReal = async (name, behavior, extra, { price = ['--price-in', '2.5', '--price-out', '10'] } = {}) => {
     const server = await startServer(behavior);
@@ -103,6 +109,17 @@ async function runCases({ root, work, only = null, scriptDir = HERE, listContain
     } finally {
       await server.close();
     }
+  };
+
+  // Fixture-mode run (fake model) of the real script, async so the local servers keep answering.
+  const fixtureRun = async (name, extra, extraEnv = {}, runs = 1) => {
+    const out = path.join(work, name);
+    const result = await runAsync(SCRIPT, [root, 'fixture', out, '--runs', String(runs), ...extra], {
+      ...baseEnv,
+      F15L2_TEST_MODE: '1',
+      ...extraEnv,
+    });
+    return { ...result, out, summary: readJson(path.join(out, 'summary.json')), stop: readJson(path.join(out, 'STOP.json')) };
   };
 
   if (want('price')) {
@@ -186,11 +203,76 @@ async function runCases({ root, work, only = null, scriptDir = HERE, listContain
         server_requests: result.received,
       },
     );
+    // 5b. cumulative ceiling: with a prior spend of 1.59 the campaign alone is far below 1.60, yet the first worst case already passes it
+    const prior = await testReal('prior-spend', 'sse', ['--prior-spend-usd', '1.59']);
+    add(
+      'prior-spend-counts-against-the-same-ceiling',
+      prior.status === 4 &&
+        prior.summary?.stopped_because === 'budget-pre-call' &&
+        prior.received === 0 &&
+        prior.summary?.prior_spend_usd === 1.59,
+      { exit: prior.status, stopped_because: prior.summary?.stopped_because, server_requests: prior.received },
+    );
     const verdict = result.summary?.series?.t2800?.verdict;
     add(
       'a-stop-before-5-runs-without-decisive-failures-is-INCOMPLETE',
       verdict === 'INCOMPLETE' && result.summary?.overall_verdict === 'INCOMPLETE',
       { verdict },
+    );
+  }
+  if (want('protocol')) {
+    // 7. protocol failure: the adapter refuses (CONTROL_PROVIDER_*) or its proof is not pass. The campaign stops at the first one.
+    const stoppedAsProtocol = (result, detail) =>
+      result.status === 4 &&
+      result.summary?.stopped_because === 'protocol-failure' &&
+      result.summary?.overall_verdict === 'STOPPED: protocol failure' &&
+      detail.test(result.stop?.detail ?? '');
+    const brief = (result) => ({
+      exit: result.status,
+      verdict: result.summary?.overall_verdict,
+      detail: result.stop?.detail,
+      runs: result.summary?.runs,
+    });
+    // 7a. the F14 v3 failure: the ALIAS is declared and the provider answers the dated snapshot (fixture)
+    const alias = await fixtureRun('alias-divergence', [], { F15L2_TEST_MODEL: 'gpt-4o' });
+    add(
+      'alias-declared-against-a-dated-answer-stops-with-CONTROL_PROVIDER_BACKEND_DIVERGED',
+      stoppedAsProtocol(alias, /^adapter refused: CONTROL_PROVIDER_BACKEND_DIVERGED/),
+      brief(alias),
+    );
+    // 7b. real code path against the local server: another snapshot is served
+    const diverge = await testReal('protocol-diverge', 'diverge', []);
+    add(
+      'real-path-divergence-stops-as-protocol-failure',
+      stoppedAsProtocol(diverge, /^adapter refused: CONTROL_PROVIDER_/) && diverge.received === 1,
+      { ...brief(diverge), server_requests: diverge.received },
+    );
+    // 7c. frames name no model: no CONTROL_ code, but the proof is not pass (reference run)
+    const noModel = await testReal('protocol-no-model', 'no-model', []);
+    add(
+      'reference-provider-proof-not-pass-stops-as-protocol-failure',
+      stoppedAsProtocol(noModel, /^reference provider_proof is not pass/) && noModel.received === 1,
+      { ...brief(noModel), server_requests: noModel.received },
+    );
+    // 7d. the series proof, with the reference run healthy (fixture)
+    const seriesFault = await fixtureRun('protocol-series-proof', ['--fault', 'no-model-journey']);
+    add(
+      'series-provider-proof-not-pass-stops-as-protocol-failure',
+      stoppedAsProtocol(seriesFault, /^provider_proof is not pass/),
+      brief(seriesFault),
+    );
+  }
+  if (want('legit')) {
+    // 7e. a legitimate failure of the model (a mutilated file, approved by the product, refused by the whole-file check) does NOT stop
+    const legit = await fixtureRun('legit-model-failure', ['--negative'], {}, 0);
+    add(
+      'a-legitimate-model-failure-does-not-stop-the-campaign',
+      legit.summary?.stopped_because === null && legit.summary?.negative_control?.reproved_as_expected === true && legit.stop === null,
+      {
+        exit: legit.status,
+        stopped_because: legit.summary?.stopped_because,
+        negative: legit.summary?.negative_control?.reproved_as_expected,
+      },
     );
   }
   if (want('test-mode')) {

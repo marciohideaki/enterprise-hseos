@@ -15,6 +15,8 @@ const path = require('node:path');
 const { createHash, randomBytes } = require('node:crypto');
 const { spawn, spawnSync, execFileSync } = require('node:child_process');
 const lib = require('./f15l2-lib.cjs');
+// Final-source meter shared with the F14 v3 campaign (reused, not copied: one meter, one behavior). It is in the fingerprint below.
+const { reconstructFinalSource } = require('../stab3-f14v3/measure.cjs');
 
 const HERE = __dirname;
 const PLAN_FILE = path.join(HERE, 'PLAN.json');
@@ -37,6 +39,7 @@ const FINGERPRINT_FILES = [
   path.join(SHARED, 'summarize-whole-file.cjs'),
   path.join(SHARED, 'summarize-provider-proof.cjs'),
   path.join(SHARED, 'usage-from-sse.cjs'),
+  path.join(HERE, '../stab3-f14v3/measure.cjs'),
 ];
 // The product files this campaign exercises and that decide its result (adapter, provider proof, engineering runtime), by content, relative
 // to the repository root the run uses. NOT in the hash, on purpose: rehearsal/, f15l2-mutations.cjs, f15l2-failure-paths.cjs,
@@ -94,7 +97,19 @@ const numberOrNaN = (value) => (value === undefined ? Number.NaN : Number(value)
 
 function parseArgs(argv) {
   const [root, mode, out, ...rest] = argv;
-  const options = { root, mode, out, runs: null, negative: false, price: {}, fault: null, cliTimeoutMs: null, capUsd: null, baseUrl: null };
+  const options = {
+    root,
+    mode,
+    out,
+    runs: null,
+    negative: false,
+    price: {},
+    fault: null,
+    cliTimeoutMs: null,
+    capUsd: null,
+    priorSpendUsd: null,
+    baseUrl: null,
+  };
   for (let index = 0; index < rest.length; index++) {
     switch (rest[index]) {
       case '--runs': {
@@ -129,6 +144,10 @@ function parseArgs(argv) {
         options.capUsd = Number(rest[++index]);
         break;
       }
+      case '--prior-spend-usd': {
+        options.priorSpendUsd = Number(rest[++index]);
+        break;
+      }
       default: {
         throw new Error(`unknown option ${rest[index]}`);
       }
@@ -153,7 +172,8 @@ async function main(options) {
     if (!process.env.F15L2_API_KEY) return blocked('operator-credential-missing: set F15L2_API_KEY in the environment');
     if (process.env.F15L2_REAL_CONFIRMED !== CAMPAIGN_SHA256)
       return blocked('owner-confirmation-missing: F15L2_REAL_CONFIRMED must equal the campaign fingerprint (node f15l2.cjs --fingerprint)');
-    if ((options.fault || options.cliTimeoutMs || options.capUsd) && !TEST_MODE) return blocked('test-only-option-without-F15L2_TEST_MODE');
+    if ((options.fault || options.cliTimeoutMs || options.capUsd || options.priorSpendUsd !== null) && !TEST_MODE)
+      return blocked('test-only-option-without-F15L2_TEST_MODE');
     // The price has no default in real mode: it must come from the flags, be valid, and equal the price registered in the plan.
     if (!lib.validatePrice(options.price)) return blocked('price-invalid: --price-in and --price-out must be finite numbers above zero');
     if (options.price.in !== PLAN.price_usd_per_million.in || options.price.out !== PLAN.price_usd_per_million.out)
@@ -162,7 +182,14 @@ async function main(options) {
   const PRICE = MODE === 'real' ? options.price : PLAN.price_usd_per_million;
   const CAP_USD = options.capUsd ?? PLAN.cap_usd;
   const LIMIT_USD = CAP_USD * PLAN.stop_at_fraction;
+  // Cumulative ceiling: what was spent BEFORE this campaign (declared in the plan, 0 for F15) counts against the same limit as what the
+  // campaign spends. Only a test may override it (F15L2_TEST_MODE=1), to prove the ceiling is cumulative.
+  const PRIOR_SPEND_USD = options.priorSpendUsd ?? PLAN.prior_spend_usd;
+  if (!Number.isFinite(PRIOR_SPEND_USD) || PRIOR_SPEND_USD < 0)
+    return blocked('prior-spend-invalid: prior_spend_usd must be a finite number >= 0');
   const CLI_TIMEOUT_MS = options.cliTimeoutMs ?? PLAN.cli_timeout_ms;
+  // The declared model is the dated snapshot of the plan. A test may declare another name (an alias) to reproduce the divergence.
+  const MODEL = TEST_MODE && process.env.F15L2_TEST_MODEL ? process.env.F15L2_TEST_MODEL : PLAN.model;
   const KEY = MODE === 'real' ? process.env.F15L2_API_KEY : `fake-${randomBytes(24).toString('hex')}`;
   const req = (p) => require(path.join(ROOT, p));
   const { RelationalSessionEventStore, canonicalJson } = req('packages/agent-session-store');
@@ -222,6 +249,12 @@ async function main(options) {
   };
   const handlers = { SIGINT: () => onSignal('SIGINT', 130), SIGTERM: () => onSignal('SIGTERM', 143) };
   for (const [name, handler] of Object.entries(handlers)) process.on(name, handler);
+  /** Protocol failure: the adapter refused, or its proof is not `pass`. Not a model failure: the campaign stops at the first one. */
+  const protocolStop = (detail) => {
+    fs.writeFileSync(STOP_FILE, JSON.stringify({ reason: 'protocol-failure', detail: String(detail).slice(0, 200) }), { mode: 0o600 });
+    throw Object.assign(new Error('F15L2_CAMPAIGN_STOPPED: protocol-failure'), { code: 'F15L2_CAMPAIGN_STOPPED' });
+  };
+  const readJson = (file) => (fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null);
   const stopReason = () => (fs.existsSync(STOP_FILE) ? JSON.parse(fs.readFileSync(STOP_FILE, 'utf8')).reason : null);
 
   /** Async child with a timeout: the event loop stays free, so a signal reaches the handler above while a child runs. */
@@ -254,7 +287,7 @@ provider:
   provider_id: model:openai-compatible
   provider_version: 1.0.0
   base_url: ${BASE}
-  model: ${PLAN.model}
+  model: ${MODEL}
   capabilities:
     - text_generation
     - streaming
@@ -281,6 +314,9 @@ activation:
     example.contract.limits = { ...example.contract.limits, ...PLAN.contract_limits };
     example.contract.initial_files = Object.entries(original).map(([file, content]) => ({ path: file, content, sha256: sha(content) }));
     example.contract.scope = { read: ['add.js', 'guards.js'], write: ['add.js'] };
+    // KNOWN LIMIT: source, requirement and acceptance text stay those of the product's integer-addition example, because the protected
+    // verifier (verifier://fixtures/integer-addition-v1) attests them literally (attestEngineeringVerifier); replacing them needs a project
+    // verifier, which changes the pre-registered design. Declared in PLAN.json (task.contract_residue).
     return example.contract;
   }
 
@@ -316,12 +352,12 @@ activation:
         F15L2_MAX_REQUESTS: String(maxRequests),
         F15L2_DEADLINE_MS: String(deadline),
         F15L2_FAKE_BEHAVIOR: behavior,
-        F15L2_FAKE_MODEL: PLAN.model,
         ...(options.fault ? { F15L2_FAKE_FAULT: options.fault } : {}),
         F15L2_PLAN_SHA256: CAMPAIGN_SHA256,
         F15L2_SPEND_FILE: SPEND_FILE,
         F15L2_STOP_FILE: STOP_FILE,
         F15L2_LIMIT_USD: String(LIMIT_USD),
+        F15L2_PRIOR_SPEND_USD: String(PRIOR_SPEND_USD),
         F15L2_PRICE_IN: String(PRICE.in),
         F15L2_PRICE_OUT: String(PRICE.out),
         F15L2_WINDOW_TOKENS: String(windowTokens),
@@ -341,6 +377,9 @@ activation:
         fs.writeFileSync(STOP_FILE, JSON.stringify({ reason: 'cli-timeout', booked_usd: booked }), { mode: 0o600 });
         throw Object.assign(new Error('F15L2_CAMPAIGN_STOPPED: cli-timeout'), { code: 'F15L2_CAMPAIGN_STOPPED' });
       }
+      // A protocol failure (the adapter refused: CONTROL_PROVIDER_*) is not a model failure: the whole campaign stops at the first one.
+      const protocolCode = /CONTROL_PROVIDER_[A-Z_]+/.exec(`${result.stdout}\n${result.stderr}`)?.[0];
+      if (protocolCode) protocolStop(`adapter refused: ${protocolCode}`);
       if (stopReason()) throw Object.assign(new Error(`F15L2_CAMPAIGN_STOPPED: ${stopReason()}`), { code: 'F15L2_CAMPAIGN_STOPPED' });
       const text = (result.stdout || '').trim();
       let json = null;
@@ -380,6 +419,22 @@ activation:
         context_tokens: PLAN.declared_window_tokens,
       }),
     );
+    /** `agent evidence` of a state, plus the verdict of summarize-provider-proof.cjs over exactly that output (never over a loose file). */
+    const readProof = async (stateDir, fileName) => {
+      const evidence = await cli(['evidence', '--profile', PROFILE, '--state', stateDir]);
+      const evidenceFile = T(fileName);
+      fs.writeFileSync(evidenceFile, JSON.stringify(evidence.json ?? {}), { mode: 0o600 });
+      const run = spawnSync(process.execPath, [path.join(HERE, '../shared/summarize-provider-proof.cjs'), evidenceFile], {
+        encoding: 'utf8',
+      });
+      let verdict = { verdict: 'unknown', failures: ['summary-unreadable'] };
+      try {
+        verdict = JSON.parse(run.stdout);
+      } catch (error) {
+        note('proof-summary-unreadable', { message: String(error.message).slice(0, 100) });
+      }
+      return { evidence, verdict, pass: verdict.verdict === 'pass' && run.status === 0 };
+    };
     const runArgs = (extra = []) => ['run', '--task-contract', T('task.json'), '--binding', T('binding.yaml'), ...extra, '--json'];
     let created = null;
     try {
@@ -396,6 +451,11 @@ activation:
         stages.reference_approved = ref.json?.task_result === 'approved';
         info.reference = { task_result: ref.json?.task_result, reason: ref.json?.reason };
         note('reference', { status: ref.status, task_result: ref.json?.task_result, requests: countIn(refDir) });
+        if (ref.json?.state) {
+          const refProof = await readProof(ref.json.state, 'evidence-reference.json');
+          info.reference_provider_proof = { summarizer_verdict: refProof.verdict.verdict, failures: refProof.verdict.failures };
+          if (!refProof.pass) protocolStop(`reference provider_proof is not pass: ${refProof.verdict.failures.join(',')}`);
+        }
       } else stages.reference_approved = null;
 
       // 2. create with compaction, crash after the first write result
@@ -497,21 +557,11 @@ activation:
       };
 
       // 4. evidence: artifacts + adapter provider_proof, read from `agent evidence` (never from a loose file)
-      const evidence = await cli(['evidence', '--profile', PROFILE, '--state', state]);
-      const evidenceFile = T('evidence.json');
-      fs.writeFileSync(evidenceFile, JSON.stringify(evidence.json ?? {}), { mode: 0o600 });
-      const proofRun = spawnSync(process.execPath, [path.join(HERE, '../shared/summarize-provider-proof.cjs'), evidenceFile], {
-        encoding: 'utf8',
-      });
-      let proofVerdict = { verdict: 'unknown', failures: ['summary-unreadable'] };
-      try {
-        proofVerdict = JSON.parse(proofRun.stdout);
-      } catch (error) {
-        note('proof-summary-unreadable', { message: String(error.message).slice(0, 100) });
-      }
+      const { evidence, verdict: proofVerdict, pass: proofPass } = await readProof(state, 'evidence.json');
       const proof = findKey(evidence.json, 'provider_proof');
       credentialHash = proof?.credential_sha256 ?? null;
-      stages.provider_proof_pass = proofVerdict.verdict === 'pass' && proofRun.status === 0;
+      stages.provider_proof_pass = proofPass;
+      if (!proofPass) protocolStop(`provider_proof is not pass: ${proofVerdict.failures.join(',')}`);
       info.provider_proof = {
         summarizer_verdict: proofVerdict.verdict,
         failures: proofVerdict.failures,
@@ -527,13 +577,17 @@ activation:
       };
 
       // 5. whole-file check in Podman
-      const finalText = (evidence.json?.artifacts?.files ?? []).find((file) => file.path === 'add.js')?.content ?? null;
+      // The final text is REBUILT from the ledger (successful engineering.write/patch calls applied to the initial file, sha256 checked),
+      // not read from the workspace or from the model's claim. Anything that cannot be rebuilt is a failure WITH a reason.
+      const rebuilt = reconstructFinalSource(events(state, sid), original['add.js'], 'add.js');
+      const finalText = rebuilt.source;
+      info.final_source = { reason: rebuilt.reason, applied: rebuilt.applied, sha_checked: rebuilt.sha_checked };
       const caseDir = T('case');
       fs.mkdirSync(caseDir);
       fs.writeFileSync(path.join(caseDir, 'original.txt'), original['add.js']);
       fs.writeFileSync(path.join(caseDir, 'final.txt'), finalText === null ? '' : lib.inlineGuards(finalText, original['guards.js']));
       fs.writeFileSync(path.join(caseDir, 'spec.json'), JSON.stringify(spec));
-      const whole = await runWholeFile(caseDir, id);
+      const whole = finalText === null ? { verdict: 'no-final-write', reason: rebuilt.reason } : await runWholeFile(caseDir, id);
       stages.whole_file_pass = whole.verdict === 'pass';
       info.whole_file = whole;
       if (finalText !== null) fs.writeFileSync(path.join(dir, 'final-add.txt'), finalText, { mode: 0o600 });
@@ -746,7 +800,7 @@ activation:
     for (const series of order) {
       counters[series] = (counters[series] ?? 0) + 1;
       const spent = lib.readSpend(SPEND_FILE).spent_usd;
-      if (spent >= LIMIT_USD) stoppedBecause = `cost-${Math.round(PLAN.stop_at_fraction * 100)}pct`;
+      if (PRIOR_SPEND_USD + spent >= LIMIT_USD) stoppedBecause = `cost-${Math.round(PLAN.stop_at_fraction * 100)}pct`;
       else if (Date.now() - started >= PLAN.max_minutes * 60_000 * PLAN.stop_at_fraction)
         stoppedBecause = `time-${Math.round(PLAN.stop_at_fraction * 100)}pct`;
       if (stoppedBecause || aborted) break;
@@ -799,10 +853,12 @@ activation:
       plan_file_sha256: PLAN_FILE_SHA256,
       cap_usd: CAP_USD,
       limit_usd: LIMIT_USD,
+      prior_spend_usd: PRIOR_SPEND_USD,
       runs: runs.length,
       stopped_because: stoppedBecause,
       interrupted_run: interrupted,
-      overall_verdict: bySeries[criterion.id].verdict === 'INCOMPLETE' ? 'INCOMPLETE' : bySeries[criterion.id].verdict,
+      overall_verdict: stoppedBecause === 'protocol-failure' ? 'STOPPED: protocol failure' : bySeries[criterion.id].verdict,
+      protocol_failure: stoppedBecause === 'protocol-failure' ? readJson(STOP_FILE)?.detail : null,
       series: bySeries,
       negative_control: negative
         ? {

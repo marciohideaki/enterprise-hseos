@@ -17,6 +17,8 @@ function copyTree(sandbox) {
   execFileSync('cp', ['-r', HERE, path.join(evidence, 'stab3-f15l2')]);
   fs.rmSync(path.join(evidence, 'stab3-f15l2', 'rehearsal'), { recursive: true, force: true });
   execFileSync('cp', ['-r', path.join(HERE, '../shared'), path.join(evidence, 'shared')]);
+  fs.mkdirSync(path.join(evidence, 'stab3-f14v3'));
+  fs.copyFileSync(path.join(HERE, '../stab3-f14v3/measure.cjs'), path.join(evidence, 'stab3-f14v3/measure.cjs'));
   return path.join(evidence, 'stab3-f15l2');
 }
 
@@ -149,6 +151,38 @@ const MUTATIONS = [
     check: caseOk('test-mode', 'test-mode'),
   },
   {
+    id: 'M14-adapter-refusal-does-not-stop',
+    item: 'P11-3',
+    file: 'f15l2.cjs',
+    from: 'if (protocolCode) protocolStop(',
+    to: 'if (false) protocolStop(',
+    check: caseOk('protocol', 'alias-declared'),
+  },
+  {
+    id: 'M15a-reference-proof-not-pass-does-not-stop',
+    item: 'P11-3',
+    file: 'f15l2.cjs',
+    from: 'if (!refProof.pass) protocolStop(',
+    to: 'if (false) protocolStop(',
+    check: caseOk('protocol', 'reference-provider-proof'),
+  },
+  {
+    id: 'M15b-series-proof-not-pass-does-not-stop',
+    item: 'P11-3',
+    file: 'f15l2.cjs',
+    from: 'if (!proofPass) protocolStop(',
+    to: 'if (false) protocolStop(',
+    check: caseOk('protocol', 'series-provider-proof'),
+  },
+  {
+    id: 'M16-model-declared-as-the-alias',
+    item: 'P11-1',
+    file: 'PLAN.json',
+    from: '"model": "gpt-4o-2024-08-06",',
+    to: '"model": "gpt-4o",',
+    check: async ({ dir, root, work }) => planModelPasses(dir, root, work),
+  },
+  {
     id: 'M9-incomplete-verdict-removed',
     item: 5,
     file: 'f15l2-lib.cjs',
@@ -184,6 +218,18 @@ function fingerprintChanges({ dir, root, work }, relative, product = false) {
   const before = fingerprintOf(dir, productDir);
   fs.appendFileSync(product ? path.join(productDir, relative) : path.join(dir, relative), '\n// touched\n');
   return fingerprintOf(dir, productDir) !== before;
+}
+/** One fixture run with the model the plan declares: it must get past the reference run (no CONTROL_PROVIDER_ refusal, no protocol stop). */
+function planModelPasses(dir, root, work) {
+  const out = path.join(work, 'plan-model');
+  spawnSync(process.execPath, [path.join(dir, 'f15l2.cjs'), root, 'fixture', out, '--runs', '1'], {
+    encoding: 'utf8',
+    env: { PATH: process.env.PATH, HOME: process.env.HOME, XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR, TMPDIR: TMP },
+  });
+  const summary = fs.existsSync(path.join(out, 'summary.json'))
+    ? JSON.parse(fs.readFileSync(path.join(out, 'summary.json'), 'utf8'))
+    : null;
+  return summary !== null && summary.stopped_because === null && summary.runs === 1;
 }
 function incompleteVerdicts(dir) {
   const lib = require(path.join(dir, 'f15l2-lib.cjs'));

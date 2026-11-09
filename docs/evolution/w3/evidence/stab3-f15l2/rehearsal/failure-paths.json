@@ -97,10 +97,70 @@
       }
     },
     {
+      "case": "prior-spend-counts-against-the-same-ceiling",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "stopped_because": "budget-pre-call",
+        "server_requests": 0
+      }
+    },
+    {
       "case": "a-stop-before-5-runs-without-decisive-failures-is-INCOMPLETE",
       "ok": true,
       "details": {
         "verdict": "INCOMPLETE"
+      }
+    },
+    {
+      "case": "alias-declared-against-a-dated-answer-stops-with-CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "verdict": "STOPPED: protocol failure",
+        "detail": "adapter refused: CONTROL_PROVIDER_BACKEND_DIVERGED",
+        "runs": 0
+      }
+    },
+    {
+      "case": "real-path-divergence-stops-as-protocol-failure",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "verdict": "STOPPED: protocol failure",
+        "detail": "adapter refused: CONTROL_PROVIDER_BACKEND_DIVERGED",
+        "runs": 0,
+        "server_requests": 1
+      }
+    },
+    {
+      "case": "reference-provider-proof-not-pass-stops-as-protocol-failure",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "verdict": "STOPPED: protocol failure",
+        "detail": "reference provider_proof is not pass: backend-not-verified,requests-not-all-verified",
+        "runs": 0,
+        "server_requests": 1
+      }
+    },
+    {
+      "case": "series-provider-proof-not-pass-stops-as-protocol-failure",
+      "ok": true,
+      "details": {
+        "exit": 4,
+        "verdict": "STOPPED: protocol failure",
+        "detail": "provider_proof is not pass: backend-not-verified,requests-not-all-verified",
+        "runs": 0
+      }
+    },
+    {
+      "case": "a-legitimate-model-failure-does-not-stop-the-campaign",
+      "ok": true,
+      "details": {
+        "exit": 1,
+        "stopped_because": null,
+        "negative": true
       }
     },
     {
@@ -110,12 +170,12 @@
         "to_openai_in_test_mode": {
           "out": "F15L2_REAL_DESTINATION_REFUSED",
           "counted": false,
-          "refusals": "{\"t\":\"2026-11-07T17:54:23.823Z\",\"mode\":\"real\",\"reason\":\"real-mode-allows-only-the-declared-origin\",\"host\":\"api.openai.com\"}\n"
+          "refusals": "{\"t\":\"2026-11-09T04:18:54.003Z\",\"mode\":\"real\",\"reason\":\"real-mode-allows-only-the-declared-origin\",\"host\":\"api.openai.com\"}\n"
         },
         "local_url_without_test_mode": {
           "out": "F15L2_REAL_DESTINATION_REFUSED",
           "counted": false,
-          "refusals": "{\"t\":\"2026-11-07T17:54:23.853Z\",\"mode\":\"real\",\"reason\":\"real-mode-allows-only-the-declared-origin\",\"host\":\"127.0.0.1:37155\"}\n"
+          "refusals": "{\"t\":\"2026-11-09T04:18:54.035Z\",\"mode\":\"real\",\"reason\":\"real-mode-allows-only-the-declared-origin\",\"host\":\"127.0.0.1:44285\"}\n"
         },
         "server_requests": 0
       }
