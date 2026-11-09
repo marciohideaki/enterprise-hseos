@@ -1,6 +1,6 @@
 # Protocolo proposto da F14 v4, 2026-11-09
 
-**Estado: APROVADA pelo owner em 2026-11-09 (itens 1 a 3 da seção 13). O gasto NÃO está autorizado:** ele continua exigindo autorização própria por campanha, depois do ensaio, da revisão cética e da reauditoria (item 4 da seção 13). Nenhuma chamada paga, nenhum código de campanha e nenhum status muda por este documento.
+**Estado: APROVADA pelo owner em 2026-11-09, prefixo do placebo e verificação de entrega ratificados, e EXECUTADA UMA VEZ em 2026-11-09 (parada por teto, 36 de 42 execuções; ver `F14-V4-2026-11.md`).** Nenhuma nova execução está autorizada: cada campanha exige autorização própria. Nenhum status muda por este documento.
 
 ## 1. O que muda em relação à v3
 
@@ -59,7 +59,7 @@ Cada regra existe **só na nota**. O requisito dado ao modelo não cita a regra 
 
 O placebo reaproveita o texto de uma nota real de outra tarefa, com um prefixo neutro fixo, `Project convention (general project note): `, e sem nenhum rótulo da tarefa-alvo.
 
-**Pendente de ratificação do owner:** o prefixo neutro do placebo e a verificação de entrega abaixo **não** estavam no texto que o owner aprovou (a aprovação cobriu o placebo com n = 3 e as três tarefas). Precisam da ratificação explícita dele antes de qualquer gasto.
+**Ratificado pelo owner em 2026-11-09:** o prefixo neutro do placebo e a verificação de entrega abaixo não estavam no texto da primeira aprovação; o owner os ratificou antes da execução ("Retificação autorizada").
 
 **Correção achada na implementação (2026-11-09):** a recuperação de memória do produto é lexical (a consulta é o texto do requisito) e a nota só entra no contexto se compartilhar ao menos um termo com ele. As notas reais são em português e a placebo cruzada de `oidc` não compartilhava nenhum termo com o requisito, então nunca seria entregue e a execução cairia como controle. O prefixo em inglês casa com "Follow the project convention.", que está nos três requisitos. O texto das notas reais não mudou. Um `deliveryCheck` com o `retrieve` real do produto roda no `verify-promotions` e antes da primeira chamada: se alguma das 6 memórias não for entregue, a campanha fica BLOCKED.
 
@@ -147,3 +147,11 @@ Registrados pelo executor e conferidos pelo líder; nenhum afrouxa um gate.
 - **`verify-promotions` deriva o esperado do código** (`expectedPromotions`), não do manifest, que só confirma; confere também o conteúdo da nota nas caixas A, B e C e o sha da caixa A antes da promoção.
 - **Recusa de `heavy-run` falha fechado:** em modo real, se a cadeia de ancestrais não puder ser lida, BLOCKED.
 - **Limites declarados no recibo** (`limits_declared`, no plano e no `campaign.json`): o caminho real nunca foi exercitado pelo roteiro; o ensaio só prova o encanamento; o crédito é declarado e não verificado; o custo do teto é estimativa do roteiro; 12 caminhos de falha cobertos e 8 não cobertos, listados.
+
+### Ratificação e autorização do gasto (2026-11-09)
+
+Depois do roteiro mesclado (#311), o owner (1) ratificou o prefixo do placebo e a verificação de entrega, (2) fez as 6 promoções no próprio terminal, uma a uma, com o CLI do repositório (cada uma conferida no banco e o `verify-promotions` completo deu `PROMOTIONS VERIFIED`), e (3) autorizou o gasto da campanha com teto de US$ 3,00. Quando o load do host estava em cerca de 12, o owner escolheu lançar mesmo assim.
+
+### Resultado da execução (2026-11-09)
+
+Parada por teto na execução 36 de 42; o critério pré-registrado não é alcançável (promovida 0/5 na tarefa `pass`). Detalhes, custo e limites em `docs/evolution/w3/F14-V4-2026-11.md`.
