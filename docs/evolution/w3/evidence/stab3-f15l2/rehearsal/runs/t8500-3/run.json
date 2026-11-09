@@ -15,40 +15,40 @@
   },
   "reconciliation": {
     "required": true,
-    "report_sha256": "7ef9a7cd4fa468ddf3c5a054f7076539f3fe8d9cdc5d2b816c5d67988fcc77ed"
+    "report_sha256": "e12e8d84e81ef6b1ffe412061918fe95f6935436590429eb6690c55144082ef3"
   },
   "compactions": [
     {
       "sequence": 34,
-      "event_id": "event:9a31a02e1b08baf7f918b2da02e5c82a51d5194c",
+      "event_id": "event:17c92f03dee5952b3b5b2b48161d958871dbe790",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 2
     },
     {
       "sequence": 60,
-      "event_id": "event:994183f83ad1f94a311f0f10667fb7f636f126b8",
+      "event_id": "event:b75a2071562cc130d5b768a2796202fec407e41f",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 71,
-      "event_id": "event:d327206ce77e25cb98fa61ae793bec17b9825677",
+      "event_id": "event:e0edca2b33a253de89cf68112047a997f0b43976",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 82,
-      "event_id": "event:e7a9c844f6505fbe4f2aae48afbe08b4a117cf74",
+      "event_id": "event:eaac19ce2f443bcdf4009aadaf9d7801c9787396",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 93,
-      "event_id": "event:2f2b91d4be1f5659d69455bd2212aabe25cd30ab",
+      "event_id": "event:fdcf677ab772032c41abd80cf20817f1c14e3f3e",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1

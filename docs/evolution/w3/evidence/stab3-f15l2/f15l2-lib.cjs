@@ -234,7 +234,16 @@ function readSpend(file) {
   if (!fs.existsSync(file)) return { spent_usd: 0, pending_usd: 0, calls: 0 };
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
-const writeSpend = (file, value) => fs.writeFileSync(file, JSON.stringify(value), { mode: 0o600 });
+/**
+ * Atomic: the file is written whole under another name and renamed over the target. The campaign kills the child process with SIGKILL on
+ * SIGINT/SIGTERM, possibly in the middle of a write; a plain writeFileSync (truncate, then write) left an empty file that the parent then
+ * failed to parse ("Unexpected end of JSON input", exit 1 instead of 143). A rename never exposes a partial file.
+ */
+const writeSpend = (file, value) => {
+  const staging = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(staging, JSON.stringify(value), { mode: 0o600 });
+  fs.renameSync(staging, file);
+};
 
 /** Fingerprint of everything that decides what a real run does. Any changed byte changes it, so the owner's confirmation is void. */
 function campaignFingerprint(files) {

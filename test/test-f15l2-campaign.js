@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const { spawnSync, execFileSync } = require('node:child_process');
+const { spawn, spawnSync, execFileSync } = require('node:child_process');
 
 const DIR = path.join(__dirname, '../docs/evolution/w3/evidence/stab3-f15l2');
 const lib = require(path.join(DIR, 'f15l2-lib.cjs'));
@@ -406,6 +406,27 @@ test('mutating any file that decides a real run, product files included, voids t
     }
   } finally {
     fs.rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
+test('the spend file is never seen partial, even when its writer is killed in the middle of a write', async () => {
+  const work = scratch();
+  try {
+    const file = path.join(work, 'spend.json');
+    lib.writeSpend(file, { spent_usd: 0, pending_usd: 0, calls: 0 });
+    // The child rewrites the file in a tight loop, as the guard does around every request; the parent kills it with SIGKILL at a
+    // different moment each time (what the campaign does to the CLI on SIGTERM) and must always read a whole JSON afterwards.
+    const writer = `const lib=require(${JSON.stringify(path.join(DIR, 'f15l2-lib.cjs'))});for(let i=0;;i+=1)lib.writeSpend(${JSON.stringify(file)},{spent_usd:i,pending_usd:0,calls:i,pad:'x'.repeat(4096)});`;
+    for (let round = 0; round < 25; round += 1) {
+      const child = spawn(process.execPath, ['-e', writer], { stdio: 'ignore' });
+      await new Promise((resolve) => setTimeout(resolve, 15 + (round % 7) * 11));
+      const closed = new Promise((resolve) => child.once('close', resolve));
+      child.kill('SIGKILL');
+      await closed;
+      assert.doesNotThrow(() => lib.readSpend(file), `round ${round}: spend.json was left partial`);
+    }
+  } finally {
+    fs.rmSync(work, { recursive: true, force: true });
   }
 });
 

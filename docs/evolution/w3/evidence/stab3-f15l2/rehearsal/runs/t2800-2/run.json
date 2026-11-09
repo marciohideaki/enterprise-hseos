@@ -15,54 +15,54 @@
   },
   "reconciliation": {
     "required": true,
-    "report_sha256": "74575702db4c8acbca3f2a85ac5f26a95f54b16cb9b7270dff61ba7e03f0a404"
+    "report_sha256": "689aae73aec67d8319e9e93dd87437976ba26a8890b235c4a69e8b73694cd6a7"
   },
   "compactions": [
     {
       "sequence": 24,
-      "event_id": "event:370b0ac22f18d8b793f46ec551347c3359299afd",
+      "event_id": "event:0eeb9165f4e35a51f710fa3d7852e404f1e2d888",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 35,
-      "event_id": "event:1d2618cd02aa7d5527b451643d9babac369c42f4",
+      "event_id": "event:ed507c25adbd08730b197d2a3340ffd2e57e9c1c",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 46,
-      "event_id": "event:8e3d2e76c6c340304fc49706cf5f09f4dfbf0ce6",
+      "event_id": "event:bb4bfadb53e3bdb42ef1e01ef1aa9ba6d705b881",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 72,
-      "event_id": "event:49acf56c29fcc45d165a1ba8886d37201d2b0d3e",
+      "event_id": "event:dca311ee6baf676aa3d9f59e7631181a3c9bce59",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 83,
-      "event_id": "event:309c8dd0ee505062368185c63675a415b9c37e95",
+      "event_id": "event:ea56d3de4fb576a952c1b143bbffdce5ce57acf9",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 94,
-      "event_id": "event:151ec11e6aff687404cc2c6ca370364dd7dde35b",
+      "event_id": "event:c4251e9089f9b93fa5e7043a110b9560db727f1b",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
       "sequence": 105,
-      "event_id": "event:93a1c440192f337060fcb450f533da0eefb1bc06",
+      "event_id": "event:f42be0f2ebdd434c763752a727af22cbb361aed0",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
