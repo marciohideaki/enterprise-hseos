@@ -86,3 +86,22 @@ Decisões que cabem ao owner, e que este documento não toma: se o ramo "sem sup
 ## 8. Limites desta reauditoria
 
 O revisor leu o repositório e o `campaign.json`; não teve acesso a `runs/` nem aos ledgers (não copiados) e não pôde reconferir a console. Os achados fora do MAJOR-1 são do revisor e não foram reproduzidos individualmente pelo executor. Não houve gasto nem chamada externa.
+
+## 9. Decisões do owner depois da reauditoria (2026-11-09)
+
+O owner decidiu quatro pontos (registrados em `ADR-0050`, "Respostas posteriores do owner (2026-11-09)"). Efeito sobre as ressalvas impeditivas da seção 7:
+
+| Ressalva da seção 7 | Estado agora |
+| --- | --- |
+| 1. Jornada com `tools/call` e MRTR | **Resolvida pela decisão:** o ramo "sem superfície" vale para a F14. Seguem abertos: assinatura primeiro, cota ou exceção auditada, recuperação com mudança de estado e validade de 90 dias. |
+| 2. Prova do adapter ajustada pelo roteiro (17 de 33) | **Aceita pelo owner**, só para a execução 3 da F14 v3; o texto da regra da T4 não mudou. |
+| 3. Referência da credencial ausente no recibo | Aberta. |
+| 4. Tarefas desenhadas pelo executor | **Aberta, e agora exigência do owner:** só promover com tarefas do owner. |
+| 5. Terceira execução paga sem registro de autorização | **Ratificada pelo owner.** |
+| 6. Controles abaixo da solução ingênua | Aberta. |
+| 7. Conferência da console feita pelo executor | Aberta (o owner conferiu o crédito de US$ 3,17 no painel em 2026-11-09, depois da campanha da F15, e não o da F14). |
+| 8. Seções de rascunho e `does_not_prove` do recibo | Aberta. |
+| 9. Decisão do owner | Dada nos quatro pontos acima; falta o resto. |
+
+**A promoção continua bloqueada.** `real_consumers` da F14 segue `not_verified`: faltam tarefas do owner, os itens abertos do L2 (assinatura primeiro, cota, recuperação, validade de 90 dias), a referência da credencial, o tratamento dos controles com 0 de 8 e 0 de 9, a reescrita do recibo e uma nova reauditoria sobre o material novo. Nenhum arquivo de status foi editado.
+

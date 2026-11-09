@@ -242,3 +242,14 @@ Dadas no fechamento do plano pré-W6, sobre pontos que a reauditoria cética de 
 3. **Novo valor de `real_consumers`.** Nenhum valor novo é criado. O enum continua `not_verified`, `verified_installed_local_scope_only` e `verified_api_campaign_scope_only`. F14 e F15 ficam `not_verified` até haver, respectivamente, uma tarefa real de modelo que leia memória promovida e uma retomada de `fork` aprovada com modelo real.
 4. **Bindings oficiais de F18 e N/A.** Os bindings oficiais da família F18, para o eixo `deterministic`, são sete: openai-compatible, claude-agent-sdk, codex-app-server, o binding ACP de terceiro e a sua composição sem ferramentas, Antigravity local e Claude Code por conta. A API Gemini é binding de modelo e fica fora desse eixo. Um item de L1 que não se aplica a um binding (por exemplo tarifa em login por conta) vale como cumprido quando o recibo o marca N/A com a justificativa por binding.
 5. **C4 e C6.** As campanhas do ACP de terceiro e da quarta família seguem BLOCKED, sem credencial, e nenhuma delas é PASS.
+
+## Respostas posteriores do owner (2026-11-09)
+
+Dadas depois da reauditoria cega 4 da F14 v3 (`docs/evolution/w3/REAUDIT-BLIND-4-2026-11-09.md`) e da execução real da F15 L2 (`docs/evolution/w3/F15-L2-2026-11.md`). Elas registram decisões e não mudam nenhum status por si.
+
+1. **Terceira execução paga da F14 v3 ratificada.** A T4 diz "sem rodada extra" para o caso reprovado; o owner ratifica a execução 3, porque a execução 2 foi reprovada por defeito do medidor.
+2. **Ajuste de prova por limite de requisições aceito.** Em 17 das 33 execuções da execução 3 da F14 v3 o roteiro reescreveu `requests_total` da prova do adapter pelo número de requisições contado pelo guard (`cap_adjustment`), com a divulgação feita na reauditoria. Escopo registrado pelo executor: a aceitação cobre essa execução; o texto da regra de status da T4 não foi alterado.
+3. **Ramo "sem superfície" do item 6 vale para a F14.** O binding de modelo da F14 passa a ter como jornada exigida a geração com recuperação, sem `tools/call` nem MRTR, como a resposta 12 faz para a F17. Não se estende à F15 por esta resposta.
+4. **Tarefas do owner antes de promover.** A F14 `real_consumers` só é promovida com tarefas do owner, e não do executor. Enquanto não existirem, a promoção permanece bloqueada.
+5. **F15 L2 encerrada com o resultado registrado** (`fail` na série de 2.800, PR #308). Sem nova execução por ora; a causa de `fork_criteria_equal` fica como pendência aberta e a F15 `real_consumers` segue `not_verified`.
+
