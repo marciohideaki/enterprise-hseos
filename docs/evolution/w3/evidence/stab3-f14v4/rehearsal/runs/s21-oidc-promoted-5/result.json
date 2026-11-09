@@ -1,0 +1,95 @@
+{
+  "label": "s21-oidc-promoted-5",
+  "kind": "series",
+  "task": "oidc",
+  "condition": "promoted",
+  "box": "B",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 0,
+  "task_result": "approved",
+  "reason": "criteria-satisfied",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 3,
+    "unreadable_requests": 0,
+    "prompt_tokens": 7210,
+    "completion_tokens": 195,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.019975,
+  "cap_reached": false,
+  "stop_reason": null,
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
+  "measure": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
+  },
+  "replay": {
+    "ok": true,
+    "session_events": 22,
+    "tool_invocations": 2,
+    "contract_residue": false,
+    "note_in_context": true,
+    "placebo_in_context": false,
+    "memory_sources": [
+      {
+        "trust": "trusted",
+        "authority": "data",
+        "source_ref": "memory://f14v4-oidc/f14v4-oidc-rule:promoted"
+      }
+    ]
+  },
+  "tool_outcomes": [
+    "-eb5a84e98fd4\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"0429fcff72df8ebd666b9a84ba9b1445cd6c38d3b5ef66be1624a8ff036f10a1\"},\"error\":null,\"evidence_refs\":[\"isolation://5815d8e0808f44bc8916631d9c278163c8e265643a237b9e9dfafe67fab7511b\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5815d8e0808f44bc8916631d9c278163c8e265643a237b9e9dfafe67fab7511b\"],\"warnings\":[],\"replayed\":false}"
+  ],
+  "drain": {
+    "started": 2,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "pass",
+    "failures": [],
+    "summarizer_exit": 0,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": true,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o-2024-08-06",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": [
+          "gpt-4o-2024-08-06"
+        ],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 3,
+      "requests_verified": 3,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "proof_independent_checks": {
+    "ok": true,
+    "failures": []
+  },
+  "state_sha256": "a53fee4a0b2ad5308868097bdc204f0e0984b8589c2149ba69f91a835f126d04",
+  "protected": {
+    "pass": true,
+    "passed": 3,
+    "total": 3,
+    "failed": []
+  },
+  "product_verifier_approved": true,
+  "success": true
+}

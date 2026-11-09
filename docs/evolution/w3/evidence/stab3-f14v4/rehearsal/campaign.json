@@ -1,0 +1,4568 @@
+{
+  "confirmation_sha256": "49a20e6418ae326a99e53fdc25b083570ff42163210e63c1fa5de4df669d38a7",
+  "git_head": "8a314cb906ae8a31ab77c39677915cd0a644f36d",
+  "product_files_sha256": {
+    "package.json": "49ba108691a54c884e64d733d0e1493718f52991248e3cefa4c0fdbb1ead51ed",
+    "packages/agent-compaction/checkpoint-provider.js": "29869d1337622e997f2f4c5b7cca80362a8ef716d21338cc17c99db3a4a09c19",
+    "packages/agent-compaction/deterministic-provider.js": "8019028eafa2cc7c32906518ecb4b547b06dca932ee1fbd4eb4f938006b91617",
+    "packages/agent-compaction/index.js": "23c940fcf10d2e2d68b39704084f2140d80140ff831a7314c2d14f81e6dc9ffd",
+    "packages/agent-compaction/provider-registry.js": "3866c3a53ad88f488258b034832a153c1c0f34bc6443b69c5cbae61987f40659",
+    "packages/agent-compaction/runtime.js": "b6c46e1e55e79bb43ad369261df129cd23d94c2daf51c6bc275a765f9689d408",
+    "packages/agent-context/authority.js": "1590a282dfd952b46332ec1c4a69d65464d3dc2f3eefbef9a5d8ca5d819a8450",
+    "packages/agent-context/context-assembler.js": "ec688cb64ab2073f3b94be34140c99c9b0cda02908b5bad76a2a1a9f9707e6d6",
+    "packages/agent-context/index.js": "7e32969dd6ef8deb1b889550a3156c41a72b377412677948b241a455df17d704",
+    "packages/agent-context/media-store.js": "3cd249964ba70620ccf89914f72762622a57c658e3135619f68356124c08352d",
+    "packages/agent-context/schemas.js": "6095040aa1d3d159c2882257598370b8925ea43f490c393a58789b74dede1bde",
+    "packages/agent-context/token-counter.js": "fd46f92518f4a07404dea34e2a2c49334b5d9d9b527ab2a7e377d02ee3d3b1fb",
+    "packages/agent-environment/computer-contract.js": "dd7bfcc0662cc817302775163f15cbf05bf89d91e42197dca35ec2410ad4fe7d",
+    "packages/agent-environment/index.js": "a7f29a394c261999c262ab0a34a1439552a6fb37d675f4d76b5eb442ec4da012",
+    "packages/agent-environment/lsp.js": "01261cd30d2ace0e8ddb30615bb6e9634af2022b2b71bee758f2c97bff699cc7",
+    "packages/agent-isolation-attestation/artifact-channel.js": "146040ec67af141edf2617d5fcd4d74c6fb7e12e248d9b4fb8c7a2304b286711",
+    "packages/agent-isolation-attestation/executor.js": "5aac95bd33cad7c4964830f459b3ee7de948a18fea00a5d8cb5e03bdf3bddb9b",
+    "packages/agent-isolation-attestation/index.js": "c08979403bd86d75e6006519d355508206ab77b09a4d72868d217028618aff3a",
+    "packages/agent-isolation-attestation/profiles.js": "a18a4b6e3716923ed6799ee57c1216ee71f89e341fcd6de437ff3dfce59e4e1d",
+    "packages/agent-memory/index.js": "828ee0014353044e22093bdbd986830136b73e072b08cb707f36869c44c5c506",
+    "packages/agent-memory/policy.js": "32e71b53e7f826e78140b951b4e9460c67036b3542442dc8cc2bbe633b7e7c7c",
+    "packages/agent-memory/store.js": "1496dd961b6a87229c86c00fe5a75bdc6b3bf2613d8649fb0feee63aa6980eb3",
+    "packages/agent-policy-lattice/index.js": "5bd90600f99c4289674260eba09e9af676f498083c49cd0fc7a78257ac9350ca",
+    "packages/agent-runtime-contracts/agent-contracts.js": "5c9bc64cdc598ef1c38f7eb88c6e3817fd44c4358d9e7343da5713b064d11d25",
+    "packages/agent-runtime-contracts/common.js": "dea8b60662cc8deec39a0c7df142e027eda19eb1cc0519da5f28baa71a2c017e",
+    "packages/agent-runtime-contracts/compaction-contracts.js": "8599c7534188135d7fc1347f883bf18ce8528b2b0c9167f7c622ec65dbbb0002",
+    "packages/agent-runtime-contracts/content-parts.js": "ba3d2ca4f3546b91fbb2f3b985bfad05d3bf327ef65b06582d8bed51fd95ce83",
+    "packages/agent-runtime-contracts/event-contracts.js": "845d75ca6d4d04e6758ee35cd7b89e64df3c453706d1047484eca9b974c8678e",
+    "packages/agent-runtime-contracts/index.js": "66681e46ad1d549193febb447b9272dd88face9794246fd1ae013ab6058332ce",
+    "packages/agent-runtime-contracts/orchestration-contracts.js": "e824885f3bdbc107c906cfeceb8262091927f826d66cf36497cfad829369b653",
+    "packages/agent-runtime-contracts/ports.js": "d0a945848b8342a3532116cde0fe22310fba572ce93a1b50bcaf3e267bdd6ec5",
+    "packages/agent-runtime-contracts/provider-contracts.js": "e249c8fae10b1fbd05b19a0996a4b832cc806a5d7cef9323f6c2a63029f13ab3",
+    "packages/agent-runtime/index.js": "3d16177c804023e81abfbfe164b1545c298dba8a48c6161187055e6978011e8c",
+    "packages/agent-runtime/runtime.js": "c7a4c0eeca60a55e7c65ad35c641a5f74fc16c32e00f48807583ed5d2fc4b402",
+    "packages/agent-runtime/schemas.js": "c9177cff5ac83e95d8e44c7b8e2b76d33c27b4d5cfc035fd3b06649f5df3dc68",
+    "packages/agent-session-store/index.js": "184c16a39c92f9439c229926c72e3adae3701cfb7f34b97228b71b407cc7674a",
+    "packages/agent-session-store/replay.js": "809112e6a0f5247210e15524d6ddc4c2501b0fcb59fa26cf6e2f1bf16ceddbbc",
+    "packages/agent-session-store/session-event-store.js": "caf1791f128840b0ff876bde999c8cea089c18c3b385a18777d9770d69cef7b1",
+    "packages/agent-trace-lineage/index.js": "39c93040512cae4875e08e7f73932b5edee30d906e35d7d614f57f813b700228",
+    "packages/governed-execution/canonical-envelope.js": "6e82592332fd12a65cb91029389c85343029665b2119eb9f48bb3ade19844af6",
+    "packages/governed-execution/execution-port.js": "4750cef3e447264379f383a0f43b7e6763f5e72af680426d93d4f4d870f3a7a3",
+    "packages/governed-execution/index.js": "1276ba24c5998a6f543e79470d0f9e978e31468464fa96e14fac2409162ec800",
+    "packages/governed-execution/operation-id.js": "1ae1a9a47952050a0daa665888f02e2d6f8ad22f536da49afd5cff34e21b3f62",
+    "packages/governed-execution/runtime.js": "53977b15481228e20673dac5dcdc531a6097245ca59863bda0d9a233b40f3ca9",
+    "packages/governed-execution/scheduler.js": "d9b5fa36700b48536e84291cf634a5c55d12aedaa8132a453849c18fe92aba2e",
+    "packages/managed-governance-contracts/canonical-json.js": "ea02fe4f89ba913d794de35f0aec73a8f91e7f4dd3e5ccc06e272d99f942d66c",
+    "packages/model-providers/common.js": "8cb34e1ae4c72f604bb7d2040b42c8804fdbd5666f1b025dad11c5b670dabbed",
+    "packages/model-providers/index.js": "c87709ca3829b89be32455b40c32b2967925244db66a578f1b2a8cd41854a3a0",
+    "packages/model-providers/openai-compatible-provider.js": "baab75ca0525bf1ecedcfe6341fb14dcc3326edb9dd35ac0446b1da96d2479c5",
+    "packages/model-providers/registry.js": "2f359638275a5f4248fe841dfca4b71fb19f44f348f1be86a3404a9c1f168359",
+    "packages/model-providers/scripted-provider.js": "3f7a3d64919848809e864fbd5868b6303269459d8266c3b2dba8fdf5dc5e6c97",
+    "packages/tool-runtime/index.js": "2510812110ded0bfe812e5c4cdcc0fc82da0b9a7fcfc2671acd3865c835dd541",
+    "packages/tool-runtime/registry.js": "2b7718cd796175fa4bb47d7178d24e93017f8c905c22bff4edac5e717150aa2d",
+    "packages/tool-runtime/tool-runtime.js": "96a3cb37907ab682755eabd686bf6b7fc9c919e4e0c5a422d7fb63f7aa2e2e10",
+    "test/fixtures/engineering-task/addition.json": "c2dfac1e99ebcf35ddd468d7d6a80bb0b1a3a282b9b3711628c89fd54dbae428",
+    "test/helpers/engineering-project.js": "355a0560dac9b7672a665018ecf26f6df641ba8200179d8596fc1bd46ec3b4b4",
+    "tools/cli/command-manifest.json": "dbf5abee924da71ab0596925ac95983420ac17a71b45a30a73a99c3f154404aa",
+    "tools/cli/commands/agent.js": "973ccb9190b3b46a7ceb7ca05f3cdda00aba9fe09cb09e11552c1133ee7110de",
+    "tools/cli/hseos-cli.js": "e1fb567b7c7e8fe1148a0bc515d3412f03e53657920bc8c95ae20f9e673d95ca",
+    "tools/cli/lib/campaign-evidence-store.js": "cda8f9a44b60d21d3de0be4137f95a0007f41bdf3b773b93277fbef733c2ba91",
+    "tools/cli/lib/capability-catalog.js": "5ea35ff369ace8bab58ecdfaba4426f903f6ef54e7af01b38369d750774ad0cf",
+    "tools/cli/lib/engineering-model.js": "5bdd424dc843fbbc1c18a4a199c8db138cd34a40aa7b15a25b82da54f0ae6c9c",
+    "tools/cli/lib/engineering-project-verifier.js": "c5011190d412d3eb002c2e9cc9646e0f59558ee6e9b33da4036995d8bd240607",
+    "tools/cli/lib/engineering-task-contract.js": "ce36610d2c1bb0e0c5fe8948228ccf631b31fb79d8d3bbdd171611258741dfc7",
+    "tools/cli/lib/engineering-task-extensions.js": "3d77e3e030f21d69d586ab5ce0c932a3be06a08270740c5f9ad80c3bb0e3749d",
+    "tools/cli/lib/engineering-task-runtime.js": "6ef87f0630f9b35bb56c1946ae4d935da73e9faa551f7608914473907ac77154",
+    "tools/cli/lib/engineering-task-state.js": "3869daa0828a1d76a89376686a6384eff2ec9a60d0ceb061daeeeaba0b6597f9",
+    "tools/cli/lib/engineering-tools.js": "5009bae80fb49949949fe0c5c317f91f3725cd5bb32f688e5cdc6e91ad67e333",
+    "tools/cli/lib/engineering-verifier.js": "b3a321570ef574b148d5cdc8ceb3e3aa3f3d07acaf8b05aa17b5097000652a8b",
+    "tools/cli/lib/engineering-workspace.js": "41e212e5317bf3b9352d38d20a6d6b3a707ee403e4715743f35173ad4786560b",
+    "tools/cli/lib/environment-approval.js": "9fd1d846c744fb0e9014307f74a23b393b29f9ecf331ac8801160b172dfe62e2",
+    "tools/cli/lib/execution-plugin-adapters.js": "d2b812bcb8ded847ed131bd58af184573970f245349b629d3e2413c69d5ee608",
+    "tools/cli/lib/execution-plugin-runtime.js": "94fa3f84ae8d0fcd9cf2a3cf910deeed2f83920da85b0c7db76fd8224aac2533",
+    "tools/cli/lib/job-dispatch.js": "2efd8b179c4bbad0aa57e7a65762de1c1cb52060dcbbfbfdb29a1a9d70fb6bd3",
+    "tools/cli/lib/job-materialization.js": "1fac2e7ccab8a0f66e4b3ffef9581380272112cc4d50c9afd66a6a79cabaaab3",
+    "tools/cli/lib/memory-context-source.js": "ada1cd9902e81237f5fbe3979a9f3972f0c53f3916962aa627b9e2fe6aa95e91",
+    "tools/cli/lib/project-root.js": "803dc27129fcd705b544f17a039d6f25d134acc8f2fff92bca0800de3a7d5af8",
+    "tools/cli/lib/provider-api-adapter.js": "559efa461dc294c98663d2db5261fe25c5a3997f6db17a27deb51e09b4eeadaa",
+    "tools/cli/lib/provider-egress-broker.js": "7a1a2d10855967368a1dee7db4808ebd1438ecbfaff313b003d7fe8c5bd8e9b2",
+    "tools/cli/lib/sandbox.js": "ff6fb41f0bef9808c771dd73017d0f42cce4461952e24e6786e619a9eacbdd4c",
+    "tools/cli/lib/temporary-kernel-assembly.js": "3ff51f84866ef3246a3940f914cd150d3ba68b16dd7aed88dab225ee71037a7b",
+    "tools/cli/lib/terminal-budget.js": "6d33f6fafd586816754e8c1d299f590e5faad5cf0938fb5445ed092a5500956b",
+    "tools/lib/agent-provider-binding.js": "1301bf1367f19682fefccf4dee7c13e67eba85c6d2bd2abf867b72c70a8dba40",
+    "tools/lib/agentic-activation-rehearsal.js": "b7190e2f5c8407441b67ff9fd0da58fc51ee7a81ed89a682f1bcd4f7c2b2adcc",
+    "tools/lib/compatibility-audit.js": "77075f8be90f5c2b1bcd8004b63bc94e5bf1cc7db9fb46160c4f9bbbf1867704",
+    "tools/lib/compatibility-observation.js": "7a553328f455eaa43f0c202741715a78dd45c90db934fe7ed800080c3ec1c684",
+    "tools/lib/execution-plugin-manifest.js": "2839c1e3c92caaefd3ab0763c42a95b532cc4b9d5125f19bf52203a6a80e6a3f",
+    "tools/lib/execution-plugin-selection.js": "5440c1f38252d40648194c8e6d87bf8c69ceb3f788b88b369a7df847fd066837",
+    "tools/lib/governed-execution/canonical-envelope.js": "44b55dfb0693c499610c5c62586c47aafa5eb45adbc9852744e7dcc3c845a9d2",
+    "tools/lib/governed-execution/contract-registry.js": "13fa4e6216b53d5e5da995052a10715bd3ca36ee279a15a08321b9525c553797",
+    "tools/lib/governed-execution/event-registry.js": "189e0bf70adb7f2a8e1d41ea77a9240d34153701c9027253435920f653938638",
+    "tools/lib/governed-execution/execution-port.js": "ac1efe503b8601329b8ac58de6e704a5283bf28d6a2b0c9ee132eeef3a9ffef4",
+    "tools/lib/governed-execution/operational-runtime.js": "736dc16e9f16ce80d9b5935650709b92b2f13a79b52ca405f4183d65789b72c1",
+    "tools/lib/governed-execution/runtime.js": "032e32f98ab3edb54ecb50806e8546b767704c8195caeeeaea34abe5b599749d",
+    "tools/lib/governed-execution/scheduler.js": "5842215cb586354cb712709f5ffb6ddc17c8dc06e146e60931c1ac665a3749a0",
+    "tools/lib/provider-control-manifest.js": "bf4b6eea928c20a9363eda307acae403175ead066fc71ece429dbd30ef8b91a4",
+    "tools/mcp-project-state/lib/execution-approval-store.js": "fd8e97bcae8d3796e1989828ff27528ea01d9d2dee533930e811112002d67200",
+    "tools/mcp-project-state/lib/execution-event-ledger.js": "18c68dfa77f0c24abd4faf0f9ec7bd09bad4ee9dcb5300d2e1fce882ced00c88",
+    "tools/mcp-project-state/lib/execution-ledger-schema.js": "82f58c16aaa3a7d8b2898be9b7b04652169f565d3a74cd23c545b3d8ec79f203",
+    "tools/mcp-project-state/lib/execution-projections.js": "9505d19d078a896241cb4b7c5b45cc5972c58a6a21971b133a3ca309d8308004",
+    "tools/mcp-project-state/lib/mcp-legacy-usage-store.js": "3c9e2ec985a83928777f738aa06e5ad1ddda4871e7f0f0c0e373a2c24bec53e0",
+    "tools/mcp-project-state/lib/migrations.js": "74d8445676ec5eccf2a6f71dc226d1f82462e78f2768e06aa5caa51213cd403f",
+    "tools/mcp-project-state/lib/operational-state-db.js": "ebe6ce4b0c9f52098d64adf0d7a4a1c893a5895173b2e491cd8d1117b2d56e0f"
+  },
+  "mode": "fixture",
+  "evidence_kind": "fixture-rehearsal",
+  "model": "gpt-4o-2024-08-06",
+  "started_at": "2026-11-09T19:44:52.681Z",
+  "database": {
+    "kind": "fixture-copy",
+    "sha256": "1ad6761fec04510182611b075d64f2aaf3ecdd3191aabbac8542dc2184c89ec6",
+    "secret_scan": {
+      "clean": true,
+      "hits": 0
+    },
+    "in_repository": false
+  },
+  "promotion_method": "api-rehearsal",
+  "boxes": {
+    "notes": [
+      {
+        "task": "oidc",
+        "memory_id": "f14v4-oidc-rule",
+        "content_sha256": "3879c5322a4fbe38d87eae8c85869ab8061485fd0782b96ad16bd00d7f5fd937",
+        "placebo_memory_id": "f14v4-oidc-placebo",
+        "placebo_of": "seed",
+        "placebo_content_sha256": "0f863eec461a11558b7efeb6dec025a7e8557e282d2d6d196a88389ffe78a4dd"
+      },
+      {
+        "task": "seed",
+        "memory_id": "f14v4-seed-rule",
+        "content_sha256": "6b41112d0f0d7a350d7524658a2ed3e4a3e9953cf1cd3df721bc8eed49054a51",
+        "placebo_memory_id": "f14v4-seed-placebo",
+        "placebo_of": "pass",
+        "placebo_content_sha256": "167ba823b53ce8a7c3e6a228567d538465e6b934cd69d1438a72ac6707e1dcba"
+      },
+      {
+        "task": "pass",
+        "memory_id": "f14v4-pass-rule",
+        "content_sha256": "68e709b84a102ffdae27edbf50a42dda6109934d26caa852198afec493614f04",
+        "placebo_memory_id": "f14v4-pass-placebo",
+        "placebo_of": "oidc",
+        "placebo_content_sha256": "fbcdeb12f1ef5eb63f1198a82d0d0979848dd3730d2e3370279a04d21f9ff425"
+      }
+    ],
+    "promotion_method": "api-rehearsal",
+    "promotions": [
+      {
+        "box": "B",
+        "task": "oidc",
+        "project_id": "f14v4-oidc",
+        "memory_id": "f14v4-oidc-rule",
+        "promoted_as": "f14v4-oidc-rule:promoted",
+        "content_sha256": "3879c5322a4fbe38d87eae8c85869ab8061485fd0782b96ad16bd00d7f5fd937",
+        "operator": "owner"
+      },
+      {
+        "box": "B",
+        "task": "seed",
+        "project_id": "f14v4-seed",
+        "memory_id": "f14v4-seed-rule",
+        "promoted_as": "f14v4-seed-rule:promoted",
+        "content_sha256": "6b41112d0f0d7a350d7524658a2ed3e4a3e9953cf1cd3df721bc8eed49054a51",
+        "operator": "owner"
+      },
+      {
+        "box": "B",
+        "task": "pass",
+        "project_id": "f14v4-pass",
+        "memory_id": "f14v4-pass-rule",
+        "promoted_as": "f14v4-pass-rule:promoted",
+        "content_sha256": "68e709b84a102ffdae27edbf50a42dda6109934d26caa852198afec493614f04",
+        "operator": "owner"
+      },
+      {
+        "box": "C",
+        "task": "oidc",
+        "project_id": "f14v4-oidc",
+        "memory_id": "f14v4-oidc-placebo",
+        "promoted_as": "f14v4-oidc-placebo:promoted",
+        "content_sha256": "0f863eec461a11558b7efeb6dec025a7e8557e282d2d6d196a88389ffe78a4dd",
+        "operator": "owner"
+      },
+      {
+        "box": "C",
+        "task": "seed",
+        "project_id": "f14v4-seed",
+        "memory_id": "f14v4-seed-placebo",
+        "promoted_as": "f14v4-seed-placebo:promoted",
+        "content_sha256": "167ba823b53ce8a7c3e6a228567d538465e6b934cd69d1438a72ac6707e1dcba",
+        "operator": "owner"
+      },
+      {
+        "box": "C",
+        "task": "pass",
+        "project_id": "f14v4-pass",
+        "memory_id": "f14v4-pass-placebo",
+        "promoted_as": "f14v4-pass-placebo:promoted",
+        "content_sha256": "fbcdeb12f1ef5eb63f1198a82d0d0979848dd3730d2e3370279a04d21f9ff425",
+        "operator": "owner"
+      }
+    ],
+    "delivery_check": [
+      {
+        "box": "A",
+        "task": "oidc",
+        "expected": [],
+        "delivered": [],
+        "ok": true
+      },
+      {
+        "box": "A",
+        "task": "seed",
+        "expected": [],
+        "delivered": [],
+        "ok": true
+      },
+      {
+        "box": "A",
+        "task": "pass",
+        "expected": [],
+        "delivered": [],
+        "ok": true
+      },
+      {
+        "box": "B",
+        "task": "oidc",
+        "expected": ["memory://f14v4-oidc/f14v4-oidc-rule:promoted"],
+        "delivered": ["memory://f14v4-oidc/f14v4-oidc-rule:promoted"],
+        "ok": true
+      },
+      {
+        "box": "B",
+        "task": "seed",
+        "expected": ["memory://f14v4-seed/f14v4-seed-rule:promoted"],
+        "delivered": ["memory://f14v4-seed/f14v4-seed-rule:promoted"],
+        "ok": true
+      },
+      {
+        "box": "B",
+        "task": "pass",
+        "expected": ["memory://f14v4-pass/f14v4-pass-rule:promoted"],
+        "delivered": ["memory://f14v4-pass/f14v4-pass-rule:promoted"],
+        "ok": true
+      },
+      {
+        "box": "C",
+        "task": "oidc",
+        "expected": ["memory://f14v4-oidc/f14v4-oidc-placebo:promoted"],
+        "delivered": ["memory://f14v4-oidc/f14v4-oidc-placebo:promoted"],
+        "ok": true
+      },
+      {
+        "box": "C",
+        "task": "seed",
+        "expected": ["memory://f14v4-seed/f14v4-seed-placebo:promoted"],
+        "delivered": ["memory://f14v4-seed/f14v4-seed-placebo:promoted"],
+        "ok": true
+      },
+      {
+        "box": "C",
+        "task": "pass",
+        "expected": ["memory://f14v4-pass/f14v4-pass-placebo:promoted"],
+        "delivered": ["memory://f14v4-pass/f14v4-pass-placebo:promoted"],
+        "ok": true
+      }
+    ],
+    "db_sha256": {
+      "box_a": "d4c65ab28df01cb31526ea887cedc0238a05960a00230b2a0492f2971f275ea3",
+      "box_b": "6c0e2aac1db3402bcd9b57774aeadd709281968eefb03a578ae84af65a5ee430",
+      "box_c": "b396cd126e6551f75f779ea2b7e46e36505b32a65c3ecbabf1ec6aeef96cd242"
+    }
+  },
+  "seed_recorded_before_first_call": true,
+  "schedule": [
+    {
+      "order": 1,
+      "task": "seed",
+      "condition": "placebo",
+      "rep": 1
+    },
+    {
+      "order": 2,
+      "task": "seed",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 3,
+      "task": "seed",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 4,
+      "task": "seed",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 5,
+      "task": "seed",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 6,
+      "task": "seed",
+      "condition": "placebo",
+      "rep": 2
+    },
+    {
+      "order": 7,
+      "task": "seed",
+      "condition": "placebo",
+      "rep": 3
+    },
+    {
+      "order": 8,
+      "task": "seed",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 9,
+      "task": "seed",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 10,
+      "task": "seed",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 11,
+      "task": "seed",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 12,
+      "task": "seed",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 13,
+      "task": "seed",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 14,
+      "task": "oidc",
+      "condition": "placebo",
+      "rep": 1
+    },
+    {
+      "order": 15,
+      "task": "oidc",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 16,
+      "task": "oidc",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 17,
+      "task": "oidc",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 18,
+      "task": "oidc",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 19,
+      "task": "oidc",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 20,
+      "task": "oidc",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 21,
+      "task": "oidc",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 22,
+      "task": "oidc",
+      "condition": "placebo",
+      "rep": 2
+    },
+    {
+      "order": 23,
+      "task": "oidc",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 24,
+      "task": "oidc",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 25,
+      "task": "oidc",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 26,
+      "task": "oidc",
+      "condition": "placebo",
+      "rep": 3
+    },
+    {
+      "order": 27,
+      "task": "pass",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 28,
+      "task": "pass",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 29,
+      "task": "pass",
+      "condition": "placebo",
+      "rep": 1
+    },
+    {
+      "order": 30,
+      "task": "pass",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 31,
+      "task": "pass",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 32,
+      "task": "pass",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 33,
+      "task": "pass",
+      "condition": "placebo",
+      "rep": 2
+    },
+    {
+      "order": 34,
+      "task": "pass",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 35,
+      "task": "pass",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 36,
+      "task": "pass",
+      "condition": "placebo",
+      "rep": 3
+    },
+    {
+      "order": 37,
+      "task": "pass",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 38,
+      "task": "pass",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 39,
+      "task": "pass",
+      "condition": "promoted",
+      "rep": 5
+    }
+  ],
+  "pilots": [
+    {
+      "task": "oidc",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    },
+    {
+      "task": "seed",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    },
+    {
+      "task": "pass",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    }
+  ],
+  "analysis": {
+    "complete": true,
+    "success": true,
+    "p": 1.2497650441716923e-7,
+    "observed_sum": 15,
+    "per_task": [
+      {
+        "id": "oidc",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      },
+      {
+        "id": "seed",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      },
+      {
+        "id": "pass",
+        "promoted": "5/5",
+        "control": "0/5",
+        "pass": true
+      }
+    ],
+    "thresholds": {
+      "promotedMin": 4,
+      "controlMax": 1,
+      "alpha": 0.05
+    },
+    "placebo_descriptive": [
+      {
+        "id": "oidc",
+        "placebo": "0/3"
+      },
+      {
+        "id": "seed",
+        "placebo": "0/3"
+      },
+      {
+        "id": "pass",
+        "placebo": "0/3"
+      }
+    ],
+    "by_arm": {
+      "control": {
+        "runs": 15,
+        "successes": 0,
+        "requests_per_run": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+        "requests_mean": 5,
+        "cap_reached": 0,
+        "note_in_context": 0,
+        "placebo_in_context": 0,
+        "memory_sources_total": 0
+      },
+      "promoted": {
+        "runs": 15,
+        "successes": 15,
+        "requests_per_run": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+        "requests_mean": 3,
+        "cap_reached": 0,
+        "note_in_context": 15,
+        "placebo_in_context": 0,
+        "memory_sources_total": 15
+      },
+      "placebo": {
+        "runs": 9,
+        "successes": 0,
+        "requests_per_run": [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        "requests_mean": 5,
+        "cap_reached": 0,
+        "note_in_context": 0,
+        "placebo_in_context": 9,
+        "memory_sources_total": 9
+      }
+    },
+    "by_task_and_arm": {
+      "oidc/control": {
+        "runs": 5,
+        "successes": 0,
+        "requests_per_run": [5, 5, 5, 5, 5],
+        "requests_mean": 5,
+        "cap_reached": 0,
+        "note_in_context": 0,
+        "placebo_in_context": 0,
+        "memory_sources_total": 0
+      },
+      "seed/control": {
+        "runs": 5,
+        "successes": 0,
+        "requests_per_run": [5, 5, 5, 5, 5],
+        "requests_mean": 5,
+        "cap_reached": 0,
+        "note_in_context": 0,
+        "placebo_in_context": 0,
+        "memory_sources_total": 0
+      },
+      "pass/control": {
+        "runs": 5,
+        "successes": 0,
+        "requests_per_run": [5, 5, 5, 5, 5],
+        "requests_mean": 5,
+        "cap_reached": 0,
+        "note_in_context": 0,
+        "placebo_in_context": 0,
+        "memory_sources_total": 0
+      },
+      "oidc/promoted": {
+        "runs": 5,
+        "successes": 5,
+        "requests_per_run": [3, 3, 3, 3, 3],
+        "requests_mean": 3,
+        "cap_reached": 0,
+        "note_in_context": 5,
+        "placebo_in_context": 0,
+        "memory_sources_total": 5
+      },
+      "seed/promoted": {
+        "runs": 5,
+        "successes": 5,
+        "requests_per_run": [3, 3, 3, 3, 3],
+        "requests_mean": 3,
+        "cap_reached": 0,
+        "note_in_context": 5,
+        "placebo_in_context": 0,
+        "memory_sources_total": 5
+      },
+      "pass/promoted": {
+        "runs": 5,
+        "successes": 5,
+        "requests_per_run": [3, 3, 3, 3, 3],
+        "requests_mean": 3,
+        "cap_reached": 0,
+        "note_in_context": 5,
+        "placebo_in_context": 0,
+        "memory_sources_total": 5
+      },
+      "oidc/placebo": {
+        "runs": 3,
+        "successes": 0,
+        "requests_per_run": [5, 5, 5],
+        "requests_mean": 5,
+        "cap_reached": 0,
+        "note_in_context": 0,
+        "placebo_in_context": 3,
+        "memory_sources_total": 3
+      },
+      "seed/placebo": {
+        "runs": 3,
+        "successes": 0,
+        "requests_per_run": [5, 5, 5],
+        "requests_mean": 5,
+        "cap_reached": 0,
+        "note_in_context": 0,
+        "placebo_in_context": 3,
+        "memory_sources_total": 3
+      },
+      "pass/placebo": {
+        "runs": 3,
+        "successes": 0,
+        "requests_per_run": [5, 5, 5],
+        "requests_mean": 5,
+        "cap_reached": 0,
+        "note_in_context": 0,
+        "placebo_in_context": 3,
+        "memory_sources_total": 3
+      }
+    }
+  },
+  "runs": [
+    {
+      "label": "pilot-oidc",
+      "kind": "pilot",
+      "task": "oidc",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12737,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0335625,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-4e21ee790acf\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://362517c29e85cb996011c68933326db8fd549598df3f31092a4498e76c40bd05\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://362517c29e85cb996011c68933326db8fd549598df3f31092a4498e76c40bd05\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "994eb27d980748ece6a2fb0f0cbf2ee0810b6143be5f2113eb028e0fa3616789",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "pilot-seed",
+      "kind": "pilot",
+      "task": "seed",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12384,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03224,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-a463df6cc720\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://b7638bb74b18b8ee65dcc10bd308482a1d800351239e7edf61949fb6050d2917\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b7638bb74b18b8ee65dcc10bd308482a1d800351239e7edf61949fb6050d2917\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "b0afebed504b4d44ee7ffe8e9eeb61890ae138d5e51c0c50f910b99b4eb809d2",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "pilot-pass",
+      "kind": "pilot",
+      "task": "pass",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12508,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03252,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-e8c9f6591016\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://a58fc3761555bf1aeca37972af5e45596bfb88a178748062223fbd25036b45e8\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://a58fc3761555bf1aeca37972af5e45596bfb88a178748062223fbd25036b45e8\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "07f0e7de92ee3fc7d275f72d07d6dbe6f5831326d43ff4af2b284c993b3a869d",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s01-seed-placebo-1",
+      "kind": "series",
+      "task": "seed",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13355,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.034667500000000004,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-seed/f14v4-seed-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-dc55670f4fbf\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://c670c0de761976d36d2a14906ebfbfbbaf8cba12290e7a590e103b8903b0225a\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c670c0de761976d36d2a14906ebfbfbbaf8cba12290e7a590e103b8903b0225a\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "b00f6102db73f17b3a6192b7ecaedaa106e8a33e120d7b72a225b8fcb0a540c7",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s02-seed-control-1",
+      "kind": "series",
+      "task": "seed",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12384,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03224,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-2a827a696faa\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://50a2b327aeae64dc273f7f0af142450e15f6976ed60752fb3085c6a28e175fd0\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://50a2b327aeae64dc273f7f0af142450e15f6976ed60752fb3085c6a28e175fd0\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "5eb3132692a67888f0d4e09f57536c54daa44a401667e92443eee9598780b495",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s03-seed-control-2",
+      "kind": "series",
+      "task": "seed",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12384,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03224,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-d0aa54f40119\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://56b9f76d9191e126c036f950b7cd97ab640fcba3db05d1c0fb07ef787b4b5dc0\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://56b9f76d9191e126c036f950b7cd97ab640fcba3db05d1c0fb07ef787b4b5dc0\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "5269e5e8381c35d81f7d8e405c7c1c8f4f42ed946ca2246ffb882ee817918dda",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s04-seed-promoted-1",
+      "kind": "series",
+      "task": "seed",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6852,
+        "completion_tokens": 138,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01851,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-seed/f14v4-seed-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-6c1ced80902c\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"4d51de3825396be127d45a06a3f5bb189d896cad93a43d4bcd269f6d4eeaad29\"},\"error\":null,\"evidence_refs\":[\"isolation://6b822f6c39059377e2984b51635f78646015a1403e9921d59eb931da5515b321\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://6b822f6c39059377e2984b51635f78646015a1403e9921d59eb931da5515b321\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "b570d23eccc5485f0ed9514883aeddfe8f8ae93e2e48ff6799d9de000e1f9c13",
+      "protected": {
+        "pass": true,
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s05-seed-control-3",
+      "kind": "series",
+      "task": "seed",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12384,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03224,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-ad6ae99fac27\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://37f3cfa59c3a7eaacb5a4048422b1949667b4483fba92f11e6aaa7614b8bd644\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://37f3cfa59c3a7eaacb5a4048422b1949667b4483fba92f11e6aaa7614b8bd644\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "e06defc83176d29496070d9cd01c15995351bb22cb89c45c635770af111bfede",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s06-seed-placebo-2",
+      "kind": "series",
+      "task": "seed",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13355,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.034667500000000004,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-seed/f14v4-seed-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-515607321552\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://520855c1567be165730bd119c28d9282f21108f19e381b2ee5928192f4ea7399\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://520855c1567be165730bd119c28d9282f21108f19e381b2ee5928192f4ea7399\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "57e27cb2e571a8122f50f3a504079a18c729125ceb200c7c7837345fa03f4417",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s07-seed-placebo-3",
+      "kind": "series",
+      "task": "seed",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13355,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.034667500000000004,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-seed/f14v4-seed-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-c60da3231d4d\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://55e808e02d3b9a1325efd51edff51e6aa2d821bf7dc25158f6fcb50a59160291\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://55e808e02d3b9a1325efd51edff51e6aa2d821bf7dc25158f6fcb50a59160291\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "0b847a0af310a9f2bcc5b3d7ce4788a4d60ab26bd5cd0cc1cdf1507a516c2a30",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s08-seed-promoted-2",
+      "kind": "series",
+      "task": "seed",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6852,
+        "completion_tokens": 138,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01851,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-seed/f14v4-seed-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-0789d517f241\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"4d51de3825396be127d45a06a3f5bb189d896cad93a43d4bcd269f6d4eeaad29\"},\"error\":null,\"evidence_refs\":[\"isolation://70210c7baef0f30854976f4244d8266f7bede37e71ae43cdcea9b587101af4c1\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://70210c7baef0f30854976f4244d8266f7bede37e71ae43cdcea9b587101af4c1\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "29b0a03e42489b5fd769327ec736f9c4112e4ee2a92ee890fc3cb825b0804e84",
+      "protected": {
+        "pass": true,
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s09-seed-promoted-3",
+      "kind": "series",
+      "task": "seed",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6852,
+        "completion_tokens": 138,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01851,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-seed/f14v4-seed-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-f690cd8c919e\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"4d51de3825396be127d45a06a3f5bb189d896cad93a43d4bcd269f6d4eeaad29\"},\"error\":null,\"evidence_refs\":[\"isolation://c516c5b5d70b6cbe3f638da7d9f13f59d14cf1a73eeff11da9281f1daf11c26e\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c516c5b5d70b6cbe3f638da7d9f13f59d14cf1a73eeff11da9281f1daf11c26e\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "63d00c43bab01d1264bdb06266ab536e1cd00a8f58a0a06bd8e5a6709f9732fa",
+      "protected": {
+        "pass": true,
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s10-seed-control-4",
+      "kind": "series",
+      "task": "seed",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12384,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03224,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-7cee67e319ed\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://e2404a209862927bbbd91ba707de669df14ab89e3b3cae93e812b284b140049c\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://e2404a209862927bbbd91ba707de669df14ab89e3b3cae93e812b284b140049c\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "a4fbf5a35744e41ad581baeab2e47548bb2506467423fee8654af00648bca05e",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s11-seed-promoted-4",
+      "kind": "series",
+      "task": "seed",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6852,
+        "completion_tokens": 138,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01851,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-seed/f14v4-seed-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-cf435c6450ac\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"4d51de3825396be127d45a06a3f5bb189d896cad93a43d4bcd269f6d4eeaad29\"},\"error\":null,\"evidence_refs\":[\"isolation://98072aa672b3a7bce8c8d4866c3d79d5fa0dc974624dd44600a7d545919346d0\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://98072aa672b3a7bce8c8d4866c3d79d5fa0dc974624dd44600a7d545919346d0\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "f20474a0146e56c779da0599a1051ccce9fe8686947ad66afa1019cc2ff4e75b",
+      "protected": {
+        "pass": true,
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s12-seed-control-5",
+      "kind": "series",
+      "task": "seed",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12384,
+        "completion_tokens": 128,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03224,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-6d80c4b98f73\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://e6975cb544ee895678d5986e35193d351066c9a66c964278c47554c006c531ae\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://e6975cb544ee895678d5986e35193d351066c9a66c964278c47554c006c531ae\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "e736c7bdb6a655480dd21683ee17453bff4542f118e613b20b3e71a6fcc93d2f",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s13-seed-promoted-5",
+      "kind": "series",
+      "task": "seed",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 6852,
+        "completion_tokens": 138,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.01851,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-seed/f14v4-seed-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-c12921b3c414\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"4d51de3825396be127d45a06a3f5bb189d896cad93a43d4bcd269f6d4eeaad29\"},\"error\":null,\"evidence_refs\":[\"isolation://bb9f8650ac05f4cfd06188cfcaa951f01194fd343d91c815476e7608c7fd2a2a\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://bb9f8650ac05f4cfd06188cfcaa951f01194fd343d91c815476e7608c7fd2a2a\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "8c46916c0a17b47be0974bf4969fb9ee68d998309a300cfa07b32a588fcdc7d0",
+      "protected": {
+        "pass": true,
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s14-oidc-placebo-1",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13375,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0351575,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-oidc/f14v4-oidc-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-68d1b95ea009\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://2faf8522f8f9b9c941dd6fc052f6fdcc60a5fe3ee2b2fe0668562dde923b8810\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://2faf8522f8f9b9c941dd6fc052f6fdcc60a5fe3ee2b2fe0668562dde923b8810\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "b1e656e7582d386b194d192584c2fc101da18887d1879abc90d376a7e80e2dd5",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s15-oidc-control-1",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12737,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0335625,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-6cd086533b33\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://9adb5c8b52dfa4b83e0446a226866c9cc15cdc52fde9d40d37f8984f1e5d1d26\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://9adb5c8b52dfa4b83e0446a226866c9cc15cdc52fde9d40d37f8984f1e5d1d26\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "e7860cfd5973519f48d62d3239149601e96982b89930ecf5099eb7d2090b4dbf",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s16-oidc-promoted-1",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7210,
+        "completion_tokens": 195,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.019975,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-oidc/f14v4-oidc-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-681085c71d01\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"0429fcff72df8ebd666b9a84ba9b1445cd6c38d3b5ef66be1624a8ff036f10a1\"},\"error\":null,\"evidence_refs\":[\"isolation://ca2cafbf12ea1746b79daa8c929a3330aec18a95c6f1b3877a426b85d49b9f19\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ca2cafbf12ea1746b79daa8c929a3330aec18a95c6f1b3877a426b85d49b9f19\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "12ecd7adaa664e6a88bbcd1d1180c4178e20ea180d8ed1caf085d877e546d1c8",
+      "protected": {
+        "pass": true,
+        "passed": 3,
+        "total": 3,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s17-oidc-promoted-2",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7210,
+        "completion_tokens": 195,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.019975,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-oidc/f14v4-oidc-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-b33678c992eb\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"0429fcff72df8ebd666b9a84ba9b1445cd6c38d3b5ef66be1624a8ff036f10a1\"},\"error\":null,\"evidence_refs\":[\"isolation://23b78c8b0d79814c887aa98779ece28138e60d1577e73866c5e5035ac404bad5\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://23b78c8b0d79814c887aa98779ece28138e60d1577e73866c5e5035ac404bad5\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "46854cc2244a9d4e76f2059ecbba6a57099feb3841ba43d80f251bad6b7ccbd7",
+      "protected": {
+        "pass": true,
+        "passed": 3,
+        "total": 3,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s18-oidc-promoted-3",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7210,
+        "completion_tokens": 195,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.019975,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-oidc/f14v4-oidc-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-da69c1e813a1\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"0429fcff72df8ebd666b9a84ba9b1445cd6c38d3b5ef66be1624a8ff036f10a1\"},\"error\":null,\"evidence_refs\":[\"isolation://075258d724cf4f73ce8692219cf26d88efcbe5a283cc029c4aab0f894c2d4b92\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://075258d724cf4f73ce8692219cf26d88efcbe5a283cc029c4aab0f894c2d4b92\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "b40bd2420298e2f97b8f1ba6594f2ec7510eacf3196d8df1919c156725b32c37",
+      "protected": {
+        "pass": true,
+        "passed": 3,
+        "total": 3,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s19-oidc-control-2",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12737,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0335625,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-b4934d39dc42\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://ab11aacc894694974b2d8692e7cd6893be804f398f31fcc1b84b34c1cfe5848b\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ab11aacc894694974b2d8692e7cd6893be804f398f31fcc1b84b34c1cfe5848b\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "a8e6484b3f6f0bf6093e78b3a989c141a84a439aa6d8726f865f4b91ffbee6b4",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s20-oidc-promoted-4",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7210,
+        "completion_tokens": 195,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.019975,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-oidc/f14v4-oidc-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-ca9a399359c3\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"0429fcff72df8ebd666b9a84ba9b1445cd6c38d3b5ef66be1624a8ff036f10a1\"},\"error\":null,\"evidence_refs\":[\"isolation://1e40e4b7ee87db29425147e7ec16cf05e9c1b9f39bd841bb3411fc50676cc258\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://1e40e4b7ee87db29425147e7ec16cf05e9c1b9f39bd841bb3411fc50676cc258\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "8c8f13a19157f7e5dd35b05950259170264751c9afedcdebf342b41bb025a73d",
+      "protected": {
+        "pass": true,
+        "passed": 3,
+        "total": 3,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s21-oidc-promoted-5",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7210,
+        "completion_tokens": 195,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.019975,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-oidc/f14v4-oidc-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-eb5a84e98fd4\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"0429fcff72df8ebd666b9a84ba9b1445cd6c38d3b5ef66be1624a8ff036f10a1\"},\"error\":null,\"evidence_refs\":[\"isolation://5815d8e0808f44bc8916631d9c278163c8e265643a237b9e9dfafe67fab7511b\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://5815d8e0808f44bc8916631d9c278163c8e265643a237b9e9dfafe67fab7511b\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "a53fee4a0b2ad5308868097bdc204f0e0984b8589c2149ba69f91a835f126d04",
+      "protected": {
+        "pass": true,
+        "passed": 3,
+        "total": 3,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s22-oidc-placebo-2",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13375,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0351575,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-oidc/f14v4-oidc-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-2fc6a905ae4d\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://d4d3e0886ab0f0f8459ba8206616951fdae07d47d1a56331e8af8bcadefd82ab\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://d4d3e0886ab0f0f8459ba8206616951fdae07d47d1a56331e8af8bcadefd82ab\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "54b4a5f04b3bddabb5c4093ab3ea184b8ba15087fead87decc755cc2012471ac",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s23-oidc-control-3",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12737,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0335625,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-9a621de04c92\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://1d3e3f943543e9ba63b85fdf61f123ca50998a43b23a77ee93442e68335b68fa\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://1d3e3f943543e9ba63b85fdf61f123ca50998a43b23a77ee93442e68335b68fa\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "e89e5a71e51c6682a9523623d29432fdce0f8d79093ffd4a7c499567bf72ec7a",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s24-oidc-control-4",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12737,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0335625,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-5b8d85eb8d16\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://051a14a6ea884fadf9d24b9348afadf409c51e262a15a41115ddcc6604fcb1c9\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://051a14a6ea884fadf9d24b9348afadf409c51e262a15a41115ddcc6604fcb1c9\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "04e9446b1d8546d951f63fbcde14e549fc9c8290e737f0966df8ed02892eb296",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s25-oidc-control-5",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12737,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0335625,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-8fb73d49fe8a\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://29d1975e79f8bceab85d94095d602e03e0892bb724f4de11ff0b4458c9a382ee\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://29d1975e79f8bceab85d94095d602e03e0892bb724f4de11ff0b4458c9a382ee\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "e8e555ad5f8acbf51ae22de55b7071d85024611137ce0a5eff5db019af4da482",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s26-oidc-placebo-3",
+      "kind": "series",
+      "task": "oidc",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13375,
+        "completion_tokens": 172,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0351575,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-oidc/f14v4-oidc-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-f034c95ff227\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://0d9395273582b1973f9ea981899f1526394ad22a95c0b7c13b80d09e03eb7800\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://0d9395273582b1973f9ea981899f1526394ad22a95c0b7c13b80d09e03eb7800\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "55325cc4e3b85294f7729d9cd14a1bb9703892b9f532ee74cfb7ac82f5adeeb6",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s27-pass-promoted-1",
+      "kind": "series",
+      "task": "pass",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7568,
+        "completion_tokens": 244,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.02136,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-pass/f14v4-pass-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-0e4a5b852778\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"79987892c22dee3c2c0e42d4d85d22f387b777f08a271dd6278cdcadda07931c\"},\"error\":null,\"evidence_refs\":[\"isolation://e6823dae60386d211dae02f96e367c1de3962c804c27a4e5ab31507bb4282c8b\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://e6823dae60386d211dae02f96e367c1de3962c804c27a4e5ab31507bb4282c8b\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "62779b41b3cbf1f867d54312c275da470ec53a130612e05ee69498aa88d4f5c0",
+      "protected": {
+        "pass": true,
+        "passed": 13,
+        "total": 13,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s28-pass-promoted-2",
+      "kind": "series",
+      "task": "pass",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7568,
+        "completion_tokens": 244,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.02136,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-pass/f14v4-pass-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-9ee94cef47bb\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"79987892c22dee3c2c0e42d4d85d22f387b777f08a271dd6278cdcadda07931c\"},\"error\":null,\"evidence_refs\":[\"isolation://0b06fed661a14e9b0804d0623a43b345d4d50ce7ce098ecbac73d48afa46c7ff\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://0b06fed661a14e9b0804d0623a43b345d4d50ce7ce098ecbac73d48afa46c7ff\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "7bbc0f37afed02fe7c65ef72f050be37360af8d4b707cbc9e4dcec33f2d8912c",
+      "protected": {
+        "pass": true,
+        "passed": 13,
+        "total": 13,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s29-pass-placebo-1",
+      "kind": "series",
+      "task": "pass",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13463,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0349075,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-pass/f14v4-pass-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-dd82f382e437\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://a6980abe25bd3da7f5c2fa8ac1bcc8dad11bc162b0d130c1258f0fec34a7fa8f\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://a6980abe25bd3da7f5c2fa8ac1bcc8dad11bc162b0d130c1258f0fec34a7fa8f\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "4f44e7cf60367f7d0a69cbbdb2763610c64dd2e8884e8a9f940fb634dabdf2f4",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s30-pass-promoted-3",
+      "kind": "series",
+      "task": "pass",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7568,
+        "completion_tokens": 244,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.02136,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-pass/f14v4-pass-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-19ff67af308e\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"79987892c22dee3c2c0e42d4d85d22f387b777f08a271dd6278cdcadda07931c\"},\"error\":null,\"evidence_refs\":[\"isolation://daf3bf57eda5953d95425fd606d25faabe7693babba8c10f777dc11d0c456218\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://daf3bf57eda5953d95425fd606d25faabe7693babba8c10f777dc11d0c456218\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "55b73dcfa6516184790d62007f8e6a493f23bb137d7bf24a2a6fc27e08ebb7fa",
+      "protected": {
+        "pass": true,
+        "passed": 13,
+        "total": 13,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s31-pass-control-1",
+      "kind": "series",
+      "task": "pass",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12508,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03252,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-fbc190d1fafe\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://dc6d92497cf650657ba3d31bfa3c819e4d5b66a91202af328c52de35872df20b\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://dc6d92497cf650657ba3d31bfa3c819e4d5b66a91202af328c52de35872df20b\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "0957d14aabc1d650d86523c790d072fbe5a641780eb848e125b1dc3ff28215a6",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s32-pass-control-2",
+      "kind": "series",
+      "task": "pass",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12508,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03252,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-acfc9891a515\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://2090a751ee257bb0efdc8884492b707171eb5b357a026566a675a72a4e3ae72d\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://2090a751ee257bb0efdc8884492b707171eb5b357a026566a675a72a4e3ae72d\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "9017b0f5d49e7b9cb3a94d4743b6d5742600d2cccf3cbc6218e759e3c284080d",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s33-pass-placebo-2",
+      "kind": "series",
+      "task": "pass",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13463,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0349075,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-pass/f14v4-pass-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-726baceb4fec\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://3ba833a205405534b2fe75d48a08346027052992189bda2e9fd9d9e46d66de92\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3ba833a205405534b2fe75d48a08346027052992189bda2e9fd9d9e46d66de92\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "b30066cf88910cb91ac9a1239bcdd23093981aae714c9cadaff9813a6169e1f8",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s34-pass-control-3",
+      "kind": "series",
+      "task": "pass",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12508,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03252,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-33ec317860bb\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://a388b5eb109d98492f3c13004e6bdde1847d58296e2f1dd9ed91c8ec26ca8c69\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://a388b5eb109d98492f3c13004e6bdde1847d58296e2f1dd9ed91c8ec26ca8c69\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "277f7aeabbf610f7b6e9755ee05c1821e0f3917bc48790320b7147b0c02d1dc3",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s35-pass-promoted-4",
+      "kind": "series",
+      "task": "pass",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7568,
+        "completion_tokens": 244,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.02136,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-pass/f14v4-pass-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-a230184d2f46\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"79987892c22dee3c2c0e42d4d85d22f387b777f08a271dd6278cdcadda07931c\"},\"error\":null,\"evidence_refs\":[\"isolation://b3984a9304bfe1fe7b975f1cb4aa26fb73083aa074d4f09da3d26189ed9efb03\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://b3984a9304bfe1fe7b975f1cb4aa26fb73083aa074d4f09da3d26189ed9efb03\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "c51ff1ffdf4c2eabd09f1f59a9444aaa6afd19e2a82cda352ca37ff601fbe5eb",
+      "protected": {
+        "pass": true,
+        "passed": 13,
+        "total": 13,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    },
+    {
+      "label": "s36-pass-placebo-3",
+      "kind": "series",
+      "task": "pass",
+      "condition": "placebo",
+      "box": "C",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 13463,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0349075,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-pass/f14v4-pass-placebo:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-9501dcf8bf8d\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://523897be284f8e82532fa486c287fcaab9de185dea05a6de829ec15b3b2ee1f9\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://523897be284f8e82532fa486c287fcaab9de185dea05a6de829ec15b3b2ee1f9\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "4227b788770ca27b84d39cbbe90daa17a7346e47985696aaa1b7a3d2b247fedd",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s37-pass-control-4",
+      "kind": "series",
+      "task": "pass",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12508,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03252,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-cd7b283a3272\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://ba0726c52259cc53aef51198eb58881d8de5e34171feda169207b388212a3875\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ba0726c52259cc53aef51198eb58881d8de5e34171feda169207b388212a3875\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "6024a0c381906250e60507060f1cb770853fb87c56d5cd926631b35ac8c32012",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s38-pass-control-5",
+      "kind": "series",
+      "task": "pass",
+      "condition": "control",
+      "box": "A",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 1,
+      "task_result": "failed",
+      "reason": "criteria-not-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 5,
+        "unreadable_requests": 0,
+        "prompt_tokens": 12508,
+        "completion_tokens": 125,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.03252,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 32,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": false,
+        "placebo_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [
+        "-36b8fa79d899\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://f59b3fffb1dfc0f7d65f456371e98f24d292509077ab6fb50fede71e77f09f4a\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://f59b3fffb1dfc0f7d65f456371e98f24d292509077ab6fb50fede71e77f09f4a\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 5,
+          "requests_verified": 5,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "08c465dcb9db3bf13f4533b21dcff996dbe27ae041b1db3a85e01c4f29165204",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s39-pass-promoted-5",
+      "kind": "series",
+      "task": "pass",
+      "condition": "promoted",
+      "box": "B",
+      "evidence_kind": "fixture-rehearsal",
+      "cli_status": 0,
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 3,
+        "unreadable_requests": 0,
+        "prompt_tokens": 7568,
+        "completion_tokens": 244,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.02136,
+      "cap_reached": false,
+      "stop_reason": null,
+      "responding_models": ["gpt-4o-2024-08-06"],
+      "measure": {
+        "reason": "ok",
+        "applied": 1,
+        "sha_checked": 1
+      },
+      "replay": {
+        "ok": true,
+        "session_events": 22,
+        "tool_invocations": 2,
+        "contract_residue": false,
+        "note_in_context": true,
+        "placebo_in_context": false,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v4-pass/f14v4-pass-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [
+        "-bae726e99fd1\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"79987892c22dee3c2c0e42d4d85d22f387b777f08a271dd6278cdcadda07931c\"},\"error\":null,\"evidence_refs\":[\"isolation://60ea7c217ec2cf5d2045128117a0c85a3f4a653e3f527a3d772849f3fb831ece\"],\"warnings\":[],\"replayed\":false}",
+        "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://60ea7c217ec2cf5d2045128117a0c85a3f4a653e3f527a3d772849f3fb831ece\"],\"warnings\":[],\"replayed\":false}"
+      ],
+      "drain": {
+        "started": 2,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "pass",
+        "failures": [],
+        "summarizer_exit": 0,
+        "proof_present": true,
+        "proof": {
+          "auth_mode": "credential",
+          "backend_verified": true,
+          "credential_pool": false,
+          "credential_source": "request-header",
+          "declared": {
+            "model": "gpt-4o-2024-08-06",
+            "origin": "https://mock.invalid"
+          },
+          "fallback": false,
+          "observed": {
+            "models": ["gpt-4o-2024-08-06"],
+            "origin": "https://mock.invalid"
+          },
+          "requests_total": 3,
+          "requests_verified": 3,
+          "schema_version": 1,
+          "credential_sha256_present": true
+        }
+      },
+      "proof_independent_checks": {
+        "ok": true,
+        "failures": []
+      },
+      "state_sha256": "e645923d243b6cb9663a34c5386ddaf39cc1a94201795ba65944331666f038e9",
+      "protected": {
+        "pass": true,
+        "passed": 13,
+        "total": 13,
+        "failed": []
+      },
+      "product_verifier_approved": true,
+      "success": true
+    }
+  ],
+  "totals": {
+    "runs": 42,
+    "series_runs": 39,
+    "cost_usd_estimate": 1.2033575000000005,
+    "prior_spend_usd": 0,
+    "cumulative_cost_usd": 1.2033575000000005,
+    "requests": 180,
+    "prompt_tokens": 454503,
+    "completion_tokens": 6710,
+    "price_declared_usd_per_million": {
+      "in": 2.5,
+      "out": 10
+    },
+    "adapter_proof_pass": 42,
+    "cap_reached_runs": 0,
+    "cap_reached_labels": []
+  },
+  "protocol_issues": [],
+  "verdict": "CRITERION MET",
+  "limits": {
+    "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
+    "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv with an environment declared as not inherited. Read from the code, not measured in a run.",
+    "protected_comparison": "Protected cases compare with isDeepStrictEqual (key order of an object is irrelevant; undefined, NaN, -0 and the type are distinguished).",
+    "requests_per_run_cap": 12,
+    "cap_effect": "Hitting the cap is a datum apart (cap_reached, analysis.by_arm): the original adapter proof is kept untouched and the outcome is the protected tests on the rebuilt final file plus the product verifier.",
+    "real_path_never_exercised": "The real path (network, the key, `hseos memory promote` in a TTY) was never exercised by this script: no real call, no real key and no TTY promotion took place while it was written or tested.",
+    "rehearsal_scope": "The rehearsal uses a programmed fake model and only proves the plumbing (boxes, retrieval, meter, receipts, stop rules); it says nothing about what the real model does.",
+    "credit_declared_not_verified": "The credit (--credit-usd) is declared by the operator from the console; the script does not verify it.",
+    "cost_is_estimate": "The cost against the US$ 3.00 ceiling is the script estimate from the declared price (no cache discount), not an invoice.",
+    "failure_paths_covered": [
+      "response that is not an event stream (usage unreadable)",
+      "zero usage with content",
+      "request cut by the timeout (stops at the first occurrence)",
+      "per-request cumulative ceiling projection",
+      "wall-clock limit",
+      "request cap reached (original proof kept, counted apart)",
+      "observed model or origin diverging from the declared one",
+      "count-independent proof checks failing on a capped run",
+      "secret in the database copy",
+      "promotions missing, edited manifest, wrong sha256, wrong operator, control box altered or promoted",
+      "note not deliverable by retrieval",
+      "missing or wrong confirmation, price, credit, key, relative root, heavy-run ancestor or unreadable process ancestry"
+    ],
+    "failure_paths_not_covered": [
+      "real provider HTTP errors (4xx, 5xx, 429 rate limit) and network or DNS failure",
+      "a stream truncated in the middle of an event",
+      "key revoked or credit exhausted in the middle of the campaign",
+      "the provider changing the model behind the same dated name",
+      "the campaign process killed (SIGKILL) in the middle of a run, and any resume",
+      "disk full",
+      "the interactive `hseos memory promote` flow itself (TTY, confirmation prompt)",
+      "divergence between the script estimate and the console cost"
+    ],
+    "product_files_static": "PRODUCT_FILES is a static list derived from an execution trace in a fixture run, not recomputed. 9 files reachable by a static require from hseos-cli.js are not in it (governed-action, entrypoint-adapters, agent-environment/dap, dap-host, framing, browser-contract, legacy-mcp-server, mcp-transport, mcp-protocol), probably lazy requires outside the agent run path; this is not proved.",
+    "hash_fail_closed_files": "package.json and tools/cli/command-manifest.json are in the hash, so changing either invalidates the confirmation (fail-closed).",
+    "hash_not_covered": "The hash does not cover node_modules, the Node version or the content of the real project.db (only the sha256 of its copy is recorded).",
+    "heavy_run_detection": "The heavy-run detection is a regex over the process command line and can wrongly BLOCK a legitimate run (BLOCKED with no cost).",
+    "promoted_id_format": "The format of the promoted_id written by `hseos memory promote` in a real TTY was not exercised; verify-promotions expects `<memory_id>:promoted` as the product store produces it in the API path.",
+    "timeout_policy": "A request cut by the timeout is charged at the pessimistic cost, written to the log and STOPS the campaign at the first occurrence (STOPPED: timeout). This differs from v3, which left the decision to the owner.",
+    "measures": "Does not measure usefulness in real work; one model, one provider, n = 5 per task and condition; \"almost certain by construction\" caveat of the protocol stands."
+  },
+  "finished_at": "2026-11-09T19:47:02.610Z",
+  "artifact_scan": {
+    "clean": true,
+    "files": 128,
+    "flagged": []
+  }
+}

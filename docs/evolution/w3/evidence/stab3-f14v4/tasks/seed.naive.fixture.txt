@@ -1,0 +1,4 @@
+function seedEmail(role, n, solution) {
+  return `${role}${n}@${solution}.com`;
+}
+module.exports = seedEmail;

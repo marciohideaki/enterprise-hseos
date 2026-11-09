@@ -1,0 +1,10 @@
+function oidcConfig(app) {
+  const issuer = `https://keycloak.example.com/auth/realms/${app}`;
+  return {
+    issuer,
+    jwksUrl: `${issuer}/protocol/openid-connect/certs`,
+    frontendClientId: `${app}`,
+    backendClientId: `${app}-api`,
+  };
+}
+module.exports = oidcConfig;
