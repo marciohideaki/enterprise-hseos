@@ -1,0 +1,4 @@
+function passPath(kind, name, project) {
+  return `secrets/${name}`;
+}
+module.exports = passPath;

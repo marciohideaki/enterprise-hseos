@@ -4,14 +4,14 @@
 
 ## 1. O que muda em relação à v3
 
-| Problema achado na v3 | Mudança na v4 |
-| --- | --- |
-| Tarefas e regras inventadas pelo executor; resultado "quase certo por construção" | Três regras **reais do owner**, já escritas em diretivas dele, e casos de teste que **não aparecem na nota** (a nota só vale se for aplicada) |
-| Promoção feita pela API por baixo do roteiro | Promoção pelo **comando `hseos memory promote`, no terminal do owner** (exige TTY; mostra conteúdo e sha256; uma memória por vez) |
+| Problema achado na v3                                                                                                              | Mudança na v4                                                                                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tarefas e regras inventadas pelo executor; resultado "quase certo por construção"                                                  | Três regras **reais do owner**, já escritas em diretivas dele, e casos de teste que **não aparecem na nota** (a nota só vale se for aplicada)                               |
+| Promoção feita pela API por baixo do roteiro                                                                                       | Promoção pelo **comando `hseos memory promote`, no terminal do owner** (exige TTY; mostra conteúdo e sha256; uma memória por vez)                                           |
 | Limite de 8 requisições punia o controle por esgotamento (14 de 15 no teto; 0 de 8 e 0 de 9 nos testes, abaixo da solução ingênua) | Desfecho principal é "os testes protegidos passam no arquivo final". Teto de requisições sobe para 12, declarado **antes** de qualquer dado, e bater o teto é dado separado |
-| Prova do adapter reescrita pelo roteiro em 17 de 33 execuções | **Proibido.** Execução que bate o teto registra a prova como `cap-reached`, à parte; `requests_total` nunca é reescrito |
-| Só "nota não promovida" como controle | Acrescenta um braço **placebo**: uma nota promovida irrelevante, para separar "qualquer nota no contexto" de "a nota certa" |
-| Recibo com seções de rascunho contradizendo a execução real | O recibo nasce da execução; a seção de rascunho é removida antes da reauditoria |
+| Prova do adapter reescrita pelo roteiro em 17 de 33 execuções                                                                      | **Proibido.** Execução que bate o teto registra a prova como `cap-reached`, à parte; `requests_total` nunca é reescrito                                                     |
+| Só "nota não promovida" como controle                                                                                              | Acrescenta um braço **placebo**: uma nota promovida irrelevante, para separar "qualquer nota no contexto" de "a nota certa"                                                 |
+| Recibo com seções de rascunho contradizendo a execução real                                                                        | O recibo nasce da execução; a seção de rascunho é removida antes da reauditoria                                                                                             |
 
 ## 2. Hipótese e o que ela mede
 
@@ -51,26 +51,30 @@ Cada regra existe **só na nota**. O requisito dado ao modelo não cita a regra 
 
 ## 4. Condições (três caixas de banco)
 
-| Caixa | Conteúdo no projeto da tarefa | Papel |
-| --- | --- | --- |
-| A, controle | a nota certa, **escrita e não promovida** | critério |
-| B, promovida | a nota certa, **promovida pelo owner** | critério |
-| C, placebo | a nota de **outra** tarefa, promovida (A recebe a nota de B, B a de D, D a de A) | informativa |
+| Caixa        | Conteúdo no projeto da tarefa                                                    | Papel       |
+| ------------ | -------------------------------------------------------------------------------- | ----------- |
+| A, controle  | a nota certa, **escrita e não promovida**                                        | critério    |
+| B, promovida | a nota certa, **promovida pelo owner**                                           | critério    |
+| C, placebo   | a nota de **outra** tarefa, promovida (A recebe a nota de B, B a de D, D a de A) | informativa |
 
-O placebo não exige texto novo e tem o mesmo formato e tamanho de uma nota real.
+O placebo reaproveita o texto de uma nota real de outra tarefa, com um prefixo neutro fixo, `Project convention (general project note): `, e sem nenhum rótulo da tarefa-alvo.
+
+**Pendente de ratificação do owner:** o prefixo neutro do placebo e a verificação de entrega abaixo **não** estavam no texto que o owner aprovou (a aprovação cobriu o placebo com n = 3 e as três tarefas). Precisam da ratificação explícita dele antes de qualquer gasto.
+
+**Correção achada na implementação (2026-11-09):** a recuperação de memória do produto é lexical (a consulta é o texto do requisito) e a nota só entra no contexto se compartilhar ao menos um termo com ele. As notas reais são em português e a placebo cruzada de `oidc` não compartilhava nenhum termo com o requisito, então nunca seria entregue e a execução cairia como controle. O prefixo em inglês casa com "Follow the project convention.", que está nos três requisitos. O texto das notas reais não mudou. Um `deliveryCheck` com o `retrieve` real do produto roda no `verify-promotions` e antes da primeira chamada: se alguma das 6 memórias não for entregue, a campanha fica BLOCKED.
 
 ## 5. Parâmetros pré-registrados
 
-| Parâmetro | Valor |
-| --- | --- |
-| Modelo | `gpt-4o-2024-08-06` (nome datado), binding `openai-compatible`, origem `https://api.openai.com` |
-| n | 5 por tarefa nas caixas A e B (critério); 3 por tarefa na caixa C (informativa, sem inferência); 3 pilotos. Total: 3 + 15 + 15 + 9 = **42 execuções** |
-| Ordem | aleatorizada e intercalada dentro de cada tarefa; semente sorteada na hora e gravada antes da primeira chamada |
-| Limite de requisições | **12** por execução (na v3 era 8). Declarado antes de qualquer dado; bater o teto é registrado à parte e não reescreve a prova |
-| Banco | cópia do `project.db` real (API de backup do SQLite), varredura de segredos antes de qualquer uso; removida ao fim; no repositório só sha256 e resultado da varredura |
-| Medidor | o da F15: arquivo final reconstruído do ledger (`engineering.write` e `engineering.patch`) com conferência de sha256; sem reconstrução é `no-final-write`, nunca aprovação |
-| Preço | `--price-in 2.5 --price-out 10`, iguais ao plano |
-| Teto | **US$ 3,00** cumulativo, pelo gasto estimado pelo roteiro (sem desconto de cache); parada a 80% **não** se aplica, como na v3; 45 min |
+| Parâmetro             | Valor                                                                                                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modelo                | `gpt-4o-2024-08-06` (nome datado), binding `openai-compatible`, origem `https://api.openai.com`                                                                            |
+| n                     | 5 por tarefa nas caixas A e B (critério); 3 por tarefa na caixa C (informativa, sem inferência); 3 pilotos. Total: 3 + 15 + 15 + 9 = **42 execuções**                      |
+| Ordem                 | aleatorizada e intercalada dentro de cada tarefa; semente sorteada na hora e gravada antes da primeira chamada                                                             |
+| Limite de requisições | **12** por execução (na v3 era 8). Declarado antes de qualquer dado; bater o teto é registrado à parte e não reescreve a prova                                             |
+| Banco                 | cópia do `project.db` real (API de backup do SQLite), varredura de segredos antes de qualquer uso; removida ao fim; no repositório só sha256 e resultado da varredura      |
+| Medidor               | o da F15: arquivo final reconstruído do ledger (`engineering.write` e `engineering.patch`) com conferência de sha256; sem reconstrução é `no-final-write`, nunca aprovação |
+| Preço                 | `--price-in 2.5 --price-out 10`, iguais ao plano                                                                                                                           |
+| Teto                  | **US$ 3,00** cumulativo, pelo gasto estimado pelo roteiro (sem desconto de cache); parada a 80% **não** se aplica, como na v3; 45 min                                      |
 
 ## 6. Promoção pelo owner
 
@@ -89,10 +93,10 @@ O placebo não exige texto novo e tem o mesmo formato e tamanho de uma nota real
 
 Base medida na v3 pelo roteiro (sem cache): promovida US$ 0,028 por execução (5,1 requisições), controle US$ 0,053 (7,9, quase todas no teto de 8), piloto US$ 0,049. A console deu cerca de 0,69 da estimativa do roteiro.
 
-| Cenário | Estimativa do roteiro | Console esperada (×0,69) |
-| --- | --- | --- |
-| Controles e placebos com ~10 requisições | cerca de US$ 2,2 | cerca de US$ 1,5 |
-| Controles e placebos sempre no teto de 12 | cerca de US$ 2,6 | cerca de US$ 1,8 |
+| Cenário                                   | Estimativa do roteiro | Console esperada (×0,69) |
+| ----------------------------------------- | --------------------- | ------------------------ |
+| Controles e placebos com ~10 requisições  | cerca de US$ 2,2      | cerca de US$ 1,5         |
+| Controles e placebos sempre no teto de 12 | cerca de US$ 2,6      | cerca de US$ 1,8         |
 
 Por isso o teto de US$ 3,00 pelo roteiro (precedente da v3): um teto menor faria a parada por teto cortar a série. O crédito da conta B em 2026-11-09 é US$ 3,17; **o crédito precisa estar em pelo menos US$ 3,00 no início**, senão a campanha para e avisa. A chave `runtime-one` é compartilhada; criar uma chave própria de campanha com limite no painel continua sendo recomendação, e criar ou revogar chave é decisão do owner. A console é lida antes e depois (leitura, Chrome anônimo com login do owner).
 
@@ -125,3 +129,21 @@ Depois da aprovação: tarefas e testes protegidos da v4 (as três acima), caixa
 ### Aprovação do owner (2026-11-09)
 
 O owner aprovou os itens 1 a 3: as três tarefas (A, B e D), os parâmetros (placebo com n = 3, teto de 12 requisições, teto de US$ 3,00) e fazer as 6 promoções no próprio terminal. O item 4 segue pendente por desenho: a autorização do gasto é por campanha e só vale depois do ensaio offline, da revisão cética isolada em duas passagens e da reauditoria. O crédito da conta B precisa estar em pelo menos US$ 3,00 no início.
+
+### Desvios e acréscimos da implementação (2026-11-09)
+
+Registrados pelo executor e conferidos pelo líder; nenhum afrouxa um gate.
+
+- **Verificador protegido novo.** O da v3 comparava por `JSON.stringify` e reprovaria objeto correto com chaves em outra ordem (atinge `oidc`); o da v4 compara por igualdade profunda estrita.
+- **Verificação de entrega** (`deliveryCheck`), descrita na seção 4.
+- **Crédito mínimo como gate:** `--credit-usd` (pelo menos US$ 3,00) é obrigatório em modo real; sem ele, BLOCKED.
+- **Limite de 45 min** implementado (`STOPPED: time limit`).
+- **TTL das notas de 7 dias**, porque o owner promove depois do `prepare`.
+- **Caixa A promovida por engano** também dá BLOCKED no `verify-promotions`.
+- **Campanha dentro de `heavy-run`** é recusada em modo real (varredura de ancestrais em `/proc`).
+- Em modo `fixture` as promoções são feitas pela API e o recibo grava `promotion_method: api-rehearsal`; em modo real o roteiro nunca chama `promote` e grava `owner-terminal` só depois do `verify-promotions`.
+- **Hash de confirmação cobre o produto.** Além dos arquivos do roteiro, o hash inclui o conteúdo de 103 arquivos do produto que a campanha exercita (caminho de `agent run` e `agent evidence`, `memory-context-source`, `campaign-evidence-store`, adapter e runtime de engenharia, `package.json` e o ajudante do projeto de engenharia), como a F15 já fazia. O recibo grava também `git_head` (informativo, fora do hash).
+- **Timeout para a campanha no primeiro.** `interrupted-timeout` cobra o custo pessimista e encerra com `STOPPED: timeout` (saída 5). Na v3 isso ficava como decisão do owner e não era implementado; a F15 já parava no primeiro. É fail-closed e só protege o gasto.
+- **`verify-promotions` deriva o esperado do código** (`expectedPromotions`), não do manifest, que só confirma; confere também o conteúdo da nota nas caixas A, B e C e o sha da caixa A antes da promoção.
+- **Recusa de `heavy-run` falha fechado:** em modo real, se a cadeia de ancestrais não puder ser lida, BLOCKED.
+- **Limites declarados no recibo** (`limits_declared`, no plano e no `campaign.json`): o caminho real nunca foi exercitado pelo roteiro; o ensaio só prova o encanamento; o crédito é declarado e não verificado; o custo do teto é estimativa do roteiro; 12 caminhos de falha cobertos e 8 não cobertos, listados.
