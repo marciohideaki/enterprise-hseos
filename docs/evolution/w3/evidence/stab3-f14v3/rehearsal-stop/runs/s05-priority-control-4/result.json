@@ -1,0 +1,86 @@
+{
+  "label": "s05-priority-control-4",
+  "kind": "series",
+  "task": "priority",
+  "condition": "control",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 1,
+  "task_result": "failed",
+  "reason": "criteria-not-satisfied",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 5,
+    "unreadable_requests": 0,
+    "prompt_tokens": 13005,
+    "completion_tokens": 177,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.0342825,
+  "stop_reason": null,
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
+  "measure": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
+  },
+  "replay": {
+    "ok": true,
+    "session_events": 32,
+    "tool_invocations": 2,
+    "contract_residue": false,
+    "note_in_context": false,
+    "memory_sources": []
+  },
+  "tool_outcomes": [
+    "640b7183e\",\"result\":{\"path\":\"priority.js\",\"sha256\":\"decee7946e148af7e58a2c65c372ec889ffdd64f05455f58e176e183fcc83d3f\"},\"error\":null,\"evidence_refs\":[\"isolation://82f5654a7d952cdb8ec31937a3b0b2edbbb375232b718ea5506f996fd2be3882\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://82f5654a7d952cdb8ec31937a3b0b2edbbb375232b718ea5506f996fd2be3882\"],\"warnings\":[],\"replayed\":false}"
+  ],
+  "drain": {
+    "started": 2,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "pass",
+    "failures": [],
+    "summarizer_exit": 0,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": true,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o-2024-08-06",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": [
+          "gpt-4o-2024-08-06"
+        ],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 5,
+      "requests_verified": 5,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "state_sha256": "543755aebf29bb4ff1d73be574bbf5ac7b5d3f3ac26411a8378ba2883f72f09f",
+  "protected": {
+    "pass": false,
+    "passed": 5,
+    "total": 8,
+    "failed": [
+      "billing-low",
+      "billing-critical",
+      "billing-unknown"
+    ]
+  },
+  "product_verifier_approved": false,
+  "success": false
+}

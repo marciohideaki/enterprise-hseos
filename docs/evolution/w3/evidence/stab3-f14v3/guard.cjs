@@ -3,6 +3,7 @@
 // provider requests, and REFUSES any other destination. It never prints a credential.
 // env: F14V3_MODE=mock|real, F14V3_OFFLINE=1 (real is refused outright), C9_DIR (log/counter dir), C9_MAX_REQUESTS (cap per run),
 //      F14V3_PRICE_IN/OUT, F14V3_CEILING_USD, F14V3_SPENT_USD (spent before this run; the guard adds the run's own cost),
+//      F14V3_PRIOR_SPEND_USD (spent by earlier executions; part of the cumulative ceiling),
 //      F14V3_MOCK_FAULT=nonsse|hang|zerousage (mock only: failure-path rehearsal)
 // Coverage limit: this guard wraps the global `fetch` of the process that loads it. `node:https`/`node:http` and child processes are NOT covered.
 // In mock mode the "model" follows the project rule only when the promoted note is in the context it receives.
@@ -19,6 +20,10 @@ const max = Number(process.env.C9_MAX_REQUESTS || 8);
 const prices = { priceInPerMillion: Number(process.env.F14V3_PRICE_IN), priceOutPerMillion: Number(process.env.F14V3_PRICE_OUT) };
 const ceilingUsd = Number(process.env.F14V3_CEILING_USD);
 const spentBeforeUsd = Number(process.env.F14V3_SPENT_USD || 0);
+// Cumulative ceiling: spend of earlier executions of the campaign counts too (PLAN.budget.prior_spend_usd).
+// Real mode fails closed when it is absent or invalid; the mock rehearsal may omit it (zero).
+const priorSpendUsd =
+  process.env.F14V3_PRIOR_SPEND_USD === undefined ? (mode === 'real' ? Number.NaN : 0) : Number(process.env.F14V3_PRIOR_SPEND_USD);
 const inflight = path.join(dir, 'inflight.json');
 const positive = (value) => Number.isFinite(value) && value > 0;
 const fault = mode === 'mock' ? process.env.F14V3_MOCK_FAULT : undefined;
@@ -44,6 +49,14 @@ const sse = (frames) =>
   });
 const tokens = (value) => Math.ceil(String(value).length / 4);
 
+// Like the real provider: an alias is answered with the dated snapshot it resolves to; a dated name answers as itself.
+const MOCK_ALIAS_SNAPSHOT = Object.freeze({ 'gpt-4o': 'gpt-4o-2024-08-06' });
+function respondingModel(declared) {
+  // Rehearsal fault: the backend of the SERIES runs (labels s01...) answers with another model than declared.
+  if (fault === 'diverge-series' && path.basename(dir).startsWith('s')) return 'diverged-backend-model';
+  return MOCK_ALIAS_SNAPSHOT[declared] ?? declared;
+}
+
 function mockAnswer(body) {
   const messages = body.messages;
   const text = messages.map((message) => String(message.content ?? '')).join('\n');
@@ -57,7 +70,7 @@ function mockAnswer(body) {
   const find = (suffix) => names.find((name) => name.endsWith(suffix));
   const tool = (name, args) => ({
     frame: {
-      model: body.model,
+      model: respondingModel(body.model),
       choices: [
         {
           index: 0,
@@ -79,15 +92,25 @@ function mockAnswer(body) {
   });
   const results = messages.filter((message) => message.role === 'tool');
   if (!task)
-    return { frame: { model: body.model, choices: [{ index: 0, delta: { content: 'done' }, finish_reason: 'stop' }] }, out: 'done' };
+    return {
+      frame: { model: respondingModel(body.model), choices: [{ index: 0, delta: { content: 'done' }, finish_reason: 'stop' }] },
+      out: 'done',
+    };
+  // Rehearsal fault: a model that keeps calling tools until the request cap is exhausted.
+  if (fault === 'cap-loop') return tool(find('command'), { id: 'check' });
+  // Same mechanism and input shape as the real model: an anchored patch of the whole skeleton (`engineering.patch`).
   if (results.length === 0)
-    return tool(find('write'), {
+    return tool(find('patch'), {
       path: task.file,
       expected_sha256: sha(task.stub),
-      content: promotedNoteInContext ? task.correct : task.naive,
+      before: task.stub,
+      after: promotedNoteInContext ? task.correct : task.naive,
     });
   if (results.length === 1) return tool(find('command'), { id: 'check' });
-  return { frame: { model: body.model, choices: [{ index: 0, delta: { content: 'done' }, finish_reason: 'stop' }] }, out: 'done' };
+  return {
+    frame: { model: respondingModel(body.model), choices: [{ index: 0, delta: { content: 'done' }, finish_reason: 'stop' }] },
+    out: 'done',
+  };
 }
 
 function carriesContent(text) {
@@ -126,7 +149,8 @@ globalThis.fetch = async (url, init) => {
   const body = JSON.parse(init.body);
   // Fail closed inside the guard, whatever the caller validated: a price, the ceiling and max_tokens must be usable numbers.
   if (!positive(prices.priceInPerMillion) || !positive(prices.priceOutPerMillion)) throw refuse('F14V3_PRICE_INVALID', target);
-  if (!positive(ceilingUsd) || !Number.isFinite(spentBeforeUsd)) throw refuse('F14V3_CEILING_INVALID', target);
+  if (!positive(ceilingUsd) || !Number.isFinite(spentBeforeUsd) || !Number.isFinite(priorSpendUsd) || priorSpendUsd < 0)
+    throw refuse('F14V3_CEILING_INVALID', target);
   if (!Number.isInteger(body.max_tokens) || body.max_tokens < 1) throw refuse('F14V3_MAX_TOKENS_INVALID', target);
   const readLog = () =>
     fs.existsSync(log)
@@ -139,15 +163,19 @@ globalThis.fetch = async (url, init) => {
   const runCost = readLog().reduce((sum, line) => sum + (line.cost_usd || 0), 0);
   const maxTokens = body.max_tokens;
   const projected = projectCallUsd(Buffer.byteLength(init.body), maxTokens, prices);
-  if (!Number.isFinite(projected) || !Number.isFinite(ceilingUsd) || spentBeforeUsd + runCost + projected > ceilingUsd) {
+  if (!Number.isFinite(projected) || !Number.isFinite(ceilingUsd) || priorSpendUsd + spentBeforeUsd + runCost + projected > ceilingUsd) {
     fs.appendFileSync(
       log,
-      `${JSON.stringify({ refused: 'ceiling-projection', projected_usd: projected, spent_usd: spentBeforeUsd + runCost, ceiling_usd: ceilingUsd })}\n`,
+      `${JSON.stringify({ refused: 'ceiling-projection', projected_usd: projected, spent_usd: spentBeforeUsd + runCost, prior_spend_usd: priorSpendUsd, cumulative_usd: priorSpendUsd + spentBeforeUsd + runCost + projected, ceiling_usd: ceilingUsd })}\n`,
     );
     throw refuse('F14V3_CEILING_PROJECTION', target);
   }
   const total = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
-  if (total >= max) throw refuse('F14V3_REQUEST_CAP_REACHED', target);
+  if (total >= max) {
+    // Marker for the campaign: a refused call is not a request that reached the provider.
+    fs.writeFileSync(path.join(dir, 'cap-reached.json'), JSON.stringify({ made: total, max }));
+    throw refuse('F14V3_REQUEST_CAP_REACHED', target);
+  }
   fs.writeFileSync(counter, String(total + 1));
   const entry = {
     n: total + 1,
@@ -170,7 +198,10 @@ globalThis.fetch = async (url, init) => {
   if (isMock) {
     if (fault === 'zerousage') {
       const answer = mockAnswer(body);
-      response = sse([answer.frame, { model: body.model, choices: [], usage: { prompt_tokens: 0, completion_tokens: 0 } }]);
+      response = sse([
+        answer.frame,
+        { model: respondingModel(body.model), choices: [], usage: { prompt_tokens: 0, completion_tokens: 0 } },
+      ]);
     } else if (fault === 'nonsse') {
       response = new Response('{"error":"not an event stream"}', { status: 200, headers: { 'content-type': 'application/json' } });
     } else {
@@ -180,7 +211,7 @@ globalThis.fetch = async (url, init) => {
         completion_tokens: tokens(answer.out) + 8,
         prompt_tokens_details: { cached_tokens: 0 },
       };
-      response = sse([answer.frame, { model: body.model, choices: [], usage }]);
+      response = sse([answer.frame, { model: respondingModel(body.model), choices: [], usage }]);
     }
   } else {
     response = await realFetch(url, init);

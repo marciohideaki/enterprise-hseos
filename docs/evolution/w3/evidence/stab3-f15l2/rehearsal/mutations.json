@@ -1,7 +1,7 @@
 {
   "ok": true,
-  "mutants": 15,
-  "killed": 15,
+  "mutants": 19,
+  "killed": 19,
   "results": [
     {
       "id": "M1-pre-call-budget-check",
@@ -111,6 +111,38 @@
       "id": "M13-test-mode-may-still-reach-the-real-origin",
       "correction": "R2-4",
       "file": "f15l2-guard.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M14-adapter-refusal-does-not-stop",
+      "correction": "P11-3",
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M15a-reference-proof-not-pass-does-not-stop",
+      "correction": "P11-3",
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M15b-series-proof-not-pass-does-not-stop",
+      "correction": "P11-3",
+      "file": "f15l2.cjs",
+      "baseline_passes": true,
+      "mutant_passes": false,
+      "killed": true
+    },
+    {
+      "id": "M16-model-declared-as-the-alias",
+      "correction": "P11-1",
+      "file": "PLAN.json",
       "baseline_passes": true,
       "mutant_passes": false,
       "killed": true

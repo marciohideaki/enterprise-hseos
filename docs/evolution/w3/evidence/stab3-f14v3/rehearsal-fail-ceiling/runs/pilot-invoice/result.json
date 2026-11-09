@@ -12,30 +12,40 @@
   "usage": {
     "requests": 4,
     "unreadable_requests": 0,
-    "prompt_tokens": 9339,
-    "completion_tokens": 112,
+    "prompt_tokens": 9369,
+    "completion_tokens": 137,
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.0244675,
+  "cost_usd": 0.024792500000000002,
   "stop_reason": "ceiling-projection",
   "refusal": {
     "refused": "ceiling-projection",
-    "projected_usd": 0.02118,
-    "spent_usd": 0.0244675,
+    "projected_usd": 0.021215,
+    "spent_usd": 0.024792500000000002,
+    "prior_spend_usd": 0,
+    "cumulative_usd": 0.04600750000000001,
     "ceiling_usd": 0.04
   },
-  "responding_models": ["gpt-4o"],
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
+  "measure": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
+  },
   "replay": {
     "ok": true,
     "session_events": 30,
     "tool_invocations": 2,
+    "contract_residue": false,
     "note_in_context": false,
     "memory_sources": []
   },
   "tool_outcomes": [
-    "079088147e\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://7e2e1d8bd187a02490d5ed0a8b34482095cdf526dbdae93f1948d89f6c76b0a9\"],\"warnings\":[],\"replayed\":false}"
+    "a6867329d0\",\"result\":{\"path\":\"invoice.js\",\"sha256\":\"4fde03cb1e2497e4746dcf5c4e3d68d3f2f914d1b84977df7e310519ed4886cb\"},\"error\":null,\"evidence_refs\":[\"isolation://da58830db0b18123f286a91148c24baeae1f12532f7f504c2620f20b1123447d\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://da58830db0b18123f286a91148c24baeae1f12532f7f504c2620f20b1123447d\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -43,7 +53,10 @@
   },
   "provider_proof": {
     "verdict": "unknown",
-    "failures": ["backend-not-verified", "requests-not-all-verified"],
+    "failures": [
+      "backend-not-verified",
+      "requests-not-all-verified"
+    ],
     "summarizer_exit": 1,
     "proof_present": true,
     "proof": {
@@ -52,12 +65,14 @@
       "credential_pool": false,
       "credential_source": "request-header",
       "declared": {
-        "model": "gpt-4o",
+        "model": "gpt-4o-2024-08-06",
         "origin": "https://mock.invalid"
       },
       "fallback": false,
       "observed": {
-        "models": ["gpt-4o"],
+        "models": [
+          "gpt-4o-2024-08-06"
+        ],
         "origin": "https://mock.invalid"
       },
       "requests_total": 5,
@@ -66,12 +81,18 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "2adcc92b1291dca1e0eb35a1d2cf534a26cc9928a9035e54e05365196f661172",
+  "state_sha256": "9a4d58a1bfb70a63cd6fbcdb92ba98da51f73d88bb82110b3b1964ec09758a58",
   "protected": {
     "pass": false,
     "passed": 0,
     "total": 5,
-    "failed": ["example", "first", "max", "mid", "old"]
+    "failed": [
+      "example",
+      "first",
+      "max",
+      "mid",
+      "old"
+    ]
   },
   "product_verifier_approved": false,
   "success": false

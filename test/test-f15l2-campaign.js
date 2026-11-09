@@ -29,7 +29,9 @@ test('the pre-registered plan keeps n, thresholds, cap and the success rule', ()
     ],
   );
   assert.equal(PLAN.order.length, 10);
-  assert.equal(PLAN.model, 'gpt-4o');
+  assert.equal(PLAN.model, 'gpt-4o-2024-08-06'); // the dated snapshot: the alias diverges from what the provider answers
+  assert.equal(fake.respondingModel('gpt-4o'), 'gpt-4o-2024-08-06');
+  assert.equal(fake.respondingModel(PLAN.model), PLAN.model);
   assert.equal(PLAN.declared_window_tokens, 20_000);
   assert.equal(PLAN.cap_usd, 2);
   assert.equal(PLAN.stop_at_fraction, 0.8);
@@ -211,7 +213,14 @@ test('the fake model follows the change request and treats the request bodies as
   );
   return first.response.text().then((text) => {
     assert.match(text, /engineering_read/);
-    assert.match(text, /add\.js/);
+    // The arguments arrive in fragments, as in a real stream: reassemble them before reading the path.
+    const assembled = text
+      .split('\n')
+      .filter((line) => line.startsWith('data:') && !line.includes('[DONE]'))
+      .flatMap((line) => JSON.parse(line.slice(5)).choices.flatMap((choice) => choice.delta?.tool_calls ?? []))
+      .map((call) => call.function.arguments ?? '')
+      .join('');
+    assert.equal(JSON.parse(assembled).path, 'add.js');
     assert.doesNotMatch(text, /key/);
     assert.equal(first.usage.prompt_tokens, 100);
   });
@@ -334,6 +343,7 @@ const FINGERPRINT_FILES = [
   ['shared', 'summarize-whole-file.cjs'],
   ['shared', 'summarize-provider-proof.cjs'],
   ['shared', 'usage-from-sse.cjs'],
+  ['stab3-f14v3', 'measure.cjs'],
   ...PRODUCT.map((file) => ['root', file]),
 ];
 
@@ -346,6 +356,8 @@ test('mutating any file that decides a real run, product files included, voids t
     execFileSync('cp', ['-r', DIR, path.join(evidence, 'stab3-f15l2')]);
     fs.rmSync(path.join(evidence, 'stab3-f15l2', 'rehearsal'), { recursive: true, force: true });
     execFileSync('cp', ['-r', SHARED, path.join(evidence, 'shared')]);
+    fs.mkdirSync(path.join(evidence, 'stab3-f14v3'));
+    fs.copyFileSync(path.join(DIR, '../stab3-f14v3/measure.cjs'), path.join(evidence, 'stab3-f14v3/measure.cjs'));
     for (const file of PRODUCT) {
       fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
       fs.copyFileSync(path.join(REPO, file), path.join(root, file));
@@ -405,10 +417,11 @@ test('failure paths: invalid price, non-SSE, timeout, per-request cap, test mode
     const cases = await runCases({
       root: REPO,
       work,
-      only: ['price', 'non-sse', 'timeout', 'per-request', 'test-mode', 'sigterm'],
+      only: ['price', 'non-sse', 'timeout', 'per-request', 'test-mode', 'protocol', 'legit', 'sigterm'],
       listContainers: () => [],
+      podmanExecutor: path.join(__dirname, 'fixtures/f15l2-fake-podman.cjs'),
     });
-    assert.equal(cases.length, 7);
+    assert.equal(cases.length, 13);
     for (const item of cases) assert.equal(item.ok, true, `${item.case}: ${JSON.stringify(item.details).slice(0, 300)}`);
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
@@ -498,3 +511,106 @@ test(
     }
   },
 );
+
+test('the fake stream looks like the provider: dated snapshot for an alias, last frame with usage, fingerprint, tier and fragmented tool arguments', async () => {
+  const tools = ['engineering_read'].map((name) => ({ function: { name } }));
+  const body = { messages: [{ role: 'user', content: 'x' }], tools };
+  const asked = fake.fakeModelResponse(body, { behavior: 'good', model: 'gpt-4o', bodyBytes: 400 });
+  const frames = (await asked.response.text())
+    .split('\n')
+    .filter((line) => line.startsWith('data:') && !line.includes('[DONE]'))
+    .map((line) => JSON.parse(line.slice(5)));
+  assert.ok(frames.length >= 4);
+  for (const frame of frames) {
+    assert.equal(frame.model, 'gpt-4o-2024-08-06', 'every frame names the served snapshot, not the alias');
+    assert.equal(frame.object, 'chat.completion.chunk');
+    assert.equal(frame.service_tier, 'default');
+    assert.match(frame.system_fingerprint, /^fp_/);
+  }
+  const last = frames.at(-1);
+  assert.deepEqual(last.choices, []);
+  assert.ok(Number.isInteger(last.usage.prompt_tokens) && last.usage.completion_tokens_details && last.usage.prompt_tokens_details);
+  const argumentFragments = frames
+    .flatMap((frame) => frame.choices.flatMap((choice) => choice.delta?.tool_calls ?? []))
+    .filter((call) => call.function.arguments);
+  assert.ok(argumentFragments.length >= 2, 'the arguments arrive in fragments');
+  assert.equal(frames[0].choices[0].delta.role, 'assistant');
+  const noModel = fake.fakeModelResponse(body, { behavior: 'good', model: 'gpt-4o', bodyBytes: 400, fault: 'no-model' });
+  assert.doesNotMatch(await noModel.response.text(), /"model"/);
+});
+
+test('the final-source meter rebuilds per file from the ledger: ok, sha-mismatch, patch-failed, no-write', () => {
+  const { reconstructFinalSource } = require(path.join(DIR, '../stab3-f14v3/measure.cjs'));
+  const sha = (value) => require('node:crypto').createHash('sha256').update(value).digest('hex');
+  const call = (step, name, input, outcome) => [
+    { event_type: 'tool.execution.started', payload: { step_id: step, name, input } },
+    { event_type: 'tool.execution.completed', payload: { step_id: step, outcome } },
+  ];
+  const ok = (result) => ({ status: 'succeeded', result });
+  const next = `${ADD}// edited\n`;
+  const write = call('s1', 'engineering.write', { path: 'add.js', expected_sha256: sha(ADD), content: next }, ok({ sha256: sha(next) }));
+  const rebuilt = reconstructFinalSource(write, ADD, 'add.js');
+  assert.deepEqual([rebuilt.reason, rebuilt.source, rebuilt.sha_checked], ['ok', next, 1]);
+  // a patch on top of the write, anchored on a unique text
+  const patched = next.replace('// edited', '// patched');
+  const patch = call(
+    's2',
+    'engineering.patch',
+    { path: 'add.js', expected_sha256: sha(next), before: '// edited', after: '// patched' },
+    ok({ sha256: sha(patched) }),
+  );
+  assert.equal(reconstructFinalSource([...write, ...patch], ADD, 'add.js').source, patched);
+  // per file: a write to guards.js is not the final of add.js, and the other way round
+  const guardsWrite = call(
+    's3',
+    'engineering.write',
+    { path: 'guards.js', expected_sha256: sha(GUARDS), content: `${GUARDS}//g\n` },
+    ok({ sha256: sha(`${GUARDS}//g\n`) }),
+  );
+  assert.equal(reconstructFinalSource(guardsWrite, ADD, 'add.js').reason, 'no-write');
+  assert.equal(reconstructFinalSource(guardsWrite, GUARDS, 'guards.js').source, `${GUARDS}//g\n`);
+  // sha-mismatch: the product reported another hash than the rebuilt content
+  const bad = call('s1', 'engineering.write', { path: 'add.js', expected_sha256: sha(ADD), content: next }, ok({ sha256: sha('other') }));
+  const mismatch = reconstructFinalSource(bad, ADD, 'add.js');
+  assert.deepEqual([mismatch.source, mismatch.reason], [null, 'sha-mismatch']);
+  // patch-failed: the anchor does not occur
+  const lost = call(
+    's2',
+    'engineering.patch',
+    { path: 'add.js', expected_sha256: sha(ADD), before: 'not in the file', after: 'x' },
+    ok({ sha256: sha(ADD) }),
+  );
+  assert.deepEqual(
+    [reconstructFinalSource(lost, ADD, 'add.js').source, reconstructFinalSource(lost, ADD, 'add.js').reason],
+    [null, 'patch-failed'],
+  );
+  // no-write: nothing succeeded, or a failed write is ignored
+  const failed = call('s1', 'engineering.write', { path: 'add.js', content: next }, { status: 'failed', error: 'x' });
+  for (const events of [[], failed])
+    assert.deepEqual(
+      [reconstructFinalSource(events, ADD, 'add.js').source, reconstructFinalSource(events, ADD, 'add.js').reason],
+      [null, 'no-write'],
+    );
+});
+
+test('the fake model writes through the same tool call as the real one, and the campaign reads the final file from the ledger', () => {
+  assert.match(read('f15l2.cjs'), /reconstructFinalSource\(events\(state, sid\), original\['add\.js'\], 'add\.js'\)/);
+  assert.doesNotMatch(read('f15l2.cjs'), /artifacts\?\.files/);
+  assert.match(read('f15l2-fake-model.cjs'), /call\('write', \{ path: 'add\.js'/);
+});
+
+test('no addition.json in the campaign files; the contract residue of the protected verifier is declared, not hidden', () => {
+  for (const name of ['f15l2.cjs', 'f15l2-lib.cjs', 'f15l2-guard.cjs', 'f15l2-fake-model.cjs', 'PLAN.json', 'whole-file-spec.json']) {
+    assert.doesNotMatch(read(name), /addition\.json/, name);
+  }
+  assert.match(PLAN.task.contract_residue, /attests it literally/);
+});
+
+test('the plan declares prior_spend_usd = 0, keeps the 80 percent stop and the cumulative ceiling in the guard and the loop', () => {
+  assert.equal(PLAN.prior_spend_usd, 0);
+  assert.match(PLAN.prior_spend_note, /nothing/);
+  assert.equal(PLAN.stop_at_fraction, 0.8);
+  assert.match(read('f15l2-guard.cjs'), /priorUsd \+ spend\.spent_usd \+ spend\.pending_usd \+ worst > limitUsd/);
+  assert.match(read('f15l2.cjs'), /PRIOR_SPEND_USD \+ spent >= LIMIT_USD/);
+  assert.match(PLAN.max_requests_per_run.basis, /Known bias/);
+});

@@ -1,0 +1,2255 @@
+{
+  "confirmation_sha256": "5071855b8cabb4ee90390bce73d84f97a4c09434b2874ff4d5a3cf8408c27c46",
+  "mode": "real",
+  "evidence_kind": "real",
+  "model": "gpt-4o",
+  "started_at": "2026-11-08T01:37:45.935Z",
+  "database": {
+    "kind": "real",
+    "sha256": "c00944d2e594336d95e51475e0d83105357264de1702326d01f550b9655bd6a7",
+    "bytes": 65101824,
+    "secret_scan": {
+      "clean": true,
+      "hits": 0
+    },
+    "in_repository": false
+  },
+  "boxes": {
+    "notes": [
+      {
+        "task": "invoice",
+        "memory_id": "f14v3-invoice-rule",
+        "content_sha256": "73e57bc4231922a8d7c406416d32580a83597ed47a31ad13d79dbf05d21ee9c0"
+      },
+      {
+        "task": "retry",
+        "memory_id": "f14v3-retry-rule",
+        "content_sha256": "3c63ce4c6824fb15857d5b5abf0dde89685838926af278683bca17dd048eb141"
+      },
+      {
+        "task": "priority",
+        "memory_id": "f14v3-priority-rule",
+        "content_sha256": "4e0d5333da08491dd70688e34632418628e2762643cce7e4ee4a65d35525d20f"
+      }
+    ],
+    "promotions": [
+      {
+        "task": "invoice",
+        "promoted_as": "f14v3-invoice-rule:promoted",
+        "content_sha256": "73e57bc4231922a8d7c406416d32580a83597ed47a31ad13d79dbf05d21ee9c0"
+      },
+      {
+        "task": "retry",
+        "promoted_as": "f14v3-retry-rule:promoted",
+        "content_sha256": "3c63ce4c6824fb15857d5b5abf0dde89685838926af278683bca17dd048eb141"
+      },
+      {
+        "task": "priority",
+        "promoted_as": "f14v3-priority-rule:promoted",
+        "content_sha256": "4e0d5333da08491dd70688e34632418628e2762643cce7e4ee4a65d35525d20f"
+      }
+    ],
+    "db_sha256": {
+      "box_a": "c5b48eec12a120dbc46c0e08fe9b670eec6b225011872ba0d63b618eb03acd7a",
+      "box_b": "caf0dc3101f4e248a3937494fbd2959ec3b0cf5f61d011fa6aecadbafc3b716c"
+    }
+  },
+  "seed_recorded_before_first_call": true,
+  "schedule": [
+    {
+      "order": 1,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 2,
+      "task": "retry",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 3,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 4,
+      "task": "retry",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 5,
+      "task": "retry",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 6,
+      "task": "retry",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 7,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 8,
+      "task": "retry",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 9,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 10,
+      "task": "retry",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 11,
+      "task": "priority",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 12,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 13,
+      "task": "priority",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 14,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 15,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 16,
+      "task": "priority",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 17,
+      "task": "priority",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 18,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 19,
+      "task": "priority",
+      "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 20,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 21,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 1
+    },
+    {
+      "order": 22,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 23,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 24,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 1
+    },
+    {
+      "order": 25,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
+      "order": 26,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 2
+    },
+    {
+      "order": 27,
+      "task": "invoice",
+      "condition": "promoted",
+      "rep": 5
+    },
+    {
+      "order": 28,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 3
+    },
+    {
+      "order": 29,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 4
+    },
+    {
+      "order": 30,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 5
+    }
+  ],
+  "pilots": [
+    {
+      "task": "invoice",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    },
+    {
+      "task": "retry",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    },
+    {
+      "task": "priority",
+      "passed_protected_tests": false,
+      "rejects_task": false
+    }
+  ],
+  "analysis": {
+    "complete": true,
+    "success": false,
+    "p": 1,
+    "observed_sum": 0,
+    "per_task": [
+      {
+        "id": "invoice",
+        "promoted": "0/5",
+        "control": "0/5",
+        "pass": false
+      },
+      {
+        "id": "retry",
+        "promoted": "0/5",
+        "control": "0/5",
+        "pass": false
+      },
+      {
+        "id": "priority",
+        "promoted": "0/5",
+        "control": "0/5",
+        "pass": false
+      }
+    ],
+    "thresholds": {
+      "promotedMin": 4,
+      "controlMax": 1,
+      "alpha": 0.05
+    }
+  },
+  "runs": [
+    {
+      "label": "pilot-invoice",
+      "kind": "pilot",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1368,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00363,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "d5c0275459261e70f34d82d181a7c9a7d99e681bac2a6af88524f2f40863e57a",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "pilot-retry",
+      "kind": "pilot",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1327,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0035275,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "980b43ff72184f5d00ee21792f6d1020bc1a5c9480ebc253c7e4f1378df32f84",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "pilot-priority",
+      "kind": "pilot",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1355,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0035975,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "949d735ba06cb377da629332a7986ecf97fe3c478eed37fc023ca8e5de5134f0",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s01-retry-promoted-1",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1435,
+        "completion_tokens": 27,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0038575,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "0dcd5ad85eba80ca25ad90615da0ddfc350617e52e4a10336b62b37dc0764e3b",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s02-retry-control-1",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1331,
+        "completion_tokens": 17,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0034975,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "b6788e3c69a6eac7a48fe4ab6d5c0217933b825fb0689ec2479399e32fb970ec",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s03-retry-promoted-2",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1437,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0038025,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "d51878e877ca7dedf9b3aed2a4ad3c7b898c04cc0696e5e09c4a00b603969fca",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s04-retry-control-2",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1331,
+        "completion_tokens": 23,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0035575,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "3c03aabe6927057b3cbfb491e9b383981e62aa71c17426fac66674f4a37ea8c9",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s05-retry-control-3",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1337,
+        "completion_tokens": 22,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0035625,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "9530153c712af4b7ddc8fd1da4e053f1f911b15b7fa40b6a3842856fb8f9008e",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s06-retry-control-4",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1328,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00353,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "76a8ae9806309092aab4ebdcfa8cec8b05d5b68fe62497354c9b43bb7f67b11f",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s07-retry-promoted-3",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1437,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0038025,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "cea1d39d2fc3c5d4ea949cfd58f798202598550b29988f8e143fd3c73bd12c04",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s08-retry-control-5",
+      "kind": "series",
+      "task": "retry",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1325,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0035225,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "5ad14a4ebe78aa5911a5f5faa4c6ae13da9b73a336e31161c70a006a3c471d50",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s09-retry-promoted-4",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1437,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0038025,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "629d24363122bc05477b4e8ff6f67438d2709c80ae948154cf265eb243d40e8c",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s10-retry-promoted-5",
+      "kind": "series",
+      "task": "retry",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1442,
+        "completion_tokens": 22,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.003825,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-retry/f14v3-retry-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "a8a5304f90dd8f17242501bbb270ac183bef4313f4fe1da049c7bb7e1f8998be",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 9,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s11-priority-control-1",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1356,
+        "completion_tokens": 22,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00361,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "6a70b312b109b8f0d59b0fc54c03787b71fbc28f87570fa9654c9a1c3cd9fcd2",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s12-priority-promoted-1",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1448,
+        "completion_tokens": 25,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00387,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "70db9d917976f47d99ab3d447b7dcc7fd783b170bcdaf90f270b244e55284dc2",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s13-priority-control-2",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1356,
+        "completion_tokens": 22,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00361,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "9dfb5a63daefad9879b2471455dd87abf63cee935915da59490f7fb9b2f7b935",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s14-priority-promoted-2",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1449,
+        "completion_tokens": 22,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0038425,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "8e5854f2bb223fb57fa89105022cacf77a9c7f67862754bd72f077c21dfc7e35",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s15-priority-promoted-3",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1455,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0038475,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "87f5d7178d8996f2467ceee4b1be0c772d8448c64d4e16245d1fb5fe7f7f02c1",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s16-priority-control-3",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1357,
+        "completion_tokens": 110,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0044925,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "c851f5f15034a1c5ebd9d55cf7e0d564b3cf98ee2b596797ea0c5f241c7e1dc7",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s17-priority-control-4",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1351,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0035875,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "8dbfeedb7714292ded119eb236d1aeac45870f59c0027478dede238772b8d66d",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s18-priority-promoted-4",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1453,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0038425,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "d7f1195ce08e748d9d0eaa2e5549224856025d9cb1a407a8b1e5d3b284cd133e",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s19-priority-control-5",
+      "kind": "series",
+      "task": "priority",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1353,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0035925,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "eddbccd0fd75c19ffc69f1fd89f30cbb97bc49296bb4ceec1c975442f780f259",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s20-priority-promoted-5",
+      "kind": "series",
+      "task": "priority",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1448,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00383,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-priority/f14v3-priority-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "4e357ffd954adf7b571f5f77de2e264d22bcfdda0675374894eb5f43c46cc2ca",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 8,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s21-invoice-promoted-1",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1494,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.003945,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "9bbac86c90882aac4e252775f747938466a989b880e0b31cf6ecdbbb1ffa7db0",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s22-invoice-promoted-2",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1494,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.003945,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "6b6802ce3b0e511b9aa0d7a7bfb8aef35ae22913d10274798ee7e4618c97a112",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s23-invoice-promoted-3",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1493,
+        "completion_tokens": 27,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0040025,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "bb80fdaa2ea2f5da381a39085f8d4555b2bf8fd79ef8da5d23bc0b2597cabf58",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s24-invoice-control-1",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1370,
+        "completion_tokens": 17,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.003595,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "c4ba4bcef10692351ed7a34e5097dbb41420a6d9126803da36fe5c0c0560f5c3",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s25-invoice-promoted-4",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1496,
+        "completion_tokens": 20,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00394,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "42f6fbadfecf2209da54466c5cc11da0cc4d0b129c28ff2847589ffad0dd40f9",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s26-invoice-control-2",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1364,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00362,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "5e0474f64b94fdbb2b4d26a743c2012428193b4dceef6022b46604d7f9aaf8b0",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s27-invoice-promoted-5",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "promoted",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1499,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0039575,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": true,
+        "memory_sources": [
+          {
+            "trust": "trusted",
+            "authority": "data",
+            "source_ref": "memory://f14v3-invoice/f14v3-invoice-rule:promoted"
+          }
+        ]
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "dd7d5099a6721b993e9383bfd09755987f0a92461b7a38691daa2a6e85253a5d",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s28-invoice-control-3",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1369,
+        "completion_tokens": 23,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0036525,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "486b0c3611f0ae56ee0d1f1fbc5b17ba4a0e2638d3461c0d1e1f45c3d429bfb8",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s29-invoice-control-4",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1368,
+        "completion_tokens": 21,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.00363,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "265212ec419f674aa64a117c32fee6eae244697586cb47e0f02655368bd53414",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    },
+    {
+      "label": "s30-invoice-control-5",
+      "kind": "series",
+      "task": "invoice",
+      "condition": "control",
+      "evidence_kind": "real",
+      "cli_status": 1,
+      "task_result": "blocked",
+      "reason": "CONTROL_PROVIDER_BACKEND_DIVERGED",
+      "source_db_unchanged": true,
+      "usage": {
+        "requests": 1,
+        "unreadable_requests": 0,
+        "prompt_tokens": 1365,
+        "completion_tokens": 62,
+        "cached_tokens": 0,
+        "complete": true
+      },
+      "cost_usd": 0.0040325,
+      "stop_reason": null,
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "replay": {
+        "ok": true,
+        "session_events": 6,
+        "tool_invocations": 0,
+        "note_in_context": false,
+        "memory_sources": []
+      },
+      "tool_outcomes": [],
+      "drain": {
+        "started": 0,
+        "orphans": 0
+      },
+      "provider_proof": {
+        "verdict": "unknown",
+        "failures": [
+          "proof-absent"
+        ],
+        "summarizer_exit": 1,
+        "proof_present": false
+      },
+      "state_sha256": "0d69d66a462d7c906662165c7ace7dfcf03665f7e47553bc0afb766969614b89",
+      "protected": {
+        "pass": false,
+        "passed": 0,
+        "total": 5,
+        "failed": [
+          "no-final-write"
+        ]
+      },
+      "product_verifier_approved": false,
+      "success": false
+    }
+  ],
+  "totals": {
+    "runs": 33,
+    "series_runs": 30,
+    "cost_usd_estimate": 0.12396,
+    "requests": 33,
+    "prompt_tokens": 46228,
+    "completion_tokens": 839,
+    "price_declared_usd_per_million": {
+      "in": 2.5,
+      "out": 10
+    }
+  },
+  "protocol_issues": [
+    "pilot-invoice: provider-proof-unknown",
+    "pilot-retry: provider-proof-unknown",
+    "pilot-priority: provider-proof-unknown",
+    "s01-retry-promoted-1: provider-proof-unknown",
+    "s02-retry-control-1: provider-proof-unknown",
+    "s03-retry-promoted-2: provider-proof-unknown",
+    "s04-retry-control-2: provider-proof-unknown",
+    "s05-retry-control-3: provider-proof-unknown",
+    "s06-retry-control-4: provider-proof-unknown",
+    "s07-retry-promoted-3: provider-proof-unknown",
+    "s08-retry-control-5: provider-proof-unknown",
+    "s09-retry-promoted-4: provider-proof-unknown",
+    "s10-retry-promoted-5: provider-proof-unknown",
+    "s11-priority-control-1: provider-proof-unknown",
+    "s12-priority-promoted-1: provider-proof-unknown",
+    "s13-priority-control-2: provider-proof-unknown",
+    "s14-priority-promoted-2: provider-proof-unknown",
+    "s15-priority-promoted-3: provider-proof-unknown",
+    "s16-priority-control-3: provider-proof-unknown",
+    "s17-priority-control-4: provider-proof-unknown",
+    "s18-priority-promoted-4: provider-proof-unknown",
+    "s19-priority-control-5: provider-proof-unknown",
+    "s20-priority-promoted-5: provider-proof-unknown",
+    "s21-invoice-promoted-1: provider-proof-unknown",
+    "s22-invoice-promoted-2: provider-proof-unknown",
+    "s23-invoice-promoted-3: provider-proof-unknown",
+    "s24-invoice-control-1: provider-proof-unknown",
+    "s25-invoice-promoted-4: provider-proof-unknown",
+    "s26-invoice-control-2: provider-proof-unknown",
+    "s27-invoice-promoted-5: provider-proof-unknown",
+    "s28-invoice-control-3: provider-proof-unknown",
+    "s29-invoice-control-4: provider-proof-unknown",
+    "s30-invoice-control-5: provider-proof-unknown"
+  ],
+  "verdict": "FAIL: protocol issues",
+  "limits": {
+    "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
+    "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
+    "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
+    "requests_per_run_cap": 8
+  },
+  "finished_at": "2026-11-08T01:39:45.619Z",
+  "artifact_scan": {
+    "clean": true,
+    "files": 134,
+    "flagged": []
+  }
+}

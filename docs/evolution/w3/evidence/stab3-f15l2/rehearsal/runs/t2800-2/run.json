@@ -9,56 +9,60 @@
     "task_result": "approved",
     "reason": "criteria-satisfied"
   },
+  "reference_provider_proof": {
+    "summarizer_verdict": "pass",
+    "failures": []
+  },
   "reconciliation": {
     "required": true,
-    "report_sha256": "56c1565c6756efd6f42beb851e0cc88d23e85134d7a22fcb4fba936d68997b00"
+    "report_sha256": "74575702db4c8acbca3f2a85ac5f26a95f54b16cb9b7270dff61ba7e03f0a404"
   },
   "compactions": [
     {
-      "sequence": 18,
-      "event_id": "event:5db520a048e81fc5a193f1ce808b8c1a31f5a3ea",
+      "sequence": 24,
+      "event_id": "event:370b0ac22f18d8b793f46ec551347c3359299afd",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 26,
-      "event_id": "event:2d88cd6aed453a6cbce5d38686c9b316b029ee33",
+      "sequence": 35,
+      "event_id": "event:1d2618cd02aa7d5527b451643d9babac369c42f4",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 34,
-      "event_id": "event:adc68382d9f350d246ef363b110f33757885c13d",
+      "sequence": 46,
+      "event_id": "event:8e3d2e76c6c340304fc49706cf5f09f4dfbf0ce6",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 54,
-      "event_id": "event:b8762be9dec5f67c1bae910377ee720cd453f7d3",
+      "sequence": 72,
+      "event_id": "event:49acf56c29fcc45d165a1ba8886d37201d2b0d3e",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 62,
-      "event_id": "event:0fda6a10cd0980c28c4d38a8fb9683bab888f5af",
+      "sequence": 83,
+      "event_id": "event:309c8dd0ee505062368185c63675a415b9c37e95",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 70,
-      "event_id": "event:d5bdfcdd826725d68d4904952f96c864be490d8b",
+      "sequence": 94,
+      "event_id": "event:151ec11e6aff687404cc2c6ca370364dd7dde35b",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 78,
-      "event_id": "event:7168d17359de6d981cef5762c89eeb9022f207bf",
+      "sequence": 105,
+      "event_id": "event:93a1c440192f337060fcb450f533da0eefb1bc06",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
@@ -71,7 +75,13 @@
         "outcome": "succeeded"
       }
     ],
-    "add_js_verbatim_read_bytes_in_order": [2215, 2215, 2588, 2588, 2588],
+    "add_js_verbatim_read_bytes_in_order": [
+      2215,
+      2215,
+      2588,
+      2588,
+      2588
+    ],
     "workspace_change_observed_after_recovery": true,
     "note": "The file the model reads after the recovery differs in size from the one it read before the crash: the write landed before the process died."
   },
@@ -84,15 +94,22 @@
     "requests_total": 6,
     "requests_verified": 6,
     "declared": {
-      "model": "gpt-4o",
+      "model": "gpt-4o-2024-08-06",
       "origin": "https://mock.invalid"
     },
     "observed": {
-      "models": ["gpt-4o"],
+      "models": [
+        "gpt-4o-2024-08-06"
+      ],
       "origin": "https://mock.invalid"
     },
     "credential_sha256": "omitted-from-public-receipt",
     "counts_scope": "process-after-resume-only"
+  },
+  "final_source": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
   },
   "whole_file": {
     "verdict": "pass",
@@ -109,8 +126,8 @@
     "exit": 0
   },
   "fork": {
-    "checkpoint_sequence": 30,
-    "ancestry_event_count": 30,
+    "checkpoint_sequence": 42,
+    "ancestry_event_count": 42,
     "compactions_in_prefix": 2
   },
   "drain": {
@@ -122,11 +139,11 @@
   "usage": {
     "requests": 21,
     "unreadable_requests": 0,
-    "prompt_tokens": 55760,
+    "prompt_tokens": 55817,
     "completion_tokens": 1963,
     "cached_tokens": 0,
     "complete": true,
-    "estimated_cost_usd": 0.15903,
+    "estimated_cost_usd": 0.1591725,
     "note": "Price declared by the operator and not verified; cached tokens are charged at the input price; this is an estimate, not an invoice."
   },
   "requests_by_dir": {
@@ -134,11 +151,18 @@
     "journey": 16
   },
   "requests": 21,
-  "responding_models": ["gpt-4o"],
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
   "secret_sweep": {
     "clean": true,
-    "files_scanned": 31,
-    "searched": ["literal-credential", "api-key-shape", "bearer-header", "credential-sha256 (public files only)"],
+    "files_scanned": 32,
+    "searched": [
+      "literal-credential",
+      "api-key-shape",
+      "bearer-header",
+      "credential-sha256 (public files only)"
+    ],
     "findings": []
   },
   "stages": {
@@ -177,9 +201,9 @@
       "step": "crash",
       "signal": "SIGKILL",
       "pid_alive_after": false,
-      "events": 35,
+      "events": 47,
       "compactions": 3,
-      "first_write_sequence": 31,
+      "first_write_sequence": 43,
       "writes_before_crash": [
         {
           "outcome": "succeeded"
@@ -200,15 +224,15 @@
     },
     {
       "step": "fork",
-      "checkpoint": 30,
+      "checkpoint": 42,
       "checkpoint_event_type": "model.streamed",
-      "compaction_sequence": 18,
+      "compaction_sequence": 24,
       "task_result": "approved",
       "refusals": []
     },
     {
       "step": "replay-resume-only",
-      "events": 83,
+      "events": 111,
       "requests_unchanged": true,
       "task_result": "approved"
     }

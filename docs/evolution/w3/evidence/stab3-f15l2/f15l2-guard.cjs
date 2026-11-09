@@ -8,9 +8,9 @@
 // DECLARED LIMIT: this guard wraps `fetch` only. Another network path (the http/https modules, WebSocket, a spawned `curl`) is not
 // intercepted; the engineering commands run in the product's isolated executor and the Podman verifier runs with --network=none.
 // env: F15L2_MODE=fixture|real, F15L2_DIR, F15L2_MAX_REQUESTS, F15L2_DEADLINE_MS, F15L2_CRASH_AFTER_WRITE=1,
-//      F15L2_FAKE_BEHAVIOR=good|mutilate, F15L2_FAKE_FAULT=non-sse|no-usage|hang, F15L2_FAKE_MODEL,
+//      F15L2_FAKE_BEHAVIOR=good|mutilate, F15L2_FAKE_FAULT=non-sse|no-usage|hang|diverge|no-model|no-model-journey,
 //      F15L2_PLAN_SHA256 (the campaign fingerprint), F15L2_REAL_CONFIRMED,
-//      budget: F15L2_SPEND_FILE, F15L2_STOP_FILE, F15L2_LIMIT_USD, F15L2_PRICE_IN, F15L2_PRICE_OUT, F15L2_WINDOW_TOKENS, F15L2_MAX_OUT
+//      budget: F15L2_SPEND_FILE, F15L2_STOP_FILE, F15L2_LIMIT_USD, F15L2_PRIOR_SPEND_USD, F15L2_PRICE_IN, F15L2_PRICE_OUT, F15L2_WINDOW_TOKENS, F15L2_MAX_OUT
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
@@ -35,6 +35,8 @@ const price = { in: Number(process.env.F15L2_PRICE_IN), out: Number(process.env.
 const spendFile = process.env.F15L2_SPEND_FILE;
 const stopFile = process.env.F15L2_STOP_FILE;
 const limitUsd = Number(process.env.F15L2_LIMIT_USD);
+// Spent BEFORE this campaign (declared in the plan; 0 for F15). The ceiling is cumulative: prior + campaign spend + pending + worst case.
+const priorUsd = Number(process.env.F15L2_PRIOR_SPEND_USD || 0);
 const windowTokens = Number(process.env.F15L2_WINDOW_TOKENS);
 const maxOut = Number(process.env.F15L2_MAX_OUT);
 
@@ -70,11 +72,11 @@ function reserve(bodyBytes, maxTokens) {
     throw Object.assign(new Error('F15L2_CAMPAIGN_STOPPED: stop file present'), { code: 'F15L2_CAMPAIGN_STOPPED' });
   const worst = lib.worstCaseUsd({ bodyBytes, maxTokens, price });
   const spend = lib.readSpend(spendFile);
-  if (spend.spent_usd + spend.pending_usd + worst > limitUsd) {
+  if (priorUsd + spend.spent_usd + spend.pending_usd + worst > limitUsd) {
     stopCampaign(
       'budget-pre-call',
       'F15L2_BUDGET_STOP',
-      `spent ${spend.spent_usd.toFixed(4)} + pending ${spend.pending_usd.toFixed(4)} + worst case ${worst.toFixed(4)} > ${limitUsd}`,
+      `prior ${priorUsd.toFixed(4)} + spent ${spend.spent_usd.toFixed(4)} + pending ${spend.pending_usd.toFixed(4)} + worst case ${worst.toFixed(4)} > ${limitUsd}`,
     );
   }
   lib.writeSpend(spendFile, { ...spend, pending_usd: spend.pending_usd + worst, calls: spend.calls + 1 });
@@ -128,19 +130,25 @@ globalThis.fetch = async (url, init) => {
     body_bytes: init.body.length,
     worst_case_usd: worst,
   };
-  const fault = process.env.F15L2_FAKE_FAULT;
+  // `no-model-journey`: frames without a model only outside the reference run (the series proof must stop the campaign on its own).
+  const fault =
+    process.env.F15L2_FAKE_FAULT === 'no-model-journey'
+      ? path.basename(dir) === 'reference'
+        ? undefined
+        : 'no-model'
+      : process.env.F15L2_FAKE_FAULT;
   if (mode === 'fixture') {
     if (fault === 'hang') await new Promise(() => {}); // never answers: the CLI timeout must catch it, and the reservation stays booked
     const { response } = fakeModelResponse(body, {
       behavior: process.env.F15L2_FAKE_BEHAVIOR || 'good',
-      model: process.env.F15L2_FAKE_MODEL || 'gpt-4o',
+      model: body.model, // what the request declared; the fake answers with the served snapshot, as the provider does
       bodyBytes: init.body.length,
       fault,
     });
     entry.status = 200;
     entry.source = 'fixture';
-    entry.responding_model = process.env.F15L2_FAKE_MODEL || 'gpt-4o';
     const parsed = parseSse(await response.clone().text());
+    entry.responding_model = parsed.model;
     const isSse = (response.headers.get('content-type') || '').includes('text/event-stream');
     entry.usage = parsed.usage;
     fs.appendFileSync(log, `${JSON.stringify(entry)}\n`);

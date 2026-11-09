@@ -9,7 +9,7 @@ const PLAN = Object.freeze({
   registered_in: 'docs/evolution/w3/stab2/T4.md (F14 v3)',
   hypothesis:
     'Promoted memory delivered by the production agent run with source_db changes the task result, as judged by the protected tests.',
-  model: 'gpt-4o',
+  model: 'gpt-4o-2024-08-06',
   tasks: TASKS.map((task) => ({
     id: task.id,
     file: task.file,
@@ -42,7 +42,13 @@ const PLAN = Object.freeze({
   },
   budget: {
     ceiling_usd: 3,
-    stop_fraction: 0.8,
+    ceiling_scope:
+      'cumulative over the whole campaign (all executions): prior_spend_usd + spend of this execution + worst-case projection of the next call never exceeds ceiling_usd',
+    prior_spend_usd: 1.5009,
+    prior_spend_note:
+      'execution 1 (2026-11-07) US$ 0.124, stopped on CONTROL_PROVIDER_BACKEND_DIVERGED; execution 2 (2026-11-08) US$ 1.3769 as measured by the script (console: 1.36). Counted in the cumulative ceiling gate',
+    ceiling_decision:
+      'Owner/Commander decision (2026-11-08): US$ 3.00 per complete campaign, cumulative. The earlier rule of stopping at 80% of US$ 3.00 is dropped for this execution because, on top of the spend already made, it would make the series impossible to complete; the hard stop at the full ceiling, projected before every call, replaces it',
     price_usd_per_million: { in: 2.5, out: 10 },
     price_rule:
       'real mode needs --price-in and --price-out explicitly (finite, > 0) and equal to this registered price; otherwise it aborts before the first call. There is no built-in price for real mode',
@@ -51,7 +57,7 @@ const PLAN = Object.freeze({
     max_requests_note:
       'the rehearsal needs at most 5 requests per run (write, check, answer plus context); 8 leaves 3 of slack. A run that needs more fails as cap-reached instead of spending without a bound',
     per_request_check:
-      'before each call: spent + worst-case projection (body bytes / 3 as tokens + max_tokens at the output price) > ceiling refuses the call',
+      'before each call: prior_spend_usd + spent + worst-case projection (body bytes / 3 as tokens + max_tokens at the output price) > ceiling refuses the call',
     unreadable_usage:
       'the first request with unreadable usage ends the run as usage-unreadable and the campaign stops; the call is charged at the worst-case projection',
     interrupted_request:
@@ -64,7 +70,7 @@ const PLAN = Object.freeze({
     covers:
       'this plan, the prices, the protected cases and the content of the scripts listed in confirmation.cjs (GATED_FILES); not the rehearsal results',
   },
-  stop: 'failed series ends the campaign with no extra round; spend at 80% of the ceiling stops and reports',
+  stop: 'failed series ends the campaign with no extra round; the cumulative ceiling is a hard stop (STOPPED: cumulative ceiling)',
   credential: 'read from an environment variable the operator provides at execution time; never from pass; never written or printed',
 });
 
@@ -110,7 +116,6 @@ function costUsd(usage, { priceInPerMillion, priceOutPerMillion }) {
   return ((usage.prompt_tokens || 0) * priceInPerMillion + (usage.completion_tokens || 0) * priceOutPerMillion) / 1_000_000;
 }
 
-/** Stop rule: do not start another run once the spend reached the stop fraction of the ceiling. */
 /** Worst-case cost of one call before it is sent: the real body size in approximate tokens (3 bytes each) plus max_tokens. */
 function projectCallUsd(bodyBytes, maxTokens, { priceInPerMillion, priceOutPerMillion }) {
   return costUsd({ prompt_tokens: Math.ceil(bodyBytes / 3), completion_tokens: maxTokens }, { priceInPerMillion, priceOutPerMillion });
@@ -132,9 +137,28 @@ function validateRealPrice(priceIn, priceOut, registered = PLAN.budget.price_usd
   return { ok: true, price: { in: priceIn, out: priceOut } };
 }
 
-function budgetDecision(spentUsd, { ceilingUsd = PLAN.budget.ceiling_usd, stopFraction = PLAN.budget.stop_fraction } = {}) {
-  const limit = Math.round(ceilingUsd * stopFraction * 1e6) / 1e6;
-  return { stop: spentUsd >= limit, spent_usd: spentUsd, stop_at_usd: limit, ceiling_usd: ceilingUsd };
+/**
+ * Cumulative ceiling gate: prior spend + spend of this execution + worst-case projection of the next call must stay within the
+ * ceiling. With projectedUsd = 0 it is the check made before starting a run; the guard calls it with the real projection.
+ */
+function cumulativeDecision({ priorUsd, spentUsd, projectedUsd = 0, ceilingUsd = PLAN.budget.ceiling_usd }) {
+  const cumulative = priorUsd + spentUsd + projectedUsd;
+  const ok = [priorUsd, spentUsd, projectedUsd, ceilingUsd].every((value) => Number.isFinite(value));
+  return {
+    stop: !ok || cumulative > ceilingUsd || (projectedUsd === 0 && cumulative >= ceilingUsd),
+    cumulative_usd: cumulative,
+    ceiling_usd: ceilingUsd,
+  };
 }
 
-module.exports = { projectCallUsd, interruptedCallUsd, validateRealPrice, PLAN, makeRng, shuffle, buildSchedule, costUsd, budgetDecision };
+module.exports = {
+  projectCallUsd,
+  interruptedCallUsd,
+  validateRealPrice,
+  PLAN,
+  makeRng,
+  shuffle,
+  buildSchedule,
+  costUsd,
+  cumulativeDecision,
+};

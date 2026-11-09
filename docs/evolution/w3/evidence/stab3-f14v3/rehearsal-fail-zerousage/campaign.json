@@ -1,13 +1,13 @@
 {
-  "confirmation_sha256": "5071855b8cabb4ee90390bce73d84f97a4c09434b2874ff4d5a3cf8408c27c46",
+  "confirmation_sha256": "4254d873980356584b2b004de3cc9b3da0384c07ffe3b9943c0f56f57f914bc6",
   "mode": "mock",
   "evidence_kind": "fixture-rehearsal",
-  "model": "gpt-4o",
-  "started_at": "2026-11-07T17:10:53.451Z",
+  "model": "gpt-4o-2024-08-06",
+  "started_at": "2026-11-08T07:04:55.445Z",
   "database": {
     "kind": "fixture-copy",
-    "sha256": "cbca0221e7b9744e3b866ab4d56ea318c247c29345dfaa4491fbfc694e78ba6b",
-    "bytes": 62496768,
+    "sha256": "b83d709a5b8a48ad55f882f695a22746d1b2d439900234588aca8ad476204954",
+    "bytes": 67796992,
     "secret_scan": {
       "clean": true,
       "hits": 0
@@ -50,82 +50,82 @@
       }
     ],
     "db_sha256": {
-      "box_a": "a7a27c2e6381ea9c527b48d20a9bf97face8cb8bc999e02385657ba7c1bb7fba",
-      "box_b": "7485cb1bfd2c8c14e1da8ec65f9ad4ac7db8d3fcb0c9a40cf86fdc89eb8c0065"
+      "box_a": "4b36be9869308ff9777c5144a24cec3f58f80de3ea99a21b9d6ba7a88074474d",
+      "box_b": "89ad140e20a529bf61ea53d0506ef29dcd09db175a3599c62b2a6466ead878f1"
     }
   },
   "seed_recorded_before_first_call": true,
   "schedule": [
     {
       "order": 1,
-      "task": "invoice",
+      "task": "priority",
       "condition": "promoted",
       "rep": 1
     },
     {
       "order": 2,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 2
-    },
-    {
-      "order": 3,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
       "rep": 1
     },
     {
-      "order": 4,
-      "task": "invoice",
+      "order": 3,
+      "task": "priority",
       "condition": "control",
       "rep": 2
     },
     {
-      "order": 5,
-      "task": "invoice",
-      "condition": "promoted",
+      "order": 4,
+      "task": "priority",
+      "condition": "control",
       "rep": 3
+    },
+    {
+      "order": 5,
+      "task": "priority",
+      "condition": "control",
+      "rep": 4
     },
     {
       "order": 6,
-      "task": "invoice",
+      "task": "priority",
       "condition": "control",
-      "rep": 3
-    },
-    {
-      "order": 7,
-      "task": "invoice",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 8,
-      "task": "invoice",
-      "condition": "control",
-      "rep": 4
-    },
-    {
-      "order": 9,
-      "task": "invoice",
-      "condition": "promoted",
       "rep": 5
     },
     {
+      "order": 7,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 2
+    },
+    {
+      "order": 8,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 3
+    },
+    {
+      "order": 9,
+      "task": "priority",
+      "condition": "promoted",
+      "rep": 4
+    },
+    {
       "order": 10,
-      "task": "invoice",
-      "condition": "control",
+      "task": "priority",
+      "condition": "promoted",
       "rep": 5
     },
     {
       "order": 11,
       "task": "retry",
-      "condition": "promoted",
+      "condition": "control",
       "rep": 1
     },
     {
       "order": 12,
       "task": "retry",
-      "condition": "control",
+      "condition": "promoted",
       "rep": 1
     },
     {
@@ -137,20 +137,20 @@
     {
       "order": 14,
       "task": "retry",
-      "condition": "promoted",
-      "rep": 3
+      "condition": "control",
+      "rep": 2
     },
     {
       "order": 15,
       "task": "retry",
       "condition": "promoted",
-      "rep": 4
+      "rep": 3
     },
     {
       "order": 16,
       "task": "retry",
-      "condition": "control",
-      "rep": 2
+      "condition": "promoted",
+      "rep": 4
     },
     {
       "order": 17,
@@ -178,62 +178,62 @@
     },
     {
       "order": 21,
-      "task": "priority",
-      "condition": "control",
-      "rep": 1
-    },
-    {
-      "order": 22,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 1
     },
     {
+      "order": 22,
+      "task": "invoice",
+      "condition": "control",
+      "rep": 1
+    },
+    {
       "order": 23,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 2
     },
     {
       "order": 24,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 2
     },
     {
       "order": 25,
-      "task": "priority",
+      "task": "invoice",
       "condition": "promoted",
       "rep": 3
     },
     {
       "order": 26,
-      "task": "priority",
-      "condition": "promoted",
-      "rep": 4
-    },
-    {
-      "order": 27,
-      "task": "priority",
+      "task": "invoice",
       "condition": "control",
       "rep": 3
     },
     {
-      "order": 28,
-      "task": "priority",
+      "order": 27,
+      "task": "invoice",
       "condition": "promoted",
-      "rep": 5
+      "rep": 4
     },
     {
-      "order": 29,
-      "task": "priority",
+      "order": 28,
+      "task": "invoice",
       "condition": "control",
       "rep": 4
     },
     {
-      "order": 30,
-      "task": "priority",
+      "order": 29,
+      "task": "invoice",
       "condition": "control",
+      "rep": 5
+    },
+    {
+      "order": 30,
+      "task": "invoice",
+      "condition": "promoted",
       "rep": 5
     }
   ],
@@ -287,7 +287,9 @@
           "successes": 0
         }
       }
-    ]
+    ],
+    "controls_at_request_limit": 0,
+    "controls": 0
   },
   "runs": [
     {
@@ -308,13 +310,21 @@
         "cached_tokens": 0,
         "complete": true
       },
-      "cost_usd": 0.016635,
+      "cost_usd": 0.016595,
       "stop_reason": "usage-unreadable",
-      "responding_models": ["gpt-4o"],
+      "responding_models": [
+        "gpt-4o-2024-08-06"
+      ],
+      "measure": {
+        "reason": "no-write",
+        "applied": 0,
+        "sha_checked": 0
+      },
       "replay": {
         "ok": true,
         "session_events": 6,
         "tool_invocations": 0,
+        "contract_residue": false,
         "note_in_context": false,
         "memory_sources": []
       },
@@ -325,7 +335,10 @@
       },
       "provider_proof": {
         "verdict": "unknown",
-        "failures": ["backend-not-verified", "requests-not-all-verified"],
+        "failures": [
+          "backend-not-verified",
+          "requests-not-all-verified"
+        ],
         "summarizer_exit": 1,
         "proof_present": true,
         "proof": {
@@ -334,7 +347,7 @@
           "credential_pool": false,
           "credential_source": "request-header",
           "declared": {
-            "model": "gpt-4o",
+            "model": "gpt-4o-2024-08-06",
             "origin": "https://mock.invalid"
           },
           "fallback": false,
@@ -348,12 +361,14 @@
           "credential_sha256_present": true
         }
       },
-      "state_sha256": "a687d01738637830e412efd014637727ca9b160e524a92bd2b8ac9ee7e92014b",
+      "state_sha256": "0411ece2dd67260da039a035ba33cdf216084b8d1667fe17180a7146dea6d368",
       "protected": {
         "pass": false,
         "passed": 0,
         "total": 5,
-        "failed": ["no-final-write"]
+        "failed": [
+          "no-final-write"
+        ]
       },
       "product_verifier_approved": false,
       "success": false
@@ -362,7 +377,9 @@
   "totals": {
     "runs": 1,
     "series_runs": 0,
-    "cost_usd_estimate": 0.016635,
+    "cost_usd_estimate": 0.016595,
+    "prior_spend_usd": 1.5009,
+    "cumulative_cost_usd": 1.5174949999999998,
     "requests": 1,
     "prompt_tokens": 0,
     "completion_tokens": 0,
@@ -371,15 +388,18 @@
       "out": 10
     }
   },
-  "protocol_issues": ["pilot-invoice: provider-proof-unknown"],
+  "protocol_issues": [
+    "pilot-invoice: provider-proof-unknown"
+  ],
   "verdict": "STOPPED: usage-unreadable",
   "limits": {
     "guard_coverage": "The guard wraps the global fetch of the agent process only. node:https, node:http and child processes are NOT covered.",
     "key_scope": "The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.",
     "protected_comparison": "Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.",
-    "requests_per_run_cap": 8
+    "requests_per_run_cap": 8,
+    "request_cap_effect": "The cap of 8 requests per execution punishes the control by exhaustion: it confounds \"memory helps to get it right\" with \"memory helps to finish within the limit\". The analysis reports how many controls hit the limit (analysis.controls_at_request_limit)."
   },
-  "finished_at": "2026-11-07T17:10:57.974Z",
+  "finished_at": "2026-11-08T07:05:00.339Z",
   "artifact_scan": {
     "clean": true,
     "files": 5,

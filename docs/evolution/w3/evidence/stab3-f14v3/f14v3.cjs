@@ -7,7 +7,7 @@
 //   node f14v3.cjs --print-confirmation   (hash the owner confirms in F14V3_REAL_CONFIRMED to release the real mode)
 //   node f14v3.cjs campaign --root <repo> --mode mock|real --source-db <project.db> --out <dir> [--seed <s>]
 //        [--price-in N --price-out N (required in real mode, must equal PLAN.json)] [--pilots-only]
-//        [--run-timeout-ms N (rehearsal only)] [--ceiling <usd, rehearsal only>] [--work-dir <dir under $TMPDIR>]
+//        [--run-timeout-ms N (rehearsal only)] [--ceiling <usd, rehearsal only>] [--prior-spend <usd, rehearsal only>] [--work-dir <dir under $TMPDIR>]
 // real mode reads the key from the environment variable named by F14V3_KEY_ENV (default F14V3_OPENAI_API_KEY), never from pass.
 // The credential is never written, printed or kept in an artifact. The database copy lives under $TMPDIR and never enters the repository.
 const fs = require('node:fs');
@@ -16,10 +16,11 @@ const path = require('node:path');
 const { createHash, randomBytes } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { TASKS, runProtected, runFilter } = require('./tasks.cjs');
-const { PLAN, buildSchedule, budgetDecision, interruptedCallUsd, validateRealPrice } = require('./plan.cjs');
+const { PLAN, buildSchedule, cumulativeDecision, interruptedCallUsd, validateRealPrice } = require('./plan.cjs');
 const { evaluateCriterion } = require('./stats.cjs');
 const { scanFile, scanDirectory } = require('./secret-scan.cjs');
 const { confirmationHash } = require('./confirmation.cjs');
+const { reconstructFinalSource } = require('./measure.cjs');
 const { sumUsage } = require('../shared/usage-from-sse.cjs');
 const { summarizeProviderProof } = require('../shared/summarize-provider-proof.cjs');
 
@@ -164,7 +165,13 @@ async function runOne(ctx, task, condition, label, kind) {
   const cleanups = [];
   try {
     const f = fixture({ after: (fn) => cleanups.push(fn) }, { files: { [task.file]: task.stub }, entry: task.file });
+    // The base contract is the addition example: its source and acceptance text are replaced by the task's OWN, so nothing
+    // about integer addition reaches the model (P12 A2). The product is not touched.
+    f.contract.task_id = `f14v3-${task.id}`;
+    f.contract.sources[0].content = `Implement ${task.export} in ${task.file}.`;
+    f.contract.sources[0].sha256 = sha(f.contract.sources[0].content);
     f.contract.requirements[0].description = task.requirement;
+    f.contract.acceptance[0].description = `The protected verifier confirms the cases of ${task.export}.`;
     f.contract.environment = { capabilities: ['memory.retrieve'] };
     f.contract.limits = { ...f.contract.limits, max_duration_ms: 300_000, max_tool_calls: 10 };
     f.contract.verifier.checks = task.verifier_checks;
@@ -197,6 +204,7 @@ async function runOne(ctx, task, condition, label, kind) {
       F14V3_PRICE_OUT: String(ctx.price.out),
       F14V3_CEILING_USD: String(ctx.ceilingUsd),
       F14V3_SPENT_USD: String(ctx.spent),
+      F14V3_PRIOR_SPEND_USD: String(ctx.priorSpendUsd),
       ...(mode === 'mock' && process.env.F14V3_MOCK_FAULT ? { F14V3_MOCK_FAULT: process.env.F14V3_MOCK_FAULT } : {}),
       C9_DEADLINE_MS: String(Date.now() + 15 * 60_000),
       ...(ctx.offline || process.env.F14V3_OFFLINE === '1' ? { F14V3_OFFLINE: '1' } : {}),
@@ -249,6 +257,8 @@ async function runOne(ctx, task, condition, label, kind) {
       fs.rmSync(inflightFile, { force: true });
       record.interrupted_request = true;
     }
+    const capFile = path.join(runDir, 'cap-reached.json');
+    const capReached = fs.existsSync(capFile) ? JSON.parse(fs.readFileSync(capFile, 'utf8')) : null;
     const allLines = fs.existsSync(logFile)
       ? fs
           .readFileSync(logFile, 'utf8')
@@ -290,13 +300,17 @@ async function runOne(ctx, task, condition, label, kind) {
         const blocks = (assembled?.payload.request.messages ?? [])
           .map((m) => m.content)
           .filter((c) => String(c).startsWith('[HSEOS MEMORY_DATA'));
-        const writes = events.filter((event) => event.event_type === 'tool.execution.started' && event.payload.name.endsWith('write'));
-        finalSource = writes.length > 0 ? (writes.at(-1).payload.input?.content ?? null) : null;
+        // The final source is rebuilt from the successful write/patch calls of the ledger (see measure.cjs).
+        const rebuilt = reconstructFinalSource(events, task.stub, task.file);
+        finalSource = rebuilt.source;
+        record.measure = { reason: rebuilt.reason, applied: rebuilt.applied, sha_checked: rebuilt.sha_checked };
         const invocations = Object.values(replayed.tool_invocations || {});
         record.replay = {
           ok: true,
           session_events: events.length,
           tool_invocations: invocations.length,
+          // The context the model received must carry nothing of the addition example (P12 A2).
+          contract_residue: /integer addition|positive, negative and zero|addIntegers/i.test(JSON.stringify(assembled?.payload ?? '')),
           note_in_context: blocks.some((block) => block.includes(task.note)),
           memory_sources: sources.map((item) => ({ trust: item.trust, authority: item.authority, source_ref: item.source_ref })),
         };
@@ -340,6 +354,16 @@ async function runOne(ctx, task, condition, label, kind) {
         encoding: 'utf8',
       });
       const evidenceJson = lastJson(evidence.stdout) || safeParse(evidence.stdout);
+      // The guard refused a call past the request cap: the adapter counted it in `requests_total` but it never reached the
+      // provider. The proof is judged over the requests that were made (all of them must still be verified).
+      if (capReached) {
+        const original = findProofObject(evidenceJson);
+        if (original) {
+          record.cap_adjustment = { requests_total_reported: original.requests_total, requests_made: capReached.made };
+          original.requests_total = capReached.made;
+          original.backend_verified = original.requests_verified === capReached.made && capReached.made > 0;
+        }
+      }
       const proof = summarizeProviderProof(evidenceJson);
       record.provider_proof = {
         verdict: proof.verdict,
@@ -349,6 +373,7 @@ async function runOne(ctx, task, condition, label, kind) {
       };
       record.state_sha256 = sha256File(path.join(json.state, fs.readdirSync(json.state).find((name) => name.endsWith('.sqlite')) || ''));
     }
+    if (!record.measure) record.measure = { reason: 'no-ledger', applied: 0, sha_checked: 0 };
     const protectedResult =
       finalSource === null
         ? { pass: false, passed: 0, total: task.cases.length, failed: ['no-final-write'] }
@@ -361,6 +386,13 @@ async function runOne(ctx, task, condition, label, kind) {
     };
     record.product_verifier_approved = record.task_result === 'approved';
     record.success = record.protected.pass && record.product_verifier_approved;
+    if (capReached) {
+      // Too many tool calls is a legitimate task failure, not a protocol failure.
+      record.task_result = 'failed';
+      record.reason = 'request-cap-reached';
+      record.success = false;
+      record.product_verifier_approved = false;
+    }
     write(path.join(runDir, 'result.json'), record);
     return record;
   } finally {
@@ -379,6 +411,16 @@ function safeParse(text) {
 }
 
 /** The public form of the proof: everything except the credential hash, which stays out of the receipt. */
+function findProofObject(value) {
+  if (!value || typeof value !== 'object') return null;
+  if (value.provider_proof && typeof value.provider_proof === 'object') return value.provider_proof;
+  for (const child of Object.values(value)) {
+    const found = findProofObject(child);
+    if (found) return found;
+  }
+  return null;
+}
+
 function publicProof(evidence) {
   const find = (value) => {
     if (!value || typeof value !== 'object') return null;
@@ -406,7 +448,12 @@ function analyse(records) {
   const complete = tasks.every(
     (item) => item.promoted.n === PLAN.n_per_task_per_condition && item.control.n === PLAN.n_per_task_per_condition,
   );
-  return complete ? { complete, ...evaluateCriterion(tasks) } : { complete, success: false, reason: 'series-incomplete', per_task: tasks };
+  const controls = records.filter((item) => item.kind === 'series' && item.condition === 'control');
+  const atLimit = controls.filter((item) => item.reason === 'request-cap-reached').length;
+  const exhaustion = { controls_at_request_limit: atLimit, controls: controls.length };
+  return complete
+    ? { complete, ...evaluateCriterion(tasks), ...exhaustion }
+    : { complete, success: false, reason: 'series-incomplete', per_task: tasks, ...exhaustion };
 }
 
 async function campaign(args) {
@@ -450,8 +497,8 @@ async function campaign(args) {
       process.stderr.write(`real mode needs the key in the environment variable ${keyEnv}\n`);
       return EXIT.usage;
     }
-    if (args.ceiling) {
-      process.stderr.write('--ceiling is only for the rehearsal: the real ceiling is US$ 3\n');
+    if (args.ceiling || args['prior-spend'] !== undefined) {
+      process.stderr.write('--ceiling and --prior-spend are only for the rehearsal: the real ceiling is US$ 3, cumulative\n');
       return EXIT.usage;
     }
     if (args.seed) {
@@ -505,6 +552,14 @@ async function campaign(args) {
     fs.closeSync(fd);
     result.seed_recorded_before_first_call = true;
     result.schedule = schedule;
+    // Cumulative ceiling: what earlier executions already spent counts. The rehearsal can set it (--prior-spend); with a custom
+    // --ceiling and no --prior-spend it starts from zero so the small test ceilings stay meaningful.
+    let priorSpendUsd = PLAN.budget.prior_spend_usd;
+    if (mode !== 'real') {
+      if (args['prior-spend'] === undefined) {
+        if (args.ceiling) priorSpendUsd = 0;
+      } else priorSpendUsd = Number(args['prior-spend']);
+    }
     const ctx = {
       root,
       mode,
@@ -520,21 +575,46 @@ async function campaign(args) {
       ceilingUsd: args.ceiling ? Number(args.ceiling) : PLAN.budget.ceiling_usd,
       runTimeoutMs: mode === 'mock' && args['run-timeout-ms'] ? Number(args['run-timeout-ms']) : 280_000,
       spent: 0,
+      priorSpendUsd,
     };
     const records = [];
     let spent = 0;
     const gate = () => {
-      const decision = budgetDecision(spent, args.ceiling ? { ceilingUsd: Number(args.ceiling) } : undefined);
+      const decision = cumulativeDecision({
+        priorUsd: priorSpendUsd,
+        spentUsd: spent,
+        ceilingUsd: args.ceiling ? Number(args.ceiling) : PLAN.budget.ceiling_usd,
+      });
       if (decision.stop) {
-        result.stopped = { reason: 'cost-at-80-percent-of-ceiling', ...decision, runs_done: records.length };
+        result.stopped = {
+          reason: 'cumulative ceiling',
+          ...decision,
+          prior_spend_usd: priorSpendUsd,
+          spent_usd: spent,
+          runs_done: records.length,
+        };
         return false;
       }
       return true;
     };
+    // A protocol failure (control-provider refusal or a failed adapter proof) ends the campaign at once: the same
+    // failure must never be paid for twice.
+    const protocolFailure = (record) => {
+      if (record.stop_reason) return null;
+      if (String(record.reason ?? '').startsWith('CONTROL_PROVIDER_')) return record.reason;
+      if (record.provider_proof?.verdict !== 'pass') return `provider-proof-${record.provider_proof?.verdict ?? 'absent'}`;
+      return null;
+    };
     const halted = (record) => {
+      const failure = protocolFailure(record);
+      if (failure) {
+        result.stopped = { reason: 'protocol failure', detail: failure, after_run: record.label, runs_done: records.length };
+        return true;
+      }
       if (record.stop_reason !== 'usage-unreadable' && record.stop_reason !== 'ceiling-projection') return false;
       result.stopped = {
-        reason: record.stop_reason,
+        reason: record.stop_reason === 'ceiling-projection' ? 'cumulative ceiling' : record.stop_reason,
+        ...(record.stop_reason === 'ceiling-projection' ? { detail: 'ceiling-projection' } : {}),
         after_run: record.label,
         runs_done: records.length,
         ...(record.refusal ? { refusal: record.refusal } : {}),
@@ -583,6 +663,8 @@ async function campaign(args) {
       runs: records.length,
       series_runs: series.length,
       cost_usd_estimate: spent,
+      prior_spend_usd: priorSpendUsd,
+      cumulative_cost_usd: priorSpendUsd + spent,
       requests: records.reduce((sum, item) => sum + item.usage.requests, 0),
       prompt_tokens: records.reduce((sum, item) => sum + item.usage.prompt_tokens, 0),
       completion_tokens: records.reduce((sum, item) => sum + item.usage.completion_tokens, 0),
@@ -593,6 +675,9 @@ async function campaign(args) {
       if (!item.usage.complete) issues.push(`${item.label}: usage-incomplete`);
       if (item.provider_proof?.verdict !== 'pass') issues.push(`${item.label}: provider-proof-${item.provider_proof?.verdict ?? 'absent'}`);
       if (!item.replay?.ok) issues.push(`${item.label}: replay-failed`);
+      if (item.replay?.contract_residue !== false) issues.push(`${item.label}: contract-residue`);
+      if (['sha-mismatch', 'patch-failed', 'unknown-tool-format'].includes(item.measure?.reason))
+        issues.push(`${item.label}: meter-${item.measure.reason}`);
       if (item.drain?.orphans !== 0) issues.push(`${item.label}: drain-orphans`);
       if (!item.source_db_unchanged) issues.push(`${item.label}: source-db-changed`);
       const expected = item.condition === 'promoted' ? 1 : 0;
@@ -618,6 +703,8 @@ async function campaign(args) {
         'The key exists only in the environment of the agent process (spawn env) and is not passed to agent evidence. Engineering tools run under bwrap --clearenv (packages/agent-isolation-attestation/index.js:364) with an environment declared as not inherited (profiles.js:205). Read from the code, not measured in a run.',
       protected_comparison: 'Protected cases compare with JSON.stringify: undefined, NaN, -0 and object key order are not distinguished.',
       requests_per_run_cap: PLAN.budget.max_requests_per_run,
+      request_cap_effect:
+        'The cap of 8 requests per execution punishes the control by exhaustion: it confounds "memory helps to get it right" with "memory helps to finish within the limit". The analysis reports how many controls hit the limit (analysis.controls_at_request_limit).',
     };
     result.finished_at = new Date().toISOString();
     write(path.join(out, 'campaign.json'), result);

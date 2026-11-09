@@ -1,13 +1,15 @@
 {
   "model_source": "fixture",
-  "campaign_sha256": "86dee448808715092a422de1794eb05a3974b40dc378e2957e9c295f13d47d1a",
-  "plan_file_sha256": "33fca94f302d27384a2d124e5997994d5c5621deb349aa8396f8f7633f6062e5",
+  "campaign_sha256": "2754eb095c579eef478cab0d15047c16c9e56a9cbc21f1a8382dad69b4839278",
+  "plan_file_sha256": "b831be883d2d56841a7b2febfd078c571f705ca3b1836a4fce435141cf4dc8ae",
   "cap_usd": 2,
   "limit_usd": 1.6,
+  "prior_spend_usd": 0,
   "runs": 10,
   "stopped_because": null,
   "interrupted_run": null,
   "overall_verdict": "pass",
+  "protocol_failure": null,
   "series": {
     "t2800": {
       "n": 5,
@@ -163,13 +165,13 @@
     "product_resume_approved": true
   },
   "requests": 200,
-  "spend_ledger_usd": 1.5395999999999994,
+  "spend_ledger_usd": 1.5409500000000014,
   "spend_ledger_note": "Booked by the guard before and after every request: worst case first, then the measured usage; pessimistic when unreadable or on timeout.",
   "estimated_cost_usd_projected_for_plan": {
-    "estimated_total_usd": 1.5395999999999999,
+    "estimated_total_usd": 1.5409499999999998,
     "over_cap": false,
     "cap_usd": 2
   },
   "cost_note": "Estimate from the tokens of the run and the declared price; for a fixture the tokens are synthetic (bytes/3 for the pre-call worst case, bytes/4 measured), so this is a sizing estimate, not a measurement.",
-  "elapsed_ms": 150930
+  "elapsed_ms": 156431
 }

@@ -17,13 +17,21 @@
     "cached_tokens": 0,
     "complete": true
   },
-  "cost_usd": 0.016635,
+  "cost_usd": 0.016595,
   "stop_reason": "usage-unreadable",
-  "responding_models": ["gpt-4o"],
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
+  "measure": {
+    "reason": "no-write",
+    "applied": 0,
+    "sha_checked": 0
+  },
   "replay": {
     "ok": true,
     "session_events": 6,
     "tool_invocations": 0,
+    "contract_residue": false,
     "note_in_context": false,
     "memory_sources": []
   },
@@ -34,7 +42,10 @@
   },
   "provider_proof": {
     "verdict": "unknown",
-    "failures": ["backend-not-verified", "requests-not-all-verified"],
+    "failures": [
+      "backend-not-verified",
+      "requests-not-all-verified"
+    ],
     "summarizer_exit": 1,
     "proof_present": true,
     "proof": {
@@ -43,7 +54,7 @@
       "credential_pool": false,
       "credential_source": "request-header",
       "declared": {
-        "model": "gpt-4o",
+        "model": "gpt-4o-2024-08-06",
         "origin": "https://mock.invalid"
       },
       "fallback": false,
@@ -57,12 +68,14 @@
       "credential_sha256_present": true
     }
   },
-  "state_sha256": "a687d01738637830e412efd014637727ca9b160e524a92bd2b8ac9ee7e92014b",
+  "state_sha256": "0411ece2dd67260da039a035ba33cdf216084b8d1667fe17180a7146dea6d368",
   "protected": {
     "pass": false,
     "passed": 0,
     "total": 5,
-    "failed": ["no-final-write"]
+    "failed": [
+      "no-final-write"
+    ]
   },
   "product_verifier_approved": false,
   "success": false

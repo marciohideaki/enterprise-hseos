@@ -130,6 +130,16 @@ const sse = (frames) =>
     headers: { 'content-type': 'text/event-stream' },
   });
 
+// The provider answers an ALIAS with the DATED snapshot it actually served (declared `gpt-4o`, answered `gpt-4o-2024-08-06`). The
+// adapter's backend proof is strict and compares the name literally, so a campaign has to declare the dated name.
+const SNAPSHOTS = Object.freeze({ 'gpt-4o': 'gpt-4o-2024-08-06', 'gpt-4o-mini': 'gpt-4o-mini-2024-07-18' });
+const respondingModel = (requested) => SNAPSHOTS[requested] ?? requested;
+
+const pieces = (text, parts = 3) => {
+  const size = Math.max(1, Math.ceil(text.length / parts));
+  return Array.from({ length: Math.ceil(text.length / size) }, (_, index) => text.slice(index * size, (index + 1) * size));
+};
+
 function fakeModelResponse(body, { behavior, model, bodyBytes, fault }) {
   const messages = body.messages;
   const names = (body.tools || []).map((tool) => tool.function.name);
@@ -137,6 +147,18 @@ function fakeModelResponse(body, { behavior, model, bodyBytes, fault }) {
   const calls = messages.flatMap((message) => toolCallsOf(message));
   const readOf = (file) => calls.some((call) => nameOf(call).endsWith('read') && argsOf(call).path === file);
   const promptTokens = Math.ceil(bodyBytes / 4);
+  // `model` here is what the request asked for (the declared name). What the provider answers in every frame is the served snapshot.
+  const served = fault === 'diverge' ? 'gpt-4o-2024-11-20' : respondingModel(model);
+  const chatId = `chatcmpl-${sha(`${bodyBytes}:${calls.length}`).slice(0, 24)}`;
+  const frame = (extra) => ({
+    id: chatId,
+    object: 'chat.completion.chunk',
+    created: 1_762_500_000,
+    ...(fault === 'no-model' ? {} : { model: served }),
+    service_tier: 'default',
+    system_fingerprint: 'fp_f15l2rehearsal',
+    ...extra,
+  });
   const faulty = (frames) => {
     // Fault injection for the failure-path rehearsal: a body that is not SSE, or an SSE stream without a usage frame.
     if (fault === 'non-sse')
@@ -147,55 +169,62 @@ function fakeModelResponse(body, { behavior, model, bodyBytes, fault }) {
     if (fault === 'no-usage') return { response: sse(frames), usage: null };
     return null;
   };
-  const reply = (frames, completionText) =>
-    faulty(frames) ?? {
-      response: sse([
-        ...frames,
-        {
-          model,
-          choices: [],
-          usage: {
-            prompt_tokens: promptTokens,
-            completion_tokens: Math.ceil(completionText.length / 4),
-            prompt_tokens_details: { cached_tokens: 0 },
-          },
-        },
-      ]),
-      usage: {
-        prompt_tokens: promptTokens,
-        completion_tokens: Math.ceil(completionText.length / 4),
-        total_tokens: promptTokens + Math.ceil(completionText.length / 4),
-        cached_tokens: 0,
-      },
+  // Like a real stream with include_usage: content chunks, a finish chunk with an empty delta, then a LAST frame with `choices: []` and usage.
+  const reply = (frames, completionText) => {
+    const completion = Math.ceil(completionText.length / 4);
+    const usage = {
+      prompt_tokens: promptTokens,
+      completion_tokens: completion,
+      total_tokens: promptTokens + completion,
+      prompt_tokens_details: { cached_tokens: 0, audio_tokens: 0 },
+      completion_tokens_details: { reasoning_tokens: 0, audio_tokens: 0, accepted_prediction_tokens: 0, rejected_prediction_tokens: 0 },
     };
+    return (
+      faulty(frames) ?? {
+        response: sse([...frames, frame({ choices: [], usage })]),
+        usage: { prompt_tokens: promptTokens, completion_tokens: completion, total_tokens: promptTokens + completion, cached_tokens: 0 },
+      }
+    );
+  };
   const call = (suffix, args) => {
     const text = JSON.stringify(args);
+    const id = `call_${sha(`${calls.length}:${text}`).slice(0, 12)}`;
+    const toolCall = (extra) =>
+      frame({ choices: [{ index: 0, delta: { tool_calls: [{ index: 0, ...extra }] }, logprobs: null, finish_reason: null }] });
     return reply(
       [
-        {
-          model,
+        // The first chunk names the call; the arguments then arrive in fragments, as a real stream sends them.
+        frame({
           choices: [
             {
               index: 0,
               delta: {
-                tool_calls: [
-                  {
-                    index: 0,
-                    id: `call_${sha(`${calls.length}:${text}`).slice(0, 12)}`,
-                    type: 'function',
-                    function: { name: wire(suffix), arguments: text },
-                  },
-                ],
+                role: 'assistant',
+                content: null,
+                tool_calls: [{ index: 0, id, type: 'function', function: { name: wire(suffix), arguments: '' } }],
               },
-              finish_reason: 'tool_calls',
+              logprobs: null,
+              finish_reason: null,
             },
           ],
-        },
+        }),
+        ...pieces(text).map((piece) => toolCall({ function: { arguments: piece } })),
+        frame({ choices: [{ index: 0, delta: {}, logprobs: null, finish_reason: 'tool_calls' }] }),
       ],
       text,
     );
   };
-  const text = (content) => reply([{ model, choices: [{ index: 0, delta: { content }, finish_reason: 'stop' }] }], content);
+  const text = (content) =>
+    reply(
+      [
+        frame({ choices: [{ index: 0, delta: { role: 'assistant', content: '', refusal: null }, logprobs: null, finish_reason: null }] }),
+        ...pieces(content, 2).map((piece) =>
+          frame({ choices: [{ index: 0, delta: { content: piece }, logprobs: null, finish_reason: null }] }),
+        ),
+        frame({ choices: [{ index: 0, delta: {}, logprobs: null, finish_reason: 'stop' }] }),
+      ],
+      content,
+    );
 
   if (!readOf('add.js')) return call('read', { path: 'add.js' });
   if (!readOf('guards.js')) return call('read', { path: 'guards.js' });
@@ -223,4 +252,4 @@ function fakeModelResponse(body, { behavior, model, bodyBytes, fault }) {
   return text('The change request is done: add sums, sumIntegers uses the guards, and the check ran.');
 }
 
-module.exports = { fakeModelResponse, summarizeToolResults, wroteBefore, goodContent, MUTILATED, latestRead };
+module.exports = { respondingModel, SNAPSHOTS, fakeModelResponse, summarizeToolResults, wroteBefore, goodContent, MUTILATED, latestRead };
