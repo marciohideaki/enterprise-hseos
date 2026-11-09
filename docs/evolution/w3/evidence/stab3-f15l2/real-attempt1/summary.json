@@ -1,0 +1,138 @@
+{
+  "model_source": "real",
+  "campaign_sha256": "1e16088fac419a8637c28d11c2a36c515c24cd7ff8478e1907f27f07a3d589e4",
+  "plan_file_sha256": "b831be883d2d56841a7b2febfd078c571f705ca3b1836a4fce435141cf4dc8ae",
+  "cap_usd": 2,
+  "limit_usd": 1.6,
+  "prior_spend_usd": 0,
+  "runs": 10,
+  "stopped_because": null,
+  "interrupted_run": null,
+  "overall_verdict": "fail",
+  "protocol_failure": null,
+  "series": {
+    "t2800": {
+      "n": 5,
+      "stage_counts": {
+        "reference_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "old_results_pruned": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "compaction_before_checkpoint": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "crash_proven": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "resume_approved": {
+          "passed": 3,
+          "applicable": 5
+        },
+        "whole_file_pass": {
+          "passed": 2,
+          "applicable": 5
+        },
+        "fork_approved": {
+          "passed": 3,
+          "applicable": 5
+        },
+        "replay_resume_only": {
+          "passed": 3,
+          "applicable": 5
+        },
+        "drain_clean": {
+          "passed": 3,
+          "applicable": 5
+        },
+        "secrets_clean": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "provider_proof_pass": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "usage_complete": {
+          "passed": 5,
+          "applicable": 5
+        }
+      },
+      "lineage_intact": 3,
+      "verdict": "fail",
+      "stages_ok": false,
+      "lineage_ok": false
+    },
+    "t8500": {
+      "n": 5,
+      "stage_counts": {
+        "reference_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "old_results_pruned": {
+          "passed": 2,
+          "applicable": 5
+        },
+        "compaction_before_checkpoint": {
+          "passed": 0,
+          "applicable": 5
+        },
+        "crash_proven": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "resume_approved": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "whole_file_pass": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "fork_approved": {
+          "passed": 2,
+          "applicable": 5
+        },
+        "replay_resume_only": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "drain_clean": {
+          "passed": 3,
+          "applicable": 5
+        },
+        "secrets_clean": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "provider_proof_pass": {
+          "passed": 5,
+          "applicable": 5
+        },
+        "usage_complete": {
+          "passed": 5,
+          "applicable": 5
+        }
+      },
+      "lineage_intact": 2,
+      "verdict": "informative"
+    }
+  },
+  "negative_control": null,
+  "requests": 136,
+  "spend_ledger_usd": 1.1368725,
+  "spend_ledger_note": "Booked by the guard before and after every request: worst case first, then the measured usage; pessimistic when unreadable or on timeout.",
+  "estimated_cost_usd_projected_for_plan": {
+    "estimated_total_usd": 1.1368725,
+    "over_cap": false,
+    "cap_usd": 2
+  },
+  "cost_note": "Estimate from the tokens of the run and the declared price; for a fixture the tokens are synthetic (bytes/3 for the pre-call worst case, bytes/4 measured), so this is a sizing estimate, not a measurement.",
+  "elapsed_ms": 1494698
+}

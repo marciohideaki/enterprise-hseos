@@ -363,3 +363,11 @@ Nota de 2026-11-08: F14 v3 executada (3 tentativas pagas); a terceira deu
 custo cerca de US$ 0,95 pela console. `real_consumers` da F14 segue
 `not_verified`: faltam a reauditoria cega e a decisão do owner. Recibo:
 [F14-V3-2026-11.md](F14-V3-2026-11.md).
+
+Nota de 2026-11-09: a F14 v3 foi reauditada às cegas e a promoção não foi aprovada
+(`real_consumers` segue `not_verified`; ver
+[REAUDIT-BLIND-4-2026-11-09.md](REAUDIT-BLIND-4-2026-11-09.md)). A F15 L2 foi
+executada uma vez com a API real: veredito do roteiro `fail` na série de 2.800
+(linhagem 3 de 5, arquivo inteiro 2 de 5, `fork` 3 de 5), custo cerca de US$ 0,93
+pela console, sem falha de protocolo. `real_consumers` da F15 segue `not_verified`.
+Recibo: [F15-L2-2026-11.md](F15-L2-2026-11.md).
