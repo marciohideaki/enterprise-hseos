@@ -378,3 +378,11 @@ superfície" vale para a F14 e a promoção só ocorre com tarefas do owner; a F
 `real_consumers` segue `not_verified`. A F15 L2 foi encerrada com o resultado
 registrado, sem nova execução por ora. Ver "Respostas posteriores do owner
 (2026-11-09)" no ADR-0050.
+
+Nota de 2026-11-09 (F14 v4): o roteiro da F14 v4 foi mesclado (#311) e a campanha foi
+executada uma vez com a API real, com as 6 promoções feitas pelo owner no terminal.
+Parou por teto na execução 36 de 42; o critério pré-registrado não é alcançável
+(tarefa `oidc` promovida 5/5 contra controle 0/5, mas `pass` promovida 0/5). Custo
+cerca de US$ 1,49 pela console contra US$ 2,98 estimados pelo roteiro (sem desconto de
+cache). `real_consumers` da F14 segue `not_verified`. Recibo:
+[F14-V4-2026-11.md](F14-V4-2026-11.md).
