@@ -1,6 +1,6 @@
 # Protocolo proposto da F14 v4, 2026-11-09
 
-**Estado: PROPOSTA. Não aprovada. Nenhuma chamada paga, nenhum código de campanha e nenhum status muda por este documento.** Ele só vale depois da aprovação escrita do owner (seção 13). Complementa a seção "F14 v3" de `T4.md` e responde às ressalvas de `REAUDIT-BLIND-4-2026-11-09.md` e às decisões do owner de 2026-11-09 (ADR-0050, "Respostas posteriores do owner (2026-11-09)"): a F14 só é promovida com tarefas do owner.
+**Estado: APROVADA pelo owner em 2026-11-09 (itens 1 a 3 da seção 13). O gasto NÃO está autorizado:** ele continua exigindo autorização própria por campanha, depois do ensaio, da revisão cética e da reauditoria (item 4 da seção 13). Nenhuma chamada paga, nenhum código de campanha e nenhum status muda por este documento.
 
 ## 1. O que muda em relação à v3
 
@@ -121,3 +121,7 @@ Depois da aprovação: tarefas e testes protegidos da v4 (as três acima), caixa
 2. Os parâmetros: braço placebo com n = 3, teto de requisições 12, teto de US$ 3,00.
 3. Fazer as 6 promoções no seu terminal.
 4. Autorizar o gasto de uma campanha com esse teto, depois do ensaio e da reauditoria (a autorização do gasto continua sendo por campanha).
+
+### Aprovação do owner (2026-11-09)
+
+O owner aprovou os itens 1 a 3: as três tarefas (A, B e D), os parâmetros (placebo com n = 3, teto de 12 requisições, teto de US$ 3,00) e fazer as 6 promoções no próprio terminal. O item 4 segue pendente por desenho: a autorização do gasto é por campanha e só vale depois do ensaio offline, da revisão cética isolada em duas passagens e da reauditoria. O crédito da conta B precisa estar em pelo menos US$ 3,00 no início.
