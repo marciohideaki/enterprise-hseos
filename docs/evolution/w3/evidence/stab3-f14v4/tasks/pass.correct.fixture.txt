@@ -1,0 +1,17 @@
+const GROUPS = [
+  [/gitops/, 'gitops'],
+  [/github|bitbucket/, 'github'],
+  [/oauth|service account|google/, 'google'],
+  [/registry|docker/, 'docker'],
+  [/kubeconfig|certificate|kubernetes/, 'kubernetes'],
+  [/ssh/, 'ssh'],
+  [/mcp|claude|anthropic/, 'claude'],
+];
+function passPath(kind, name, project) {
+  const lower = String(kind).toLowerCase();
+  if (/shared/.test(lower)) return `platform-shared-dev/${name}`;
+  if (project && /project/.test(lower)) return `${project}/${name}`;
+  const found = GROUPS.find(([pattern]) => pattern.test(lower));
+  return `${found ? found[1] : 'misc'}/${name}`;
+}
+module.exports = passPath;

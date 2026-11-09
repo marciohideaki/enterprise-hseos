@@ -1,0 +1,71 @@
+{
+  "filter": "i-naive-fails-correct-passes",
+  "accepted": true,
+  "tasks": [
+    {
+      "id": "oidc",
+      "naive": {
+        "pass": false,
+        "passed": 0,
+        "total": 3,
+        "failed": ["marketplace", "ai-agents-os", "poynthub"]
+      },
+      "correct": {
+        "pass": true,
+        "passed": 3,
+        "total": 3,
+        "failed": []
+      },
+      "stub_fails": true,
+      "accepted": true
+    },
+    {
+      "id": "seed",
+      "naive": {
+        "pass": false,
+        "passed": 0,
+        "total": 6,
+        "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
+      },
+      "correct": {
+        "pass": true,
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "stub_fails": true,
+      "accepted": true
+    },
+    {
+      "id": "pass",
+      "naive": {
+        "pass": false,
+        "passed": 0,
+        "total": 13,
+        "failed": [
+          "github",
+          "bitbucket",
+          "oauth",
+          "service-account",
+          "registry",
+          "kubeconfig",
+          "certificate",
+          "ssh",
+          "gitops",
+          "mcp",
+          "shared",
+          "project",
+          "unknown"
+        ]
+      },
+      "correct": {
+        "pass": true,
+        "passed": 13,
+        "total": 13,
+        "failed": []
+      },
+      "stub_fails": true,
+      "accepted": true
+    }
+  ]
+}

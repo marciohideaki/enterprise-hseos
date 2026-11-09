@@ -1,0 +1,93 @@
+{
+  "label": "s15-oidc-control-1",
+  "kind": "series",
+  "task": "oidc",
+  "condition": "control",
+  "box": "A",
+  "evidence_kind": "fixture-rehearsal",
+  "cli_status": 1,
+  "task_result": "failed",
+  "reason": "criteria-not-satisfied",
+  "source_db_unchanged": true,
+  "stderr_head": "",
+  "usage": {
+    "requests": 5,
+    "unreadable_requests": 0,
+    "prompt_tokens": 12737,
+    "completion_tokens": 172,
+    "cached_tokens": 0,
+    "complete": true
+  },
+  "cost_usd": 0.0335625,
+  "cap_reached": false,
+  "stop_reason": null,
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
+  "measure": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
+  },
+  "replay": {
+    "ok": true,
+    "session_events": 32,
+    "tool_invocations": 2,
+    "contract_residue": false,
+    "note_in_context": false,
+    "placebo_in_context": false,
+    "memory_sources": []
+  },
+  "tool_outcomes": [
+    "-6cd086533b33\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://9adb5c8b52dfa4b83e0446a226866c9cc15cdc52fde9d40d37f8984f1e5d1d26\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://9adb5c8b52dfa4b83e0446a226866c9cc15cdc52fde9d40d37f8984f1e5d1d26\"],\"warnings\":[],\"replayed\":false}"
+  ],
+  "drain": {
+    "started": 2,
+    "orphans": 0
+  },
+  "provider_proof": {
+    "verdict": "pass",
+    "failures": [],
+    "summarizer_exit": 0,
+    "proof_present": true,
+    "proof": {
+      "auth_mode": "credential",
+      "backend_verified": true,
+      "credential_pool": false,
+      "credential_source": "request-header",
+      "declared": {
+        "model": "gpt-4o-2024-08-06",
+        "origin": "https://mock.invalid"
+      },
+      "fallback": false,
+      "observed": {
+        "models": [
+          "gpt-4o-2024-08-06"
+        ],
+        "origin": "https://mock.invalid"
+      },
+      "requests_total": 5,
+      "requests_verified": 5,
+      "schema_version": 1,
+      "credential_sha256_present": true
+    }
+  },
+  "proof_independent_checks": {
+    "ok": true,
+    "failures": []
+  },
+  "state_sha256": "e7860cfd5973519f48d62d3239149601e96982b89930ecf5099eb7d2090b4dbf",
+  "protected": {
+    "pass": false,
+    "passed": 0,
+    "total": 3,
+    "failed": [
+      "marketplace",
+      "ai-agents-os",
+      "poynthub"
+    ]
+  },
+  "product_verifier_approved": false,
+  "success": false
+}

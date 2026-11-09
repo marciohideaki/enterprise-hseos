@@ -1,0 +1,5 @@
+function seedEmail(role, n, solution) {
+  const local = n === null || n === undefined ? role : `${role}${String(n).padStart(4, '0')}`;
+  return `${local}@${solution}.local`.toLowerCase();
+}
+module.exports = seedEmail;

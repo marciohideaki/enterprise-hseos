@@ -1,0 +1,11 @@
+const PUBLIC_REALMS = 'https://keycloak.hideakiservicos.net/kc/realms/';
+const INTERNAL_REALMS = 'http://keycloak-shared.platform-shared-dev.svc.cluster.local:8080/kc/realms/';
+function oidcConfig(app) {
+  return {
+    issuer: `${PUBLIC_REALMS}${app}`,
+    jwksUrl: `${INTERNAL_REALMS}${app}/protocol/openid-connect/certs`,
+    frontendClientId: `${app}-frontend`,
+    backendClientId: `${app}-backend`,
+  };
+}
+module.exports = oidcConfig;
