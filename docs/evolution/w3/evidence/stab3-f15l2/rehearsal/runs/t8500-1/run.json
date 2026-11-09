@@ -9,42 +9,46 @@
     "task_result": "approved",
     "reason": "criteria-satisfied"
   },
+  "reference_provider_proof": {
+    "summarizer_verdict": "pass",
+    "failures": []
+  },
   "reconciliation": {
     "required": true,
-    "report_sha256": "76080b446f411e0467ec38f1caf8d75a8a0a15a017546fb927129ec058ea6983"
+    "report_sha256": "ad72ce4cc79625776671ae1bf11fb852c79458e782a99e705569841463ff0323"
   },
   "compactions": [
     {
-      "sequence": 25,
-      "event_id": "event:d3e0821c474f804b752f58c12b984b2ad5ea7cb0",
+      "sequence": 34,
+      "event_id": "event:8052bec2cb6e59569ffaf94512e90e93417f1f7e",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 2
     },
     {
-      "sequence": 45,
-      "event_id": "event:8b777ba27173d08622c007a16988ace50bdbaf92",
+      "sequence": 60,
+      "event_id": "event:9c799c26784a041bfc2b801faed87a6864b98118",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 53,
-      "event_id": "event:c3174f9590bd8500e8eeac303873de90ee43058c",
+      "sequence": 71,
+      "event_id": "event:cd221593ff5a4cb84f1a3b7f90c1c00c524e56d8",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 61,
-      "event_id": "event:bc0e3dc5a451caf9dc1aaf6bad1182c9ad6170a3",
+      "sequence": 82,
+      "event_id": "event:fc1d606b539ca2242b496d9f3df1b8835cadddd8",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
     },
     {
-      "sequence": 69,
-      "event_id": "event:94ff6517819d21551e683a59d25386468165c2c6",
+      "sequence": 93,
+      "event_id": "event:f6168bb375692c657b3bc66ce8c06dd5121acb3c",
       "strategy": "tool_result_prune",
       "trigger": "tool_result_pressure",
       "sources": 1
@@ -57,7 +61,13 @@
         "outcome": "succeeded"
       }
     ],
-    "add_js_verbatim_read_bytes_in_order": [2215, 2215, 2588, 2588, 2588],
+    "add_js_verbatim_read_bytes_in_order": [
+      2215,
+      2215,
+      2588,
+      2588,
+      2588
+    ],
     "workspace_change_observed_after_recovery": true,
     "note": "The file the model reads after the recovery differs in size from the one it read before the crash: the write landed before the process died."
   },
@@ -70,15 +80,22 @@
     "requests_total": 6,
     "requests_verified": 6,
     "declared": {
-      "model": "gpt-4o",
+      "model": "gpt-4o-2024-08-06",
       "origin": "https://mock.invalid"
     },
     "observed": {
-      "models": ["gpt-4o"],
+      "models": [
+        "gpt-4o-2024-08-06"
+      ],
       "origin": "https://mock.invalid"
     },
     "credential_sha256": "omitted-from-public-receipt",
     "counts_scope": "process-after-resume-only"
+  },
+  "final_source": {
+    "reason": "ok",
+    "applied": 1,
+    "sha_checked": 1
   },
   "whole_file": {
     "verdict": "pass",
@@ -95,8 +112,8 @@
     "exit": 0
   },
   "fork": {
-    "checkpoint_sequence": 21,
-    "ancestry_event_count": 21,
+    "checkpoint_sequence": 30,
+    "ancestry_event_count": 30,
     "compactions_in_prefix": 0
   },
   "drain": {
@@ -108,11 +125,11 @@
   "usage": {
     "requests": 19,
     "unreadable_requests": 0,
-    "prompt_tokens": 51744,
+    "prompt_tokens": 51795,
     "completion_tokens": 1953,
     "cached_tokens": 0,
     "complete": true,
-    "estimated_cost_usd": 0.14889,
+    "estimated_cost_usd": 0.1490175,
     "note": "Price declared by the operator and not verified; cached tokens are charged at the input price; this is an estimate, not an invoice."
   },
   "requests_by_dir": {
@@ -120,11 +137,18 @@
     "journey": 14
   },
   "requests": 19,
-  "responding_models": ["gpt-4o"],
+  "responding_models": [
+    "gpt-4o-2024-08-06"
+  ],
   "secret_sweep": {
     "clean": true,
-    "files_scanned": 31,
-    "searched": ["literal-credential", "api-key-shape", "bearer-header", "credential-sha256 (public files only)"],
+    "files_scanned": 32,
+    "searched": [
+      "literal-credential",
+      "api-key-shape",
+      "bearer-header",
+      "credential-sha256 (public files only)"
+    ],
     "findings": []
   },
   "stages": {
@@ -163,9 +187,9 @@
       "step": "crash",
       "signal": "SIGKILL",
       "pid_alive_after": false,
-      "events": 26,
+      "events": 35,
       "compactions": 1,
-      "first_write_sequence": 22,
+      "first_write_sequence": 31,
       "writes_before_crash": [
         {
           "outcome": "succeeded"
@@ -186,15 +210,15 @@
     },
     {
       "step": "fork",
-      "checkpoint": 21,
+      "checkpoint": 30,
       "checkpoint_event_type": "model.streamed",
-      "compaction_sequence": 25,
+      "compaction_sequence": 34,
       "task_result": "approved",
       "refusals": []
     },
     {
       "step": "replay-resume-only",
-      "events": 74,
+      "events": 99,
       "requests_unchanged": true,
       "task_result": "approved"
     }

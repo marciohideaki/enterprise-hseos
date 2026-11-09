@@ -3,7 +3,7 @@
   "campaign": "f15-l2-2026-11",
   "pre_registered_in": "docs/evolution/w3/stab2/T4.md (F15 L2 and the L2 receipt map)",
   "hypothesis": "Compaction, crash, resume and fork preserve the criteria and the lineage, with an L2 receipt of ADR-0050. Descriptive: n=5 has no control and no inference.",
-  "model": "gpt-4o",
+  "model": "gpt-4o-2024-08-06",
   "endpoint_origin": "https://api.openai.com",
   "binding": ".agents/activation/provider-bindings/openai-compatible.example.yaml (adapter openai-compatible-sse)",
   "declared_window_tokens": 20000,
@@ -18,7 +18,7 @@
   "max_requests_per_run": {
     "reference": 8,
     "journey": 24,
-    "basis": "Offline rehearsal needs 5 (reference) and 14 to 16 (journey, crash, resume, fork and replay); the cap is about 1.5 times that. A real model that wanders hits the cap: the run fails and is diagnosed, never retried."
+    "basis": "Offline rehearsal needs 5 (reference) and 14 to 16 (journey, crash, resume, fork and replay); the cap is about 1.5 times that. A real model that wanders hits the cap: the run fails and is diagnosed, never retried. Known bias: the cap can truncate a real model more verbose than the rehearsal; value kept, no evidence to change it."
   },
   "series": [
     {
@@ -42,7 +42,8 @@
     "request": "Add `sumIntegers(values)` to module A (add.js) using the guard helpers of module B (guards.js); also fix `add`, which subtracts. The request lives in the header of add.js.",
     "reads_before_write": "at least 2 (add.js and guards.js), so that an old tool result exists to prune",
     "product_verifier": "verifier://fixtures/integer-addition-v1 (protected, unchanged)",
-    "known_limit": "The product `check` command only loads add.js; it does not discriminate. Preservation is judged by the whole-file check."
+    "known_limit": "The product `check` command only loads add.js; it does not discriminate. Preservation is judged by the whole-file check.",
+    "contract_residue": "The contract text the model receives (source, requirement, acceptance) is the one of the product integer-addition example, not of this task: the protected verifier attests it literally and refuses any other text (Protected verifier does not cover the declared task criteria). The real task statement is the change request in the header of add.js. Removing the residue needs a project verifier (as in the F14 v3), which is a design change not made here. Known bias: the model sees an unrelated one-line source and requirement."
   },
   "reference_run": true,
   "verification": {
@@ -92,6 +93,8 @@
   },
   "credential": "Read from the environment variable F15L2_API_KEY supplied by the operator at execution time. Never read from pass, never stored, never printed.",
   "cap_usd": 2.0,
+  "prior_spend_usd": 0,
+  "prior_spend_note": "F15 spent nothing before this campaign. Declared explicitly: the ceiling is cumulative (prior_spend_usd + campaign spend), the guard and the stop loop both use it. The stop at 80% of the cap (US$ 1,60) is kept.",
   "max_minutes": 45,
   "stop_at_fraction": 0.8,
   "price_usd_per_million": {
@@ -122,5 +125,7 @@
   "tmpdir_limit": "Keep TMPDIR short (about 40 characters or less): the product provider broker listens on a unix socket under TMPDIR, whose path limit is about 107 characters.",
   "fingerprint_excluded": "rehearsal/, f15l2-mutations.cjs, f15l2-failure-paths.cjs, f15l2-test-server.cjs and the tests are OUT of the hash on purpose: they are rehearsal tooling, and changing them does not change what a real run does.",
   "test_mode": "Failure-path tests never reach the internet: they run the script with F15L2_TEST_MODE=1 and a base url (--base-url or F15L2_TEST_BASE_URL) on http://127.0.0.1:PORT pointing to a local test server. In test mode the guard accepts only that origin and refuses api.openai.com; outside the test mode the variable and the flag are ignored and the destination is fixed to https://api.openai.com.",
-  "cost_risk": "Honest label: with the synthetic cost of the offline rehearsal (about US$ 0,159 per execution of the 2.800 series and 0,149 of the 8.500 series, about 1,54 to 1,59 for the 10) against the stop at US$ 1,60, a complete series has a HIGH RISK of stopping INCOMPLETE; a real model that re-reads or rewrites more costs more. The synthetic tokens are an estimate, not a measurement."
+  "cost_risk": "Honest label: with the synthetic cost of the offline rehearsal (about US$ 0,159 per execution of the 2.800 series and 0,149 of the 8.500 series, about 1,54 to 1,59 for the 10) against the stop at US$ 1,60, a complete series has a HIGH RISK of stopping INCOMPLETE; a real model that re-reads or rewrites more costs more. The synthetic tokens are an estimate, not a measurement.",
+  "model_note": "The campaign declares the DATED snapshot. The provider answers the alias gpt-4o with gpt-4o-2024-08-06, and the adapter proof compares the name literally (CONTROL_PROVIDER_BACKEND_DIVERGED); the F14 v3 paid run failed 33 of 33 for that reason. The proof is strict and was not relaxed.",
+  "protocol_failure_stop": "The campaign STOPS at the first execution (reference or series, real or fixture) whose output carries a CONTROL_PROVIDER_* code, or whose provider_proof is not pass: verdict \"STOPPED: protocol failure\", exit 4. A legitimate model failure of a stage does NOT stop the campaign."
 }
