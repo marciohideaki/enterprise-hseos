@@ -14,7 +14,7 @@ const LIMITS_DECLARED = Object.freeze({
     'The rehearsal uses a programmed fake model and only proves the plumbing (boxes, retrieval, meter, receipts, stop rules); it says nothing about what the real model does.',
   credit_declared_not_verified: 'The credit (--credit-usd) is declared by the operator from the console; the script does not verify it.',
   cost_is_estimate:
-    'The cost against the US$ 3.00 ceiling is the script estimate from the declared price (no cache discount), not an invoice.',
+    'The cost against the US$ 3.00 ceiling is the script estimate from the declared price with the published cached-input discount (cached_input_fraction 0.5, declared, not verified) applied to the cached_tokens the provider reports; it is not an invoice and the console prevails. In the previous execution the no-cache basis overstated the cost by 100% (US$ 2.98 estimated against US$ 1.49 charged by the console); the estimate with a 50% discount would have given US$ 1.94 on the same usage, still above the console; the real discount observed was between 50% and 75%; the console reading can lag.',
   failure_paths_covered: [
     'response that is not an event stream (usage unreadable)',
     'zero usage with content',
@@ -49,6 +49,12 @@ const LIMITS_DECLARED = Object.freeze({
     'The heavy-run detection is a regex over the process command line and can wrongly BLOCK a legitimate run (BLOCKED with no cost).',
   promoted_id_format:
     'The format of the promoted_id written by `hseos memory promote` in a real TTY was not exercised; verify-promotions expects `<memory_id>:promoted` as the product store produces it in the API path.',
+  credit_lock_scope:
+    'The credit lock (effective ceiling = min(3.00, credit - 0.10)) only lowers the ceiling from 3.00 to 2.90 while the entry gate requires a credit >= 3.00; it does not protect a smaller credit. Changing that gate is an owner decision.',
+  estimate_margin_over_console:
+    'The margin of the estimate with a 50% discount over the console was 0.4% in v3 (0.946 against 0.95) and 30% in v4 (1.94 against 1.49); the console prevails and the estimate is only safe if the real discount is at least 50%.',
+  cached_tokens_invalid:
+    'An invalid cached_tokens (negative, string, NaN, null or absent) becomes 0 cached tokens (no discount, conservative); a value above prompt_tokens is clamped to prompt_tokens.',
   timeout_policy:
     'A request cut by the timeout is charged at the pessimistic cost, written to the log and STOPS the campaign at the first occurrence (STOPPED: timeout). This differs from v3, which left the decision to the owner.',
 });
@@ -117,15 +123,20 @@ const PLAN = Object.freeze({
   budget: {
     ceiling_usd: 3,
     ceiling_scope:
-      'cumulative over the whole campaign, by the spend ESTIMATED by the script (no cache discount): prior_spend_usd + spend of the campaign + worst-case projection of the next call never exceeds ceiling_usd',
+      'cumulative over the whole campaign, by the spend ESTIMATED by the script WITH the published cache discount (the no-cache cost is recorded beside it): prior_spend_usd + spend of the campaign + worst-case projection of the next call never exceeds ceiling_usd',
     prior_spend_usd: 0,
     prior_spend_note: 'v4 is a new campaign: nothing was spent before it. The 80% stop rule does not apply',
     credit_precondition:
       'the credit of the account must be at least US$ 3.00 at the start (read from the console by the owner before launch); otherwise the campaign does not start',
-    price_usd_per_million: { in: 2.5, out: 10 },
+    price_usd_per_million: { in: 2.5, out: 10, cached_input_fraction: 0.5 },
+    cost_basis: 'estimated-with-cache-discount',
+    credit_reserve_usd: 0.1,
+    effective_ceiling_rule:
+      'in real mode the effective ceiling is min(ceiling_usd, credit_usd - credit_reserve_usd), the credit being the one read from the console and declared with --credit-usd',
     price_rule:
       'real mode needs --price-in and --price-out explicitly (finite, > 0) and equal to this registered price; otherwise it aborts before the first call. There is no built-in price for real mode',
-    price_note: 'operator-declared USD per million tokens; cached input charged at the input price; an estimate, not an invoice',
+    price_note:
+      'operator-declared USD per million tokens; cached input charged at the input price times cached_input_fraction (declared discount, not verified); an estimate, not an invoice',
     max_requests_per_run: 12,
     max_requests_note:
       'declared before any data (the v3 limit of 8 punished the control by exhaustion). A run that needs more is stopped by the guard: the ORIGINAL adapter proof is kept untouched, the run is marked cap_reached and counted apart',
@@ -197,6 +208,31 @@ function costUsd(usage, { priceInPerMillion, priceOutPerMillion }) {
   return ((usage.prompt_tokens || 0) * priceInPerMillion + (usage.completion_tokens || 0) * priceOutPerMillion) / 1_000_000;
 }
 
+/** Estimated cost of a measured usage: cached prompt tokens are charged at the declared fraction of the input price. */
+function usageCostUsd(usage, { priceInPerMillion, priceOutPerMillion }) {
+  const fraction = PLAN.budget.price_usd_per_million.cached_input_fraction;
+  const prompt = usage.prompt_tokens || 0;
+  // An invalid cached_tokens (negative, string, NaN, null, absent) counts as 0: no discount. A value above the prompt is clamped.
+  const raw =
+    typeof usage.cached_tokens === 'number' && Number.isFinite(usage.cached_tokens) && usage.cached_tokens > 0 ? usage.cached_tokens : 0;
+  const cached = Math.min(raw, prompt);
+  return (
+    ((prompt - cached) * priceInPerMillion + cached * priceInPerMillion * fraction + (usage.completion_tokens || 0) * priceOutPerMillion) /
+    1_000_000
+  );
+}
+
+/** Effective ceiling: the lower of the registered ceiling and the declared credit minus the reserve. */
+function effectiveCeilingUsd(creditUsd) {
+  return Math.min(PLAN.budget.ceiling_usd, creditUsd - PLAN.budget.credit_reserve_usd);
+}
+
+/** The ceiling of a campaign: real mode uses the effective one (credit-bound; NaN when the credit is unusable, which the gate refuses). */
+function campaignCeilingUsd({ mode, credit_usd: creditUsd, ceiling_arg: ceilingArg }) {
+  if (mode === 'real') return effectiveCeilingUsd(creditUsd);
+  return ceilingArg ? Number(ceilingArg) : PLAN.budget.ceiling_usd;
+}
+
 /** Worst-case cost of one call before it is sent: the real body size in approximate tokens (3 bytes each) plus max_tokens. */
 function projectCallUsd(bodyBytes, maxTokens, { priceInPerMillion, priceOutPerMillion }) {
   return costUsd({ prompt_tokens: Math.ceil(bodyBytes / 3), completion_tokens: maxTokens }, { priceInPerMillion, priceOutPerMillion });
@@ -262,5 +298,8 @@ module.exports = {
   shuffle,
   buildSchedule,
   costUsd,
+  usageCostUsd,
+  effectiveCeilingUsd,
+  campaignCeilingUsd,
   cumulativeDecision,
 };

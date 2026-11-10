@@ -27,6 +27,8 @@ const {
   buildSchedule,
   cumulativeDecision,
   interruptedCallUsd,
+  effectiveCeilingUsd,
+  campaignCeilingUsd,
   validateRealPrice,
   countIndependentProofChecks,
 } = require('./plan.cjs');
@@ -541,7 +543,7 @@ async function runOne(ctx, task, condition, label, kind) {
       const cut = JSON.parse(fs.readFileSync(inflightFile, 'utf8'));
       fs.appendFileSync(
         logFile,
-        `${JSON.stringify({ n: cut.n, interrupted: true, usage: null, cost_usd: interruptedCallUsd(cut.max_tokens, prices), basis: 'declared context window as input plus max_tokens as output' })}\n`,
+        `${JSON.stringify({ n: cut.n, interrupted: true, usage: null, cost_usd: interruptedCallUsd(cut.max_tokens, prices), cost_usd_no_cache: interruptedCallUsd(cut.max_tokens, prices), basis: 'declared context window as input plus max_tokens as output' })}\n`,
       );
       fs.rmSync(inflightFile, { force: true });
       record.interrupted_request = true;
@@ -565,7 +567,10 @@ async function runOne(ctx, task, condition, label, kind) {
       cached_tokens: usage.cached_tokens,
       complete: usage.complete,
     };
+    // cost_usd (with the published cache discount) is the base of the ceiling gate; cost_usd_no_cache is the old base, kept visible.
     record.cost_usd = lines.reduce((sum, line) => sum + (line.cost_usd || 0), 0);
+    record.cost_usd_no_cache = lines.reduce((sum, line) => sum + (line.cost_usd_no_cache ?? line.cost_usd ?? 0), 0);
+    record.cost_basis = PLAN.budget.cost_basis;
     // The cap is a datum of its own: the run is marked and counted apart; nothing of the adapter proof is rewritten.
     record.cap_reached = Boolean(capReached);
     if (capReached) record.cap = { made: capReached.made, max: capReached.max };
@@ -1003,7 +1008,11 @@ async function campaign(args) {
       delivery_check: verified.delivery,
       db_sha256: { box_a: sha256File(boxFiles.A), box_b: sha256File(boxFiles.B), box_c: sha256File(boxFiles.C) },
     };
-    if (mode === 'real') result.credit_declared_usd = Number(args['credit-usd']);
+    if (mode === 'real') {
+      result.credit_declared_usd = Number(args['credit-usd']);
+      result.credit_usd = result.credit_declared_usd;
+      result.effective_ceiling_usd = effectiveCeilingUsd(result.credit_usd);
+    }
     // 2. seed, recorded BEFORE the first call
     const seed = args.seed || randomBytes(16).toString('hex');
     const schedule = buildSchedule(seed);
@@ -1020,7 +1029,7 @@ async function campaign(args) {
     // Cumulative ceiling: the prior spend is 0 (new campaign). The rehearsal can set it (--prior-spend).
     let priorSpendUsd = PLAN.budget.prior_spend_usd;
     if (mode !== 'real' && args['prior-spend'] !== undefined) priorSpendUsd = Number(args['prior-spend']);
-    const ceilingUsd = mode !== 'real' && args.ceiling ? Number(args.ceiling) : PLAN.budget.ceiling_usd;
+    const ceilingUsd = campaignCeilingUsd({ mode, credit_usd: result.credit_usd, ceiling_arg: args.ceiling });
     const wallMinutes = mode !== 'real' && args['wall-clock-minutes'] ? Number(args['wall-clock-minutes']) : PLAN.budget.wall_clock_minutes;
     const startedMs = Date.now();
     const deadlineMs = startedMs + wallMinutes * 60_000;
@@ -1045,6 +1054,7 @@ async function campaign(args) {
     };
     const records = [];
     let spent = 0;
+    let spentNoCache = 0;
     const gate = () => {
       if (Date.now() >= deadlineMs) {
         result.stopped = { reason: 'time limit', wall_clock_minutes: wallMinutes, runs_done: records.length };
@@ -1101,6 +1111,7 @@ async function campaign(args) {
       ctx.spent = spent;
       const record = await runOne(ctx, task, 'control', `pilot-${task.id}`, 'pilot');
       spent += record.cost_usd;
+      spentNoCache += record.cost_usd_no_cache;
       records.push(record);
       if (halted(record)) break;
     }
@@ -1125,6 +1136,7 @@ async function campaign(args) {
           'series',
         );
         spent += record.cost_usd;
+        spentNoCache += record.cost_usd_no_cache;
         records.push(record);
         if (halted(record)) break;
       }
@@ -1138,6 +1150,11 @@ async function campaign(args) {
       runs: records.length,
       series_runs: series.length,
       cost_usd_estimate: spent,
+      cost_usd: spent,
+      cost_usd_no_cache: spentNoCache,
+      cost_basis: PLAN.budget.cost_basis,
+      cached_tokens: records.reduce((sum, item) => sum + item.usage.cached_tokens, 0),
+      effective_ceiling_usd: ceilingUsd,
       prior_spend_usd: priorSpendUsd,
       cumulative_cost_usd: priorSpendUsd + spent,
       requests: records.reduce((sum, item) => sum + item.usage.requests, 0),
