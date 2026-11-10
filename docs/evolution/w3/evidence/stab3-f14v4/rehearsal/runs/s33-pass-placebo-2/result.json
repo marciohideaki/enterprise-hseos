@@ -15,10 +15,12 @@
     "unreadable_requests": 0,
     "prompt_tokens": 13463,
     "completion_tokens": 125,
-    "cached_tokens": 0,
+    "cached_tokens": 9083,
     "complete": true
   },
-  "cost_usd": 0.0349075,
+  "cost_usd": 0.02355375,
+  "cost_usd_no_cache": 0.0349075,
+  "cost_basis": "estimated-with-cache-discount",
   "cap_reached": false,
   "stop_reason": null,
   "responding_models": [
@@ -45,8 +47,8 @@
     ]
   },
   "tool_outcomes": [
-    "-726baceb4fec\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://3ba833a205405534b2fe75d48a08346027052992189bda2e9fd9d9e46d66de92\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://3ba833a205405534b2fe75d48a08346027052992189bda2e9fd9d9e46d66de92\"],\"warnings\":[],\"replayed\":false}"
+    "-773fccb8e59c\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://4e3210c977a09598443e759b58ddb4e330496e33c2f9ad4a3f617b7f7c5b94e6\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://4e3210c977a09598443e759b58ddb4e330496e33c2f9ad4a3f617b7f7c5b94e6\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -83,7 +85,7 @@
     "ok": true,
     "failures": []
   },
-  "state_sha256": "b30066cf88910cb91ac9a1239bcdd23093981aae714c9cadaff9813a6169e1f8",
+  "state_sha256": "1809461c88947d24994f79918b986149f24dbaba6d28ba71ce7212778464c4f3",
   "protected": {
     "pass": false,
     "passed": 0,

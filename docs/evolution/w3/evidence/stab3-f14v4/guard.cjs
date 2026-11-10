@@ -14,7 +14,7 @@ const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { parseSse } = require('../shared/usage-from-sse.cjs');
 const { TASKS } = require('./tasks.cjs');
-const { projectCallUsd, costUsd } = require('./plan.cjs');
+const { projectCallUsd, costUsd, usageCostUsd } = require('./plan.cjs');
 
 const dir = process.env.C9_DIR;
 const mode = process.env.F14V4_MODE;
@@ -50,6 +50,8 @@ const sse = (frames) =>
     headers: { 'content-type': 'text/event-stream' },
   });
 const tokens = (value) => Math.ceil(String(value).length / 4);
+// Rehearsal only: from the 2nd request of an execution, 80% of the prompt is reported as cached, to exercise the discount.
+const cachedFor = (priorRequests, promptTokens) => (priorRequests >= 1 ? Math.floor(promptTokens * 0.8) : 0);
 
 // Like the real provider: an alias is answered with the dated snapshot it resolves to; a dated name answers as itself.
 const MOCK_ALIAS_SNAPSHOT = Object.freeze({ 'gpt-4o': 'gpt-4o-2024-08-06' });
@@ -211,7 +213,7 @@ globalThis.fetch = async (url, init) => {
       const usage = {
         prompt_tokens: tokens(init.body),
         completion_tokens: tokens(answer.out) + 8,
-        prompt_tokens_details: { cached_tokens: 0 },
+        prompt_tokens_details: { cached_tokens: cachedFor(total, tokens(init.body)) },
       };
       response = sse([answer.frame, { model: respondingModel(body.model), choices: [], usage }]);
     }
@@ -236,7 +238,8 @@ globalThis.fetch = async (url, init) => {
   // Zero tokens in and out on a response that carries content is not a measurement: treated as unreadable.
   const zeroWithContent = entry.usage?.prompt_tokens === 0 && entry.usage?.completion_tokens === 0 && entry.carried_content === true;
   const readable = entry.usage && entry.usage.prompt_tokens !== null && entry.usage.completion_tokens !== null && !zeroWithContent;
-  entry.cost_usd = readable ? costUsd(entry.usage, prices) : projected;
+  entry.cost_usd = readable ? usageCostUsd(entry.usage, prices) : projected;
+  entry.cost_usd_no_cache = readable ? costUsd(entry.usage, prices) : projected;
   if (!readable) entry.usage_unreadable = true;
   fs.rmSync(inflight, { force: true });
   fs.appendFileSync(log, `${JSON.stringify(entry)}\n`);

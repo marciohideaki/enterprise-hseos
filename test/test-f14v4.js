@@ -19,6 +19,10 @@ const {
   validateRealPrice,
   projectCallUsd,
   interruptedCallUsd,
+  usageCostUsd,
+  costUsd,
+  effectiveCeilingUsd,
+  campaignCeilingUsd,
   countIndependentProofChecks,
 } = require(path.join(dir, 'plan.cjs'));
 const { TASKS, runFilter, runProtected, PLACEBO_SOURCE, PLACEBO_PREFIX } = require(path.join(dir, 'tasks.cjs'));
@@ -240,7 +244,9 @@ test('plan matches the protocol: 42 runs, cap 12, US$ 3.00 cumulative, no 80% ru
   assert.equal(registered.budget.ceiling_usd, 3);
   assert.equal(registered.budget.prior_spend_usd, 0);
   assert.equal(registered.budget.stop_fraction, undefined, 'the 80% rule does not apply');
-  assert.deepEqual(registered.budget.price_usd_per_million, { in: 2.5, out: 10 });
+  assert.deepEqual(registered.budget.price_usd_per_million, { in: 2.5, out: 10, cached_input_fraction: 0.5 });
+  assert.equal(registered.budget.credit_reserve_usd, 0.1);
+  assert.equal(registered.budget.cost_basis, 'estimated-with-cache-discount');
   assert.equal(registered.budget.wall_clock_minutes, 45);
   assert.equal(registered.seed.value, null);
   assert.equal(registered.promotion.method, 'owner-terminal');
@@ -302,6 +308,74 @@ test('cost and stop rule: the US$ 3 ceiling is cumulative, starts from zero and 
   const prices = { priceInPerMillion: 2.5, priceOutPerMillion: 10 };
   assert.ok(Math.abs(projectCallUsd(3000, 1000, prices) - (1000 * 2.5 + 1000 * 10) / 1_000_000) < 1e-12);
   assert.ok(interruptedCallUsd(1024, prices) > 0.25);
+});
+
+test('cost with cache discount: cheaper than no cache for the same usage; worst-case projection stays no cache', () => {
+  const prices = { priceInPerMillion: 2.5, priceOutPerMillion: 10 };
+  const usage = { prompt_tokens: 1_000_000, completion_tokens: 100_000, cached_tokens: 800_000 };
+  const withCache = usageCostUsd(usage, prices);
+  assert.ok(Math.abs(withCache - (200_000 * 2.5 + 800_000 * 2.5 * 0.5 + 100_000 * 10) / 1_000_000) < 1e-12);
+  assert.ok(withCache < costUsd(usage, prices), 'discounted cost is lower than the no-cache cost');
+  assert.equal(usageCostUsd({ ...usage, cached_tokens: 0 }, prices), costUsd(usage, prices), 'no cached tokens: same cost');
+  // Worst-case projection before the call ignores any cache.
+  assert.equal(projectCallUsd(3000, 1000, prices), costUsd({ prompt_tokens: 1000, completion_tokens: 1000 }, prices));
+  // A synthetic execution that breaks the US$ 3 ceiling without the discount and does not with it.
+  const heavy = { prompt_tokens: 1_000_000, completion_tokens: 40_000, cached_tokens: 900_000 };
+  const noCacheUsd = costUsd(heavy, prices) * 1.3;
+  const cachedUsd = usageCostUsd(heavy, prices) * 1.3;
+  assert.ok(noCacheUsd > 3 && cachedUsd < 3, `${noCacheUsd} ${cachedUsd}`);
+  assert.equal(cumulativeDecision({ priorUsd: 0, spentUsd: noCacheUsd }).stop, true);
+  assert.equal(cumulativeDecision({ priorUsd: 0, spentUsd: cachedUsd }).stop, false);
+});
+
+test('invalid cached_tokens never lowers the cost below the clamped value, never goes negative, and cost_usd <= no cache', () => {
+  const prices = { priceInPerMillion: 2.5, priceOutPerMillion: 10 };
+  const base = { prompt_tokens: 1000, completion_tokens: 100 };
+  const noCache = costUsd(base, prices);
+  for (const bad of [-5, 'x', '500', Number.NaN, undefined, null, Infinity, -Infinity]) {
+    const cost = usageCostUsd({ ...base, cached_tokens: bad }, prices);
+    assert.ok(cost >= 0, String(bad));
+    assert.equal(cost, noCache, `invalid ${String(bad)} gives no discount`);
+  }
+  const above = usageCostUsd({ ...base, cached_tokens: 5000 }, prices);
+  assert.equal(above, usageCostUsd({ ...base, cached_tokens: 1000 }, prices), 'above the prompt is clamped');
+  assert.ok(above >= 0 && above <= noCache);
+  for (const cached of [0, 1, 500, 1000, 1e9, -1, 'a', null])
+    assert.ok(usageCostUsd({ ...base, cached_tokens: cached }, prices) <= noCache, String(cached));
+  // The SSE reading path turns an invalid value into null, which the sum counts as 0.
+  const { parseSse, sumUsage } = require(path.join(dir, '..', 'shared', 'usage-from-sse.cjs'));
+  for (const bad of [-5, 'x', Number.NaN, null, undefined, 1.5]) {
+    const text = `data: ${JSON.stringify({ usage: { prompt_tokens: 10, completion_tokens: 1, prompt_tokens_details: bad === undefined ? {} : { cached_tokens: bad } } })}\n`;
+    const parsed = parseSse(text).usage;
+    assert.equal(parsed.cached_tokens, null, String(bad));
+    assert.equal(sumUsage([{ usage: parsed }]).cached_tokens, 0);
+  }
+});
+
+test('effective ceiling is the lower of the ceiling and the credit minus the reserve; both are in the hash', () => {
+  assert.ok(Math.abs(effectiveCeilingUsd(3) - 2.9) < 1e-12);
+  assert.equal(effectiveCeilingUsd(5), 3);
+  assert.equal(effectiveCeilingUsd(3.17), 3);
+  assert.ok(Number.isNaN(effectiveCeilingUsd(Number.NaN)), 'a non-number never yields a usable ceiling');
+  const ceilingOf = (mode, credit, arg) => campaignCeilingUsd({ mode, credit_usd: credit, ceiling_arg: arg });
+  assert.ok(Math.abs(ceilingOf('real', 3) - 2.9) < 1e-12);
+  assert.equal(ceilingOf('real', 5), 3);
+  assert.equal(ceilingOf('real', 3.17), 3);
+  assert.equal(ceilingOf('real', 5, '1'), 3, 'real mode ignores --ceiling');
+  for (const bad of [Number.NaN, undefined]) {
+    const ceiling = ceilingOf('real', bad);
+    assert.ok(Number.isNaN(ceiling));
+    assert.equal(cumulativeDecision({ priorUsd: 0, spentUsd: 0, ceilingUsd: ceiling }).stop, true, 'the gate refuses it');
+  }
+  assert.equal(ceilingOf('fixture', undefined, '0.5'), 0.5);
+  assert.equal(campaignCeilingUsd({ mode: 'fixture' }), 3);
+  const base = confirmationHash();
+  const fraction = structuredClone(PLAN);
+  fraction.budget.price_usd_per_million.cached_input_fraction = 0.51;
+  assert.notEqual(confirmationHash({ plan: fraction }), base, 'cached_input_fraction');
+  const reserve = structuredClone(PLAN);
+  reserve.budget.credit_reserve_usd = 0.11;
+  assert.notEqual(confirmationHash({ plan: reserve }), base, 'credit reserve');
 });
 
 test('real mode price must be explicit and equal to the registered one', () => {
@@ -674,6 +748,25 @@ test('real mode aborts before any call on a missing, invalid or unregistered pri
       assert.match(run.stderr, new RegExp(reason), flags.join(' '));
       assert.equal(fs.existsSync(path.join(out, 'seed.json')), false, 'nothing starts before the price is validated');
     }
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('mutation: computing the measured cost without the cache discount breaks the discount check', async () => {
+  const scratch = fs.mkdtempSync(path.join(tmpBase(), 'f14v4-nocache-'));
+  try {
+    const db = await fixtureDatabase(scratch);
+    const check = (receipt) => receipt.runs.every((run) => run.cost_usd < run.cost_usd_no_cache);
+    const good = runnableCopy(fs.mkdtempSync(path.join(scratch, 'a-')));
+    assert.equal(check(campaignFrom(good.copy, good.root, db, path.join(scratch, 'a-out'), ['--pilots-only']).receipt), true);
+    const bad = runnableCopy(fs.mkdtempSync(path.join(scratch, 'b-')));
+    const file = path.join(bad.copy, 'guard.cjs');
+    const source = fs.readFileSync(file, 'utf8');
+    const mutated = source.replace('usageCostUsd(entry.usage, prices) : projected;', 'costUsd(entry.usage, prices) : projected;');
+    assert.notEqual(mutated, source, 'the mutation must apply');
+    fs.writeFileSync(file, mutated);
+    assert.equal(check(campaignFrom(bad.copy, bad.root, db, path.join(scratch, 'b-out'), ['--pilots-only']).receipt), false);
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
   }
@@ -1187,6 +1280,30 @@ test('the rehearsal campaign promotes through the API only in fixture mode and r
     assert.match(receipt.limits.rehearsal_scope, /fake model.*plumbing/i);
     assert.match(receipt.limits.credit_declared_not_verified, /not verify/i);
     assert.match(receipt.limits.cost_is_estimate, /estimate/i);
+    assert.match(receipt.limits.cost_is_estimate, /cached-input discount.*declared, not verified/i);
+    assert.match(receipt.limits.cost_is_estimate, /not an invoice.*console prevails/i);
+    assert.match(receipt.limits.cost_is_estimate, /100%.*2\.98.*1\.49/);
+    assert.match(receipt.limits.cost_is_estimate, /50% discount.*1\.94.*still above the console/i);
+    assert.match(receipt.limits.cost_is_estimate, /between 50% and 75%/);
+    assert.match(receipt.limits.cost_is_estimate, /console reading can lag/i);
+    assert.match(receipt.limits.credit_lock_scope, /2\.90|3\.00 to 2\.90/);
+    assert.match(receipt.limits.credit_lock_scope, /does not protect a smaller credit.*owner decision/i);
+    assert.match(
+      receipt.limits.estimate_margin_over_console,
+      /0\.4%.*v3.*0\.946.*0\.95.*30%.*v4.*1\.94.*1\.49.*console prevails.*at least 50%/i,
+    );
+    assert.match(receipt.limits.cached_tokens_invalid, /invalid cached_tokens.*becomes 0.*no discount/i);
+    assert.match(PLAN.budget.ceiling_scope, /WITH the published cache discount/);
+    // The two costs and their basis are in the receipt, and the gate base is the discounted one.
+    assert.equal(receipt.totals.cost_basis, 'estimated-with-cache-discount');
+    assert.ok(receipt.totals.cost_usd_no_cache > 0 && receipt.totals.cost_usd <= receipt.totals.cost_usd_no_cache);
+    assert.equal(receipt.totals.cost_usd, receipt.totals.cost_usd_estimate);
+    assert.equal(typeof receipt.totals.cached_tokens, 'number');
+    assert.equal(receipt.totals.effective_ceiling_usd, 3);
+    for (const run of receipt.runs) {
+      assert.equal(run.cost_basis, 'estimated-with-cache-discount');
+      assert.ok(run.cost_usd <= run.cost_usd_no_cache);
+    }
     assert.match(receipt.limits.timeout_policy, /differs from v3/i);
     for (const [key, pattern] of [
       ['product_files_static', /static list.*fixture.*not recomputed.*governed-action.*mcp-protocol.*not proved/is],
@@ -1323,12 +1440,12 @@ test('failure paths stop the campaign: non-SSE, zero usage and the per-request c
     );
     assert.notEqual(cut.receipt.runs[0].provider_proof?.verdict, 'pass');
     assert.equal(cut.receipt.stopped.runs_done, 1);
-    const capped = go('ceiling', ['--ceiling', '0.04'], {});
+    const capped = go('ceiling', ['--ceiling', '0.035'], {});
     assert.equal(capped.run.status, 5, capped.run.stderr);
     assert.equal(capped.receipt.stopped.reason, 'cumulative ceiling');
     assert.equal(capped.receipt.verdict, 'STOPPED: cumulative ceiling');
     assert.equal(capped.receipt.runs[0].stop_reason, 'ceiling-projection');
-    assert.ok(capped.receipt.runs[0].cost_usd <= 0.04, 'the ceiling was not exceeded by the money actually spent');
+    assert.ok(capped.receipt.runs[0].cost_usd <= 0.035, 'the ceiling was not exceeded by the money actually spent');
     const late = go('time', ['--wall-clock-minutes', '0'], {});
     assert.equal(late.receipt.verdict, 'STOPPED: time limit');
     assert.equal(late.receipt.totals.runs, 0);

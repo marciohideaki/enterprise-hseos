@@ -65,16 +65,16 @@ O placebo reaproveita o texto de uma nota real de outra tarefa, com um prefixo n
 
 ## 5. Parâmetros pré-registrados
 
-| Parâmetro             | Valor                                                                                                                                                                      |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Modelo                | `gpt-4o-2024-08-06` (nome datado), binding `openai-compatible`, origem `https://api.openai.com`                                                                            |
-| n                     | 5 por tarefa nas caixas A e B (critério); 3 por tarefa na caixa C (informativa, sem inferência); 3 pilotos. Total: 3 + 15 + 15 + 9 = **42 execuções**                      |
-| Ordem                 | aleatorizada e intercalada dentro de cada tarefa; semente sorteada na hora e gravada antes da primeira chamada                                                             |
-| Limite de requisições | **12** por execução (na v3 era 8). Declarado antes de qualquer dado; bater o teto é registrado à parte e não reescreve a prova                                             |
-| Banco                 | cópia do `project.db` real (API de backup do SQLite), varredura de segredos antes de qualquer uso; removida ao fim; no repositório só sha256 e resultado da varredura      |
-| Medidor               | o da F15: arquivo final reconstruído do ledger (`engineering.write` e `engineering.patch`) com conferência de sha256; sem reconstrução é `no-final-write`, nunca aprovação |
-| Preço                 | `--price-in 2.5 --price-out 10`, iguais ao plano                                                                                                                           |
-| Teto                  | **US$ 3,00** cumulativo, pelo gasto estimado pelo roteiro (sem desconto de cache); parada a 80% **não** se aplica, como na v3; 45 min                                      |
+| Parâmetro             | Valor                                                                                                                                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modelo                | `gpt-4o-2024-08-06` (nome datado), binding `openai-compatible`, origem `https://api.openai.com`                                                                                                                |
+| n                     | 5 por tarefa nas caixas A e B (critério); 3 por tarefa na caixa C (informativa, sem inferência); 3 pilotos. Total: 3 + 15 + 15 + 9 = **42 execuções**                                                          |
+| Ordem                 | aleatorizada e intercalada dentro de cada tarefa; semente sorteada na hora e gravada antes da primeira chamada                                                                                                 |
+| Limite de requisições | **12** por execução (na v3 era 8). Declarado antes de qualquer dado; bater o teto é registrado à parte e não reescreve a prova                                                                                 |
+| Banco                 | cópia do `project.db` real (API de backup do SQLite), varredura de segredos antes de qualquer uso; removida ao fim; no repositório só sha256 e resultado da varredura                                          |
+| Medidor               | o da F15: arquivo final reconstruído do ledger (`engineering.write` e `engineering.patch`) com conferência de sha256; sem reconstrução é `no-final-write`, nunca aprovação                                     |
+| Preço                 | `--price-in 2.5 --price-out 10`, iguais ao plano                                                                                                                                                               |
+| Teto                  | **US$ 3,00** cumulativo, pelo gasto estimado pelo roteiro **com o desconto de cache medido pelo provedor** (mudança de 2026-11-09, ver o fim do documento); parada a 80% **não** se aplica, como na v3; 45 min |
 
 ## 6. Promoção pelo owner
 
@@ -155,3 +155,14 @@ Depois do roteiro mesclado (#311), o owner (1) ratificou o prefixo do placebo e 
 ### Resultado da execução (2026-11-09)
 
 Parada por teto na execução 36 de 42; o critério pré-registrado não é alcançável (promovida 0/5 na tarefa `pass`). Detalhes, custo e limites em `docs/evolution/w3/F14-V4-2026-11.md`.
+
+### Mudança do teto: custo com cache e trava pelo crédito (2026-11-09)
+
+**Decisão do owner:** limitar o gasto pelo que a console cobra, e não pela estimativa sem cache do roteiro. Na execução anterior o roteiro estimou US$ 2,98 sem desconto de cache, a console cobrou cerca de US$ 1,49 (83% dos tokens de entrada vieram do cache), e a estimativa cortou a série na execução 36 de 42. O roteiro não lê a console, então a mudança é determinística e vem de fatos medidos pelo provedor:
+
+- **Custo com cache:** o gasto cumulativo e o teto de US$ 3,00 usam `((entrada − em cache) × preço de entrada + em cache × preço de entrada × 0,5 + saída × preço de saída) / 1e6`, com `cached_tokens` lido do SSE. A fração 0,5 é o desconto publicado de entrada em cache do modelo, declarada e não verificada, e entra no hash. O recibo registra **os dois custos** (`cost_usd` com cache e `cost_usd_no_cache`), `cost_basis` e `cached_tokens`. Sobre o uso da execução anterior, 50% de desconto dá US$ 1,94 e 75% dá US$ 1,42, contra US$ 1,49 da console: a estimativa com 50% fica acima da console, nunca abaixo.
+- **Projeção de pior caso por requisição**, antes da chamada, continua **sem** cache (conservadora), e o custo pessimista de timeout continua como era.
+- **Trava pelo crédito:** em modo real o teto efetivo é `min(US$ 3,00, crédito lido na console − US$ 0,10)`. O gate de entrada (`--credit-usd` ≥ US$ 3,00) continua como estava: com crédito de US$ 3,00 o teto efetivo é US$ 2,90.
+- **Limites:** é estimativa, não fatura, e a console prevalece; o desconto real observado ficou entre 50% e 75%; a leitura da console pode defasar.
+
+**Pendências antes de uma nova execução (decisões do owner):** (a) o crédito da conta B é US$ 1,68 e o gate exige ≥ US$ 3,00; sem recarga a campanha fica BLOCKED; (b) o limite de **45 min**: a execução anterior durou 43,6 min com o host em load ~12 (36 execuções em ~1,2 min cada), então 42 execuções nessa carga passam de 45 min e a campanha pararia por tempo; manter os 45 min exige rodar com o host quieto, e aumentar o limite é decisão do owner; (c) novas promoções no terminal do owner (os bancos preparados foram removidos); (d) a tarefa `pass` fica como está, por decisão do owner.
