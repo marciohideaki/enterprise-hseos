@@ -63,7 +63,7 @@ async function race(t, { maxCost, maxRequests }) {
   });
   for (let index = 0; index < CHILDREN; index++)
     children.push(fork(path.join(__dirname, 'helpers/budget-attempt-process.js'), [], { stdio: ['ignore', 'ignore', 'pipe', 'ipc'] }));
-  const messages = children.map((child) => once(child, 'message'));
+  const ready = children.map((child) => once(child, 'message'));
   for (const child of children)
     child.send({
       state: control.state,
@@ -75,14 +75,20 @@ async function race(t, { maxCost, maxRequests }) {
       maxRequests: 100,
       costMicrousd: COST,
     });
-  const results = (await Promise.all(messages)).map(([message]) => message);
+  for (const [message] of await Promise.all(ready)) assert.equal(message.ready, true, JSON.stringify(message));
+  // Start barrier: every child has loaded modules and opened the shared state before any of them dispatches.
+  const finished = children.map((child) => once(child, 'message'));
+  for (const child of children) child.send({ go: true });
+  const results = (await Promise.all(finished)).map(([message]) => message);
   for (const result of results) assert.equal(result.done, true, JSON.stringify(result));
+  const contention = results.reduce((sum, result) => sum + result.conflicts + result.uncertain, 0);
   const rows = control.ledger.readStream('control_provider_campaign', campaignId);
   const reserved = rows.filter((row) => row.payload.kind === 'reserved');
-  return { results, reserved, calls: fs.readdirSync(callsDir).length, maxCost };
+  return { results, reserved, calls: fs.readdirSync(callsDir).length, maxCost, contention };
 }
 
-function assertCeiling({ results, reserved, calls, maxCost }, expected) {
+function assertCeiling({ results, reserved, calls, maxCost, contention }, expected) {
+  assert.ok(contention > 0, 'no child lost a race, so the run was effectively serial');
   let running = 0;
   for (const row of reserved) {
     running += row.payload.reserved_microusd;

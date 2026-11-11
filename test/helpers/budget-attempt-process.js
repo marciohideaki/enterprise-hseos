@@ -43,6 +43,8 @@ process.once('message', async ({ state, campaignId, taskId, callsDir, reservatio
       },
     };
     const campaigns = new ProviderCampaignControl(control, { [value.binding_id]: configured });
+    process.send({ ready: true });
+    await new Promise((resolve) => process.once('message', resolve));
     const tally = { ok: 0, exhausted: 0, conflicts: 0, uncertain: 0, other: [] };
     attempts: for (let wanted = 0; wanted < reservations; wanted++) {
       for (let attempt = 0; attempt < maxTries; attempt++) {
