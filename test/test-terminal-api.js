@@ -105,6 +105,119 @@ print(json.dumps(r))`,
   assert.deepEqual(await badCursor.json(), { error: 'CONTROL_QUERY_INVALID' });
 });
 
+test('terminal actions and event reads are refused without the control credential and leave no effect', async (t) => {
+  const project = fixture(t, {
+    files: { 'main.py': 'import sys\nprint(sys.stdin.read().upper(),flush=True)' },
+    entry: 'main.py',
+    runtime: 'python',
+  });
+  const control = new EngineeringControl({ workspaces: [project.root] });
+  const credential = 'ephemeral-terminal-refusal-fixture-only';
+  const server = await startControlServer({ control, credential });
+  const client = new ControlClient({ url: server.url, credential });
+  t.after(async () => {
+    await server.close();
+    await control.terminals.shutdown();
+    control.close();
+    control.handle.cleanup();
+  });
+  const task = randomUUID(),
+    id = randomUUID();
+  await client.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: task,
+    expected_sequence: 0,
+    action: 'create',
+    input: { contract: control.prepare(project.contract), responses: [] },
+  });
+  await client.terminal({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: id,
+    expected_sequence: 0,
+    action: 'open',
+    input: { task_id: task, command_id: 'check', mode: 'pty' },
+  });
+  const marker = `refusal-marker-${randomUUID()}`;
+  const text = async (response) => ({ status: response.status, body: await response.json() });
+  const before = await client.terminalQuery(id);
+  const eventsBefore = await client.terminalEvents(id);
+  const sequence = before.current_sequence;
+  const body = (action, input) => ({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: id,
+    expected_sequence: sequence,
+    action,
+    input,
+  });
+  const commands = [
+    body('input', { data: Buffer.from(`${marker}\n`).toString('base64') }),
+    body('resize', { rows: 33, cols: 77 }),
+    body('interrupt', {}),
+    body('eof', {}),
+  ];
+  const attempt = (url, init, headers) => fetch(server.url + url, { ...init, headers: { ...headers, ...init.headers } });
+  const post = (command, headers) =>
+    attempt(
+      '/v1/terminals/commands',
+      { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(command) },
+      headers,
+    );
+  const refusals = [{}, { authorization: 'Bearer wrong-credential-wrong-credential-0000' }, { authorization: credential }];
+  for (const headers of refusals) {
+    for (const command of commands) {
+      assert.deepEqual(
+        await text(await post(command, headers)),
+        { status: 401, body: { error: 'CONTROL_UNAUTHENTICATED' } },
+        command.action,
+      );
+    }
+    for (const route of [`/v1/terminals/${id}/events`, `/v1/terminals/${id}/events?after=0`, `/v1/terminals/${id}`]) {
+      assert.deepEqual(await text(await attempt(route, { method: 'GET' }, headers)), {
+        status: 401,
+        body: { error: 'CONTROL_UNAUTHENTICATED' },
+      });
+    }
+  }
+  const afterRefusals = await client.terminalQuery(id);
+  const eventsAfterRefusals = await client.terminalEvents(id);
+  assert.equal(afterRefusals.current_sequence, sequence);
+  assert.equal(eventsAfterRefusals.events.length, eventsBefore.events.length);
+  assert.equal(eventsAfterRefusals.next_cursor, eventsBefore.next_cursor);
+  const outputOf = (events) =>
+    events.events
+      .filter((r) => r.payload.kind === 'output')
+      .map((r) => Buffer.from(r.payload.data, 'base64').toString())
+      .join('');
+  assert.equal(outputOf(eventsAfterRefusals).includes(marker), false);
+  assert.equal(JSON.stringify(eventsAfterRefusals).includes(marker), false);
+  // Positive control: the very same payloads are accepted with the right credential.
+  const authorized = { authorization: `Bearer ${credential}` };
+  const accepted = [];
+  let next = sequence;
+  for (const command of [commands[0], commands[1], commands[3]]) {
+    const response = await text(await post({ ...command, expected_sequence: next }, authorized));
+    assert.equal(response.status, 200, `${command.action}: ${JSON.stringify(response.body)}`);
+    accepted.push(response.body);
+    next = (await client.terminalQuery(id)).current_sequence;
+  }
+  assert.equal(accepted[0].effect.bytes, Buffer.byteLength(`${marker}\n`));
+  const unauthorizedEvents = await text(await attempt(`/v1/terminals/${id}/events`, { method: 'GET' }, {}));
+  assert.equal(unauthorizedEvents.status, 401);
+  const events = await text(await attempt(`/v1/terminals/${id}/events`, { method: 'GET' }, authorized));
+  assert.equal(events.status, 200);
+  assert.ok(events.body.events.length > eventsBefore.events.length);
+  const deadline = Date.now() + 4000;
+  while (!(await client.terminalQuery(id)).descendants_terminated) {
+    assert.ok(Date.now() < deadline);
+    await new Promise((r) => setTimeout(r, 10));
+  }
+  const output = outputOf(await client.terminalEvents(id));
+  assert.equal(output.split(marker.toUpperCase()).length - 1, 1);
+});
+
 test('interactive attach streams bytes, serializes input/resize, and detaches without terminate', async () => {
   const { PassThrough } = require('node:stream');
   const { attachTerminal } = require('../tools/cli/lib/terminal-attach');
