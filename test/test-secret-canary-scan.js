@@ -101,8 +101,12 @@ async function providerServer(t, observed, { echo = false } = {}) {
       const body = JSON.parse(raw);
       observed.push({ authorization: request.headers.authorization, body, url: request.url });
       if (echo) {
-        const header = request.headers.authorization || '';
-        sendSse(response, [{ choices: [{ delta: { content: `echo ${header.replace(/^Bearer /, '')}` }, finish_reason: 'stop' }] }]);
+        const header = (request.headers.authorization || '').replace(/^Bearer /, '');
+        const text = echo === 'canary' ? `echo ${header}` : 'echo harmless text';
+        sendSse(response, [
+          { choices: [{ delta: { content: text }, finish_reason: 'stop' }] },
+          { choices: [], usage: { prompt_tokens: 8, completion_tokens: 3, prompt_tokens_details: { cached_tokens: 0 } } },
+        ]);
         return;
       }
       if (body.messages.at(-1).role === 'tool') {
@@ -239,14 +243,38 @@ test('scenario A: canary reaches the provider only through the Authorization hea
   assert.deepEqual(fullScan(run), []);
   const files = [...walk(run.result.state)].map((file) => path.basename(file));
   assert.ok(files.length > 0, 'state directory must not be empty');
+  // The supervisor pipes the worker stdout (JSON envelope); stderr may legitimately be empty, so only stdout is required.
+  assert.ok(Buffer.concat(run.captured.stdout).length > 0, 'captured stdout must carry bytes');
 });
 
-test('scenario B: a provider echoing the canary in the SSE content is withheld and leaves no trace', async (t) => {
-  const run = await supervise(t, { echo: true });
+function sessionFailure(state) {
+  const handle = openExecutionLedgerFileFixture(state);
+  try {
+    const rows = handle.db.prepare('select payload_json from execution_events order by position').all();
+    const events = rows.map((row) => JSON.parse(JSON.parse(row.payload_json).session_event_json));
+    return events.find((event) => event.event_type === 'session.failed') ?? null;
+  } finally {
+    handle.close();
+  }
+}
+
+test('scenario B: a provider echoing the canary in the SSE content is refused for that cause and leaves no trace', async (t) => {
+  // Control: the same echoing provider with harmless text completes, so a failure is attributable to the canary.
+  const control = await supervise(t, { echo: 'plain' });
+  assert.equal(control.thrown, null);
+  assert.equal(control.result.status, 'completed');
+  assert.equal(sessionFailure(control.result.state), null);
+
+  const run = await supervise(t, { echo: 'canary' });
   // The provider received the canary legitimately and echoed it back.
   assert.ok(run.observed.length > 0);
   assert.equal(run.observed[0].authorization, `Bearer ${CANARY}`);
-  // The broker refuses the response (PROVIDER_EGRESS_SECRET_EXPOSURE -> 502): no completed run.
-  assert.equal(run.result?.status, 'failed');
+  // Broker refusal (provider-egress-broker.js:105 -> 502) surfaces to the supervisor only as the
+  // session failure below; the broker code PROVIDER_EGRESS_SECRET_EXPOSURE never leaves the broker.
+  assert.equal(run.thrown, null);
+  assert.equal(run.result.status, 'failed');
+  const failure = sessionFailure(run.result.state);
+  assert.equal(failure?.payload?.error_code, 'provider_unavailable');
+  assert.equal(failure.payload.retryable, true);
   assert.deepEqual(fullScan(run), []);
 });
