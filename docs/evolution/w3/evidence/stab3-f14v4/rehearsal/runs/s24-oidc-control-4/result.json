@@ -39,8 +39,8 @@
     "memory_sources": []
   },
   "tool_outcomes": [
-    "-670bbe7463bc\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://c204bf6ee035affdb8f709fcdb4b457e4bf9de7879f7002bd22d6c9965e618b2\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c204bf6ee035affdb8f709fcdb4b457e4bf9de7879f7002bd22d6c9965e618b2\"],\"warnings\":[],\"replayed\":false}"
+    "-799bfa6a45b0\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://a6619af696fdbde5cd8e69215af0ca006033c12e0f927eec7fd08056dbf9a93e\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://a6619af696fdbde5cd8e69215af0ca006033c12e0f927eec7fd08056dbf9a93e\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -75,7 +75,7 @@
     "ok": true,
     "failures": []
   },
-  "state_sha256": "3e751671ff92a04d107276185f6973352fb823548f5cdd6a6c894cd2db9f1702",
+  "state_sha256": "5cd033639102c7167bd13a5fbee619414a26f4ddce8b9cc41eb98024c22d7f65",
   "protected": {
     "pass": false,
     "passed": 0,

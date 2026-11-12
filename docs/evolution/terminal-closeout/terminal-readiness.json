@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "revision": "51acdc27842465a3866c727498f0685d71b505ef",
+  "verdict": "TERMINAL_PRONTO_COM_GATES_DECLARADOS",
+  "owner_gates_file": ".hseos/runs/dev-squad/20261111-terminal-closeout/OWNER-GATES.md",
+  "w6_entry_file": "docs/evolution/terminal-closeout/W6-ENTRY.md",
+  "criteria": [
+    {
+      "id": "T1",
+      "description": "Suíte, lint e cobertura do núcleo verdes",
+      "mechanism": "npm test, lint, cobertura do núcleo e compat Node 22",
+      "command": "npm test && npm run lint",
+      "evidence": [
+        ".hseos/runs/dev-squad/20261111-terminal-closeout/STATUS.md",
+        "package.json",
+        ".c8-kernel.json",
+        ".hseos/runs/dev-squad/20261111-terminal-closeout/REAUDIT-BLIND-TERMINAL-2026-11-11.md"
+      ],
+      "result": "ok",
+      "result_source": "npm test: scripts 1-39 verdes e 40-115 verdes (76/76) em 51acdc27, com o script 40 (test:capability-intake-guard) instável sob carga, pré-existente (OG-17); npm test exit 0 em 75382d1c; npm run lint exit 0; test:kernel-coverage exit 0; Node 22: CI 43137154415 test (22.x) success (local inviável por ABI do nativo); CI da master a0a09757 verde (43137154415, 43137154434, 43137154429)"
+    },
+    {
+      "id": "T2",
+      "description": "Inventário de requisitos coerente com os guards e conflito com o ADR-0050 declarado",
+      "mechanism": "guards de superfície e de rastreio da evolução",
+      "command": "node --test --test-concurrency=1 test/test-kernel-quality-surface.js test/test-evolution-trace.js test/test-terminal-readiness.js",
+      "evidence": [
+        "docs/evolution/requirements.json",
+        "test/test-kernel-quality-surface.js",
+        "test/test-evolution-trace.js",
+        "test/test-terminal-readiness.js"
+      ],
+      "result": "ok",
+      "result_source": "guards pass; conflito de F01/F11/F16/F21 com o ADR-0050 declarado no inventário e ligado ao OG-01"
+    },
+    {
+      "id": "T3",
+      "description": "Famílias de W0-W5 verificadas no escopo da onda",
+      "mechanism": "status do requirements.json por família",
+      "command": "node --test --test-concurrency=1 test/test-terminal-readiness.js",
+      "evidence": ["docs/evolution/requirements.json", ".hseos/runs/dev-squad/20261111-terminal-closeout/OWNER-GATES.md"],
+      "result": "ok",
+      "result_source": "21 de 22 famílias de W0-W5 em verified_w<N>_scope_only; F17 classificada OWNER_DECISAO (OG-05)"
+    },
+    {
+      "id": "T4",
+      "description": "Eixos não verificados classificados e ligados a um gate do owner",
+      "mechanism": "classe e owner_gate por eixo",
+      "command": "node --test --test-concurrency=1 test/test-terminal-readiness.js",
+      "evidence": [".hseos/runs/dev-squad/20261111-terminal-closeout/OWNER-GATES.md", "docs/evolution/requirements.json"],
+      "result": "ok",
+      "result_source": "5 verificadas em escopo local; 17 not_verified, todas com classe e OG"
+    },
+    {
+      "id": "T5",
+      "description": "Jornada instalada, MCP legado e moderno, upgrade, downgrade e rollback",
+      "mechanism": "jornadas instaladas e workflow core-journey",
+      "command": "ver TC-INSTALLED-ACCEPTANCE-2026-11.md",
+      "evidence": [
+        "docs/evolution/terminal-closeout/TC-INSTALLED-ACCEPTANCE-2026-11.md",
+        "docs/evolution/terminal-closeout/evidence/core-journey-result.json",
+        "docs/evolution/terminal-closeout/evidence/mcp-legacy-journey-result.json",
+        "docs/evolution/terminal-closeout/evidence/mcp-modern-journey-result.json",
+        "docs/evolution/terminal-closeout/evidence/upgrade-rollback-result.json",
+        ".github/workflows/core-journey.yaml"
+      ],
+      "result": "ok",
+      "result_source": "core-journey PASS 12, mcp legado PASS 144, moderno PASS 507; upgrade, downgrade e rollback provados; migração de banco ativado entre schemas sem caminho (OG-16)"
+    },
+    {
+      "id": "T6",
+      "description": "Controle do terminal: crash, cancelamento, autorização por ação, jobs",
+      "mechanism": "testes de falha injetada nas fronteiras",
+      "command": "node --test --test-concurrency=1 test/test-terminal-control.js test/test-terminal-executor.js test/test-terminal-api.js test/test-job-control.js",
+      "evidence": [
+        "test/test-terminal-control.js",
+        "test/test-terminal-executor.js",
+        "test/test-terminal-api.js",
+        "test/test-job-control.js"
+      ],
+      "result": "ok",
+      "result_source": "crash nas 6 fronteiras, cancelamento transitivo, 401 por ação, job adiado após morte do controlador"
+    },
+    {
+      "id": "T7",
+      "description": "Segredos, orçamento, egress, isolamento e aprovações",
+      "mechanism": "testes de segurança e de orçamento",
+      "command": "node --test --test-concurrency=1 test/test-secret-canary-scan.js test/test-budget-concurrency.js test/test-provider-egress-broker.js",
+      "evidence": [
+        "test/test-secret-canary-scan.js",
+        "test/test-budget-concurrency.js",
+        "test/test-provider-egress-broker.js",
+        "test/test-agent-transitive-isolation.js",
+        "test/test-engineering-model.js",
+        "test/test-mcp-preapproval-refusal.js"
+      ],
+      "result": "ok",
+      "result_source": "canário, teto agregado com 6 processos, egress, isolamento, sem pool de identidades, aprovações"
+    },
+    {
+      "id": "T8",
+      "description": "Retomada, replay e fork equivalentes sem relançar efeito",
+      "mechanism": "testes de compactação, retomada e fork",
+      "command": "node --test --test-concurrency=1 test/test-compaction-resume-fork.js test/test-compaction-agent-run.js",
+      "evidence": [
+        "test/test-compaction-resume-fork.js",
+        "test/test-compaction-agent-run.js",
+        "test/test-terminal-control.js",
+        "docs/evolution/terminal-closeout/evidence/core-journey-result.json"
+      ],
+      "result": "ok",
+      "result_source": "resume, replay e fork equivalentes; recuperação sem relançar efeito; crash e reinício na jornada instalada"
+    },
+    {
+      "id": "T9",
+      "description": "Documentação factual, neutra e alinhada ao manifesto da CLI",
+      "mechanism": "verificação de fatos da documentação e neutralidade",
+      "command": "bash scripts/governance/verify-doc-facts.sh && node test/test-documentation-neutrality.js",
+      "evidence": [
+        "docs/terminal.md",
+        "scripts/governance/verify-doc-facts.sh",
+        "test/test-documentation-neutrality.js",
+        "tools/cli/command-manifest.json"
+      ],
+      "result": "ok",
+      "result_source": "verify-doc-facts rc=0; neutralidade pass; check:cli 0"
+    },
+    {
+      "id": "T10",
+      "description": "Entrega por PR com checks verdes, tags e sem atribuição",
+      "mechanism": "PRs, tags e validação de mensagem de commit",
+      "command": "bash scripts/governance/validate-commit-msg.sh",
+      "evidence": [".hseos/runs/dev-squad/20261111-terminal-closeout/STATUS.md", "scripts/governance/validate-commit-msg.sh"],
+      "result": "ok",
+      "result_source": "PRs #314, #315 e #316 mescladas com checks verdes e CLEAN; tags hseos-terminal-wa, -wb e -wc; 0 atribuição em 99a54dcc..origin/master; a PR da onda TD segue a mesma regra de merge (CLEAN obrigatório) e recebe a tag -wd depois do merge"
+    },
+    {
+      "id": "T11",
+      "description": "Reauditoria final independente (NÃO DETERMINÍSTICO)",
+      "mechanism": "duas passagens, confronto e fatos conferidos pela ferramenta",
+      "command": "(sem comando)",
+      "evidence": [".hseos/runs/dev-squad/20261111-terminal-closeout/REAUDIT-BLIND-TERMINAL-2026-11-11.md"],
+      "result": "ok",
+      "result_source": "reauditoria cega final em duas passagens: T11 aprovado sem ressalva impeditiva; NÃO DETERMINÍSTICO, controle compensatório: duas passagens, confronto e fatos conferidos pela ferramenta"
+    },
+    {
+      "id": "T12",
+      "description": "Pacote de entrada da W6 com as seções obrigatórias",
+      "mechanism": "teste de seções do W6-ENTRY.md",
+      "command": "node --test --test-concurrency=1 test/test-terminal-readiness.js",
+      "evidence": ["docs/evolution/terminal-closeout/W6-ENTRY.md"],
+      "result": "ok",
+      "result_source": "seções obrigatórias presentes"
+    }
+  ],
+  "families": [
+    {
+      "id": "F01",
+      "wave": 2,
+      "deterministic": "verified_w2_scope_only",
+      "real_consumers": "verified_installed_local_scope_only",
+      "class": {},
+      "owner_gates": ["OG-01"]
+    },
+    {
+      "id": "F02",
+      "wave": 1,
+      "deterministic": "verified_w1_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-02"]
+    },
+    {
+      "id": "F03",
+      "wave": 1,
+      "deterministic": "verified_w1_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-02"]
+    },
+    {
+      "id": "F04",
+      "wave": 4,
+      "deterministic": "verified_w4_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "OWNER_DECISAO"
+      },
+      "owner_gates": ["OG-08"]
+    },
+    {
+      "id": "F05",
+      "wave": 1,
+      "deterministic": "verified_w1_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-02"]
+    },
+    {
+      "id": "F06",
+      "wave": 4,
+      "deterministic": "verified_w4_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-03"]
+    },
+    {
+      "id": "F08",
+      "wave": 3,
+      "deterministic": "verified_w3_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-04"]
+    },
+    {
+      "id": "F09",
+      "wave": 1,
+      "deterministic": "verified_w1_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-02"]
+    },
+    {
+      "id": "F10",
+      "wave": 1,
+      "deterministic": "verified_w1_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-02"]
+    },
+    {
+      "id": "F11",
+      "wave": 2,
+      "deterministic": "verified_w2_scope_only",
+      "real_consumers": "verified_installed_local_scope_only",
+      "class": {},
+      "owner_gates": ["OG-01"]
+    },
+    {
+      "id": "F12",
+      "wave": 4,
+      "deterministic": "verified_w4_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "OWNER_DECISAO"
+      },
+      "owner_gates": ["OG-08"]
+    },
+    {
+      "id": "F13",
+      "wave": 4,
+      "deterministic": "verified_w4_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-03"]
+    },
+    {
+      "id": "F14",
+      "wave": 5,
+      "deterministic": "verified_w5_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "OWNER_DECISAO"
+      },
+      "owner_gates": ["OG-06"]
+    },
+    {
+      "id": "F15",
+      "wave": 5,
+      "deterministic": "verified_w5_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "OWNER_DECISAO"
+      },
+      "owner_gates": ["OG-06"]
+    },
+    {
+      "id": "F16",
+      "wave": 2,
+      "deterministic": "verified_w2_scope_only",
+      "real_consumers": "verified_installed_local_scope_only",
+      "class": {},
+      "owner_gates": ["OG-01"]
+    },
+    {
+      "id": "F17",
+      "wave": 3,
+      "deterministic": "not_verified_for_evolution",
+      "real_consumers": "not_verified",
+      "class": {
+        "deterministic": "OWNER_DECISAO",
+        "real_consumers": "OWNER_DECISAO"
+      },
+      "owner_gates": ["OG-05"]
+    },
+    {
+      "id": "F18",
+      "wave": 3,
+      "deterministic": "verified_w3_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "GASTO_NECESSARIO"
+      },
+      "owner_gates": ["OG-04"]
+    },
+    {
+      "id": "F19",
+      "wave": 1,
+      "deterministic": "verified_w1_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "OWNER_DECISAO"
+      },
+      "owner_gates": ["OG-07"]
+    },
+    {
+      "id": "F20",
+      "wave": 5,
+      "deterministic": "verified_w5_scope_only",
+      "real_consumers": "verified_installed_local_scope_only",
+      "class": {},
+      "owner_gates": []
+    },
+    {
+      "id": "F21",
+      "wave": 4,
+      "deterministic": "verified_w4_scope_only",
+      "real_consumers": "verified_installed_local_scope_only",
+      "class": {},
+      "owner_gates": ["OG-01"]
+    },
+    {
+      "id": "F22",
+      "wave": 4,
+      "deterministic": "verified_w4_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "OWNER_DECISAO"
+      },
+      "owner_gates": ["OG-08"]
+    },
+    {
+      "id": "F23",
+      "wave": 0,
+      "deterministic": "verified_w0_scope_only",
+      "real_consumers": "not_verified",
+      "class": {
+        "real_consumers": "DESENHO_ABERTO"
+      },
+      "owner_gates": ["OG-09"]
+    }
+  ]
+}
