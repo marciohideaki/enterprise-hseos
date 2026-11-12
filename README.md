@@ -215,7 +215,7 @@ This sets up:
 - `.codex/config.toml` + `.codex/hseos-hooks.json` — Codex adapter (when `codex` is in `--tools`)
 - `.hseos/` — agent configurations, workflow definitions, local config, install manifest
 - `.agents/` — vendor-neutral source: `instructions/PROJECT.md`, `skills/<skill>/SKILL.md`, hook + command registries
-- `.enterprise/` — governance overlay copied from the HSEOS source (constitution, agent authority, policies, 49-skill governance library). Preserved if you already have one.
+- `.enterprise/` — governance overlay copied from the HSEOS source (constitution, agent authority, policies, 54-skill governance library). Preserved if you already have one.
 - `AGENTS.md` — minimal platform adapter at the project root pointing at `.agents/instructions/PROJECT.md`. Preserved if you already authored one.
 - `.git/hooks/pre-commit` — runs `scripts/governance/quality-gates.sh` when present. Skipped when `.git/` is absent or when you pass `--no-git-hooks`. Existing hooks are never overwritten.
 
