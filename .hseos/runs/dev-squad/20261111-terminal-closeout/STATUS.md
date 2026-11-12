@@ -123,3 +123,11 @@ CI da `master` `a0a09757` (depois do merge da #316): `CI` 43137154415 success (s
 ## Veredito (Commander)
 
 **TERMINAL PRONTO COM GATES DECLARADOS** — ver `FINAL-REPORT.md`, `REAUDIT-BLIND-TERMINAL-2026-11-11.md` e `OWNER-GATES.md` (OG-01 a OG-17).
+
+## Onda TD — fechada
+
+PR #317: 24 checks `SUCCESS`, `CLEAN`; `hseos pr closeout 317 --approved` → merge `0365ca42`; tag `hseos-terminal-wd`. Mensagens de commit e merge em `99a54dcc..0365ca42` sem atribuição (`grep` rc=1). Worktrees e branches `task/terminal-*` e `feature/terminal-closeout-*` removidos (local e remoto). CI da `master` `0365ca42`: `Core journey` 43145383500 e `Standalone Smoke Test` 43145383493 success; `CI` 43145383587 em execução no momento deste registro. Vault fechado por `/end-session enterprise-hseos` (sessão `sha256:07f488ae4362`, `CONTINUITY.md` instalada, marker fechado).
+
+## Fechamento da versão (pedido do owner, 2026-11-12)
+
+O owner pediu, no terminal, para registrar como pendências as decisões dele ainda abertas e fechar a versão. Feito na PR de fechamento (`feature/terminal-closeout-close`): item 7 da tabela "Pendências antes de abrir a W6" do `docs/evolution/PLAN.md` (OG-01 a OG-17), subseção "Terminal closeout (W0–W5)" no `[Unreleased]` do `CHANGELOG.md` e este registro; tag de fechamento `hseos-terminal-close` depois do merge, no padrão de `hseos-owner-decisions-close` (#264). A versão do pacote (`4.0.0-rc.0`) não muda e nada é publicado (publicação não autorizada). As mesmas decisões ficam como pendências no roadmap do vault (`_knowledge/projects/enterprise-hseos/roadmap.md`).

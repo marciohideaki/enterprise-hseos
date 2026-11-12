@@ -59,6 +59,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The intake guard lexer (bindings path) is still a small lexer, not a parser. It now inspects the union of the previous lexing (`lexLegacy`) and a regex-aware lexing (`lexAware`), so a regex literal containing `/*`, a backtick inside a string, regex or comment within a template `${}`, and a `/` after a closing parenthesis no longer hide code. What remains: a quote or backtick inside a regex literal, followed by a comment on the same line, still hides code (`const r = /'/; export class ICacheStore {} // '`, the same with `/* ' */`, with a backtick, and with `/[/'/]`); the previous release and this one both allow these, and a test pins them so a future fix shows up. A wrong regex-versus-division guess can otherwise make text inside a string or comment count as code, which only asks for an intake that was not needed. Constructs the lexer cannot close are kept as raw text.
 - The snapshot-versus-ECP-ref drift job is not implemented yet.
 
+### Terminal closeout (W0–W5)
+
+- Tests for terminal invariants (#315): the governed boot test is isolated from the host database, every action refuses a missing or invalid credential with its own 401, the aggregate budget ceiling holds across processes, a secret canary scan covers outputs, and a deferred job survives controller death.
+- Installed acceptance covers offline install, upgrade, downgrade refusal and rollback (#316).
+- `docs/terminal.md` documents the terminal as delivered (#316).
+- Machine-checked readiness gate `docs/evolution/terminal-closeout/terminal-readiness.json`, verified by `test/test-terminal-readiness.js`, plus the W6 entry package (#317).
+- Analysis records of the closeout run (#314).
+- The open owner decisions are listed in the "Pendências antes de abrir a W6" table of `docs/evolution/PLAN.md` (item 7).
+- No product code changed, and the package version does not change (nothing is published).
+
 ## [4.0.0-rc.0] — Unpublished candidate
 
 ### Added
