@@ -23,9 +23,7 @@
   "cost_basis": "estimated-with-cache-discount",
   "cap_reached": false,
   "stop_reason": null,
-  "responding_models": [
-    "gpt-4o-2024-08-06"
-  ],
+  "responding_models": ["gpt-4o-2024-08-06"],
   "measure": {
     "reason": "ok",
     "applied": 1,
@@ -41,8 +39,8 @@
     "memory_sources": []
   },
   "tool_outcomes": [
-    "-aced0afe5d22\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://c35370eccda36e95f45fb4bb5300a1fe7677463851f29080da879fd40069608d\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://c35370eccda36e95f45fb4bb5300a1fe7677463851f29080da879fd40069608d\"],\"warnings\":[],\"replayed\":false}"
+    "-631e9d0a6d08\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://e48c1849648040d934b8b3c8561d97ecc84451517ffb0d7287d7a47ccf4f49f1\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://e48c1849648040d934b8b3c8561d97ecc84451517ffb0d7287d7a47ccf4f49f1\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -64,9 +62,7 @@
       },
       "fallback": false,
       "observed": {
-        "models": [
-          "gpt-4o-2024-08-06"
-        ],
+        "models": ["gpt-4o-2024-08-06"],
         "origin": "https://mock.invalid"
       },
       "requests_total": 5,
@@ -79,7 +75,7 @@
     "ok": true,
     "failures": []
   },
-  "state_sha256": "ba242c7740042ebddcdddb1bdd69c60685021f4312eed4faff8fdb1ea3359493",
+  "state_sha256": "92ad070f3b273004bf8eda76412b81052b60e21880564c352aaf028a34ce1880",
   "protected": {
     "pass": false,
     "passed": 0,

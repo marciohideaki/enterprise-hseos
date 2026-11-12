@@ -23,9 +23,7 @@
   "cost_basis": "estimated-with-cache-discount",
   "cap_reached": false,
   "stop_reason": null,
-  "responding_models": [
-    "gpt-4o-2024-08-06"
-  ],
+  "responding_models": ["gpt-4o-2024-08-06"],
   "measure": {
     "reason": "ok",
     "applied": 1,
@@ -47,8 +45,8 @@
     ]
   },
   "tool_outcomes": [
-    "-83cccb6fda00\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"79987892c22dee3c2c0e42d4d85d22f387b777f08a271dd6278cdcadda07931c\"},\"error\":null,\"evidence_refs\":[\"isolation://0afeb6c5e17f20dcc80568d302727976003dfaecd60faaf0c3a3352ad3bf280b\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://0afeb6c5e17f20dcc80568d302727976003dfaecd60faaf0c3a3352ad3bf280b\"],\"warnings\":[],\"replayed\":false}"
+    "-3ca658b44fde\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"79987892c22dee3c2c0e42d4d85d22f387b777f08a271dd6278cdcadda07931c\"},\"error\":null,\"evidence_refs\":[\"isolation://0780e6fa6fd547db62a69e98cfe089f237200f3b8122958b4ca1f48299fbbda4\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://0780e6fa6fd547db62a69e98cfe089f237200f3b8122958b4ca1f48299fbbda4\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -70,9 +68,7 @@
       },
       "fallback": false,
       "observed": {
-        "models": [
-          "gpt-4o-2024-08-06"
-        ],
+        "models": ["gpt-4o-2024-08-06"],
         "origin": "https://mock.invalid"
       },
       "requests_total": 3,
@@ -85,7 +81,7 @@
     "ok": true,
     "failures": []
   },
-  "state_sha256": "28f86e3a591d900a48e1f047cb5c5ade7eebcd666bc3af26c2c169c5d6c0d7c4",
+  "state_sha256": "0533f0b02d23a022a32440247db526ef4c028b13bc26cd4542e92f0f9fc78351",
   "protected": {
     "pass": true,
     "passed": 13,

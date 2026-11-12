@@ -23,9 +23,7 @@
   "cost_basis": "estimated-with-cache-discount",
   "cap_reached": false,
   "stop_reason": null,
-  "responding_models": [
-    "gpt-4o-2024-08-06"
-  ],
+  "responding_models": ["gpt-4o-2024-08-06"],
   "measure": {
     "reason": "ok",
     "applied": 1,
@@ -41,8 +39,8 @@
     "memory_sources": []
   },
   "tool_outcomes": [
-    "-a2ca6b3bd85b\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://38e2693057cb4e64122486601229a416e600e8fe6895fa8368e8a77dd187c333\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://38e2693057cb4e64122486601229a416e600e8fe6895fa8368e8a77dd187c333\"],\"warnings\":[],\"replayed\":false}"
+    "-6cbc28ad00d8\",\"result\":{\"path\":\"oidc.js\",\"sha256\":\"86edfa5b6458818d575c9ae815cbe64b739b227719d195f5b532eb751a6ccd55\"},\"error\":null,\"evidence_refs\":[\"isolation://72816aa780e6e5bc00e4d8f01f00f94dd5950544e937d55943f1da0b31951d13\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://72816aa780e6e5bc00e4d8f01f00f94dd5950544e937d55943f1da0b31951d13\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -64,9 +62,7 @@
       },
       "fallback": false,
       "observed": {
-        "models": [
-          "gpt-4o-2024-08-06"
-        ],
+        "models": ["gpt-4o-2024-08-06"],
         "origin": "https://mock.invalid"
       },
       "requests_total": 5,
@@ -79,16 +75,12 @@
     "ok": true,
     "failures": []
   },
-  "state_sha256": "64ccc1192772f58110c1f16149ca164f86ee4b9e9113831cc6ee5e0fbe50f952",
+  "state_sha256": "4bec0d473c2df90da54312e93b1f710e8f190ecfd9c68eccc45cf4bfeff6c651",
   "protected": {
     "pass": false,
     "passed": 0,
     "total": 3,
-    "failed": [
-      "marketplace",
-      "ai-agents-os",
-      "poynthub"
-    ]
+    "failed": ["marketplace", "ai-agents-os", "poynthub"]
   },
   "product_verifier_approved": false,
   "success": false
