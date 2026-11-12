@@ -90,3 +90,36 @@ Cauda depois da TB6 (`420a23b2`, `heavy-run`): `test:f14v4` 0, `test:f15l2-campa
 ## Suíte completa da onda TC (`75382d1c`)
 
 `heavy-run --mem 4G` (Node 24.15.0): `npm run lint` exit 0; **`npm test` exit 0** (todos os 114 scripts da cadeia). É a primeira suíte local completa verde desta run (a da linha de base tinha a GM-01; a da TB foi dividida pela D6). O topo da onda (`bbc9814f`) difere só em `README.md:218`, coberto por `verify-doc-facts.sh` rc=0 e pela neutralidade.
+
+## Tasks da onda TD
+
+| Task | Lacuna | Commit (task) | Rodadas | Revisão (cega / confronto) | Resultado copiado da ferramenta |
+|---|---|---|---|---|---|
+| TD3 | GM-16 | `eaf0e007` + rodada 2 `d5a1ed41` | 2 | duas passagens: 0 BLOCKER, 1 MAJOR (W6-ENTRY trata 2026-11-30 como fim geral do compat MCP; no banco ativado, sem `HSEOS_MCP_LEGACY_SUNSET`, o compat nunca expira — `native-mcp-server.js:112-116,161`, reconferido pelo Commander), 4 MINOR / E1–E3 confirmadas, E4 confirmada nos fatos e refutada como descrição | `test/test-terminal-readiness.js` 25/25; 14 adulterações temporárias do JSON real derrubaram o gate; `test-kernel-quality-surface.js` 14/14. Rodada 2: MAJOR-1, MINOR-2 e MINOR-4 fechados (confronto confirmado); `TERMINAL_PRONTO` exige T1–T12 `ok`; 26/26; `package.json` inalterado na rodada 2 |
+| TD3b | D6 | `3177957f` | 1 | conferência do Commander (mesmo procedimento revisado na TB6) | ensaio fixture regenerado; `confirmation_sha256` `7091c974…` = `--print-confirmation`; `test/test-f14v4.js` 44/44; só `rehearsal/**` mudou |
+
+Nota (Commander): o compat MCP legado **não** expira em 2026-11-30 no produto ativado: `native-mcp-server.js:112-116,161` passa `null` sem `HSEOS_MCP_LEGACY_SUNSET`, e `null` é sem expiração (`mcp-2026-adapter.js:40-41`); a data embutida vale só no modo fixture de teste. Coerente com o ADR-0048 (sunset sem data).
+
+## Onda TB e TC — fechadas
+
+- PR #315 (TB): 24 checks `SUCCESS`, `CLEAN`; `hseos pr closeout 315 --approved` → merge `4a489344`; tag `hseos-terminal-wb`.
+- PR #316 (TC): ficou `BEHIND` depois da #315 (merge commit na `master`); `master` integrada na feature (`d48dc01b`), CI refeito; 24 checks `SUCCESS`, `CLEAN`; merge `a0a09757`; tag `hseos-terminal-wc`. Mensagens de merge sem atribuição (`grep` rc=1).
+
+## T1 — execuções locais complementares (topo da TC, `c0f5526a`)
+
+`heavy-run --mem 4G`: `npm run test:kernel-coverage` **exit 0** (gate 90/80 por arquivo crítico do `.c8-kernel.json`); `npm run test:node22-compat` com `node` v22.22.1 (`/usr/bin/node`): **inviável neste host**, 67 `not ok`, todos `ERR_DLOPEN_FAILED` (`better-sqlite3` do `node_modules` compartilhado compilado para `NODE_MODULE_VERSION` 137, Node 24; o Node 22 exige 127); processo encerrado por PID. Limite de ambiente, **não** convertido em PASS. A prova do Node 22 vem do CI: job `test (22.x)` **success** no CI da `master` `4a489344` (run 43130302043).
+
+| D8 | Node 22 do T1 pelo CI (`test (22.x)`), não pela execução local | recompilar o nativo num `node_modules` próprio para Node 22 | Recompilar exige rede ou toolchain e um segundo `node_modules`; o CI roda o subconjunto `test:node22-compat` por PR e a suíte completa no agendamento noturno (`PLAN.md`, "Entregue pelo fechamento") |
+
+## Suíte completa da onda TD (`51acdc27`)
+
+`heavy-run --mem 4G` (Node 24.15.0): `npm run lint` exit 0; `npm test` **exit 1** no script 40 (`test:capability-intake-guard`): `test/test-capability-intake-guard.js:1440` "4x the text cost 7.05x (26.0 ms -> 183.4 ms)", asserção de desempenho relativo. Diagnóstico: o arquivo e `tools/` não mudaram desde `99a54dcc` (`git diff --stat` vazio); isolado, 3 execuções seguidas (load ~4): rc=1 (pass 101 fail 1), rc=0 (102/0), rc=0 (102/0). Instabilidade temporal sob carga, pré-existente (o MAPA, "Pendentes (STATUS da run)", já registrava o guard de 200 ms desse teste falhando sob carga e passando isolado). Não afrouxado. A linha de base e a suíte da TC passaram nesse script. Cauda a partir do script 40 rodada de novo, um a um: ver abaixo.
+
+Cauda (scripts 40 a 115) rodada um a um no topo `51acdc27` (`run-tail-wt.sh 39`, `heavy-run`): **76 de 76 exit 0** (`td-tail.codes`), incluindo `test:capability-intake-guard` e `test:terminal-readiness`. **Suíte da onda TD:** scripts 1–39 verdes na primeira execução + 40–115 verdes na cauda; lint 0.
+
+CI da `master` `a0a09757` (depois do merge da #316): `CI` 43137154415 success (shards 24.x 1–6, `test (24.x)`, **`test (22.x)`** e `governance` success), `Core journey (installed package)` 43137154434 success, `Standalone Smoke Test` 43137154429 success.
+| TD4a | T1, T10, T11 | commit da task `terminal-td4` | 1 | conferência do Commander (diff do teste: só a cópia adulterada força T11 `ausente`; nenhuma regra mudou) | `terminal-readiness.json`: T1, T10, T11 `ok` com os textos C1/C2 aprovados pela auditoria; `test-terminal-readiness.js` 26/26, `test-kernel-quality-surface.js` 14/14, `test-evolution-trace.js` 14/14 |
+
+## Veredito (Commander)
+
+**TERMINAL PRONTO COM GATES DECLARADOS** — ver `FINAL-REPORT.md`, `REAUDIT-BLIND-TERMINAL-2026-11-11.md` e `OWNER-GATES.md` (OG-01 a OG-17).
