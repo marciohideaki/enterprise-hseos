@@ -124,7 +124,7 @@ Estado em 2026-11-04, ao fim do fechamento pré-W6 (run `20261101-pre-w6-closeou
 
 Famílias que continuam em `not_verified` por falta de critério atendido, com a causa no inventário: F17 em `deterministic` (composição ACP sem backend efetivo provado e sem binding local) e, no eixo `real_consumers`, F08, F17 e F18 e todas as de binding por API ou conta (campanhas L2 incompletas; a quarta família está diferida, com a C6 BLOCKED por decisão do owner, sem a chave `google/gemini-hseos`). F18 `deterministic` foi promovida em 2026-11-05 sobre os sete bindings oficiais listados no ADR-0050 (respostas posteriores).
 
-**Fechamento do terminal (2026-11-11).** A run `20261111-terminal-closeout` reconcilia o inventário e os documentos canônicos com o código (A-09 e A-15 acima) e prova invariantes do terminal por teste. Nenhum valor de `status.*` mudou. A ratificação de F01, F11, F16 e F21 pelo owner é o OWNER-GATE `OG-01`. O pacote e o veredito ficam em `docs/evolution/terminal-closeout/`.
+**Fechamento do terminal (2026-11-11).** A run `20261111-terminal-closeout` reconcilia o inventário e os documentos canônicos com o código (A-09 e A-15 acima) e prova invariantes do terminal por teste. Nenhum valor de `status.*` mudou. A ratificação de F01, F11, F16 e F21 pelo owner é o OWNER-GATE `OG-01`. O pacote e o veredito ficam em `docs/evolution/terminal-closeout/`. Veredito: TERMINAL PRONTO COM GATES DECLARADOS; gate legível por máquina em `docs/evolution/terminal-closeout/terminal-readiness.json` (`test/test-terminal-readiness.js`); pacote de entrada da W6 em `docs/evolution/terminal-closeout/W6-ENTRY.md`; gates do owner OG-01 a OG-17 no `OWNER-GATES.md` da run; a W6 não foi iniciada.
 
 ## Verificação e fechamento
 

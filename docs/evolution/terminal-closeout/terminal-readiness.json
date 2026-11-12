@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "c0f5526a07b89be7cfedb954516a13efeeca2e37",
+  "revision": "51acdc27842465a3866c727498f0685d71b505ef",
   "verdict": "TERMINAL_PRONTO_COM_GATES_DECLARADOS",
   "owner_gates_file": ".hseos/runs/dev-squad/20261111-terminal-closeout/OWNER-GATES.md",
   "w6_entry_file": "docs/evolution/terminal-closeout/W6-ENTRY.md",
@@ -10,9 +10,14 @@
       "description": "Suíte, lint e cobertura do núcleo verdes",
       "mechanism": "npm test, lint, cobertura do núcleo e compat Node 22",
       "command": "npm test && npm run lint",
-      "evidence": [".hseos/runs/dev-squad/20261111-terminal-closeout/STATUS.md", "package.json", ".c8-kernel.json"],
+      "evidence": [
+        ".hseos/runs/dev-squad/20261111-terminal-closeout/STATUS.md",
+        "package.json",
+        ".c8-kernel.json",
+        ".hseos/runs/dev-squad/20261111-terminal-closeout/REAUDIT-BLIND-TERMINAL-2026-11-11.md"
+      ],
       "result": "ok",
-      "result_source": "npm test exit 0 e npm run lint exit 0 em 75382d1c (heavy-run, Node 24.15.0); test:kernel-coverage e test:node22-compat: ver STATUS, seção T1; CI da master: ver STATUS"
+      "result_source": "npm test: scripts 1-39 verdes e 40-115 verdes (76/76) em 51acdc27, com o script 40 (test:capability-intake-guard) instável sob carga, pré-existente (OG-17); npm test exit 0 em 75382d1c; npm run lint exit 0; test:kernel-coverage exit 0; Node 22: CI 43137154415 test (22.x) success (local inviável por ABI do nativo); CI da master a0a09757 verde (43137154415, 43137154434, 43137154429)"
     },
     {
       "id": "T2",
@@ -127,16 +132,16 @@
       "command": "bash scripts/governance/validate-commit-msg.sh",
       "evidence": [".hseos/runs/dev-squad/20261111-terminal-closeout/STATUS.md", "scripts/governance/validate-commit-msg.sh"],
       "result": "ok",
-      "result_source": "PRs #314, #315, #316 e a da onda TD com checks verdes e CLEAN; tags hseos-terminal-wa..wd; 0 atribuição"
+      "result_source": "PRs #314, #315 e #316 mescladas com checks verdes e CLEAN; tags hseos-terminal-wa, -wb e -wc; 0 atribuição em 99a54dcc..origin/master; a PR da onda TD segue a mesma regra de merge (CLEAN obrigatório) e recebe a tag -wd depois do merge"
     },
     {
       "id": "T11",
       "description": "Reauditoria final independente (NÃO DETERMINÍSTICO)",
       "mechanism": "duas passagens, confronto e fatos conferidos pela ferramenta",
       "command": "(sem comando)",
-      "evidence": [],
-      "result": "ausente",
-      "result_source": "reauditoria final pendente"
+      "evidence": [".hseos/runs/dev-squad/20261111-terminal-closeout/REAUDIT-BLIND-TERMINAL-2026-11-11.md"],
+      "result": "ok",
+      "result_source": "reauditoria cega final em duas passagens: T11 aprovado sem ressalva impeditiva; NÃO DETERMINÍSTICO, controle compensatório: duas passagens, confronto e fatos conferidos pela ferramenta"
     },
     {
       "id": "T12",

@@ -147,7 +147,17 @@ const NEGATIVE = [
   ['owner_gate inexistente', (d) => (d.families.find((f) => f.id === 'F02').owner_gates = ['OG-99']), /OG-99 não aparece/],
   ['verdict fora do enum', (d) => (d.verdict = 'PRONTO'), /verdict fora do enum/],
   ['TERMINAL_PRONTO com real_consumers not_verified', (d) => (d.verdict = 'TERMINAL_PRONTO'), /TERMINAL_PRONTO com família/],
-  ['TERMINAL_PRONTO com T11 ausente', (d) => (d.verdict = 'TERMINAL_PRONTO'), /TERMINAL_PRONTO exige T1 a T12 todos ok/],
+  [
+    'TERMINAL_PRONTO com T11 ausente',
+    (d) => {
+      d.verdict = 'TERMINAL_PRONTO';
+      Object.assign(
+        d.criteria.find((c) => c.id === 'T11'),
+        { result: 'ausente', evidence: [] },
+      );
+    },
+    /TERMINAL_PRONTO exige T1 a T12 todos ok/,
+  ],
   [
     'verdict com critério obrigatório não ok',
     (d) => (d.criteria.find((c) => c.id === 'T6').result = 'parcial'),
@@ -178,7 +188,10 @@ for (const section of REQUIRED_SECTIONS) {
 
 test('T11 ausente é aceito em TERMINAL_PRONTO_COM_GATES_DECLARADOS', () => {
   const doc = realDoc();
-  assert.equal(doc.criteria.find((c) => c.id === 'T11').result, 'ausente');
+  Object.assign(
+    doc.criteria.find((c) => c.id === 'T11'),
+    { result: 'ausente', evidence: [] },
+  );
   assert.equal(doc.verdict, 'TERMINAL_PRONTO_COM_GATES_DECLARADOS');
   assert.deepEqual(validateReadiness(doc, realContext()), []);
 });
