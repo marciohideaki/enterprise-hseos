@@ -243,3 +243,90 @@ test('resource ownership is rechecked after asynchronous admission in both direc
   await assert.rejects(f.jobs.execute({ ...f.create, resource_id: other }), { code: 'JOB_RESOURCE_CONFLICT' });
   assert.deepEqual(f.jobs.rows(other), []);
 });
+const T0 = Date.parse('2027-03-01T00:00:00.000Z');
+const createAt = (f, id, notBefore, deadline) => ({
+  schema_version: 1,
+  command_id: randomUUID(),
+  resource_id: id,
+  action: 'create',
+  expected_sequence: 0,
+  input: {
+    kind: 'task',
+    definition: { contract: f.contract, responses: [] },
+    not_before: new Date(notBefore).toISOString(),
+    deadline_at: new Date(deadline).toISOString(),
+    depends_on: [],
+  },
+});
+const claims = (control, id) => control.jobs.rows(id).filter((row) => row.payload.command?.action === 'claim');
+const dispatches = (control, id) => control.jobs.rows(id).filter((row) => row.payload.phase === 'intent');
+
+for (const hard of [false, true]) {
+  test(`deferred job survives ${hard ? 'a killed' : 'a closed'} controller and a reopened one dispatches it once, never early`, async (t) => {
+    const f = fixture(t, { expected: 4 });
+    const first = new EngineeringControl({ workspaces: [f.root] });
+    const state = first.state;
+    t.after(() => fs.rmSync(state, { recursive: true, force: true }));
+    const id = randomUUID();
+    const command = createAt(f, id, T0 + 60_000, T0 + 600_000);
+    if (hard) {
+      first.close();
+      const { spawnSync } = require('node:child_process');
+      const script = `const {EngineeringControl}=require(process.argv[1]);const c=new EngineeringControl({state:process.argv[2],workspaces:[process.argv[3]]});c.jobs.execute(JSON.parse(process.argv[4])).then(()=>process.kill(process.pid,'SIGKILL'));`;
+      const child = spawnSync(
+        process.execPath,
+        ['-e', script, require.resolve('../tools/cli/lib/engineering-control'), state, f.root, JSON.stringify(command)],
+        { encoding: 'utf8' },
+      );
+      assert.equal(child.signal, 'SIGKILL', child.stderr);
+    } else {
+      await first.jobs.execute(command);
+      await first.jobs.dispatcher.shutdown();
+      first.close();
+    }
+    let clock = T0;
+    const second = new EngineeringControl({ state, workspaces: [f.root] });
+    t.after(async () => {
+      await second.jobs.dispatcher.shutdown();
+      second.close();
+    });
+    second.jobs.now = () => clock;
+    assert.equal(second.jobs.query(id).status, 'queued');
+    assert.equal(second.jobs.rows(id).length, 1);
+    assert.equal(claims(second, id).length + dispatches(second, id).length, 0);
+    clock = T0 + 59_999;
+    await second.jobs.dispatcher.tick();
+    assert.equal(second.jobs.query(id).status, 'queued');
+    assert.equal(second.jobs.rows(id).length, 1);
+    assert.equal(second.rows(id).length, 0);
+    clock = T0 + 60_000;
+    await second.jobs.dispatcher.tick();
+    assert.equal(claims(second, id).length, 1);
+    assert.equal(second.jobs.rows(id).filter((row) => row.payload.phase === 'intent').length, 1);
+    const count = second.jobs.rows(id).length;
+    await second.jobs.dispatcher.tick();
+    assert.equal(second.jobs.rows(id).length, count);
+    assert.equal(claims(second, id).length, 1);
+    assert.equal(second.jobs.rows(id).filter((row) => row.payload.phase === 'intent').length, 1);
+  });
+}
+
+test('deferred job past its deadline expires on a reopened controller without materializing', async (t) => {
+  const f = fixture(t, { expected: 4 });
+  const first = new EngineeringControl({ workspaces: [f.root] });
+  const state = first.state;
+  t.after(() => fs.rmSync(state, { recursive: true, force: true }));
+  const id = randomUUID();
+  await first.jobs.execute(createAt(f, id, T0 + 60_000, T0 + 600_000));
+  first.close();
+  const second = new EngineeringControl({ state, workspaces: [f.root] });
+  t.after(async () => {
+    await second.jobs.dispatcher.shutdown();
+    second.close();
+  });
+  second.jobs.now = () => T0 + 600_000;
+  await second.jobs.dispatcher.tick();
+  assert.equal(second.jobs.query(id).status, 'expired');
+  assert.equal(second.rows(id).length, 0);
+  assert.equal(claims(second, id).length + dispatches(second, id).length, 0);
+});

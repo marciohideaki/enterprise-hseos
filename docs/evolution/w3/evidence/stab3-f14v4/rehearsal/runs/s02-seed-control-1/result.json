@@ -23,9 +23,7 @@
   "cost_basis": "estimated-with-cache-discount",
   "cap_reached": false,
   "stop_reason": null,
-  "responding_models": [
-    "gpt-4o-2024-08-06"
-  ],
+  "responding_models": ["gpt-4o-2024-08-06"],
   "measure": {
     "reason": "ok",
     "applied": 1,
@@ -41,8 +39,8 @@
     "memory_sources": []
   },
   "tool_outcomes": [
-    "-fb189d9d49e1\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://ff985c7d7030afab622265443a319bc5b79df90881cff338d2e9bc7515f3add9\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://ff985c7d7030afab622265443a319bc5b79df90881cff338d2e9bc7515f3add9\"],\"warnings\":[],\"replayed\":false}"
+    "-69f1c6d6323d\",\"result\":{\"path\":\"seed.js\",\"sha256\":\"bf08e4abe76007fa7e4d4fe65b09bc31fb696efc6f177dde3cf201c589c6df53\"},\"error\":null,\"evidence_refs\":[\"isolation://24ce468b5bc6bd84a7b3c1c852fa6015aa7c191397116d9e99bf6fce63657b25\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://24ce468b5bc6bd84a7b3c1c852fa6015aa7c191397116d9e99bf6fce63657b25\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -64,9 +62,7 @@
       },
       "fallback": false,
       "observed": {
-        "models": [
-          "gpt-4o-2024-08-06"
-        ],
+        "models": ["gpt-4o-2024-08-06"],
         "origin": "https://mock.invalid"
       },
       "requests_total": 5,
@@ -79,19 +75,12 @@
     "ok": true,
     "failures": []
   },
-  "state_sha256": "14cefadcf9d1c46a5443b8275340517be2db259a907086f3b47c5f2e158f24b1",
+  "state_sha256": "aa4ba13a18dd3986e15f2a7a56d4adf61c9acca7be690bc6d541849c67387a2a",
   "protected": {
     "pass": false,
     "passed": 0,
     "total": 6,
-    "failed": [
-      "client-1",
-      "provider-12",
-      "support-345",
-      "driver-9999",
-      "admin-primary",
-      "admin-2"
-    ]
+    "failed": ["client-1", "provider-12", "support-345", "driver-9999", "admin-primary", "admin-2"]
   },
   "product_verifier_approved": false,
   "success": false

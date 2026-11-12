@@ -27,3 +27,51 @@ Commander: thread principal (Opus). Squad: Sonnet. Autorizações do owner: `INT
 ## Tasks
 
 (preenchido por task: commit, rodadas, revisão, métricas)
+
+## Contrato do dev-squad (skill carregada em 2026-11-11)
+
+- G2 (aprovação do plano), G4 (abrir PR) e G5 (merge): **pré-autorizados pelo owner** no prompt da run (seção 1: merge autorizado com checks verdes e `CLEAN`; fase 4: "não peça aprovação do plano"; "Interação com o owner: nenhuma"). Registro exigido pelo `AGENTS.md` §9 está no `INTAKE.md`.
+- `hseos state-emit start` e `gate G2` emitidos (best-effort; códigos de saída abaixo na seção de métricas da onda TA).
+- Um `WAVE-<k>-REPORT.md` por onda.
+
+## Decisões de processo da TB
+
+| # | Decisão | Alternativa descartada | Razão |
+|---|---|---|---|
+| D3 | `validate` por task com `GATE_CODE_MODE=light` (gate do pre-commit: lint, prettier, testes tocados ou que citam o arquivo, G3) e **uma** suíte completa por onda sob `heavy-run` antes do push | `validate` padrão, que roda `npm test` completo por task | O prompt fixa "uma suíte completa por onda" e "no máximo 1 suíte completa por vez"; o `validate` padrão rodou a suíte completa duas vezes em paralelo com a cauda da linha de base |
+| D4 | Todo comando de gate com o Node 24 na frente do `PATH` | `/usr/bin/node` do shell (v22.22.1) | Com o Node 22 o gate leve falhou em `test/test-mcp-hseos-governance.js` + `test-package-surface.js`; com o Node 24, `FAILURES: 0` |
+
+## Linha de base da cauda (fase 1)
+
+`heavy-run --mem 4G -- run-tail.sh 58` (scripts 59 a 112 da cadeia do `npm test`, um a um, Node 24.15.0), concluída em 2026-11-11T23:37:53Z: **54 de 54 com exit 0** (`baseline-tail.codes`). Somando a primeira execução (scripts 1 a 57 verdes, 58 vermelho), a linha de base local é **111 de 112 scripts verdes**, e o único vermelho é a GM-01.
+
+## Tasks da onda TB
+
+| Task | Lacuna | Commit (task) | Rodadas | Revisão (cega / confronto) | Resultado copiado da ferramenta |
+|---|---|---|---|---|---|
+| TB1 | GM-01 | `9020f4ef` | 1 | sem BLOCKER/MAJOR; 2 MINOR (banco v4 existente; sem mutação de produto) / A1, A3–A6 confirmadas, A2 parcial (rc não capturado pelo revisor; o executor e o Commander tinham `32 passed, 1 failed`) | teste antigo com banco ativado: `32 passed, 1 failed`; novo com e sem banco ativado: `33 passed, 0 failed`, rc=0. MINOR do banco v4: `resolveGovernedExecutionMode` devolve `legacy` para inexistente e para v4 (`operational-state-db.js:331,335`) e o servidor recusa todo modo diferente de `modern` (`native-mcp-server.js:148`, reconferido pelo Commander) |
+| TB2 | GM-02 | `aedb9441` | 1 | 0 BLOCKER/MAJOR, 4 MINOR / A1–A4 e A6 confirmadas, A5 parcial; revisor: nenhum MINOR bloqueia | `test/test-terminal-api.js`: pass 9, fail 0 (executor e revisor, 4 execuções); mutantes M1 (checagem global, `engineering-control-http.js:48`) pass 7 fail 2, M2 (só `POST /v1/terminals/commands`) fail 1, M3 (só `/events`) fail 1; `git diff -- tools` vazio. **Limites declarados (aceitos pelo Commander, proporcionalidade: a checagem é única e global antes do roteamento, e M1 a mata):** `interrupt` sem controle positivo; `terminate`, `recover` e `reconcile` sem caso de recusa próprio; 403 de origem/host fora; prazo de 4 s de relógio de parede |
+
+## Onda TA — fechada
+
+PR #314: todos os checks `SUCCESS` (18) e `mergeStateStatus` `CLEAN`; merge por `hseos pr closeout 314 --approved` (merge commit `4c9352c7`, branch `feature/terminal-closeout-ta` removida pelo closeout); tag `hseos-terminal-wa` publicada em `4c9352c7`. Mensagem do merge sem atribuição (`grep` rc=1).
+
+| # | Decisão | Alternativa descartada | Razão |
+|---|---|---|---|
+| D5 | Rodada de correção de uma task já integrada na feature vira **commit próprio** da mesma task (`terminal-tb3r2`), registrado como rodada 2 | `commit --amend` + reescrever a feature | A feature já avançou (TB4 foi criada sobre `5f3518d2`); reescrever exigiria mover a feature para trás. O commit de correção é rastreado como rodada da TB3 |
+| TB4 | GM-04 | `26d1fb5d` + rodada 2 `f2a7b4d7` | 2 | 0 BLOCKER/MAJOR, 3 MINOR + 1 NOTE / A1, A2 (502 genérico em `provider-egress-broker.js:165`), A4 confirmadas, A3 consistente com mutação equivalente; MINOR 3 rebaixado (`bound-kernel-supervisor.js:189` usa `stdio: pipe`); nenhum bloqueia | `test/test-secret-canary-scan.js` 3 testes, pass 3 fail 0 (3 execuções, executor e revisor); mutante no eco do broker (`provider-egress-broker.js:105`) falha em `:250`; `git diff -- tools packages` vazio. **Limites declarados:** eco no corpo do request (`:133`) não exercitado; sandbox `ai-jail` é shim; argv, headers além de `Authorization`, eco em header de resposta ou partido entre chunks, codificações além de bruto/base64/hex, `os.tmpdir()` do supervisor e HOME não varridos |
+| TB3 | GM-03 | `5f3518d2` + rodada 2 `3fe35e2f` | 2 | rodada 1: MAJOR (disputa real não provada) / rodada 2: MAJOR fechado; A2, A3 (resultado), A4, A5 confirmadas, A1 não verificada pelo revisor | `test/test-budget-concurrency.js` (6 processos `fork` sobre o mesmo state, barreira de largada, `contention > 0`): pass 2 fail 0 em 5 execuções do executor (contenção mínima 11) e 3 do revisor. Mutantes: (a) checagem de custo `:448` morto (`cumulative reservation 4000 exceeded ceiling 3000`); (c) `.immediate()` → deferred morto; (b) checagem de sequência `:551` **sobrevive** — reconferido pelo Commander: equivalente quanto ao teto, porque `admitDispatch` relê o estado dentro da transação `IMMEDIATE` (`:427-429`) e o `append` usa `expected_version: rows.length` (`:234`); a semântica de concorrência otimista para o cliente não é provada por este teste. **Limites declarados:** teto por binding (`limits.max_requests`) não exercitado; teto de reserva, não de custo comprometido com recibo real; crash no meio da reserva fica com `test-job-faults.js` |
+| TB5 | GM-05 | `7b745cbd` | 1 | 0 BLOCKER/MAJOR, 2 MINOR / A1 e A4 confirmadas, A2 e A3 em parte (o helper `job-dispatch-process.js` fica em `test/helpers/`, não em `tools/cli/lib`); nenhum MINOR bloqueia | `test/test-job-control.js` 13 testes (antes 10): pass 13 fail 0 em 3 execuções do executor e do revisor; mutantes em `job-control.js:320` (`now > not_before`, `<=`, `if (false)`) rc=1; `git diff -- tools` vazio. **Limites declarados:** despacho único provado na camada de jobs (1 claim, 1 intent), não a materialização posterior; SIGKILL depois da criação, não no meio de um tick; sem dois controladores abertos ao mesmo tempo (coberto por `test-job-faults.js:427`) |
+
+TB4 rodada 2 (`f2a7b4d7`): causa da recusa afirmada pelo evento `session.failed` do ledger (`error_code: provider_unavailable`, `retryable: true`) com execução de controle que ecoa texto inofensivo e termina `completed`; stdout capturado > 0 bytes. Confronto: R1–R4 confirmadas, MINOR 1 e 3 fechados; 3 execuções pass 3 fail 0. **Achado (defesa em profundidade):** com a checagem de eco do broker removida (`provider-egress-broker.js:105`), o supervisor ainda barra (`bound-kernel-supervisor.js:385`, "sandboxed worker output contains a protected value") e o teste falha em `test-secret-canary-scan.js:274`; o teste não prova cada camada isolada. NOTE: num teste que falha (mutante) sobram 2 diretórios `hseos-canary-*` em `$TMPDIR`; na execução verde, nenhum.
+
+## Suíte completa da onda TB (topo `f2a7b4d7`)
+
+`heavy-run --mem 4G`: `npm run lint` exit 0; `npm test` **exit 1** em `test:f14v4`: `test/test-f14v4.js:1475` "the rehearsal receipt is stale" (recibo `e8bce470…`, hash atual `d2652177…`). Causa (Commander, `docs/evolution/w3/evidence/stab3-f14v4/confirmation.cjs:51-76`): o hash de confirmação inclui o `package.json` entre os arquivos de produto, e a TB registrou scripts de teste novos. Não é regressão de produto.
+
+| # | Decisão | Alternativa descartada | Razão |
+|---|---|---|---|
+| D6 | Regenerar o recibo de **ensaio** da F14 v4 (modo fixture, modelo programado, sem chave, sem rede, semente `20261109`) numa task própria (TB6) e de novo em toda onda que mudar o `package.json` | (a) afrouxar o teste de frescor; (b) não registrar os testes novos | (a) é afrouxar gate, proibido; (b) quebra `ci-test-shards verify`. O gate pede regeneração; a evidência da execução real (`real-attempt1`) e o status da F14 não mudam; o ensaio `e8bce470` continua no histórico (#313). Acoplamento vira OWNER-GATE (congelar ou aposentar o gate de frescor de campanha encerrada) |
+| TB6 | consequência (D6) | `420a23b2` | 1 | duas passagens num relatório: sem BLOCKER/MAJOR, 3 NOTE; E2 e E3 confirmadas, E1 e E4 consistentes com o artefato (não reprodutíveis sem nova campanha) | `rehearsal/campaign.json`: fixture, 42 runs, `confirmation_sha256` `d2652177…` = `--print-confirmation`; `verdict` `CRITERION MET`, `totals`, `analysis`, `protocol_issues` `[]` e `boxes.notes` idênticos à versão `e8bce470`; `artifact_scan` clean (128 arquivos); `test/test-f14v4.js` pass 44 fail 0. JSON formatado por prettier depois da geração (exigência do hook); o hash não cobre a saída do ensaio (recalculado igual) |
+
+Cauda depois da TB6 (`420a23b2`, `heavy-run`): `test:f14v4` 0, `test:f15l2-campaign` 0, `validate:schemas` 0, `test:validate-skills` 0. **Suíte da onda TB:** scripts 1 a 108 do `npm test` verdes em `f2a7b4d7` (o 109, `test:f14v4`, vermelho pela causa D6), 109 a 112 verdes em `420a23b2` (a única diferença entre os dois commits é `rehearsal/**`, lido só pelo `test:f14v4`); `npm run lint` exit 0.

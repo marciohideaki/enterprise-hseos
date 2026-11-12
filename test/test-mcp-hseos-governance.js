@@ -147,12 +147,21 @@ async function runGovernedUnitTests() {
   const tools = new Map([['noop', { name: 'noop', description: 'd', inputSchema: { type: 'object' }, handler() {} }]]);
   await it('governed boot: unknown servers, missing activation, non-temporary and pre-existing databases fail closed', async () => {
     assert.throws(() => startNativeMcpServer({ serverId: 'nope', tools, invokeTool() {}, mode: 'http', port: 0 }), TypeError);
-    await withEnv({ NODE_ENV: 'production', HSEOS_GOVERNED_EXECUTION_FIXTURE: undefined }, () => {
-      assert.throws(
-        () => startNativeMcpServer({ serverId: 'governance', tools, invokeTool() {}, mode: 'http', port: 0 }),
-        (error) => error.code === 'EXECUTION_ACTIVATION_PENDING',
-      );
-    });
+    // The default state database is the checkout's own and may already be activated on a developer host; point the
+    // server at a database path that does not exist so the result never depends on the host and no real database opens.
+    const unactivatedRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-unactivated-'));
+    const unactivatedDb = path.join(unactivatedRoot, 'state', 'project.db');
+    try {
+      await withEnv({ NODE_ENV: 'production', HSEOS_GOVERNED_EXECUTION_FIXTURE: undefined, HSEOS_STATE_DB: unactivatedDb }, () => {
+        assert.throws(
+          () => startNativeMcpServer({ serverId: 'governance', tools, invokeTool() {}, mode: 'http', port: 0 }),
+          (error) => error.code === 'EXECUTION_ACTIVATION_PENDING',
+        );
+      });
+      assert.equal(fs.existsSync(unactivatedDb), false, 'the activation guard must not create the database');
+    } finally {
+      fs.rmSync(unactivatedRoot, { recursive: true, force: true });
+    }
     await withEnv({ NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' }, () => {
       assert.throws(
         () =>
