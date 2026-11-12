@@ -104,6 +104,9 @@ function validateReadiness(doc, { requirements, ownerGatesText, w6EntryText, exi
   if (doc.verdict !== 'NAO_PRONTO' && MUST_BE_OK.some((id) => result(id) !== 'ok')) {
     add('verdict diferente de NAO_PRONTO com critério obrigatório diferente de ok');
   }
+  if (doc.verdict === 'TERMINAL_PRONTO' && CRITERIA_IDS.some((id) => result(id) !== 'ok')) {
+    add('TERMINAL_PRONTO exige T1 a T12 todos ok');
+  }
   if (doc.verdict === 'TERMINAL_PRONTO' && doc.families.some((f) => f.real_consumers === 'not_verified')) {
     add('TERMINAL_PRONTO com família em real_consumers not_verified');
   }
@@ -144,6 +147,7 @@ const NEGATIVE = [
   ['owner_gate inexistente', (d) => (d.families.find((f) => f.id === 'F02').owner_gates = ['OG-99']), /OG-99 não aparece/],
   ['verdict fora do enum', (d) => (d.verdict = 'PRONTO'), /verdict fora do enum/],
   ['TERMINAL_PRONTO com real_consumers not_verified', (d) => (d.verdict = 'TERMINAL_PRONTO'), /TERMINAL_PRONTO com família/],
+  ['TERMINAL_PRONTO com T11 ausente', (d) => (d.verdict = 'TERMINAL_PRONTO'), /TERMINAL_PRONTO exige T1 a T12 todos ok/],
   [
     'verdict com critério obrigatório não ok',
     (d) => (d.criteria.find((c) => c.id === 'T6').result = 'parcial'),

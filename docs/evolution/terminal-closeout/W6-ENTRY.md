@@ -14,13 +14,13 @@ documentos citados; o veredito de prontidão está em `terminal-readiness.json` 
 
 ## Versões
 
-| Superfície                       | Versão                                          | Fonte                                                                       |
-| -------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
-| API de controle                  | prefixo `/v1`                                   | `docs/engineering-control-api.md:58`                                        |
-| SDK de controle                  | `@hseos/control-sdk` 1.0.0                      | `packages/control-sdk/package.json:3`                                       |
-| Protocolo MCP moderno            | `2026-07-28`                                    | `tools/lib/mcp-protocol.js:16`                                              |
-| Protocolo MCP de compatibilidade | `2024-11-05`, com fim declarado em `2026-11-30` | `tools/lib/mcp-protocol.js:15`; `tools/lib/mcp-2026-adapter.js:33`          |
-| Schema do ledger ativado         | `user_version` 17                               | `docs/evolution/terminal-closeout/TC-INSTALLED-ACCEPTANCE-2026-11.md:28,45` |
+| Superfície                       | Versão                                                                       | Fonte                                                                                                                                  |
+| -------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| API de controle                  | prefixo `/v1`                                                                | `docs/engineering-control-api.md:58`                                                                                                   |
+| SDK de controle                  | `@hseos/control-sdk` 1.0.0                                                   | `packages/control-sdk/package.json:3`                                                                                                  |
+| Protocolo MCP moderno            | `2026-07-28`                                                                 | `tools/lib/mcp-protocol.js:16`                                                                                                         |
+| Protocolo MCP de compatibilidade | `2024-11-05`; sem data de fim no produto ativado (ADR-0048, sunset sem data) | `tools/lib/mcp-protocol.js:15`; `tools/lib/governed-execution/native-mcp-server.js:112-116,161`; `tools/lib/mcp-2026-adapter.js:40-41` |
+| Schema do ledger ativado         | `user_version` 17                                                            | `docs/evolution/terminal-closeout/TC-INSTALLED-ACCEPTANCE-2026-11.md:28,45`                                                            |
 
 A migração de um ledger já ativado entre schemas não tem caminho no produto (OG-16, ver `## Riscos`).
 
@@ -36,8 +36,7 @@ A migração de um ledger já ativado entre schemas não tem caminho no produto 
 
 Ações aceitas: `input` (`data` base64, até 4096 bytes), `resize` (`rows`, `cols`), `pause`, `continue`, `interrupt`, `eof`,
 `terminate`, `recover`, `reconcile` (`docs/engineering-control-api.md:330-331`). No `terminal-attach`: Ctrl-] desanexa sem matar
-o processo, Ctrl-C interrompe, Ctrl-D envia EOF (`docs/terminal.md:91`). Cada ação é autorizada por separado (401 por ação,
-critério T6).
+o processo, Ctrl-C interrompe, Ctrl-D envia EOF (`docs/terminal.md:91`). Cada ação é autorizada por separado (401 `CONTROL_UNAUTHENTICATED` por ação, `test/test-terminal-api.js:108,168-181`; critério T6).
 
 ## Aprovação
 
@@ -54,7 +53,10 @@ com `inputRequests` e `requestState` (MRTR) com integridade verificada, e o clie
 - Somente Linux; sem macOS nem Windows (`docs/terminal.md:27`).
 - O executor isolado exige cgroup v2 delegado, bubblewrap e `pidfd`; sem eles, `ENGINEERING_ISOLATION_UNAVAILABLE`
   (`docs/terminal.md:30,127`).
-- O compat MCP legado tem data de fim 2026-11-30 (`tools/lib/mcp-2026-adapter.js:33`).
+- O compat MCP legado não expira no produto ativado: `HSEOS_MCP_LEGACY_SUNSET` (data ISO ou instante) ausente ou vazio vira `null`
+  (`tools/lib/governed-execution/native-mcp-server.js:112-116`), e `null` significa sem expiração (`tools/lib/mcp-2026-adapter.js:40-41`);
+  a data só é repassada em banco ativado (`native-mcp-server.js:161`). A constante `2026-11-30` (`mcp-2026-adapter.js:33`) vale só no
+  modo fixture de teste. Uma data de fim exige o owner configurar `HSEOS_MCP_LEGACY_SUNSET` (ADR-0048).
 
 ## Gates do owner
 
