@@ -30,7 +30,17 @@
         "deterministic": "verified_w2_scope_only",
         "real_consumers": "verified_installed_local_scope_only",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w2/STATUS.md:42 (reconexão e consumidores: jornadas instaladas com PTY, cursor e attach/detach)",
+        "docs/evolution/w2/STATUS.md:61 (consumidores: CLI/API/SDKs instalados em ambientes locais verificados)",
+        "docs/evolution/w2/evidence/receipt.json (recibo da W2)",
+        "test/journeys/core-journey.mjs (jornada roteirizada de pacote instalado, sem modelo real)",
+        "test/test-agent-runtime.js (teste da família)",
+        "test/test-terminal-executor.js (teste da família)",
+        "test/test-terminal-control.js (teste da família)"
+      ],
+      "evolution_scope": "O valor verified_installed_local_scope_only foi atribuído em 2026-09-26 (commit 52f891f2) com base em CLI/API/SDKs instalados por tarball fora do checkout e jornadas roteirizadas, sem modelo real. O ADR-0050 (aceito em 2026-10-31) restringe o valor a binding local instalado (.enterprise/.specs/decisions/ADR-0050-provider-binding-certification-criterion.md:95) e diz que consumidor sintético não certifica acima de L1 (:133, :136). A manutenção do valor depende de ratificação do owner, registrada como OWNER-GATE OG-01 da run 20261111-terminal-closeout."
     },
     {
       "id": "F02",
@@ -146,7 +156,7 @@
           "verification": "Reiniciar scheduler com job em voo e dois clientes; nenhum efeito duplicado."
         }
       ],
-      "gap": "Agendamento persistente de jobs ainda não certificado.",
+      "gap": "O adiamento por not_before é persistente e provado por reabertura do controlador (test/test-job-control.js, testes da TB5 da run 20261111-terminal-closeout); agendamento recorrente não existe (desenho aberto).",
       "status": {
         "deterministic": "verified_w4_scope_only",
         "real_consumers": "not_verified",
@@ -156,7 +166,7 @@
         "docs/evolution/w4/evidence/final/traceability.md:16 (FR03: J1/J2/F1 test/test-job-control.js, test/test-job-recovery.js, test/test-job-faults.js: owner morto/incerto, crash antes e depois do efeito, concorrência)",
         "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
       ],
-      "evolution_scope": "Escopo W4 apenas: jobs duráveis do plano de controle W4; nenhuma ativação operacional é autorizada (docs/evolution/w4/STATUS.md:582, texto geral de fechamento da W4, sem tratar do agendador em particular)."
+      "evolution_scope": "Escopo W4 apenas: jobs duráveis do plano de controle W4; nenhuma ativação operacional é autorizada (docs/evolution/w4/evidence/final/traceability.md:16, FR03: jobs duráveis, persistência, replay e concorrência)."
     },
     {
       "id": "F07",
@@ -282,7 +292,16 @@
         "deterministic": "verified_w2_scope_only",
         "real_consumers": "verified_installed_local_scope_only",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w2/STATUS.md:42 (reconexão e consumidores: jornadas instaladas com PTY, cursor e attach/detach)",
+        "docs/evolution/w2/STATUS.md:61 (consumidores: CLI/API/SDKs instalados em ambientes locais verificados)",
+        "docs/evolution/w2/evidence/receipt.json (recibo da W2)",
+        "test/journeys/core-journey.mjs (jornada roteirizada de pacote instalado, sem modelo real)",
+        "test/test-engineering-reconciliation.js (teste da família)",
+        "test/test-terminal-control.js (teste da família)"
+      ],
+      "evolution_scope": "O valor verified_installed_local_scope_only foi atribuído em 2026-09-26 (commit 52f891f2) com base em CLI/API/SDKs instalados por tarball fora do checkout e jornadas roteirizadas, sem modelo real. O ADR-0050 (aceito em 2026-10-31) restringe o valor a binding local instalado (.enterprise/.specs/decisions/ADR-0050-provider-binding-certification-criterion.md:95) e diz que consumidor sintético não certifica acima de L1 (:133, :136). A manutenção do valor depende de ratificação do owner, registrada como OWNER-GATE OG-01 da run 20261111-terminal-closeout."
     },
     {
       "id": "F12",
@@ -290,7 +309,7 @@
       "source_row": 12,
       "baseline_observation": "C: DAG delimitado, claims, join, cancelamento",
       "implementation": ["packages/agent-orchestration/local-subagent-provider.js"],
-      "tests": ["test/test-engineering-workflow-runtime.js"],
+      "tests": ["test/test-engineering-workflow-runtime.js", "test/test-workflow-expansion.js"],
       "wave": 4,
       "dependencies": ["W3"],
       "requirements": [
@@ -300,7 +319,7 @@
           "verification": "Falha de módulo, disputa de retomada e cancelamento transitivo deixam zero órfãos."
         }
       ],
-      "gap": "Descendentes dinâmicos e jobs agendados ainda não certificados.",
+      "gap": "Filhos tardios, expansão concorrente e expansão em dois processos estão provados em test/test-workflow-expansion.js (filho tardio :213; corrida de dois controladores :176-180; dois processos separados :469-488; revalidação depois da admissão com claim, expiração e baseline :403-419); expansão depois do claim é recusada por desenho (definição fixada pelo claim, :193). Consumidor real não verificado.",
       "status": {
         "deterministic": "verified_w4_scope_only",
         "real_consumers": "not_verified",
@@ -411,7 +430,17 @@
         "deterministic": "verified_w2_scope_only",
         "real_consumers": "verified_installed_local_scope_only",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w2/STATUS.md:42 (reconexão e consumidores: jornadas instaladas com PTY, cursor e attach/detach)",
+        "docs/evolution/w2/STATUS.md:61 (consumidores: CLI/API/SDKs instalados em ambientes locais verificados)",
+        "docs/evolution/w2/evidence/receipt.json (recibo da W2)",
+        "test/journeys/core-journey.mjs (jornada roteirizada de pacote instalado, sem modelo real)",
+        "test/test-agent-session-store.js (teste da família)",
+        "test/test-terminal-api.js (teste da família)",
+        "test/test-terminal-control.js (teste da família)"
+      ],
+      "evolution_scope": "O valor verified_installed_local_scope_only foi atribuído em 2026-09-26 (commit 52f891f2) com base em CLI/API/SDKs instalados por tarball fora do checkout e jornadas roteirizadas, sem modelo real. O ADR-0050 (aceito em 2026-10-31) restringe o valor a binding local instalado (.enterprise/.specs/decisions/ADR-0050-provider-binding-certification-criterion.md:95) e diz que consumidor sintético não certifica acima de L1 (:133, :136). A manutenção do valor depende de ratificação do owner, registrada como OWNER-GATE OG-01 da run 20261111-terminal-closeout."
     },
     {
       "id": "F17",
@@ -559,7 +588,7 @@
         "docs/evolution/w4/STATUS.md:533-537 e :576-578 (plugins instalados por tarball offline fora do checkout; seleção fixada, upgrade e rollback)",
         "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
       ],
-      "evolution_scope": "Escopo W4 apenas: perfis de plugins de execução; perfis novos de capacidade fora desse escopo não foram ensaiados."
+      "evolution_scope": "Escopo W4 apenas: perfis de plugins de execução; perfis novos de capacidade fora desse escopo não foram ensaiados. A manutenção de real_consumers verified_installed_local_scope_only neste escopo depende da ratificação do owner registrada como OWNER-GATE OG-01 da run 20261111-terminal-closeout."
     },
     {
       "id": "F22",
@@ -577,7 +606,7 @@
           "verification": "Adicionar módulo sem mudança no kernel; falha de plugin não amplia autoridade."
         }
       ],
-      "gap": "Contratos de plugins e catálogo certificado de extensões da IDE pendentes.",
+      "gap": "Contratos de plugins de execução estão provados na W4 (manifesto, hash, autoridade e falha de plugin sem ampliar grants). O catálogo certificado de extensões da IDE é da W6 e fica fora do terminal.",
       "status": {
         "deterministic": "verified_w4_scope_only",
         "real_consumers": "not_verified",

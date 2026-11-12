@@ -1,0 +1,11 @@
+{
+  "commit": "026acac92c6b21cd9c912fc10a3ad80555debeb6",
+  "node": "v24.15.0",
+  "npm": "11.12.1",
+  "kernel": "7.0.0-42-generic",
+  "tgz_sha256": {
+    "current": "a2ed5a455b89232669f88e9426d8048998fd87984c9801d709c546db73ddcb00",
+    "schema17_25e673ff": "e1ebeab07915dcc1f251b98b3ea74024b6d6cab94767d6e36a0573450e677586",
+    "schema16_2b4d6f37": "3d130c8becb747df757e8bc16b1d6f768f21ea1e94e1aab326997b3de8a52942"
+  }
+}

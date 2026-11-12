@@ -1,0 +1,354 @@
+{
+  "schema": "upgrade-rollback/1",
+  "scenarios": {
+    "a_same_schema_and_b_downgrade": {
+      "packages": {
+        "s17": {
+          "installed_version": "4.0.0-rc.0",
+          "tgz_sha256": "e1ebeab07915dcc1f251b98b3ea74024b6d6cab94767d6e36a0573450e677586"
+        },
+        "current": {
+          "installed_version": "4.0.0-rc.0",
+          "tgz_sha256": "a2ed5a455b89232669f88e9426d8048998fd87984c9801d709c546db73ddcb00"
+        }
+      },
+      "activate_with_s17": {
+        "rc": 0,
+        "receipt": {
+          "receipt_version": 2,
+          "adr": "ADR-0048",
+          "adr_status": "Accepted",
+          "adr_sha256": "e0127fc5e237d5cde0594267fda7fc93af2a8bc01bede1b2ff42a36afe3f7d62",
+          "unscannable_processes": 432,
+          "commit": null,
+          "database_path": "<tmp>/tc/ur/consumer-a/.hseos/state/project.db",
+          "backup_path": "<tmp>/tc/ur/backups-a/20261112T004655Z-project.db",
+          "original_sha256_before": "80ba02dd6a9228508af52a050d154a2f90c4b3ad3748c64d9e0d50b18ad7490e",
+          "backup_sha256": "80ba02dd6a9228508af52a050d154a2f90c4b3ad3748c64d9e0d50b18ad7490e",
+          "user_version_before": 4,
+          "user_version_after": 17,
+          "applied_migrations": [
+            "005-governed-execution-ledger-v2.sql",
+            "006-execution-projections.sql",
+            "007-execution-approvals.sql",
+            "008-delegated-runtime-event-catalog.sql",
+            "009-delegated-worker-lifecycle.sql",
+            "010-engineering-task-events.sql",
+            "011-control-command-events.sql",
+            "012-job-events.sql",
+            "013-job-lifecycle-events.sql",
+            "014-job-materialization-events.sql",
+            "015-job-execution-events.sql",
+            "016-job-workflow-expansion.sql",
+            "017-agent-memory-events.sql"
+          ],
+          "started_at": "2026-11-12T00:46:55.261Z",
+          "finished_at": "2026-11-12T00:46:55.281Z"
+        },
+        "stream_version": 3,
+        "mode": {
+          "mode": "modern",
+          "fixture": false,
+          "modern": true,
+          "user_version": 17
+        }
+      },
+      "before": {
+        "user_version": 17,
+        "integrity_check": "ok",
+        "has_execution_events": true,
+        "count": 3,
+        "rows_hash": "a4be17c9000ed21f102a18c1e9f6df4890c13f4784775634bba48eb5d8361534",
+        "hashes": [
+          "81eb35d93bfab7b9dcafb869eab441dade3490ab9b1c05e20640ab2d250fca2a",
+          "c106762512a455969a7824afda3f4b91b2c5ba80a3f052e0ea6066cfcea33dc0",
+          "9f2e7c5db38ed2b885aca4e6374fdfb1de509221a38d8ba684af464c70da1f42"
+        ],
+        "db_sha256": "86dee09ff3784e5c935b8882db69005e8f3137ede26c96b1fdd7845bbe1cb532"
+      },
+      "mode_with_current": {
+        "rc": 0,
+        "mode": {
+          "mode": "modern",
+          "fixture": false,
+          "modern": true,
+          "user_version": 17
+        }
+      },
+      "append_with_current": {
+        "rc": 0,
+        "mode": {
+          "mode": "modern",
+          "fixture": false,
+          "modern": true,
+          "user_version": 17
+        },
+        "stream_version": 5
+      },
+      "after": {
+        "user_version": 17,
+        "integrity_check": "ok",
+        "has_execution_events": true,
+        "count": 5,
+        "rows_hash": "79273762daa4e3eb8e2ceaec2d654bccf4a9ac601da1ff46f1bad3ce664c5e64",
+        "hashes": [
+          "81eb35d93bfab7b9dcafb869eab441dade3490ab9b1c05e20640ab2d250fca2a",
+          "c106762512a455969a7824afda3f4b91b2c5ba80a3f052e0ea6066cfcea33dc0",
+          "9f2e7c5db38ed2b885aca4e6374fdfb1de509221a38d8ba684af464c70da1f42",
+          "050cf505b444ed1d056ac841789184b1c42b14c290357fec20363a5473554f68",
+          "2b7c16e3126302718fb05439910a6b5c1dbf9e1013b7e8672777fb9d50a216ac"
+        ]
+      },
+      "checks": {
+        "old_events_hash_unchanged": true,
+        "only_appended": 2,
+        "user_version_before": 17,
+        "user_version_after": 17,
+        "integrity_check_after": "ok"
+      },
+      "downgrade": {
+        "packages": {
+          "s16": {
+            "installed_version": "4.0.0-rc.0",
+            "tgz_sha256": "3d130c8becb747df757e8bc16b1d6f768f21ea1e94e1aab326997b3de8a52942"
+          }
+        },
+        "open_with_s16": {
+          "rc": 0,
+          "opened": false,
+          "error": {
+            "code": "EXECUTION_ACTIVATION_PENDING",
+            "message": "Operational state requires schema v4; pending execution schema is not activated"
+          }
+        },
+        "cli_state_list_with_s16": {
+          "rc": 1,
+          "stderr": "[hseos] EXECUTION_ACTIVATION_PENDING: Operational state requires schema v4; pending execution schema is not activated\n",
+          "stdout": ""
+        },
+        "checks": {
+          "db_sha256_before": "0c1f83211eca7d63e5df988f3d2f8930e5bf758cd49ff1d9724953610ff7ac2d",
+          "db_sha256_after": "0c1f83211eca7d63e5df988f3d2f8930e5bf758cd49ff1d9724953610ff7ac2d",
+          "main_file_unchanged": true,
+          "sidecars_before": [false, false],
+          "sidecars_after": [false, false],
+          "events_unchanged": true
+        }
+      }
+    },
+    "c_schema16_to_17": {
+      "packages": {
+        "s16": {
+          "installed_version": "4.0.0-rc.0",
+          "tgz_sha256": "3d130c8becb747df757e8bc16b1d6f768f21ea1e94e1aab326997b3de8a52942"
+        },
+        "current": {
+          "installed_version": "4.0.0-rc.0",
+          "tgz_sha256": "a2ed5a455b89232669f88e9426d8048998fd87984c9801d709c546db73ddcb00"
+        }
+      },
+      "extract_s16_migrations": {
+        "rc": 0,
+        "files": 12
+      },
+      "activation_code_in_s16_package": "checked-by-grep",
+      "s16_package_exports_activation": false,
+      "reconstruct_schema16_db": {
+        "rc": 0,
+        "error": {
+          "code": "EXECUTION_ACTIVATION_PENDING",
+          "message": "Governed execution ledger is inconsistent (user_version 16, expected 4 or 17); refusing to start in either mode. Restore the activation backup (restoreExecutionLedgerBackup) or finish the activation before starting the server."
+        }
+      },
+      "before": {
+        "user_version": 16,
+        "integrity_check": "ok",
+        "has_execution_events": true,
+        "count": 3,
+        "rows_hash": "86e920f61203e8f33832dab6193d6d72cfb39f5e054e74c510fa9daae3552cfa",
+        "hashes": [
+          "73740c6337917e77cb4b7f709c229e97743689e6c8aa9e47ee2135735566a20e",
+          "26ffc33a1235542f4b739fc3e9fe296a34023654be0e6fc400c3797fd584c153",
+          "504b08c4d0f823b2e0dedbe6186b615a011ad0eb79f572d4148abc6effe102e0"
+        ],
+        "db_sha256": "dfb76125a3c61eec7320c6970be5e4598a8ddda7281688fb08322b9240b4c5a4"
+      },
+      "mode_with_current": {
+        "rc": 0,
+        "error": {
+          "code": "EXECUTION_ACTIVATION_PENDING",
+          "message": "Governed execution ledger is inconsistent (user_version 16, expected 4 or 17); refusing to start in either mode. Restore the activation backup (restoreExecutionLedgerBackup) or finish the activation before starting the server."
+        }
+      },
+      "plan_with_current": {
+        "rc": 0,
+        "ready": false,
+        "blockers": ["EXECUTION_ACTIVATION_ALREADY_ACTIVATED"],
+        "user_version": 16
+      },
+      "append_with_current": {
+        "rc": 0,
+        "error": {
+          "code": "EXECUTION_ACTIVATION_PENDING",
+          "message": "Governed execution ledger is inconsistent (user_version 16, expected 4 or 17); refusing to start in either mode. Restore the activation backup (restoreExecutionLedgerBackup) or finish the activation before starting the server."
+        }
+      },
+      "cli_plan_with_current": {
+        "rc": 2,
+        "output": {
+          "action": "plan",
+          "plan": {
+            "ready": false,
+            "blockers": [
+              {
+                "code": "EXECUTION_ACTIVATION_ALREADY_ACTIVATED",
+                "message": "Database already has the execution ledger (user_version 16, 7 execution tables)"
+              }
+            ],
+            "database_path": "<tmp>/tc/ur/consumer-c/.hseos/state/project.db",
+            "adr": "ADR-0048",
+            "adr_status": "Accepted",
+            "adr_sha256": "d090b4b1f40eaf594a4caba34620ccd9fd629dd484c1ae0c160b3e49e9b47344",
+            "unscannable_processes": 432,
+            "user_version": 16,
+            "target_user_version": 17,
+            "migrations_to_apply": [
+              "005-governed-execution-ledger-v2.sql",
+              "006-execution-projections.sql",
+              "007-execution-approvals.sql",
+              "008-delegated-runtime-event-catalog.sql",
+              "009-delegated-worker-lifecycle.sql",
+              "010-engineering-task-events.sql",
+              "011-control-command-events.sql",
+              "012-job-events.sql",
+              "013-job-lifecycle-events.sql",
+              "014-job-materialization-events.sql",
+              "015-job-execution-events.sql",
+              "016-job-workflow-expansion.sql",
+              "017-agent-memory-events.sql"
+            ],
+            "backup_path": "<tmp>/tc/ur/backups-c3/20261112T004704Z-project.db",
+            "receipt_path": "<tmp>/tc/ur/backups-c3/20261112T004704Z-project.db.receipt.json"
+          }
+        },
+        "stderr": ""
+      },
+      "checks": {
+        "db_sha256_after": "dfb76125a3c61eec7320c6970be5e4598a8ddda7281688fb08322b9240b4c5a4",
+        "main_file_unchanged": true,
+        "events_unchanged": true,
+        "user_version_before": 16,
+        "user_version_after": 16
+      }
+    },
+    "d_rollback": {
+      "packages": {
+        "current": {
+          "installed_version": "4.0.0-rc.0",
+          "tgz_sha256": "a2ed5a455b89232669f88e9426d8048998fd87984c9801d709c546db73ddcb00"
+        }
+      },
+      "activate": {
+        "rc": 0,
+        "receipt": {
+          "receipt_version": 2,
+          "adr": "ADR-0048",
+          "adr_status": "Accepted",
+          "adr_sha256": "e0127fc5e237d5cde0594267fda7fc93af2a8bc01bede1b2ff42a36afe3f7d62",
+          "unscannable_processes": 432,
+          "commit": null,
+          "database_path": "<tmp>/tc/ur/consumer-d/.hseos/state/project.db",
+          "backup_path": "<tmp>/tc/ur/backups-d/20261112T004707Z-project.db",
+          "original_sha256_before": "80ba02dd6a9228508af52a050d154a2f90c4b3ad3748c64d9e0d50b18ad7490e",
+          "backup_sha256": "80ba02dd6a9228508af52a050d154a2f90c4b3ad3748c64d9e0d50b18ad7490e",
+          "user_version_before": 4,
+          "user_version_after": 17,
+          "applied_migrations": [
+            "005-governed-execution-ledger-v2.sql",
+            "006-execution-projections.sql",
+            "007-execution-approvals.sql",
+            "008-delegated-runtime-event-catalog.sql",
+            "009-delegated-worker-lifecycle.sql",
+            "010-engineering-task-events.sql",
+            "011-control-command-events.sql",
+            "012-job-events.sql",
+            "013-job-lifecycle-events.sql",
+            "014-job-materialization-events.sql",
+            "015-job-execution-events.sql",
+            "016-job-workflow-expansion.sql",
+            "017-agent-memory-events.sql"
+          ],
+          "started_at": "2026-11-12T00:47:07.271Z",
+          "finished_at": "2026-11-12T00:47:07.287Z"
+        },
+        "stream_version": 2,
+        "mode": {
+          "mode": "modern",
+          "fixture": false,
+          "modern": true,
+          "user_version": 17
+        }
+      },
+      "activated": {
+        "user_version": 17,
+        "integrity_check": "ok",
+        "has_execution_events": true,
+        "count": 2,
+        "rows_hash": "4fea98b7bf8ff1b19e1dc7f88c4000a202adec7e8bf3e6ecdaf5b7de79474052",
+        "hashes": [
+          "e287da6f77dc0e01ca33057f7235b2f94942a37cec9b133d56b98f489ecc23df",
+          "ce11a85a35b239e2cb95a5e69996e69a87b3c30d4cff19e6b52bfe559fe489b8"
+        ]
+      },
+      "backup": {
+        "files": ["20261112T004707Z-project.db", "20261112T004707Z-project.db.receipt.json"],
+        "backup_sha256": "80ba02dd6a9228508af52a050d154a2f90c4b3ad3748c64d9e0d50b18ad7490e",
+        "original_sha256_before_activation": "80ba02dd6a9228508af52a050d154a2f90c4b3ad3748c64d9e0d50b18ad7490e"
+      },
+      "rollback_cli": {
+        "rc": 0,
+        "output": {
+          "action": "rollback",
+          "restored": true,
+          "database_path": "<tmp>/tc/ur/consumer-d/.hseos/state/project.db",
+          "backup_path": "<tmp>/tc/ur/backups-d/20261112T004707Z-project.db",
+          "preserved_activated_path": "<tmp>/tc/ur/consumer-d/.hseos/state/project.db.activated-20261112T004707Z",
+          "restored_sha256": "80ba02dd6a9228508af52a050d154a2f90c4b3ad3748c64d9e0d50b18ad7490e",
+          "user_version": 4,
+          "post_activation_writes_preserved_at": "<tmp>/tc/ur/consumer-d/.hseos/state/project.db.activated-20261112T004707Z",
+          "content_matches_original": true,
+          "receipt_verified": true
+        },
+        "stderr": ""
+      },
+      "preserved_activated_copy": {
+        "user_version": 17,
+        "integrity_check": "ok",
+        "has_execution_events": true,
+        "count": 2,
+        "rows_hash": "4fea98b7bf8ff1b19e1dc7f88c4000a202adec7e8bf3e6ecdaf5b7de79474052",
+        "hashes": [
+          "e287da6f77dc0e01ca33057f7235b2f94942a37cec9b133d56b98f489ecc23df",
+          "ce11a85a35b239e2cb95a5e69996e69a87b3c30d4cff19e6b52bfe559fe489b8"
+        ],
+        "events_equal_to_activated": true
+      },
+      "restored": {
+        "user_version": 4,
+        "integrity_check": "ok",
+        "has_execution_events": false,
+        "count": 0,
+        "rows_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "hashes": [],
+        "db_sha256": "80ba02dd6a9228508af52a050d154a2f90c4b3ad3748c64d9e0d50b18ad7490e"
+      },
+      "checks": {
+        "restored_sha256_equals_backup": true,
+        "restored_sha256_equals_original": true,
+        "user_version_after": 4,
+        "execution_tables_present_after": false,
+        "note": "o rollback restaura o banco pre-ativacao: eventos anexados apos a ativacao deixam de existir por desenho; o backup e o original nao sao alterados"
+      }
+    }
+  }
+}

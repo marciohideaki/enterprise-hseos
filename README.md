@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-4.0.0--rc.0-blue.svg)](package.json)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](https://nodejs.org)
 [![Agents](https://img.shields.io/badge/agents-16-purple.svg)](.hseos/agents/)
-[![Skills](https://img.shields.io/badge/skills-52-orange.svg)](.enterprise/governance/agent-skills/)
+[![Skills](https://img.shields.io/badge/skills-54-orange.svg)](.enterprise/governance/agent-skills/)
 
 <p align="center">
   <picture>
@@ -14,7 +14,7 @@
 
 > _"Where human intent becomes institutional intelligence."_
 
-**A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 52 skills, MCPs and engineering workflows.**
+**A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 54 skills, MCPs and engineering workflows.**
 
 > This checkout prepares an unpublished v4 candidate. See the
 > [v4 task consumer and migration guide](docs/v4-migration.md) for executable examples,
@@ -215,7 +215,7 @@ This sets up:
 - `.codex/config.toml` + `.codex/hseos-hooks.json` — Codex adapter (when `codex` is in `--tools`)
 - `.hseos/` — agent configurations, workflow definitions, local config, install manifest
 - `.agents/` — vendor-neutral source: `instructions/PROJECT.md`, `skills/<skill>/SKILL.md`, hook + command registries
-- `.enterprise/` — governance overlay copied from the HSEOS source (constitution, agent authority, policies, 49-skill governance library). Preserved if you already have one.
+- `.enterprise/` — governance overlay copied from the HSEOS source (constitution, agent authority, policies, 54-skill governance library). Preserved if you already have one.
 - `AGENTS.md` — minimal platform adapter at the project root pointing at `.agents/instructions/PROJECT.md`. Preserved if you already authored one.
 - `.git/hooks/pre-commit` — runs `scripts/governance/quality-gates.sh` when present. Skipped when `.git/` is absent or when you pass `--no-git-hooks`. Existing hooks are never overwritten.
 
@@ -328,7 +328,7 @@ hseos workflow advance
 
 ## Skills Catalog
 
-52 skills auto-loaded from the registry based on task context. **You never load skills manually** — agents match triggers and load the minimum tier needed.
+54 skills auto-loaded from the registry based on task context. **You never load skills manually** — agents match triggers and load the minimum tier needed.
 
 | Domain            | Skills                                                                             |
 | ----------------- | ---------------------------------------------------------------------------------- |
@@ -364,7 +364,7 @@ graph TB
 
     subgraph "HSEOS Framework"
         CLI[hseos CLI\nInstall · Validate · Workflow]
-        REGISTRY[SKILLS-REGISTRY.md\n52 skills · trigger-based]
+        REGISTRY[SKILLS-REGISTRY.md\n54 skills · trigger-based]
         HOOKS[Git Hooks\npre-commit · commit-msg]
     end
 
@@ -406,7 +406,7 @@ hseos/
 │   ├── .specs/core/                # Org-wide invariants
 │   ├── .specs/decisions/           # Architecture Decision Records
 │   ├── agents/                     # Agent authority & constraint definitions
-│   ├── governance/agent-skills/    # 52 tiered executable skills
+│   ├── governance/agent-skills/    # 54 tiered executable skills
 │   ├── policies/                   # Operational governance policies
 │   └── playbooks/                  # How to operate within governance
 │
@@ -429,7 +429,7 @@ hseos/
 | Stack Standards | `.enterprise/.specs/<Stack>/`          | Language/framework specifics             |
 | ADRs            | `.enterprise/.specs/decisions/`        | Traceable architectural decisions        |
 | Agent Authority | `.enterprise/agents/<code>/`           | Per-agent scope and hard limits          |
-| Skills          | `.enterprise/governance/agent-skills/` | 52 tiered skills, trigger-loaded         |
+| Skills          | `.enterprise/governance/agent-skills/` | 54 tiered skills, trigger-loaded         |
 
 ---
 
@@ -439,7 +439,7 @@ hseos/
 | -------------------------- | -------------- | -------------- | ----------- | --------------- |
 | Governance constitution    | ✅ immutable   | ❌             | ❌          | ❌              |
 | Named agent roles          | ✅ 15 agents   | ❌             | ❌          | ❌              |
-| Tiered skill registry      | ✅ 52 skills   | ❌             | ❌          | ❌              |
+| Tiered skill registry      | ✅ 54 skills   | ❌             | ❌          | ❌              |
 | Pre-commit enforcement     | ✅ husky hooks | ❌             | ❌          | ❌              |
 | ADR tracking               | ✅ built-in    | ❌             | ❌          | ❌              |
 | GitOps deploy workflow     | ✅ KUBE agent  | ❌             | ❌          | ❌              |
@@ -705,7 +705,7 @@ O instalador cria, por padrão:
 - `.codex/config.toml` + `.codex/hseos-hooks.json` (quando `codex` está nos adapters)
 - `.hseos/` (config, módulos, manifest de instalação)
 - `.agents/` (skills, hooks registry, `instructions/PROJECT.md`)
-- `.enterprise/` copiado do HSEOS source (constituição, agentes, policies, 52 skills de governança) — preservado se já existir
+- `.enterprise/` copiado do HSEOS source (constituição, agentes, policies, 54 skills de governança) — preservado se já existir
 - `AGENTS.md` na raiz, stub mínimo apontando para `.agents/instructions/PROJECT.md` — preservado se já existir
 - `.git/hooks/pre-commit` invocando `scripts/governance/quality-gates.sh` (silencioso se `.git/` não existir; existing hook nunca é sobrescrito)
 
