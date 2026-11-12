@@ -273,7 +273,7 @@
       "id": "W3-F08",
       "promise": {
         "text": "Segredos não entram em prompts, workspace, logs ou artefatos.",
-        "source": "docs/evolution/requirements.json:196"
+        "source": "docs/evolution/requirements.json:206"
       },
       "requirements": ["F08-R1"],
       "tests": [

@@ -21,8 +21,7 @@ W1 a W5 foram construídas e mergeadas sobre ADRs que, até então, nunca tinham
 
 ## 2. Pendências por onda
 
-**W0.** F23 (governança de engenharia) segue `not_verified_for_evolution`: o gate 90/80 por arquivo existe e passa, mas o gap da família diz que cobertura
-e mutação "precisam de evidência". Os 18 mutantes dirigidos não são mutation score exaustivo (`_INDEX.md`).
+**W0.** F23 (governança de engenharia) está `verified_w0_scope_only` desde 2026-11-04 (§9, WD; cobertura do gate medida de novo no HEAD); antes disso estava `not_verified_for_evolution`. Os 18 mutantes dirigidos não são mutation score exaustivo (`_INDEX.md`).
 
 **W1.** Limites declarados no `w1/STATUS.md` que podem ter mudado depois: TypeScript verificado por remoção de tipos e não por `tsc` completo, web por
 conteúdo estático, repositórios com filtros Git recusados, workflows sem aplicação agregada de patches. Dívida 18 (fechada pela A5): `max_tokens` abaixo do piso exato (12962 no fixture
@@ -321,3 +320,10 @@ Fonte: PRs #288 e #289 e os recibos `w3/F15-NATURAL-COMPACTION-2026-11.md`, `w3/
 - **F14 v3 (2026-11-08):** terceira execução paga com `CRITERION MET` (5/5 x 0/5 nas três tarefas, p = 1,25e-7; 14 de 15 controles no limite de requisições; cerca de US$ 0,95 pela console). Nenhum status mudou: `real_consumers` da F14 segue `not_verified`, faltam a reauditoria cega e a decisão do owner. Recibo: `w3/F14-V3-2026-11.md`.
 - **F14 v3 e F15 L2 (2026-11-09):** reauditoria cega 4 da F14 v3 não aprova a promoção (L2 incompleto; prova do adapter ajustada pelo roteiro em 17 de 33 execuções, não divulgada antes). F15 L2 executada uma vez com a API real: `fail` na série de 2.800 (linhagem 3 de 5, arquivo inteiro 2 de 5; todas as quebras de linhagem são `fork_criteria_equal`, causa não diagnosticada sem os ledgers), cerca de US$ 0,93 pela console contra US$ 1,137 do roteiro. Nenhum status mudou; F14 e F15 `real_consumers` seguem `not_verified`. Ver `w3/REAUDIT-BLIND-4-2026-11-09.md` e `w3/F15-L2-2026-11.md`.
 - **F14 v4 (2026-11-09):** protocolo aprovado e ratificado pelo owner, roteiro mesclado (#311) e campanha executada uma vez com a API real, com as 6 promoções feitas pelo owner no terminal. Parou por teto em 36 de 42; critério não alcançável (`oidc` promovida 5/5 × controle 0/5; `pass` promovida 0/5, nota no contexto mas não aplicada). Custo cerca de US$ 1,49 pela console contra US$ 2,98 do roteiro. Nenhum status mudou. Ver `w3/F14-V4-2026-11.md`.
+
+## 10. Fechamento do terminal (run `20261111-terminal-closeout`)
+
+Fonte: run `.hseos/runs/dev-squad/20261111-terminal-closeout/` e PR #315 (onda TB). Nenhum valor de `status.*` mudou.
+
+- **GM-01 a GM-05, fechados pela onda TB com teste que reprova o código antigo ou mutado:** GM-01 `test/test-mcp-hseos-governance.js`; GM-02 `test/test-terminal-api.js`; GM-03 `test/test-budget-concurrency.js`; GM-04 `test/test-secret-canary-scan.js`; GM-05 `test/test-job-control.js`.
+- **Reconciliação do inventário (TD1, GM-09 a GM-14):** F01, F11 e F16 passam a ter `evolution_evidence` e `evolution_scope`, e a manutenção de `verified_installed_local_scope_only` (F01, F11, F16, F21) depende da ratificação do owner, OWNER-GATE `OG-01`; F12, F22 e F06 têm o `gap` corrigido; A-09 e A-15 fechadas no código (PLAN, item 6).
