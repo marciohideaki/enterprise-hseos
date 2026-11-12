@@ -105,3 +105,10 @@ Nenhuma promoção é proposta nesta run: as candidatas a custo zero dependem de
 | id | item | classe | fonte |
 |---|---|---|---|
 | L-15 | Credenciais concorrentes (dois processos com a mesma credencial ou cota) sem teste dedicado; sem pool por desenho | DESENHO-ABERTO | `engineering-model.js:106,188` |
+
+## Lacunas achadas durante a execução
+
+| id | família / critério | lacuna | evidência | classe | funcional? | muda veredito? | destino |
+|---|---|---|---|---|---|---|---|
+| GM-18 | T9 | `README.md` diz 52 skills em 7 linhas (L17, L331, L367, L409, L432, L442, L708); `.agents/skills/` tem 54 (`scripts/governance/verify-doc-facts.sh` rc=1, 7 discrepâncias). Defasado desde #292/#294 (skill `legacy-code-review` e validador do catálogo) | `verify-doc-facts.sh` | FECHÁVEL | não | sim (T9 cita o mecanismo) | TC (TD0) |
+| GM-19 | T5 | Banco **ativado** não tem caminho de migração entre schemas (TC1 caso c) | `docs/evolution/terminal-closeout/TC-INSTALLED-ACCEPTANCE-2026-11.md` | DESENHO-ABERTO | não hoje (todas as instalações no schema 17) | não (risco para a W6) | OG-16 |
