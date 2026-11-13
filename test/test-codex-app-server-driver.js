@@ -5,6 +5,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test } = require('node:test');
+const { spawn } = require('node:child_process');
+const { once } = require('node:events');
 
 const { CONTRACT_SCHEMA_VERSION } = require('../packages/agent-runtime-contracts');
 const { CodexAppServerDriver, CodexRuntimeProvider } = require('../packages/runtime-providers');
@@ -69,6 +71,50 @@ function eventsInput(providerId, sessionId, runtimeSessionId, fromSequence = 0) 
     runtime_session_id: runtimeSessionId,
     from_sequence: fromSequence,
   };
+}
+
+for (const mode of ['hang-initialize', 'hang-account', 'hang-create']) {
+  test(`close terminates an unregistered ${mode} connection even when SIGTERM is ignored`, { timeout: 5000 }, async (t) => {
+    const fixture = temp();
+    let child;
+    const d = new CodexAppServerDriver({
+      executable: process.execPath,
+      args: [FIXTURE, fixture.state, mode],
+      cwd: fixture.directory,
+      env: {},
+      spawn_process: (...args) => {
+        child = spawn(...args);
+        return child;
+      },
+    });
+    t.after(() => {
+      child?.kill('SIGKILL');
+      fixture.cleanup();
+    });
+    const pending =
+      mode === 'hang-account'
+        ? d.inspectAccount()
+        : d.create({
+            cwd: fixture.directory,
+            effect_boundary: 'instructions_only',
+          });
+    pending.catch(() => {});
+    await readRemoteState(`${fixture.state}.stage`);
+    const exited = once(child, 'exit');
+    // Concurrent close calls must both wait for the same process-exit barrier.
+    await Promise.all([d.close(), d.close()]);
+    assert.throws(() => process.kill(child.pid, 0), { code: 'ESRCH' });
+    const grandchild = JSON.parse(fs.readFileSync(`${fixture.state}.stage`, 'utf8')).grandchild;
+    try {
+      const stat = fs.readFileSync(`/proc/${grandchild}/stat`, 'utf8');
+      assert.equal(stat.slice(stat.lastIndexOf(') ') + 2).split(' ')[0], 'Z');
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+    await assert.rejects(pending, { error_code: 'provider_unavailable' });
+    const [, signal] = await exited;
+    assert.equal(signal, 'SIGKILL');
+  });
 }
 
 test('Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio', async () => {
@@ -331,3 +377,49 @@ for (const mode of ['stale-usage', 'foreign-stale-usage'])
       fixture.cleanup();
     }
   });
+
+test('driver close retains an account connection until descendant quiescence completes', { timeout: 5000 }, async (t) => {
+  const fixture = temp();
+  let child;
+  let holdUntil = 0;
+  const originalReaddir = fs.readdirSync;
+  const originalRead = fs.readFileSync;
+  // Deterministic observation of a group member still awaiting kernel reaping.
+  // The leader remains a real fixture process; only /proc observation is controlled.
+  t.mock.method(fs, 'readdirSync', (target, ...args) => {
+    const result = originalReaddir(target, ...args);
+    return target === '/proc' && Date.now() < holdUntil ? [...result, '999999999'] : result;
+  });
+  t.mock.method(fs, 'readFileSync', (target, ...args) => {
+    if (target === '/proc/999999999/stat' && Date.now() < holdUntil) {
+      return `999999999 (pending-reaping-fixture) R 0 ${child.pid} 0 0`;
+    }
+    return originalRead(target, ...args);
+  });
+  const d = new CodexAppServerDriver({
+    executable: process.execPath,
+    args: [FIXTURE, fixture.state, 'normal'],
+    cwd: fixture.directory,
+    env: {},
+    spawn_process: (...args) => {
+      child = spawn(...args);
+      child.once('close', () => {
+        holdUntil = Date.now() + 250;
+      });
+      return child;
+    },
+  });
+  t.after(() => {
+    child?.kill('SIGKILL');
+    fixture.cleanup();
+  });
+  const account = d.inspectAccount();
+  account.catch(() => {});
+  // Wait until the native leader is gone but the deterministic group observation is live.
+  while (!child) await new Promise((resolve) => setImmediate(resolve));
+  await once(child, 'close');
+  assert.ok(Date.now() < holdUntil);
+  await d.close();
+  assert.ok(Date.now() >= holdUntil, 'close must not overtake a connection already reaping descendants');
+  await account;
+});
