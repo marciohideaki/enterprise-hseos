@@ -19,6 +19,11 @@ sobre o mesmo ledger de execução:
 | MCP moderno e compat       | Servidores MCP do pacote (governança, swarm, estado do projeto, ponte do axon), com modo moderno e modo de compatibilidade legada.                     |
 | Terminais e jobs           | Terminais com processo isolado (abrir, entrada, redimensionar, EOF, anexar) e jobs, ambos via `hseos control` e pelas rotas `/v1/terminals` e de jobs. |
 
+No produto ativado, o compat legado não expira salvo se `HSEOS_MCP_LEGACY_SUNSET` (data ISO ou instante) estiver
+definida (`tools/lib/governed-execution/native-mcp-server.js:112-116,161`; ADR-0048). A data `2026-11-30` embutida
+(`tools/lib/mcp-2026-adapter.js:33`) vale só em fixture de teste. Revisões compat aceitas: `2024-11-05`, `2025-03-26`,
+`2025-06-18` e `2025-11-25` (`native-mcp-server.js:110`).
+
 Cliente fechado, desconectado ou reconectado não cancela o trabalho: o controlador mantém o processo e os eventos
 têm cursor. Detalhes e garantias em [engineering-control-api.md](engineering-control-api.md).
 
@@ -125,6 +130,22 @@ SDK Python: `terminal`, `terminal_query`, `terminal_events`. Nenhum cliente esco
 - Plugins de capacidade `scaffolded` não são emitidos; plugin de terceiro só por definição local com pin no catálogo.
 - Credenciais concorrentes não têm pool; dois processos com a mesma credencial ou cota não têm teste dedicado.
 - Sem cgroup v2 delegado, bubblewrap ou `pidfd`: `ENGINEERING_ISOLATION_UNAVAILABLE`.
+
+## Como o fechamento é verificado
+
+O fechamento é checado por testes e jornadas versionados, sem modelo real:
+
+- `test/test-terminal-readiness.js`: gate do documento de prontidão; falha se um critério for declarado satisfeito sem
+  evidência, se contradisser o `requirements.json` ou se o `W6-ENTRY.md` perder uma seção obrigatória.
+- `test/test-budget-concurrency.js`: processos reais disputam um único ledger; o teto agregado de custo e de requisições
+  vale qualquer que seja o entrelaçamento.
+- `test/test-secret-canary-scan.js`: varredura exaustiva de bytes; um canário sintético injetado pelo caminho legítimo
+  da credencial só pode aparecer no cabeçalho `Authorization` recebido pelo provedor.
+- `test/test-terminal-api.js`: HTTP, SDKs JS e Python e CLI compartilham identidade e cursor de terminal; ações sem
+  credencial são recusadas; o attach transmite bytes, serializa entrada e redimensionamento e desanexa sem encerrar.
+- `test/test-job-control.js`: criação de jobs só com dados, durável e replayável; cancelamento e idempotência; job
+  adiado sobrevive a controlador encerrado e é despachado uma vez, nunca antes da hora.
+- Jornadas do pacote instalado: [test/journeys/README.md](../test/journeys/README.md).
 
 ## O que não está certificado
 

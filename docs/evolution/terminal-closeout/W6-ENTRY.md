@@ -3,6 +3,8 @@
 Este documento descreve a superfície que a IDE da W6 vai consumir. A W6 não foi iniciada. Os valores vêm do código e dos
 documentos citados; o veredito de prontidão está em `terminal-readiness.json` (verificado por `test/test-terminal-readiness.js`).
 
+Nota: o campo `revision` do `terminal-readiness.json` é a revisão em que o veredito foi emitido, antes dos merges de registro, e não a `master` atual.
+
 ## Superfície estável
 
 - API de controle em `/v1`, somente loopback, Linux (`docs/engineering-control-api.md:58-64`; `docs/terminal.md:27,116`).
