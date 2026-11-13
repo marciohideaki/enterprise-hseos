@@ -1,5 +1,7 @@
 # Pendências das ondas W0–W5 — mapa (2026-10-23)
 
+**Atualizado até 2026-11-11 (§9 e §10).** As seções 1 a 8 são retratos datados do momento em que foram escritas e não descrevem o estado atual.
+
 Tipo: levantamento. Não altera estado de nenhuma onda nem aceita nada. Fontes: [requirements.json](../requirements.json),
 [PLAN](../PLAN.md), STATUS de [W0](../W0-CLOSEOUT.md), [W1](../w1/STATUS.md), [W2](../w2/STATUS.md), [W3](../w3/STATUS.md),
 [W4](../w4/STATUS.md), [W5](../w5/STATUS.md), [revalidação](../revalidation-2026-10/STATUS.md), [consumidor real](../consumer-validation-2026-10/STATUS.md),
@@ -152,6 +154,10 @@ Relatório: [CONFORMIDADE-W0-W5.md](../audit-2026-10-27/CONFORMIDADE-W0-W5.md), 
 | A-18   | Distribuição global               | —    | Com o owner, fora desta run                                                                                                                                                                                                                                                                                                                                                      |
 | A-19   | Contagem de aceites (MAPA §3)     | T7   | Corrigido nesta task (§3; sem merge)                                                                                                                                                                                                                                                                                                                                             |
 | A-20   | Rastreabilidade W3 e W4           | T7   | Tratado: STATUS das runs antigas atualizados nesta task (commit desta task, ainda sem merge). Rastro legível por máquina de W3 e W4 criado em [w3/TRACE.json](../w3/TRACE.json) e [w4/TRACE.json](../w4/TRACE.json), validado por `test/test-evolution-trace.js` (schema, fonte `arquivo:linha`, requisitos, testes e recibos). Resíduo: handoffs/logs ausentes nas runs antigas |
+
+### Estado das PRs (conferido em 2026-11-13)
+
+A tabela acima é o retrato de 2026-10-27 e não foi reescrita. Conferido com `gh pr view <n> --json state,mergeCommit`: a PR #255 foi mesclada (`af1c4529`), a #256 foi mesclada (`773d8ccc`) e a #257 foi mesclada (`f953992b`). Pelos títulos das PRs, a #255 cobre A-01, A-02, A-03 e A-05 (cobertura de CI, envelopes MCP e redação de chave), a #256 cobre A-04, A-11, A-12 e A-15 (gates de mutação, lock de instalação e rollback da ativação) e a #257 cobre A-08 e A-10 (swarm) e os documentos de A-13, A-19 e A-20 (o texto "Corrigido nesta task (§3; sem merge)" entrou na `master` pelo commit `f953992b`, conferido com `git log -S`). As expressões "aguardando merge do owner", "PR a abrir" e "sem merge" da tabela descrevem 2026-10-27 e estão superadas.
 
 ### Estado em 2026-10-30
 
@@ -328,3 +334,5 @@ Fonte: run `.hseos/runs/dev-squad/20261111-terminal-closeout/` e PR #315 (onda T
 - **GM-01 a GM-05, fechados pela onda TB com teste que reprova o código antigo ou mutado:** GM-01 `test/test-mcp-hseos-governance.js`; GM-02 `test/test-terminal-api.js`; GM-03 `test/test-budget-concurrency.js`; GM-04 `test/test-secret-canary-scan.js`; GM-05 `test/test-job-control.js`.
 - **Reconciliação do inventário (TD1, GM-09 a GM-14):** F01, F11 e F16 passam a ter `evolution_evidence` e `evolution_scope`, e a manutenção de `verified_installed_local_scope_only` (F01, F11, F16, F21) depende da ratificação do owner, OWNER-GATE `OG-01`; F12, F22 e F06 têm o `gap` corrigido; A-09 e A-15 fechadas no código (PLAN, item 6).
 - **Veredito do terminal:** TERMINAL PRONTO COM GATES DECLARADOS; gate legível por máquina em `docs/evolution/terminal-closeout/terminal-readiness.json` (`test/test-terminal-readiness.js`); pacote de entrada da W6 em `docs/evolution/terminal-closeout/W6-ENTRY.md`; gates do owner OG-01 a OG-17 no `OWNER-GATES.md` da run; a W6 não foi iniciada.
+- **Decisões do owner de maior efeito (OG-01 a OG-17, `OWNER-GATES.md` da run):** OG-01 (ratificar ou rebaixar `verified_installed_local_scope_only` em F01, F11, F16 e F21, dado antes do ADR-0050), OG-16 (o produto não tem caminho para evoluir o schema de um ledger já ativado; hoje só resta restaurar o backup pré-ativação) e OG-17 (instabilidade de `test:capability-intake-guard` sob carga, `test/test-capability-intake-guard.js:1440`). Nenhuma bloqueia a validação do terminal.
+- **Documentos do fechamento:** [terminal-closeout/](../terminal-closeout/) ([W6-ENTRY](../terminal-closeout/W6-ENTRY.md), [aceite instalado](../terminal-closeout/TC-INSTALLED-ACCEPTANCE-2026-11.md), [terminal-readiness.json](../terminal-closeout/terminal-readiness.json)) e [docs/terminal.md](../../terminal.md). PRs #314 a #318, tags `hseos-terminal-wa` a `hseos-terminal-wd` e `hseos-terminal-close`.

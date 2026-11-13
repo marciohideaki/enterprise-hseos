@@ -1,13 +1,14 @@
 # Evolução do harness HSEOS
 
-Artefatos: plano de execução, inventário verificável e recibos das ondas 0 a 4 e da revalidação 2026-10.
+Artefatos: plano de execução, inventário verificável e recibos das ondas 0 a 5, da revalidação 2026-10, do fechamento pré-W6 e do fechamento do terminal (2026-11-11).
 Autoridade: plano fornecido pelo usuário em 2026-09-25; Constituição 2.2,
 AGENTS.md, governance-discovery, automated-validation e ADR-0043.
 
 Comece por [STATUS](STATUS.md), depois [PLAN](PLAN.md). Consulte
 [requirements.json](requirements.json) para as 27 famílias, seus requisitos,
 fontes, testes existentes, dependências e lacunas. A existência de um teste não
-prova aprovação: todos os estados de evolução começam não verificados.
+prova aprovação: em 2026-09-25 todos os estados de evolução começavam não verificados. O estado atual está em
+[requirements.json](requirements.json) e no [STATUS](STATUS.md).
 
 - [Comparação original preservada](COMPARISON-2026-09-25.md)
 - [Manifesto imutável da candidata](baseline.json)
@@ -36,8 +37,14 @@ separados.
 - [Onda 2 — terminais e lifecycle](w2/STATUS.md)
 - [Onda 3 — adapters e campanha](w3/STATUS.md)
 - [Onda 4 — plugins de execução, jobs e workflows](w4/STATUS.md) ([README](w4/README.md))
+- [Onda 5 — memória, compactação e consumidores](w5/STATUS.md) ([README](w5/README.md), [consumidores](w5/CONSUMERS.md))
+- [Evidências do fechamento da fundação (W10)](w10/evidence/k7/README.md)
 - [Revalidação do core 2026-10](revalidation-2026-10/README.md) ([estado](revalidation-2026-10/STATUS.md))
 - [Validação em consumidor real 2026-10](consumer-validation-2026-10/README.md) ([estado](consumer-validation-2026-10/STATUS.md))
 - [Revalidação real e revisão adversarial](w3/LIVE-REVALIDATION.md)
 - [ACP restrito: compatibilidade, fronteira e campanha real](w3/ACP-CAMPAIGN.md)
 - [Pendências das ondas W0–W5: mapa e plano](pendencias-w0-w5/MAPA.md) ([plano](pendencias-w0-w5/PLAN.md))
+- [Fechamento do terminal (2026-11-11): TERMINAL PRONTO COM GATES DECLARADOS — pacote de entrada da W6](terminal-closeout/W6-ENTRY.md)
+- [Aceite instalado do terminal](terminal-closeout/TC-INSTALLED-ACCEPTANCE-2026-11.md)
+- [Gate de prontidão legível por máquina](terminal-closeout/terminal-readiness.json)
+- [Terminal de engenharia (guia)](../terminal.md)
