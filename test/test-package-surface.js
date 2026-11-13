@@ -64,6 +64,12 @@ test('published package exposes runtime and governance assets only', () => {
     '.enterprise/governance/capabilities/profiles.yaml',
     '.enterprise/governance/capabilities/surfaces.yaml',
     '.agents/capabilities/surfaces.yaml',
+    '.enterprise/governance/capabilities/ecp-registry.snapshot.json',
+    '.enterprise/governance/capabilities/ecp-registry.snapshot.lock.json',
+    '.enterprise/governance/capabilities/ecp-stacks.snapshot.json',
+    '.enterprise/governance/capabilities/ecp-stacks.snapshot.lock.json',
+    '.agents/capabilities/ecp-registry.snapshot.json',
+    '.agents/capabilities/ecp-registry.snapshot.lock.json',
     '.hseos/workflows/registry.yaml',
     'docs/MANAGED-GOVERNANCE.md',
     'docs/pt-br/governanca-gerenciada.md',
@@ -100,9 +106,16 @@ test('published package exposes runtime and governance assets only', () => {
   // `.hseos/state/` absence is an explicit acceptance-evidence requirement (managed-shadow-readiness
   // spec.md), not incidental: package.json's `files` field excludes it deliberately (`!.hseos/state/**`).
   const forbiddenPrefixes = ['test/', '_graph/', '.hseos/runs/', '.hseos/state/', '.github/', '.logs/'];
+  const forbiddenFiles = new Set([
+    '.enterprise/.specs/specs.zip',
+    '.enterprise/CHANGELOG.md',
+    '.enterprise/ci-cd/README.md',
+    '.agents/capabilities/ecp-stacks.snapshot.json',
+    '.agents/capabilities/ecp-stacks.snapshot.lock.json',
+  ]);
   for (const file of files) {
     assert.ok(!forbiddenPrefixes.some((prefix) => file.startsWith(prefix)), `internal artifact published: ${file}`);
-    assert.notEqual(file, '.enterprise/.specs/specs.zip');
+    assert.ok(!forbiddenFiles.has(file), `excluded package asset published: ${file}`);
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
@@ -116,6 +129,8 @@ test('published package exposes runtime and governance assets only', () => {
   // .agents/capabilities/. That is a side effect of the compiler (syncCapabilityCatalog copies the whole directory
   // without a filter), not a runtime need; the owner decided to keep the mirror and test-capability-catalog.js asserts
   // it equals the canonical source.
+  // The unused compiled stack mirror and two source-maintenance documents are excluded by exact npm paths.
+  // The canonical stack pair remains required above; source documents stay in Git and budgets stay unchanged.
   // State/key/config exclusions above remain independent security invariants.
   const ENTRY_CEILING = 1556;
   assert.ok(packed.entryCount <= ENTRY_CEILING, `package entry count is not bounded: ${packed.entryCount}`);

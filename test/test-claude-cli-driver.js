@@ -32,6 +32,62 @@ const alive = (pid) => {
   }
 };
 
+async function waitForCapture(f, stage) {
+  const deadline = Date.now() + 3000;
+  while (Date.now() < deadline) {
+    const call = f.calls().find((entry) => entry.argv[0] === stage);
+    if (call) return call;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.fail(`Native fixture did not enter ${stage}`);
+}
+
+test('pre-cancelled account inspection starts no native process', async (t) => {
+  const f = setup(t);
+  const controller = new AbortController();
+  controller.abort();
+  await assert.rejects(driver(f).inspectAccount({ signal: controller.signal }), { error_code: 'cancelled' });
+  assert.equal(f.calls().length, 0);
+});
+
+test('cancellation during version waits for exit and never starts account status later', async (t) => {
+  const f = setup(t, { mode: { capture: 'slow-version' } });
+  const controller = new AbortController();
+  const pending = driver(f).inspectAccount({ signal: controller.signal, timeout_ms: 2000 });
+  pending.catch(() => {});
+  const call = await waitForCapture(f, '--version');
+  controller.abort();
+  await assert.rejects(pending, { error_code: 'cancelled' });
+  assert.equal(alive(call.pid), false);
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  assert.deepEqual(
+    f.calls().map((entry) => entry.argv[0]),
+    ['--version'],
+  );
+});
+
+for (const stage of ['version', 'auth']) {
+  test(`cancellation kills a SIGTERM-ignoring ${stage} capture before rejecting`, async (t) => {
+    const f = setup(t, { mode: { capture: `${stage}-stubborn` } });
+    const controller = new AbortController();
+    const pending = driver(f).inspectAccount({ signal: controller.signal, timeout_ms: 2000 });
+    pending.catch(() => {});
+    const call = await waitForCapture(f, stage === 'version' ? '--version' : 'auth');
+    controller.abort();
+    await assert.rejects(pending, { error_code: 'cancelled' });
+    assert.equal(alive(call.pid), false);
+  });
+
+  test(`inspection deadline kills a SIGTERM-ignoring ${stage} capture before rejecting`, async (t) => {
+    const f = setup(t, { mode: { capture: `${stage}-stubborn` } });
+    await assert.rejects(driver(f).inspectAccount({ timeout_ms: 1000 }), { error_code: 'timeout' });
+    const call = f.calls().find((entry) => entry.argv[0] === (stage === 'version' ? '--version' : 'auth'));
+    assert.ok(call, 'The fixture reached the tested capture stage');
+    assert.equal(alive(call.pid), false);
+    if (stage === 'version') assert.equal(f.calls().length, 1);
+  });
+}
+
 test('headless run uses the subscription-safe flag set and an allowlisted environment', async (t) => {
   process.env.ANTHROPIC_API_KEY = 'parent-secret-must-not-propagate';
   process.env.CLAUDE_CODE_USE_BEDROCK = '1';
@@ -77,6 +133,21 @@ test('persisted and resumed sessions switch the session flags', async (t) => {
   const resumed = await run(f, { persist: true, resume: session });
   assert.equal(resumed.result.session_id, session);
   assert.equal(f.calls().at(-1).argv[f.calls().at(-1).argv.indexOf('--resume') + 1], session);
+});
+
+test('a passive native UI invalidation before init is compatible, unknown events still fail closed', async (t) => {
+  const f = setup(t, { run: 'ui_before_init' });
+  const result = await run(f);
+  assert.equal(result.result.stop_reason, 'completed');
+  assert.deepEqual(result.events, [{ type: 'message.delta', text: 'echo:5' }]);
+  const unknown = setup(t, { run: 'unknown_before_init' });
+  await assert.rejects(run(unknown), { error_code: 'protocol_error' });
+});
+
+test('an explicit scratch directory survives the child environment allowlist', async (t) => {
+  const f = setup(t);
+  await driver(f, { env: { HOME: f.home, PATH, TMPDIR: f.home } }).inspectAccount();
+  assert.ok(f.calls().every((call) => call.env.includes('TMPDIR')));
 });
 
 test('credential-bearing or unknown environment names never reach the driver', (t) => {
