@@ -17,8 +17,11 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..', '..', '..');
 
-const KIND_RANK = { exact: 0, dir: 1, glob: 2, basename: 3, 'non-citing': 4 };
-const STRONG_KINDS = new Set(['exact', 'dir', 'glob']);
+const KIND_RANK = { exact: 0, dir: 1, glob: 2, suffix: 3, basename: 4, 'glob-generic': 5, 'non-citing': 6 };
+const STRONG_KINDS = new Set(['exact', 'dir', 'glob', 'suffix']);
+
+// Directory names under which this repository may be checked out (main checkout and linked worktrees).
+const repoNames = new Set();
 
 const TOKEN_RE = /[\p{L}\p{N}_.@+~%/*-]+/gu;
 const LINK_RE = /\]\(\s*<?([^\n)>]+?)>?(?:\s+["'][^"']*["'])?\s*\)/g;
@@ -95,6 +98,25 @@ function prefixOf(file, prefixDepth) {
   return `${directories.slice(0, depth).join('/')}/`;
 }
 
+// An absolute path that points inside this repository becomes a root-relative path; any other absolute token is dropped.
+function stripRepoPrefix(token) {
+  if (token.startsWith('//')) return '';
+  for (const name of repoNames) {
+    const index = token.indexOf(`/${name}/`);
+    if (index === -1) continue;
+    let rest = token.slice(index + name.length + 2);
+    if (rest.startsWith('.worktrees/')) rest = rest.split('/').slice(2).join('/');
+    return rest;
+  }
+  return '';
+}
+
+// A glob with no literal directory segment (e.g. **/*.md, **/.gitkeep) says nothing about a specific file.
+function isGenericGlob(token) {
+  const directories = token.split('/').slice(0, -1);
+  return !directories.some((segment) => !segment.includes('*'));
+}
+
 // Normalise one raw token; returns '' when it cannot be a path.
 function cleanToken(raw) {
   let token = raw.trim();
@@ -107,6 +129,7 @@ function cleanToken(raw) {
   token = token.replace(/[.,;:!)\]}'"`>]+$/, '');
   if (token.endsWith('**') && token.at(-3) !== '/') token = token.replace(/\*+$/, '');
   token = token.replace(/\/+$/, '');
+  if (token.startsWith('/')) token = stripRepoPrefix(token).replace(/\/+$/, '');
   if (token.length === 0 || token.length > 300) return '';
   if (token.startsWith('/') || token.includes('://') || token === '.' || token === '..') return '';
   if (token.includes('*') && !/[/.]/.test(token)) return '';
@@ -246,6 +269,8 @@ async function main() {
   const nonCiting = new Set(config.nonCitingReferrers ?? []);
 
   const baseCommit = git(['rev-parse', 'HEAD']).trim();
+  repoNames.add(path.basename(root));
+  repoNames.add(path.basename(path.dirname(git(['rev-parse', '--path-format=absolute', '--git-common-dir']).trim())));
   const allFiles = git(['ls-files', '-z'])
     .split('\0')
     .filter(Boolean)
@@ -300,6 +325,7 @@ async function main() {
   const dirHits = new Map();
   const baseHits = new Map();
   const globs = new Map();
+  const suffixHits = new Map();
   const noteHit = (map, key, referent) => {
     if (!map.has(key)) map.set(key, new Set());
     map.get(key).add(referent);
@@ -315,8 +341,17 @@ async function main() {
     scanned += 1;
     const referentDir = path.posix.dirname(referent);
     for (const token of extractTokens(result.content)) {
+      if (token.startsWith('.../')) {
+        noteHit(suffixHits, token.slice(3), referent);
+        continue;
+      }
       if (token.includes('*')) {
-        for (const variant of variantsOf(token, referentDir)) noteHit(globs, variant, referent);
+        const generic = isGenericGlob(token);
+        for (const variant of variantsOf(token, referentDir)) {
+          if (!globs.has(variant)) globs.set(variant, new Map());
+          const known = globs.get(variant).get(referent);
+          globs.get(variant).set(referent, (known ?? true) && generic);
+        }
         continue;
       }
       const lastSegment = token.split('/').at(-1);
@@ -354,8 +389,14 @@ async function main() {
     }
     for (const glob of globList) {
       if (!candidatePath.startsWith(glob.prefix) || !glob.regex.test(candidatePath)) continue;
-      for (const referent of glob.referents) {
-        if (referent !== candidatePath) addRef(refs, referent, 'glob', glob.pattern);
+      for (const [referent, generic] of glob.referents) {
+        if (referent !== candidatePath) addRef(refs, referent, generic ? 'glob-generic' : 'glob', glob.pattern);
+      }
+    }
+    for (const [suffix, hitReferents] of suffixHits) {
+      if (!candidatePath.endsWith(suffix)) continue;
+      for (const referent of hitReferents) {
+        if (referent !== candidatePath) addRef(refs, referent, 'suffix', `...${suffix}`);
       }
     }
     const name = segments.at(-1);

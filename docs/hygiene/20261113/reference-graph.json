@@ -1,5 +1,5 @@
 {
-  "base_commit": "ae717dc06338c0aafe06211f8b2582e2e99a0fd2",
+  "base_commit": "ddde51e9d6913208d40ccc7711dc1e78b3d2ea3a",
   "config_sha256": "81b60a24b879a239dda620e9cde0166f65f58e8d2e42b46f96e7e35727428cd1",
   "totals": {
     "referents_scanned": 4550,
@@ -7,12 +7,12 @@
     "candidates": 2989,
     "candidate_bytes": 32559539,
     "packaged": 0,
-    "removable_by_graph": 155,
-    "removable_bytes": 632282,
-    "kept": 2834,
-    "kept_bytes": 31927257,
-    "kept_by_category": { "guard-data": 40, "historic": 2233, "living-doc": 357, "spec": 64, "test": 140 },
-    "candidates_with_basename_only_referrers": 47,
+    "removable_by_graph": 145,
+    "removable_bytes": 562188,
+    "kept": 2844,
+    "kept_bytes": 31997351,
+    "kept_by_category": { "guard-data": 40, "historic": 2243, "living-doc": 357, "spec": 64, "test": 140 },
+    "candidates_with_basename_only_referrers": 48,
     "referrers_trimmed_for_size": true,
     "referrer_lists_capped": 5
   },
@@ -155,9 +155,9 @@
     ".hseos/runs/dev-squad/20261027-1900-audit-fixes/": {
       "files": 29,
       "bytes": 161510,
-      "removable_by_graph": 20,
-      "kept": 9,
-      "kept_by_category": { "historic": 8, "spec": 1 }
+      "removable_by_graph": 9,
+      "kept": 20,
+      "kept_by_category": { "historic": 19, "spec": 1 }
     },
     ".hseos/runs/dev-squad/20261030-1810-owner-decisions/": {
       "files": 66,
@@ -195,13 +195,7 @@
       "kept_by_category": { "historic": 5, "spec": 1 }
     },
     ".hseos/runs/standalone-migration/": { "files": 2, "bytes": 8767, "removable_by_graph": 2, "kept": 0, "kept_by_category": {} },
-    ".hseos/runs/standalone-migration/handoffs/": {
-      "files": 1,
-      "bytes": 0,
-      "removable_by_graph": 0,
-      "kept": 1,
-      "kept_by_category": { "historic": 1 }
-    },
+    ".hseos/runs/standalone-migration/handoffs/": { "files": 1, "bytes": 0, "removable_by_graph": 1, "kept": 0, "kept_by_category": {} },
     ".logs/runs/": { "files": 1, "bytes": 0, "removable_by_graph": 0, "kept": 1, "kept_by_category": { "living-doc": 1 } },
     ".logs/summaries/": { "files": 2, "bytes": 1520, "removable_by_graph": 0, "kept": 2, "kept_by_category": { "living-doc": 2 } },
     ".logs/validation/": { "files": 1, "bytes": 0, "removable_by_graph": 0, "kept": 1, "kept_by_category": { "living-doc": 1 } },
@@ -1420,12 +1414,18 @@
       "bytes": 9254,
       "packaged": false,
       "removable_by_graph": false,
-      "referrers": { "historic": [{ "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/INTAKE.md", "kind": "exact" }] },
-      "historic_count": 1,
-      "referrer_counts": { "historic": 1 },
-      "blocking_count": 1,
+      "referrers": {
+        "historic": [
+          { "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/INTAKE.md", "kind": "exact" },
+          { "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/prompts/T2.md", "kind": "exact" }
+        ]
+      },
+      "historic_count": 2,
+      "referrer_counts": { "historic": 2 },
+      "blocking_count": 2,
       "blocking_referrers": [
-        { "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/INTAKE.md", "category": "historic", "kind": "exact" }
+        { "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/INTAKE.md", "category": "historic", "kind": "exact" },
+        { "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/prompts/T2.md", "category": "historic", "kind": "exact" }
       ]
     },
     {
@@ -1609,9 +1609,9 @@
           { "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/STATUS.md", "kind": "exact" }
         ]
       },
-      "historic_count": 4,
-      "referrer_counts": { "historic": 4 },
-      "blocking_count": 4,
+      "historic_count": 5,
+      "referrer_counts": { "historic": 5 },
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/PLAN.md", "category": "historic", "kind": "exact" },
         { "file": ".hseos/runs/dev-squad/20261008-2350-next-steps/PR-BODY-T3.md", "category": "historic", "kind": "dir" },
@@ -1844,7 +1844,7 @@
       },
       "historic_count": 4,
       "referrer_counts": { "living-doc": 1, "historic": 4 },
-      "blocking_count": 4,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261020-w5-closeout/PLAN-CONCLUSAO.md", "category": "historic", "kind": "dir" },
@@ -1874,11 +1874,11 @@
       },
       "historic_count": 4,
       "referrer_counts": { "living-doc": 1, "historic": 4 },
-      "blocking_count": 3,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261020-w5-closeout/PLAN.md", "category": "historic", "kind": "exact" },
-        { "file": "docs/evolution/audit-2026-10-27/CONFORMIDADE-W0-W5.md", "category": "historic", "kind": "dir" }
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/AUDIT-REPORT.md", "category": "historic", "kind": "dir" }
       ]
     },
     {
@@ -1900,11 +1900,11 @@
       },
       "historic_count": 5,
       "referrer_counts": { "living-doc": 1, "historic": 5 },
-      "blocking_count": 5,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261020-w5-closeout/PLAN-CONCLUSAO.md", "category": "historic", "kind": "exact" },
-        { "file": ".hseos/runs/dev-squad/20261030-1810-owner-decisions/logs/D2-REPORT.md", "category": "historic", "kind": "exact" }
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/AUDIT-REPORT.md", "category": "historic", "kind": "dir" }
       ]
     },
     {
@@ -1931,7 +1931,7 @@
       },
       "historic_count": 6,
       "referrer_counts": { "living-doc": 1, "spec": 1, "historic": 6 },
-      "blocking_count": 6,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": ".enterprise/agents/atlas/authority.md", "category": "spec", "kind": "glob" },
@@ -1961,7 +1961,7 @@
       },
       "historic_count": 5,
       "referrer_counts": { "living-doc": 1, "historic": 5 },
-      "blocking_count": 5,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261020-w5-closeout/PLAN-CONCLUSAO.md", "category": "historic", "kind": "dir" },
@@ -1995,7 +1995,7 @@
       },
       "historic_count": 4,
       "referrer_counts": { "living-doc": 1, "historic": 4 },
-      "blocking_count": 4,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261020-w5-closeout/PLAN-CONCLUSAO.md", "category": "historic", "kind": "dir" },
@@ -2025,7 +2025,7 @@
       },
       "historic_count": 4,
       "referrer_counts": { "living-doc": 1, "historic": 4 },
-      "blocking_count": 4,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261020-w5-closeout/PLAN-CONCLUSAO.md", "category": "historic", "kind": "exact" },
@@ -2094,10 +2094,20 @@
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/AUDIT-REPORT.md",
       "bytes": 35515,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
-      "historic_count": 3,
-      "referrer_counts": { "historic": 3 }
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/INTAKE.md", "kind": "exact" },
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T7.md", "kind": "basename" },
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "kind": "exact" }
+        ]
+      },
+      "historic_count": 4,
+      "referrer_counts": { "historic": 4 },
+      "blocking_count": 1,
+      "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "exact" }
+      ]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/INTAKE.md",
@@ -2111,10 +2121,24 @@
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
       "bytes": 15310,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
-      "historic_count": 1,
-      "referrer_counts": { "historic": 1 }
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/AUDIT-REPORT.md", "kind": "exact" },
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md",
+            "kind": "suffix",
+            "via": ".../20261027-1900-audit-fixes/PLAN.md"
+          }
+        ]
+      },
+      "historic_count": 2,
+      "referrer_counts": { "historic": 2 },
+      "blocking_count": 2,
+      "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/AUDIT-REPORT.md", "category": "historic", "kind": "exact" },
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "suffix" }
+      ]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md",
@@ -2127,8 +2151,11 @@
       },
       "historic_count": 1,
       "referrer_counts": { "spec": 1, "historic": 1 },
-      "blocking_count": 1,
-      "blocking_referrers": [{ "file": ".enterprise/agents/atlas/authority.md", "category": "spec", "kind": "glob" }]
+      "blocking_count": 2,
+      "blocking_referrers": [
+        { "file": ".enterprise/agents/atlas/authority.md", "category": "spec", "kind": "glob" },
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/AUDIT-REPORT.md", "category": "historic", "kind": "exact" }
+      ]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T1.md",
@@ -2198,82 +2225,177 @@
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T1.md",
       "bytes": 1769,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
+            "kind": "glob",
+            "via": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T*.md"
+          },
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T1.md", "kind": "basename" },
+          { "file": "docs/audits/2026-09-07-repository-consolidation/inventory.json", "kind": "non-citing", "matched": "basename" }
+        ]
+      },
       "historic_count": 3,
-      "referrer_counts": { "historic": 3 }
+      "referrer_counts": { "historic": 3 },
+      "blocking_count": 1,
+      "blocking_referrers": [{ "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" }]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T2.md",
       "bytes": 1961,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
+            "kind": "glob",
+            "via": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T*.md"
+          }
+        ]
+      },
       "historic_count": 1,
-      "referrer_counts": { "historic": 1 }
+      "referrer_counts": { "historic": 1 },
+      "blocking_count": 1,
+      "blocking_referrers": [{ "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" }]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T3.md",
       "bytes": 1955,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
+            "kind": "glob",
+            "via": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T*.md"
+          }
+        ]
+      },
       "historic_count": 1,
-      "referrer_counts": { "historic": 1 }
+      "referrer_counts": { "historic": 1 },
+      "blocking_count": 1,
+      "blocking_referrers": [{ "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" }]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T4.md",
       "bytes": 2935,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
+            "kind": "glob",
+            "via": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T*.md"
+          }
+        ]
+      },
       "historic_count": 1,
-      "referrer_counts": { "historic": 1 }
+      "referrer_counts": { "historic": 1 },
+      "blocking_count": 1,
+      "blocking_referrers": [{ "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" }]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T5.md",
       "bytes": 1636,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
+            "kind": "glob",
+            "via": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T*.md"
+          }
+        ]
+      },
       "historic_count": 1,
-      "referrer_counts": { "historic": 1 }
+      "referrer_counts": { "historic": 1 },
+      "blocking_count": 1,
+      "blocking_referrers": [{ "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" }]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T6a.md",
       "bytes": 1978,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
+            "kind": "glob",
+            "via": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T*.md"
+          }
+        ]
+      },
       "historic_count": 1,
-      "referrer_counts": { "historic": 1 }
+      "referrer_counts": { "historic": 1 },
+      "blocking_count": 1,
+      "blocking_referrers": [{ "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" }]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T6b.md",
       "bytes": 1522,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
+            "kind": "glob",
+            "via": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T*.md"
+          }
+        ]
+      },
       "historic_count": 1,
-      "referrer_counts": { "historic": 1 }
+      "referrer_counts": { "historic": 1 },
+      "blocking_count": 1,
+      "blocking_referrers": [{ "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" }]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T7.md",
       "bytes": 1638,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          {
+            "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md",
+            "kind": "glob",
+            "via": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T*.md"
+          },
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T7.md", "kind": "basename" }
+        ]
+      },
       "historic_count": 2,
-      "referrer_counts": { "historic": 2 }
+      "referrer_counts": { "historic": 2 },
+      "blocking_count": 1,
+      "blocking_referrers": [{ "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" }]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/COMMON.md",
       "bytes": 3875,
       "packaged": false,
-      "removable_by_graph": true,
-      "referrers": {},
-      "historic_count": 1,
-      "referrer_counts": { "historic": 1 }
+      "removable_by_graph": false,
+      "referrers": {
+        "historic": [
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "kind": "exact" },
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T1.md", "kind": "exact" },
+          { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "kind": "exact" }
+        ]
+      },
+      "historic_count": 9,
+      "referrer_counts": { "historic": 9 },
+      "blocking_count": 9,
+      "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "exact" },
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T1.md", "category": "historic", "kind": "exact" },
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "exact" }
+      ]
     },
     {
       "path": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T1.md",
@@ -2297,8 +2419,9 @@
       },
       "historic_count": 4,
       "referrer_counts": { "historic": 4 },
-      "blocking_count": 1,
+      "blocking_count": 2,
       "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md", "category": "historic", "kind": "glob" }
       ]
     },
@@ -2323,8 +2446,9 @@
       },
       "historic_count": 2,
       "referrer_counts": { "historic": 2 },
-      "blocking_count": 1,
+      "blocking_count": 2,
       "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md", "category": "historic", "kind": "glob" }
       ]
     },
@@ -2349,8 +2473,9 @@
       },
       "historic_count": 2,
       "referrer_counts": { "historic": 2 },
-      "blocking_count": 1,
+      "blocking_count": 2,
       "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md", "category": "historic", "kind": "glob" }
       ]
     },
@@ -2375,8 +2500,9 @@
       },
       "historic_count": 2,
       "referrer_counts": { "historic": 2 },
-      "blocking_count": 1,
+      "blocking_count": 2,
       "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md", "category": "historic", "kind": "glob" }
       ]
     },
@@ -2401,8 +2527,9 @@
       },
       "historic_count": 2,
       "referrer_counts": { "historic": 2 },
-      "blocking_count": 1,
+      "blocking_count": 2,
       "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md", "category": "historic", "kind": "glob" }
       ]
     },
@@ -2427,8 +2554,9 @@
       },
       "historic_count": 2,
       "referrer_counts": { "historic": 2 },
-      "blocking_count": 1,
+      "blocking_count": 2,
       "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md", "category": "historic", "kind": "glob" }
       ]
     },
@@ -2453,8 +2581,9 @@
       },
       "historic_count": 2,
       "referrer_counts": { "historic": 2 },
-      "blocking_count": 1,
+      "blocking_count": 2,
       "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md", "category": "historic", "kind": "glob" }
       ]
     },
@@ -2480,8 +2609,9 @@
       },
       "historic_count": 3,
       "referrer_counts": { "historic": 3 },
-      "blocking_count": 1,
+      "blocking_count": 2,
       "blocking_referrers": [
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/STATUS.md", "category": "historic", "kind": "glob" }
       ]
     },
@@ -2566,11 +2696,7 @@
             "kind": "dir",
             "via": ".hseos/runs/dev-squad/20261030-1810-owner-decisions"
           },
-          {
-            "file": ".hseos/runs/dev-squad/20261030-1810-owner-decisions/prompts/CLOSE.md",
-            "kind": "dir",
-            "via": ".hseos/runs/dev-squad/20261030-1810-owner-decisions"
-          },
+          { "file": ".hseos/runs/dev-squad/20261030-1810-owner-decisions/prompts/CLOSE.md", "kind": "exact" },
           { "file": ".hseos/runs/dev-squad/20261030-1810-owner-decisions/prompts/E1.md", "kind": "exact" }
         ]
       },
@@ -2964,8 +3090,8 @@
       "packaged": false,
       "removable_by_graph": true,
       "referrers": {},
-      "historic_count": 2,
-      "referrer_counts": { "historic": 2 }
+      "historic_count": 3,
+      "referrer_counts": { "historic": 3 }
     },
     {
       "path": ".hseos/runs/dev-squad/20261030-1810-owner-decisions/prompts/CLOSE.md",
@@ -2982,8 +3108,8 @@
       "packaged": false,
       "removable_by_graph": true,
       "referrers": {},
-      "historic_count": 2,
-      "referrer_counts": { "historic": 2 }
+      "historic_count": 25,
+      "referrer_counts": { "historic": 25 }
     },
     {
       "path": ".hseos/runs/dev-squad/20261030-1810-owner-decisions/prompts/D3.md",
@@ -4402,17 +4528,17 @@
             "kind": "dir",
             "via": ".hseos/runs/dev-squad/20261101-pre-w6-closeout"
           },
-          { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A2.md", "kind": "exact" },
-          { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A3.md", "kind": "exact" }
+          { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A1.md", "kind": "exact" },
+          { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A2.md", "kind": "exact" }
         ]
       },
-      "historic_count": 13,
-      "referrer_counts": { "historic": 13 },
-      "blocking_count": 13,
+      "historic_count": 14,
+      "referrer_counts": { "historic": 14 },
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/PLAN.md", "category": "historic", "kind": "dir" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A2.md", "category": "historic", "kind": "exact" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A3.md", "category": "historic", "kind": "exact" }
+        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A1.md", "category": "historic", "kind": "exact" },
+        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A2.md", "category": "historic", "kind": "exact" }
       ]
     },
     {
@@ -5219,20 +5345,10 @@
       "path": ".hseos/runs/standalone-migration/handoffs/.gitkeep",
       "bytes": 0,
       "packaged": false,
-      "removable_by_graph": false,
-      "referrers": {
-        "historic": [
-          { "file": "docs/evolution/baseline.json", "kind": "non-citing", "matched": "exact" },
-          { "file": "docs/evolution/revalidation-2026-10/INVENTORY-CAPACITY.md", "kind": "glob", "via": "**/.gitkeep" },
-          { "file": "docs/evolution/w2/evidence/baseline.json", "kind": "non-citing", "matched": "exact" }
-        ]
-      },
+      "removable_by_graph": true,
+      "referrers": {},
       "historic_count": 6,
-      "referrer_counts": { "historic": 6 },
-      "blocking_count": 1,
-      "blocking_referrers": [
-        { "file": "docs/evolution/revalidation-2026-10/INVENTORY-CAPACITY.md", "category": "historic", "kind": "glob" }
-      ]
+      "referrer_counts": { "historic": 6 }
     },
     {
       "path": ".logs/runs/.gitkeep",
@@ -5263,7 +5379,7 @@
       },
       "historic_count": 68,
       "referrer_counts": { "living-doc": 2, "spec": 2, "test": 1, "code": 4, "historic": 68 },
-      "blocking_count": 70,
+      "blocking_count": 69,
       "blocking_referrers": [
         { "file": "AGENTS.md", "category": "living-doc", "kind": "dir" },
         { "file": "docs/pt-br/especificacao-hseos.md", "category": "living-doc", "kind": "dir" },
@@ -5297,7 +5413,7 @@
       },
       "historic_count": 68,
       "referrer_counts": { "living-doc": 2, "spec": 2, "test": 1, "code": 2, "historic": 68 },
-      "blocking_count": 69,
+      "blocking_count": 68,
       "blocking_referrers": [
         { "file": "AGENTS.md", "category": "living-doc", "kind": "dir" },
         { "file": "docs/pt-br/especificacao-hseos.md", "category": "living-doc", "kind": "dir" },
@@ -5375,7 +5491,7 @@
       },
       "historic_count": 71,
       "referrer_counts": { "living-doc": 2, "spec": 4, "test": 1, "code": 6, "historic": 71 },
-      "blocking_count": 77,
+      "blocking_count": 76,
       "blocking_referrers": [
         { "file": "AGENTS.md", "category": "living-doc", "kind": "dir" },
         { "file": "docs/pt-br/especificacao-hseos.md", "category": "living-doc", "kind": "dir" },
@@ -7534,15 +7650,15 @@
       "referrers": {
         "spec": [{ "file": ".enterprise/.specs/decisions/ADR-0040-disposable-engineering-execution.md", "kind": "exact" }],
         "test": [
-          { "file": "test/test-activity-coordination.js", "kind": "glob", "via": "*.md" },
-          { "file": "test/test-platform-bindings.js", "kind": "glob", "via": "*.md" }
+          { "file": "test/test-activity-coordination.js", "kind": "glob-generic", "via": "*.md" },
+          { "file": "test/test-platform-bindings.js", "kind": "glob-generic", "via": "*.md" }
         ],
         "code": [
-          { "file": "prettier.config.mjs", "kind": "glob", "via": "*.md" },
-          { "file": "scripts/governance/quality-gates.sh", "kind": "glob", "via": "*.md" },
-          { "file": "src/hsm/workflows/4-implementation/dev-story/instructions.xml", "kind": "glob", "via": "*-*-*.md" },
-          { "file": "src/hsm/workflows/4-implementation/sprint-planning/checklist.md", "kind": "glob", "via": "*.md" },
-          { "file": "tools/cli/installers/lib/core/dependency-resolver.js", "kind": "glob", "via": "*.md" }
+          { "file": "prettier.config.mjs", "kind": "glob-generic", "via": "*.md" },
+          { "file": "scripts/governance/quality-gates.sh", "kind": "glob-generic", "via": "*.md" },
+          { "file": "src/hsm/workflows/4-implementation/dev-story/instructions.xml", "kind": "glob-generic", "via": "*-*-*.md" },
+          { "file": "src/hsm/workflows/4-implementation/sprint-planning/checklist.md", "kind": "glob-generic", "via": "*.md" },
+          { "file": "tools/cli/installers/lib/core/dependency-resolver.js", "kind": "glob-generic", "via": "*.md" }
         ],
         "historic": [
           { "file": ".hseos/runs/dev-squad/20261006-2040-pendencies-closeout/PLAN.md", "kind": "exact" },
@@ -7552,11 +7668,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "spec": 1, "test": 2, "code": 5, "historic": 14 },
-      "blocking_count": 20,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".enterprise/.specs/decisions/ADR-0040-disposable-engineering-execution.md", "category": "spec", "kind": "exact" },
-        { "file": "test/test-activity-coordination.js", "category": "test", "kind": "glob" },
-        { "file": "test/test-platform-bindings.js", "category": "test", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261007-1211-pendencies-waves/GOAL-GRAPH.md", "category": "historic", "kind": "exact" },
+        { "file": ".hseos/runs/dev-squad/20261007-1211-pendencies-waves/workflow.js", "category": "historic", "kind": "exact" }
       ]
     },
     {
@@ -9319,7 +9435,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "living-doc": 1, "test": 1, "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": "docs/evolution/runbooks/activation.md", "category": "living-doc", "kind": "glob" },
         { "file": "test/test-agentic-framework-foundation.js", "category": "test", "kind": "dir" },
@@ -10775,11 +10891,11 @@
       },
       "historic_count": 9,
       "referrer_counts": { "living-doc": 1, "historic": 9 },
-      "blocking_count": 5,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": "docs/evolution/pendencias-w0-w5/MAPA.md", "category": "living-doc", "kind": "exact" },
-        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "exact" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/prompts/A6.md", "category": "historic", "kind": "exact" }
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/PLAN.md", "category": "historic", "kind": "exact" },
+        { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/T7.md", "category": "historic", "kind": "exact" }
       ]
     },
     {
@@ -11725,7 +11841,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -11754,7 +11870,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -11783,7 +11899,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -11812,7 +11928,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -11841,7 +11957,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -11870,7 +11986,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -11928,7 +12044,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -11957,7 +12073,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -11987,7 +12103,7 @@
       },
       "historic_count": 10,
       "referrer_counts": { "living-doc": 1, "historic": 10 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": "docs/evolution/STATUS.md", "category": "living-doc", "kind": "exact" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -12016,7 +12132,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12045,7 +12161,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12074,7 +12190,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12103,7 +12219,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12132,7 +12248,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12161,7 +12277,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12190,7 +12306,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12219,7 +12335,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12248,7 +12364,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12277,7 +12393,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12307,7 +12423,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "living-doc": 1, "historic": 11 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": "docs/evolution/STATUS.md", "category": "living-doc", "kind": "exact" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -12336,7 +12452,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12365,7 +12481,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12394,7 +12510,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12423,7 +12539,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12452,7 +12568,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12481,7 +12597,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12510,7 +12626,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12539,7 +12655,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12568,7 +12684,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12597,7 +12713,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12626,7 +12742,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12655,7 +12771,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12684,7 +12800,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12713,7 +12829,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12742,7 +12858,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12771,7 +12887,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12800,7 +12916,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12829,7 +12945,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12858,7 +12974,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12887,7 +13003,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12916,7 +13032,7 @@
       },
       "historic_count": 18,
       "referrer_counts": { "historic": 18 },
-      "blocking_count": 7,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12945,7 +13061,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -12974,7 +13090,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13003,7 +13119,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13032,7 +13148,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13061,7 +13177,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13090,7 +13206,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13119,7 +13235,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13148,7 +13264,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13177,7 +13293,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13206,7 +13322,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13235,7 +13351,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13264,7 +13380,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13293,7 +13409,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13322,7 +13438,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13351,7 +13467,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13380,7 +13496,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13409,7 +13525,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13438,7 +13554,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13467,7 +13583,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13496,7 +13612,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13525,7 +13641,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13554,7 +13670,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13584,7 +13700,7 @@
       },
       "historic_count": 16,
       "referrer_counts": { "living-doc": 1, "historic": 16 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13613,7 +13729,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13642,7 +13758,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13672,7 +13788,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "living-doc": 1, "historic": 13 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": "docs/evolution/W0-CLOSEOUT.md", "category": "living-doc", "kind": "exact" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -13701,7 +13817,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13730,7 +13846,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13759,7 +13875,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13788,7 +13904,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13817,7 +13933,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 9,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -13888,7 +14004,7 @@
       },
       "historic_count": 27,
       "referrer_counts": { "guard-data": 1, "living-doc": 4, "historic": 27 },
-      "blocking_count": 22,
+      "blocking_count": 23,
       "blocking_referrers": [
         { "file": "docs/evolution/requirements.json", "category": "guard-data", "kind": "exact" },
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "exact" },
@@ -13947,7 +14063,7 @@
       },
       "historic_count": 100,
       "referrer_counts": { "guard-data": 2, "living-doc": 7, "spec": 2, "test": 3, "historic": 100 },
-      "blocking_count": 50,
+      "blocking_count": 51,
       "blocking_referrers": [
         { "file": "docs/evolution/terminal-closeout/terminal-readiness.json", "category": "guard-data", "kind": "exact" },
         { "file": "docs/evolution/w3/TRACE.json", "category": "guard-data", "kind": "exact" },
@@ -14816,7 +14932,7 @@
       },
       "historic_count": 9,
       "referrer_counts": { "living-doc": 1, "spec": 1, "test": 1, "code": 1, "historic": 9 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": "test/journeys/README.md", "category": "living-doc", "kind": "dir" },
         {
@@ -15999,7 +16115,7 @@
       },
       "historic_count": 34,
       "referrer_counts": { "living-doc": 2, "spec": 1, "historic": 34 },
-      "blocking_count": 13,
+      "blocking_count": 15,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "exact" },
         { "file": "docs/v4-migration.md", "category": "living-doc", "kind": "exact" },
@@ -16551,7 +16667,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16580,7 +16696,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16609,7 +16725,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16638,7 +16754,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16667,7 +16783,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16696,7 +16812,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16725,7 +16841,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16754,7 +16870,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16783,7 +16899,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16812,7 +16928,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16841,7 +16957,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16870,7 +16986,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16899,7 +17015,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16928,7 +17044,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16957,7 +17073,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -16986,7 +17102,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17015,7 +17131,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17044,7 +17160,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17073,7 +17189,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17102,7 +17218,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17131,7 +17247,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17160,7 +17276,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17189,7 +17305,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17218,7 +17334,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17247,7 +17363,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17276,7 +17392,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17305,7 +17421,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17334,7 +17450,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17363,7 +17479,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17392,7 +17508,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17421,7 +17537,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17450,7 +17566,7 @@
       },
       "historic_count": 18,
       "referrer_counts": { "historic": 18 },
-      "blocking_count": 8,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17479,7 +17595,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17508,7 +17624,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17537,7 +17653,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17566,7 +17682,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17595,7 +17711,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17624,7 +17740,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17653,7 +17769,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17682,7 +17798,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17711,7 +17827,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17740,7 +17856,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17769,7 +17885,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17798,7 +17914,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17827,7 +17943,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17856,7 +17972,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17885,7 +18001,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17914,7 +18030,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17943,7 +18059,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -17972,7 +18088,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18001,7 +18117,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18030,7 +18146,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18059,7 +18175,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18088,7 +18204,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18118,7 +18234,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "living-doc": 1, "historic": 15 },
-      "blocking_count": 8,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18147,7 +18263,7 @@
       },
       "historic_count": 18,
       "referrer_counts": { "historic": 18 },
-      "blocking_count": 8,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18176,7 +18292,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18205,7 +18321,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18234,7 +18350,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18263,7 +18379,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18292,7 +18408,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18321,7 +18437,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18350,7 +18466,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18379,7 +18495,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18408,7 +18524,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18437,7 +18553,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18466,7 +18582,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18495,7 +18611,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18524,7 +18640,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18553,7 +18669,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18582,7 +18698,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -18611,7 +18727,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 8,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -19251,7 +19367,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "living-doc": 2, "spec": 1, "historic": 12 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": "docs/evolution/runbooks/activation.md", "category": "living-doc", "kind": "dir" },
@@ -19729,9 +19845,9 @@
           { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "kind": "glob", "via": "**/evidence/**" }
         ]
       },
-      "historic_count": 14,
-      "referrer_counts": { "living-doc": 2, "spec": 1, "historic": 14 },
-      "blocking_count": 13,
+      "historic_count": 16,
+      "referrer_counts": { "living-doc": 2, "spec": 1, "historic": 16 },
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": "docs/evolution/runbooks/activation.md", "category": "living-doc", "kind": "dir" },
@@ -20036,7 +20152,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "living-doc": 1, "spec": 1, "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 9,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": ".enterprise/.specs/decisions/ADR-0048-governed-execution-activation-criterion.md", "category": "spec", "kind": "dir" },
@@ -20127,7 +20243,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "living-doc": 2, "spec": 1, "test": 1, "historic": 12 },
-      "blocking_count": 12,
+      "blocking_count": 11,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": "docs/evolution/terminal-closeout/evidence/mcp-modern-journey-result.json", "category": "living-doc", "kind": "dir" },
@@ -21117,7 +21233,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "living-doc": 2, "spec": 1, "test": 1, "historic": 13 },
-      "blocking_count": 12,
+      "blocking_count": 11,
       "blocking_referrers": [
         { "file": "docs/evolution/PLAN.md", "category": "living-doc", "kind": "dir" },
         { "file": "docs/evolution/terminal-closeout/evidence/mcp-modern-journey-result.json", "category": "living-doc", "kind": "dir" },
@@ -21216,7 +21332,7 @@
       },
       "historic_count": 22,
       "referrer_counts": { "living-doc": 3, "historic": 22 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21245,7 +21361,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21274,7 +21390,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21303,7 +21419,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21332,7 +21448,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21361,7 +21477,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21390,7 +21506,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21419,7 +21535,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21449,7 +21565,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "living-doc": 1, "historic": 12 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": "docs/evolution/INTEGRATION.md", "category": "living-doc", "kind": "exact" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -21478,7 +21594,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21507,7 +21623,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21536,7 +21652,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21565,7 +21681,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 9,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21594,7 +21710,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21623,7 +21739,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21652,7 +21768,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21681,7 +21797,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21710,7 +21826,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21739,7 +21855,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21768,7 +21884,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21797,7 +21913,7 @@
       },
       "historic_count": 20,
       "referrer_counts": { "historic": 20 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21826,7 +21942,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21855,7 +21971,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21884,7 +22000,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21913,7 +22029,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21942,7 +22058,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -21971,7 +22087,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22000,7 +22116,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22029,7 +22145,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22058,7 +22174,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22087,7 +22203,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22116,7 +22232,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22145,7 +22261,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22174,7 +22290,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22203,7 +22319,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22232,7 +22348,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22261,7 +22377,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22290,7 +22406,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22319,7 +22435,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22348,7 +22464,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22377,7 +22493,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22406,7 +22522,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22435,7 +22551,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22464,7 +22580,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22493,7 +22609,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22522,7 +22638,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22551,7 +22667,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22580,7 +22696,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22609,7 +22725,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22638,7 +22754,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22667,7 +22783,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22696,7 +22812,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22725,7 +22841,7 @@
       },
       "historic_count": 21,
       "referrer_counts": { "historic": 21 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22754,7 +22870,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22783,7 +22899,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22812,7 +22928,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22842,7 +22958,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "guard-data": 1, "historic": 15 },
-      "blocking_count": 14,
+      "blocking_count": 11,
       "blocking_referrers": [
         { "file": "docs/evolution/requirements.json", "category": "guard-data", "kind": "exact" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -22871,7 +22987,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22900,7 +23016,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22929,7 +23045,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22958,7 +23074,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -22987,7 +23103,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23016,7 +23132,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23045,7 +23161,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23074,7 +23190,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23103,7 +23219,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23132,7 +23248,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23161,7 +23277,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23190,7 +23306,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23219,7 +23335,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23248,7 +23364,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23277,7 +23393,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23306,7 +23422,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23335,7 +23451,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23364,7 +23480,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23393,7 +23509,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23422,7 +23538,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23451,7 +23567,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23480,7 +23596,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23509,7 +23625,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23538,7 +23654,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23567,7 +23683,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23596,7 +23712,7 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23625,7 +23741,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23654,7 +23770,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23683,7 +23799,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23712,7 +23828,7 @@
       },
       "historic_count": 21,
       "referrer_counts": { "historic": 21 },
-      "blocking_count": 11,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23741,7 +23857,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "historic": 13 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23771,7 +23887,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "living-doc": 1, "historic": 13 },
-      "blocking_count": 12,
+      "blocking_count": 9,
       "blocking_referrers": [
         { "file": "docs/evolution/INTEGRATION.md", "category": "living-doc", "kind": "exact" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -23800,7 +23916,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 9,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23829,7 +23945,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23858,7 +23974,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23887,7 +24003,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23916,7 +24032,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23945,7 +24061,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -23974,7 +24090,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 9,
+      "blocking_count": 6,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -24003,7 +24119,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 7,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
@@ -34173,11 +34289,11 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -34591,11 +34707,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -35271,11 +35387,11 @@
       },
       "historic_count": 16,
       "referrer_counts": { "historic": 16 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -36112,11 +36228,11 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -36460,11 +36576,11 @@
       },
       "historic_count": 16,
       "referrer_counts": { "historic": 16 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -36489,11 +36605,11 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -36576,11 +36692,11 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 12,
+      "blocking_count": 11,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -37156,11 +37272,11 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 12,
+      "blocking_count": 11,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -37417,11 +37533,11 @@
       },
       "historic_count": 16,
       "referrer_counts": { "historic": 16 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -38340,11 +38456,11 @@
       },
       "historic_count": 16,
       "referrer_counts": { "historic": 16 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -38573,11 +38689,11 @@
       },
       "historic_count": 17,
       "referrer_counts": { "historic": 17 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -38602,11 +38718,11 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 12,
+      "blocking_count": 11,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -39008,11 +39124,11 @@
       },
       "historic_count": 16,
       "referrer_counts": { "historic": 16 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -40378,7 +40494,7 @@
       },
       "historic_count": 18,
       "referrer_counts": { "living-doc": 1, "test": 2, "historic": 18 },
-      "blocking_count": 17,
+      "blocking_count": 16,
       "blocking_referrers": [
         { "file": "test/test-backend-window.js", "category": "test", "kind": "exact" },
         { "file": "test/test-whole-file-check.js", "category": "test", "kind": "dir" },
@@ -40410,9 +40526,9 @@
           }
         ]
       },
-      "historic_count": 18,
-      "referrer_counts": { "living-doc": 1, "test": 2, "historic": 18 },
-      "blocking_count": 18,
+      "historic_count": 34,
+      "referrer_counts": { "living-doc": 1, "test": 2, "historic": 34 },
+      "blocking_count": 33,
       "blocking_referrers": [
         { "file": "docs/evolution/runbooks/f14-f15-real-consumers.md", "category": "living-doc", "kind": "exact" },
         { "file": "test/test-campaign-usage-guard.js", "category": "test", "kind": "exact" },
@@ -40448,7 +40564,7 @@
       },
       "historic_count": 26,
       "referrer_counts": { "test": 6, "historic": 26 },
-      "blocking_count": 22,
+      "blocking_count": 21,
       "blocking_referrers": [
         { "file": "test/test-engineering-model.js", "category": "test", "kind": "exact" },
         { "file": "test/test-provider-proof-summary.js", "category": "test", "kind": "exact" },
@@ -40479,7 +40595,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "living-doc": 1, "test": 1, "historic": 17 },
-      "blocking_count": 16,
+      "blocking_count": 15,
       "blocking_referrers": [
         { "file": "docs/evolution/runbooks/f14-f15-real-consumers.md", "category": "living-doc", "kind": "exact" },
         { "file": "test/test-whole-file-check.js", "category": "test", "kind": "dir" },
@@ -40513,7 +40629,7 @@
       },
       "historic_count": 20,
       "referrer_counts": { "test": 3, "historic": 20 },
-      "blocking_count": 15,
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": "test/test-whole-file-check.js", "category": "test", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -40547,7 +40663,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "living-doc": 1, "test": 2, "historic": 17 },
-      "blocking_count": 17,
+      "blocking_count": 16,
       "blocking_referrers": [
         { "file": "docs/evolution/runbooks/f14-f15-real-consumers.md", "category": "living-doc", "kind": "exact" },
         { "file": "test/test-backend-window.js", "category": "test", "kind": "exact" },
@@ -40583,7 +40699,7 @@
       },
       "historic_count": 29,
       "referrer_counts": { "test": 5, "historic": 29 },
-      "blocking_count": 26,
+      "blocking_count": 25,
       "blocking_referrers": [
         { "file": "test/test-campaign-usage-guard.js", "category": "test", "kind": "exact" },
         { "file": "test/test-whole-file-check.js", "category": "test", "kind": "dir" },
@@ -40616,7 +40732,7 @@
       },
       "historic_count": 21,
       "referrer_counts": { "test": 2, "historic": 21 },
-      "blocking_count": 18,
+      "blocking_count": 17,
       "blocking_referrers": [
         { "file": "test/test-f15l2-campaign.js", "category": "test", "kind": "exact" },
         { "file": "test/test-whole-file-check.js", "category": "test", "kind": "dir" },
@@ -40645,11 +40761,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -40674,11 +40790,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -41111,11 +41227,11 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -41140,11 +41256,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -41401,11 +41517,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -41921,13 +42037,13 @@
           }
         ]
       },
-      "historic_count": 14,
-      "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "historic_count": 24,
+      "referrer_counts": { "historic": 24 },
+      "blocking_count": 20,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -41952,11 +42068,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -43139,13 +43255,13 @@
           }
         ]
       },
-      "historic_count": 14,
-      "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "historic_count": 22,
+      "referrer_counts": { "historic": 22 },
+      "blocking_count": 18,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -43170,11 +43286,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -46187,11 +46303,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -46216,11 +46332,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 10,
+      "blocking_count": 9,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -46649,11 +46765,11 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -46678,11 +46794,11 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -46707,11 +46823,11 @@
       },
       "historic_count": 14,
       "referrer_counts": { "historic": 14 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -47122,11 +47238,11 @@
       },
       "historic_count": 22,
       "referrer_counts": { "test": 2, "historic": 22 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -47152,11 +47268,11 @@
       },
       "historic_count": 18,
       "referrer_counts": { "test": 1, "historic": 18 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -47215,11 +47331,11 @@
       },
       "historic_count": 19,
       "referrer_counts": { "test": 3, "historic": 19 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -47249,11 +47365,11 @@
       },
       "historic_count": 24,
       "referrer_counts": { "test": 3, "historic": 24 },
-      "blocking_count": 18,
+      "blocking_count": 17,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -47282,11 +47398,11 @@
       },
       "historic_count": 21,
       "referrer_counts": { "test": 2, "historic": 21 },
-      "blocking_count": 15,
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -47315,11 +47431,11 @@
       },
       "historic_count": 19,
       "referrer_counts": { "test": 2, "historic": 19 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -52506,11 +52622,11 @@
       },
       "historic_count": 15,
       "referrer_counts": { "historic": 15 },
-      "blocking_count": 11,
+      "blocking_count": 10,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -52539,11 +52655,11 @@
       },
       "historic_count": 23,
       "referrer_counts": { "test": 2, "historic": 23 },
-      "blocking_count": 16,
+      "blocking_count": 15,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -52572,11 +52688,11 @@
       },
       "historic_count": 22,
       "referrer_counts": { "test": 2, "historic": 22 },
-      "blocking_count": 18,
+      "blocking_count": 17,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -52605,11 +52721,11 @@
       },
       "historic_count": 24,
       "referrer_counts": { "test": 2, "historic": 24 },
-      "blocking_count": 16,
+      "blocking_count": 15,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -52846,11 +52962,11 @@
       },
       "historic_count": 23,
       "referrer_counts": { "test": 2, "historic": 23 },
-      "blocking_count": 15,
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261111-terminal-closeout/STATUS.md", "category": "historic", "kind": "exact" }
       ]
     },
     {
@@ -52876,11 +52992,11 @@
       },
       "historic_count": 17,
       "referrer_counts": { "test": 1, "historic": 17 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -52939,11 +53055,11 @@
       },
       "historic_count": 20,
       "referrer_counts": { "test": 3, "historic": 20 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -52972,11 +53088,11 @@
       },
       "historic_count": 22,
       "referrer_counts": { "test": 2, "historic": 22 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -53005,11 +53121,11 @@
       },
       "historic_count": 20,
       "referrer_counts": { "test": 2, "historic": 20 },
-      "blocking_count": 13,
+      "blocking_count": 12,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -56837,11 +56953,11 @@
       },
       "historic_count": 25,
       "referrer_counts": { "test": 2, "historic": 25 },
-      "blocking_count": 15,
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -57075,7 +57191,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "test": 1, "historic": 17 },
-      "blocking_count": 15,
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": "test/test-f15l2-campaign.js", "category": "test", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -57105,7 +57221,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "test": 1, "historic": 17 },
-      "blocking_count": 15,
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": "test/test-f15l2-campaign.js", "category": "test", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -57135,7 +57251,7 @@
       },
       "historic_count": 19,
       "referrer_counts": { "test": 1, "historic": 19 },
-      "blocking_count": 16,
+      "blocking_count": 15,
       "blocking_referrers": [
         { "file": "test/test-f15l2-campaign.js", "category": "test", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -57165,7 +57281,7 @@
       },
       "historic_count": 20,
       "referrer_counts": { "test": 1, "historic": 20 },
-      "blocking_count": 17,
+      "blocking_count": 16,
       "blocking_referrers": [
         { "file": "test/test-f15l2-campaign.js", "category": "test", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -57195,7 +57311,7 @@
       },
       "historic_count": 16,
       "referrer_counts": { "test": 1, "historic": 16 },
-      "blocking_count": 14,
+      "blocking_count": 13,
       "blocking_referrers": [
         { "file": "test/test-f15l2-campaign.js", "category": "test", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -57225,7 +57341,7 @@
       },
       "historic_count": 17,
       "referrer_counts": { "test": 1, "historic": 17 },
-      "blocking_count": 15,
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": "test/test-f15l2-campaign.js", "category": "test", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -57255,7 +57371,7 @@
       },
       "historic_count": 18,
       "referrer_counts": { "test": 1, "historic": 18 },
-      "blocking_count": 15,
+      "blocking_count": 14,
       "blocking_referrers": [
         { "file": "test/test-f15l2-campaign.js", "category": "test", "kind": "dir" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -68139,11 +68255,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68226,11 +68342,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68284,11 +68400,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68342,11 +68458,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68458,11 +68574,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68661,11 +68777,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68690,11 +68806,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68719,11 +68835,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68748,11 +68864,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -68777,11 +68893,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -77487,11 +77603,11 @@
       },
       "historic_count": 11,
       "referrer_counts": { "historic": 11 },
-      "blocking_count": 9,
+      "blocking_count": 8,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -77719,11 +77835,11 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 9,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -77777,11 +77893,11 @@
       },
       "historic_count": 12,
       "referrer_counts": { "historic": 12 },
-      "blocking_count": 10,
+      "blocking_count": 9,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T7.md", "category": "historic", "kind": "glob" },
-        { "file": ".hseos/runs/dev-squad/20261101-pre-w6-closeout/logs/R-A4.md", "category": "historic", "kind": "glob" }
+        { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "glob" }
       ]
     },
     {
@@ -82386,8 +82502,8 @@
           { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "kind": "dir", "via": "docs/v4" }
         ]
       },
-      "historic_count": 10,
-      "referrer_counts": { "code": 1, "historic": 10 },
+      "historic_count": 11,
+      "referrer_counts": { "code": 1, "historic": 11 },
       "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
@@ -82432,7 +82548,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82454,7 +82570,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "code": 1, "historic": 13 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82476,7 +82592,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82498,7 +82614,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82520,7 +82636,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "code": 1, "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82542,7 +82658,7 @@
       },
       "historic_count": 11,
       "referrer_counts": { "code": 1, "historic": 11 },
-      "blocking_count": 5,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82564,7 +82680,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82586,7 +82702,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82608,7 +82724,7 @@
       },
       "historic_count": 14,
       "referrer_counts": { "code": 1, "historic": 14 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82630,7 +82746,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82652,7 +82768,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82674,7 +82790,7 @@
       },
       "historic_count": 13,
       "referrer_counts": { "code": 1, "historic": 13 },
-      "blocking_count": 7,
+      "blocking_count": 5,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82696,7 +82812,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -82718,7 +82834,7 @@
       },
       "historic_count": 12,
       "referrer_counts": { "code": 1, "historic": 12 },
-      "blocking_count": 6,
+      "blocking_count": 4,
       "blocking_referrers": [
         { "file": ".hseos/runs/dev-squad/20261027-1900-audit-fixes/prompts/T2.md", "category": "historic", "kind": "glob" },
         { "file": ".hseos/runs/dev-squad/20261113-docs-reconcile/INTAKE.md", "category": "historic", "kind": "dir" },
@@ -84253,12 +84369,12 @@
       "referrers": {
         "living-doc": [{ "file": "README.md", "kind": "exact" }],
         "spec": [{ "file": ".enterprise/CHANGELOG.md", "kind": "exact" }],
-        "test": [{ "file": "test/test-platform-bindings-downgrade.js", "kind": "glob", "via": "*.yaml" }],
+        "test": [{ "file": "test/test-platform-bindings-downgrade.js", "kind": "glob-generic", "via": "*.yaml" }],
         "code": [
-          { "file": "package.json", "kind": "glob", "via": "*.yaml" },
-          { "file": "prettier.config.mjs", "kind": "glob", "via": "*.yaml" },
-          { "file": "scripts/governance/quality-gates.sh", "kind": "glob", "via": "*.yaml" },
-          { "file": "src/hsm/workflows/document-project/documentation-requirements.csv", "kind": "glob", "via": "*.yaml" }
+          { "file": "package.json", "kind": "glob-generic", "via": "*.yaml" },
+          { "file": "prettier.config.mjs", "kind": "glob-generic", "via": "*.yaml" },
+          { "file": "scripts/governance/quality-gates.sh", "kind": "glob-generic", "via": "*.yaml" },
+          { "file": "src/hsm/workflows/document-project/documentation-requirements.csv", "kind": "glob-generic", "via": "*.yaml" }
         ],
         "historic": [
           { "file": "docs/evolution/baseline.json", "kind": "non-citing", "matched": "exact" },
@@ -84268,11 +84384,11 @@
       },
       "historic_count": 6,
       "referrer_counts": { "living-doc": 1, "spec": 1, "test": 1, "code": 4, "historic": 6 },
-      "blocking_count": 8,
+      "blocking_count": 3,
       "blocking_referrers": [
         { "file": "README.md", "category": "living-doc", "kind": "exact" },
         { "file": ".enterprise/CHANGELOG.md", "category": "spec", "kind": "exact" },
-        { "file": "test/test-platform-bindings-downgrade.js", "category": "test", "kind": "glob" }
+        { "file": "docs/goals/reports/2026-07-08-ciclo-01.md", "category": "historic", "kind": "exact" }
       ]
     }
   ]
