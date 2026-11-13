@@ -1,0 +1,114 @@
+{
+  "candidates": [
+    "docs/goals/",
+    "docs/audits/",
+    "docs/evidence/",
+    "docs/evolution/",
+    ".hseos/runs/",
+    "_graph/",
+    ".specs/",
+    "plugins/",
+    "smithery.yaml",
+    ".logs/",
+    "docs/v4/",
+    "docs/releases/",
+    ".codex/",
+    "_pipeline/",
+    "HSEOS-GOAL-HARNESS-AUTONOMO.md"
+  ],
+  "excludeFromAnalysis": ["docs/hygiene/"],
+  "categories": [
+    {
+      "name": "guard-data",
+      "exact": ["docs/evolution/requirements.json", "docs/evolution/terminal-closeout/terminal-readiness.json", ".agents/manifest.yaml"],
+      "regex": ["^docs/evolution/w[^/]*/(?:.*/)?TRACE\\.json$"]
+    },
+    {
+      "name": "living-doc",
+      "exact": [
+        "README.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CHANGELOG.md",
+        "docs/evolution/PLAN.md",
+        "docs/evolution/STATUS.md",
+        "docs/evolution/_INDEX.md",
+        "docs/evolution/INTEGRATION.md",
+        "docs/evolution/W0-CLOSEOUT.md",
+        "docs/evolution/pendencias-w0-w5/MAPA.md",
+        "test/journeys/README.md"
+      ],
+      "prefixes": ["docs/pt-br/", "docs/evolution/runbooks/", "docs/evolution/terminal-closeout/"],
+      "regex": ["^docs/[^/]+\\.md$"]
+    },
+    {
+      "name": "spec",
+      "prefixes": [".enterprise/"]
+    },
+    {
+      "name": "test",
+      "prefixes": ["test/"]
+    },
+    {
+      "name": "code",
+      "prefixes": ["tools/", "src/", "packages/", "scripts/", ".agents/", ".hseos/", ".github/", ".husky/", ".claude/"],
+      "exclude_prefixes": [".hseos/runs/"],
+      "exact": ["package.json"],
+      "regex": ["^[^/]+\\.(?:mjs|cjs|js|json|yaml|yml|toml)$", "^\\.[^/]+$"]
+    },
+    {
+      "name": "historic",
+      "fallback": true
+    }
+  ],
+  "broadDirs": [
+    "docs",
+    "docs/evolution",
+    ".hseos",
+    ".hseos/runs",
+    ".hseos/runs/dev-squad",
+    "test",
+    "tools",
+    "src",
+    "packages",
+    ".enterprise",
+    ".agents"
+  ],
+  "genericBasenames": [
+    "README.md",
+    "STATUS.md",
+    "INTAKE.md",
+    "PLAN.md",
+    "TRACE.json",
+    "index.js",
+    "campaign.json",
+    "package.json",
+    "CHANGELOG.md",
+    "MAPA.md",
+    "_INDEX.md",
+    "INDEX.md",
+    "index.md",
+    "manifest.yaml",
+    "manifest.json",
+    "state.json",
+    "result.json",
+    "summary.md",
+    "SKILL.md"
+  ],
+  "basenameMaxOccurrences": 3,
+  "prefixDepth": {
+    "default": 2,
+    "docs/evolution": 3,
+    ".hseos/runs": 4
+  },
+  "limits": {
+    "maxFileBytes": 8388608,
+    "binarySniffBytes": 8192,
+    "historicListMax": 3,
+    "blockingListMax": 3,
+    "keptListMax": 5,
+    "outputSoftLimitBytes": 3000000
+  }
+}
