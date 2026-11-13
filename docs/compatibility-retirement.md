@@ -2,17 +2,19 @@
 
 HSEOS treats compatibility as a temporary, observable adapter boundary. It is never a second source of truth and it cannot authorize an operational cutover.
 
-The authoritative decisions are ADR-0022 and ADR-0023. Their owner is `platform-governance`; activation must occur no later than 2026-10-31, compatibility removal is due by 2026-11-30, and any extension requires a new accepted ADR with usage evidence.
+The authoritative decisions are ADR-0022 and ADR-0023. Their owner is `platform-governance`; the fixed removal date of 2026-11-30 no longer applies. ADR-0048 (Accepted 2026-10-22, item 3) replaced it with a sunset that is conditional on usage evidence, and the owner decided on 2026-10-30 that the legacy compatibility keeps no date. On an activated database the legacy compatibility does not expire unless the owner sets `HSEOS_MCP_LEGACY_SUNSET` (ISO date or instant; unset or empty means it never expires); `2026-11-30` remains only as the built-in default of the test fixture. Fixing a date, or any later extension, requires a recorded decision with usage evidence.
 
 ## Current inventory
 
-| Compatibility surface                         | Classification              | Current disposition            | Retirement evidence                                                                                      |
-| --------------------------------------------- | --------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| MCP `2024-11-05` adapter                      | operational                 | retained and metered           | 30 complete consecutive zero-use days for every native server, with all 24 hourly observations per day   |
-| Operational state schema v4 and legacy writes | operational                 | retained; v5-v7 remain pending | successful dry-run over a backup, zero internal legacy writers/callers, and explicit human authorization |
-| Plugin catalog v1/generated-source input      | external installation       | retained                       | downstream usage evidence and one documented release window                                              |
-| Legacy v4 installation detection              | external installation       | retained                       | downstream migration evidence and one documented release window                                          |
-| IDE underscore/`Colon` command naming         | internal dead compatibility | removed                        | repository scan proves zero callers; dash naming is the only generated format                            |
+| Compatibility surface                         | Classification              | Current disposition                                        | Retirement evidence                                                                                      |
+| --------------------------------------------- | --------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| MCP `2024-11-05` adapter                      | operational                 | retained and metered                                       | 30 complete consecutive zero-use days for every native server, with all 24 hourly observations per day   |
+| Operational state schema v4 and legacy writes | operational                 | retained; v5-v17 pending until activation (see note below) | successful dry-run over a backup, zero internal legacy writers/callers, and explicit human authorization |
+| Plugin catalog v1/generated-source input      | external installation       | retained                                                   | downstream usage evidence and one documented release window                                              |
+| Legacy v4 installation detection              | external installation       | retained                                                   | downstream migration evidence and one documented release window                                          |
+| IDE underscore/`Colon` command naming         | internal dead compatibility | removed                                                    | repository scan proves zero callers; dash naming is the only generated format                            |
+
+Note (2026-11-13): the disposition "v5-v7 remain pending" describes the state before activation. The pending execution migrations live in `tools/mcp-project-state/migrations-pending-activation/` (005 to 017) and are applied only by `activateExecutionLedger`; a database that is not activated stays on v4.
 
 Generic fallbacks are not removed merely because they are named “fallback.” Platform adapters, optional input defaults, recovery behavior, and generated compatibility pointers remain when they serve a current contract.
 
@@ -40,8 +42,11 @@ Before starting the observation window:
 - record the release SHA, configuration digest, telemetry path and first complete UTC day. The
   partial deployment day never counts.
 
-Starting telemetry is not protocol or schema activation. Production remains on MCP `2024-11-05`
-and operational schema v4 until G9 and the separate A13 cutover gate are satisfied.
+Starting telemetry is not protocol or schema activation. A database that has not been activated
+remains on MCP `2024-11-05` and operational schema v4 until G9 and the separate A13 cutover gate are
+satisfied. A database activated by `activateExecutionLedger` (ADR-0048) applies the pending
+migrations 005 to 017 (`user_version` 17) and serves the modern `2026-07-28` protocol with the
+legacy compatibility kept and no end date (see the sunset note above).
 
 ### Live observation monitor
 
