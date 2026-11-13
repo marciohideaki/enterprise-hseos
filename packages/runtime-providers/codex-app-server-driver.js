@@ -80,11 +80,54 @@ function safeEnvironment(value) {
   );
 }
 
+function ownedProcessGroup(child) {
+  if (process.platform !== 'linux' || !Number.isSafeInteger(child.pid) || child.pid === process.pid) return null;
+  try {
+    const stat = fs.readFileSync(`/proc/${child.pid}/stat`, 'utf8');
+    const fields = stat.slice(stat.lastIndexOf(') ') + 2).split(' ');
+    return Number(fields[2]) === child.pid ? child.pid : null;
+  } catch {
+    return null;
+  }
+}
+
+function signalProcessTree(child, group, signal) {
+  try {
+    if (group !== null) process.kill(-group, signal);
+    else if (child.exitCode === null && child.signalCode === null) child.kill(signal);
+  } catch (error) {
+    if (error.code !== 'ESRCH') throw error;
+  }
+}
+
+async function waitProcessGroupExit(group) {
+  const deadline = Date.now() + 1750;
+  if (group === null) return;
+  while (true) {
+    const alive = fs
+      .readdirSync('/proc')
+      .filter((name) => /^\d+$/.test(name))
+      .some((name) => {
+        try {
+          const stat = fs.readFileSync(`/proc/${name}/stat`, 'utf8');
+          const fields = stat.slice(stat.lastIndexOf(') ') + 2).split(' ');
+          return Number(fields[2]) === group && fields[0] !== 'Z';
+        } catch {
+          return false;
+        }
+      });
+    if (!alive) return;
+    if (Date.now() >= deadline) throw new RuntimeProviderError('Codex process group cleanup timed out', 'provider_unavailable');
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+}
+
 class AppServerConnection {
   #closed = false;
   #failureSignalled = false;
   #nextId = 1;
   #pending = new Map();
+  #closing;
 
   constructor({ executable, args, cwd, env, spawn_process, onNotification, onFailure }) {
     this.onNotification = onNotification;
@@ -95,11 +138,16 @@ class AppServerConnection {
       env: { ...env },
       shell: false,
       windowsHide: true,
+      // One owned session/group per native process; never signal the caller's group.
+      detached: process.platform === 'linux',
       stdio: ['pipe', 'pipe', 'ignore'],
     });
     if (!this.child || !this.child.stdin || !this.child.stdout || typeof this.child.once !== 'function') {
       throw new RuntimeProviderError('Codex app-server process handle is malformed', 'provider_unavailable');
     }
+    this.processGroup = ownedProcessGroup(this.child);
+    // Register before initialization: failed spawns and in-flight handshakes also need reaping.
+    this.closed = new Promise((resolve) => this.child.once('close', resolve));
     this.lines = readline.createInterface({ input: this.child.stdout, crlfDelay: Infinity });
     this.lines.on('line', (line) => this.#line(line));
     this.child.once('error', () => this.#failAll('Codex app-server process failed'));
@@ -133,12 +181,39 @@ class AppServerConnection {
   }
 
   close() {
-    if (this.#closed) return;
+    if (this.#closing) return this.#closing;
     this.#closed = true;
-    this.lines.close();
-    this.child.stdin.end();
-    if (this.child.exitCode === null && this.child.signalCode === null) this.child.kill('SIGTERM');
+    // All callers, including a simultaneous public cancel and finally, share the same barrier.
+    this.#closing = (async () => {
+      const killTimer = setTimeout(() => {
+        signalProcessTree(this.child, this.processGroup, 'SIGKILL');
+      }, 250);
+      let cleanupTimer;
+      try {
+        this.lines.close();
+        this.child.stdin.end();
+        signalProcessTree(this.child, this.processGroup, 'SIGTERM');
+        await Promise.race([
+          (async () => {
+            await this.closed;
+            // The group may outlive its leader; terminate and reap descendants too.
+            signalProcessTree(this.child, this.processGroup, 'SIGKILL');
+            await waitProcessGroupExit(this.processGroup);
+          })(),
+          new Promise((unused, reject) => {
+            cleanupTimer = setTimeout(
+              () => reject(new RuntimeProviderError('Codex process cleanup timed out', 'provider_unavailable')),
+              2000,
+            );
+          }),
+        ]);
+      } finally {
+        clearTimeout(killTimer);
+        clearTimeout(cleanupTimer);
+      }
+    })();
     this.#failAll('Codex app-server connection was closed');
+    return this.#closing;
   }
 
   #write(message) {
@@ -183,7 +258,7 @@ class AppServerConnection {
 
   #protocolFailure(message) {
     this.#failAll(message, 'protocol_error');
-    this.close();
+    void this.close().catch(() => {});
   }
 
   #failAll(message, code = 'provider_unavailable') {
@@ -200,6 +275,8 @@ class AppServerConnection {
 class CodexAppServerDriver {
   #closed = false;
   #sessions = new Map();
+  #connections = new Set();
+  #closing;
 
   constructor({ executable, args = ['app-server', '--listen', 'stdio://'], cwd, env = {}, spawn_process = spawn, client = {} }) {
     this.executable = absoluteExecutable(executable);
@@ -231,12 +308,13 @@ class CodexAppServerDriver {
         serviceName: 'hseos',
         ...(input.model === undefined ? {} : { model: text(input.model, 'Codex model', 256) }),
       });
+      this.#available();
       const runtimeSessionId = text(result?.thread?.id, 'Codex thread id', 1024);
       if (this.#sessions.has(runtimeSessionId)) throw new RuntimeProviderError('Codex reused a thread identity', 'protocol_error');
       this.#sessions.set(runtimeSessionId, this.#session(connection, runtimeSessionId));
       return { runtime_session_id: runtimeSessionId, effect_boundary: 'instructions_only', resumable: true };
     } catch (error) {
-      connection.close();
+      await connection.close();
       throw error;
     }
   }
@@ -249,7 +327,7 @@ class CodexAppServerDriver {
       const quota = await connection.request('account/rateLimits/read', {});
       return { identity, quota };
     } finally {
-      connection.close();
+      await connection.close();
     }
   }
 
@@ -266,7 +344,7 @@ class CodexAppServerDriver {
       this.#sessions.set(runtimeSessionId, this.#session(connection, runtimeSessionId, result.thread.turns));
       return { effect_boundary: 'instructions_only' };
     } catch (error) {
-      connection.close();
+      await connection.close();
       throw error;
     }
   }
@@ -358,7 +436,7 @@ class CodexAppServerDriver {
         if (timeout) clearTimeout(timeout);
       }
     }
-    session.connection.close();
+    await session.connection.close();
     this.#sessions.delete(session.runtimeSessionId);
   }
 
@@ -366,15 +444,20 @@ class CodexAppServerDriver {
     exact(input, ['runtime_session_id'], 'Codex dispose input');
     const session = this.#sessions.get(input.runtime_session_id);
     if (!session) return;
-    session.connection.close();
+    await session.connection.close();
     this.#sessions.delete(session.runtimeSessionId);
   }
 
   async close() {
-    if (this.#closed) return;
+    if (this.#closing) return this.#closing;
     this.#closed = true;
-    for (const session of this.#sessions.values()) session.connection.close();
-    this.#sessions.clear();
+    // Connections stay tracked until their processes exit, including initialization failures.
+    const connections = [...this.#connections];
+    this.#closing = Promise.all(connections.map((connection) => connection.close())).then(() => {
+      this.#connections.clear();
+      this.#sessions.clear();
+    });
+    return this.#closing;
   }
 
   async #connection(cwd) {
@@ -389,13 +472,24 @@ class CodexAppServerDriver {
       env: this.env,
       spawn_process: this.spawnProcess,
       onNotification: (method, params) => this.#notification(holder.connection, method, params),
-      onFailure: (error) => this.#connectionFailure(holder.connection, error),
+      onFailure: (error) => {
+        this.#connectionFailure(holder.connection, error);
+      },
     });
     holder.connection = connection;
+    this.#connections.add(connection);
+    // A leader can exit before the rest of its group. Keep the complete cleanup
+    // barrier tracked so cancellation cannot overtake descendant reaping.
+    void connection.closed
+      .then(() => connection.close())
+      .then(() => this.#connections.delete(connection))
+      .catch(() => {});
     try {
       await connection.initialize(this.client);
+      this.#available();
     } catch (error) {
-      connection.close();
+      await connection.close();
+      this.#connections.delete(connection);
       throw error;
     }
     return connection;

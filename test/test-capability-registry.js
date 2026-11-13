@@ -71,13 +71,11 @@ function testSnapshot() {
   );
   assertPass(
     'ref and contracts version come from the lock',
-    loaded.ref === 'contracts-v0.4.0' && loaded.registry.generated_from.contracts_version === '0.4.0',
+    loaded.ref === '06b08266cf60b656bdd745ef107ade2efdb5a5cc' && loaded.registry.generated_from.contracts_version === '0.5.2',
   );
   assertPass(
-    'shipped snapshot is byte-identical to the 0.4.0 fixture',
-    fs
-      .readFileSync(path.join(REPO_ROOT, SNAPSHOT_FILE))
-      .equals(fs.readFileSync(path.join(__dirname, 'fixtures', 'ecp-registry', 'registry-0.4.0.json'))),
+    'shipped candidate snapshot matches the verified ECP source digest',
+    loaded.sha256 === 'aab489321248139806ffee856c71ddc52298de72f77bcd99db43d904c24f93ff',
   );
   assertPass(
     'shipped snapshot resolves Redis -> cache.typed and auth -> security.authn',

@@ -68,8 +68,8 @@ const cases = [
       const graph = loadAndValidate({ root: REPO_ROOT });
       assert.ok(graph.nodes.has('capability.governance.capability-graph'));
       assert.ok(graph.edges.size > 0);
-      assert.strictEqual(graph.registry.fragments.length, 6);
-      assert.strictEqual(graph.deferredFragments.length, 5);
+      assert.strictEqual(graph.registry.fragments.length, 7);
+      assert.strictEqual(graph.deferredFragments.length, 6);
       assert.deepStrictEqual(
         graph.deferredFragments.map((fragment) => fragment.repository),
         [
@@ -78,6 +78,7 @@ const cases = [
           'repo.cambio-real-v2',
           'repo.talent-forge-platform',
           'repo.talent-forge-web',
+          'repo.enterprise-capability-platform',
         ],
       );
     },

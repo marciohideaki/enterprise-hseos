@@ -2,6 +2,365 @@
   "capabilities": [
     {
       "aliases": [
+        "capability.ai.provider-access",
+        "platform-core/ai/provider-connection",
+        "platform-core/ai/inference-request",
+        "platform-core/ai/inference-response",
+        "platform-core/ai/provider-error",
+        "ai-providers",
+        "provider-access"
+      ],
+      "files": [
+        {
+          "path": "capabilities/ai.provider-access/README.md",
+          "role": "specification",
+          "sha256": "d45a534789298c93c293735c2b39b3e7219ee64dffec45d95e9e3c6f823fbd63"
+        },
+        {
+          "path": "capabilities/ai.provider-access/capability.yaml",
+          "role": "contract",
+          "sha256": "58680240fd5c57070d928ab2c2c49696d0272bad692a45d03b9feec35cdd22f2"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.01.json",
+          "role": "conformance-invalid",
+          "sha256": "cd5933624743f3e6880a03e3d6ce7e024de4978a1c348db7e19c5556db67ac86"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.02.json",
+          "role": "conformance-invalid",
+          "sha256": "860936a30653f6153eb619401b0ca3eca065222a0c5f52d4f3a647db4e11016c"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.03.json",
+          "role": "conformance-invalid",
+          "sha256": "91732e0163f37cb47e9a00485d37288aa471a05b83b7c7140594273d67ece502"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.04.json",
+          "role": "conformance-invalid",
+          "sha256": "f3679e75a363fb8a117d09862ed9ab07a0c4afee429aea58d10a63978f6a06ad"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.05.json",
+          "role": "conformance-invalid",
+          "sha256": "6c1a151da7a016dd6fee4ce75791df0784104037013e0b333fe78b5f4edbc7ed"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.06.json",
+          "role": "conformance-invalid",
+          "sha256": "30243c6526a32938621b0b4821557532bbc1fe4b47c54fe26a3ce3a74c4146f7"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.07.json",
+          "role": "conformance-invalid",
+          "sha256": "4197c885ab87cc8cf6456e0dfce9a380a96dab020c1ef479df312068e8c154d7"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.08.json",
+          "role": "conformance-invalid",
+          "sha256": "8fd3bea83a3142ab07d72007592f7cab39000d39011ee3fa2f7169349c8aa084"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-response.01.json",
+          "role": "conformance-invalid",
+          "sha256": "36944465d6170882e2a20a1aeb1311f586be6c4b8187d390eff330c0a1c5387d"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-response.02.json",
+          "role": "conformance-invalid",
+          "sha256": "20e943bb843daf8d65c8ac341008c3c0771622b751663a819c79352336dbd04b"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-response.03.json",
+          "role": "conformance-invalid",
+          "sha256": "4e0e753bc12f0e9d888ef2b468e497ae183f0ba12bbca2f3b815898fe6a2e8f7"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-response.04.json",
+          "role": "conformance-invalid",
+          "sha256": "e45214ef1cbe9662321ace22b88893a3ee9a3298f29a9f88227bd3d926535307"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.01.json",
+          "role": "conformance-invalid",
+          "sha256": "1b9293c4c93a1a979fb49c265c31065fc870342dba1cfc84255a886c78e5f6b1"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.02.json",
+          "role": "conformance-invalid",
+          "sha256": "a6ff602984bb4ce89009f673a595e498959d98815dcb0c30c9680f70bf017cdd"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.03.json",
+          "role": "conformance-invalid",
+          "sha256": "d56ef0c179bc118fbe568cb8c7c35b34c2f69da7b15403bf127f667f29caea67"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.04.json",
+          "role": "conformance-invalid",
+          "sha256": "d7af349dd74094356f06e6ee0fd920bf7ba8205ee9ab01e42799d2b960d003d8"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.05.json",
+          "role": "conformance-invalid",
+          "sha256": "803b005115b6f6b1a864f3c93d5e769b3b33d645f9921b2618df5fdeeb0177aa"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.06.json",
+          "role": "conformance-invalid",
+          "sha256": "e9af2eb530862635f749c73abc88091518dfff0fcf196d3d1588fa29af3627f9"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.07.json",
+          "role": "conformance-invalid",
+          "sha256": "37866486a05e170f714d1afc1ee7ce0fb9e86c21da92fccba18615445cc04834"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.08.json",
+          "role": "conformance-invalid",
+          "sha256": "ab9caa3ab17c62c83320c51e0ab22c8bed2cefb1dc0ce9f34eb28e4125bd82c2"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.09.json",
+          "role": "conformance-invalid",
+          "sha256": "e3e69e0f2923165674809c5e1ca30b33d04a99c95b35245d633a22d775190364"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.10.json",
+          "role": "conformance-invalid",
+          "sha256": "1e39b4ea4c3f5aefe8ff4ea9c1a5ff0fbd44f35a6ab89efd68082c4983f849ea"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.11.json",
+          "role": "conformance-invalid",
+          "sha256": "1e5e2934f25c7b8de27e5bb6ae9bc279803646914e88e7623cfba65bd383b8bb"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.12.json",
+          "role": "conformance-invalid",
+          "sha256": "32b9e9f5ab3e969446eacd1c66340631adeb0c7a4b8662aa6f2dcabd775fe6ec"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.13.json",
+          "role": "conformance-invalid",
+          "sha256": "3264497d5656aa1d5f16eb0a7038b8784a2d876557e4ab46349de5ee2a51a4ad"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.14.json",
+          "role": "conformance-invalid",
+          "sha256": "d9a6237db287ed3e70a586302e2c76b1dad544f457d5f467d79c322ecec2b006"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-error.01.json",
+          "role": "conformance-invalid",
+          "sha256": "408517aa225babfd15fbc89f75a5dd32cc96ed2b4085caf4c09cb782e70053fd"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-error.02.json",
+          "role": "conformance-invalid",
+          "sha256": "e1a8fa4479e5c6551db8896f4b9f64fb89a8ba1f500bb401d764539a4bc0c1ef"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-error.03.json",
+          "role": "conformance-invalid",
+          "sha256": "04cc4b3bc182bdfde2306518af5a538f3d5cdb2aebb5867716a702018cd0eeb1"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/inference-request.01.json",
+          "role": "conformance-valid",
+          "sha256": "584d32918dfcf5afc08ba5895eb242e6ef6e386ba7b808d12d18e52f0ea42e34"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/inference-response.01.json",
+          "role": "conformance-valid",
+          "sha256": "3d968fe0c80c8034d62cc02eb2909cffcd0dd14b31960c61e9a2c18b3f9b7def"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/inference-response.02.json",
+          "role": "conformance-valid",
+          "sha256": "85f7b63508c2ccc1b15011088d95f780cb83be37250170c68ebce9af4045a97d"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.01.json",
+          "role": "conformance-valid",
+          "sha256": "fbce72b54a3d9ec1b1231094ae7df4872b44dde30857e63ab4393880738f6ad4"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.02.json",
+          "role": "conformance-valid",
+          "sha256": "6853edb9827448a5ad7ac3bd2dd841a1cfef5ae8da3dfd0e37f49466574ebf0c"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.03.json",
+          "role": "conformance-valid",
+          "sha256": "f5a53dc68e1ea84567ca5af74b634e78a029d903376f5a767a7e73673cb9742d"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.04.json",
+          "role": "conformance-valid",
+          "sha256": "e175f79e7526f0fd0299f6feb07631730e453e7655db157e1f11041bcbddb981"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.05.json",
+          "role": "conformance-valid",
+          "sha256": "bb992154d4fc722105f53bbc4d0bb1785271f670ce6536251d1f659e31dbf376"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.06.json",
+          "role": "conformance-valid",
+          "sha256": "ae182b0078487b5673baa819f4bcdc25dfa72ba54b664d4c395e886d944f3684"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.07.json",
+          "role": "conformance-valid",
+          "sha256": "5e33a8f2ad0c01310b944a428509e562bb3834d5c68e776afada82c93b4f06f7"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.08.json",
+          "role": "conformance-valid",
+          "sha256": "1e818c1302a8f24c7be143c90b23f01beee2fa63ed4807ad88e1762648b91334"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.09.json",
+          "role": "conformance-valid",
+          "sha256": "db39ceb2b3cbb53ea4a5da15f378fafd1af8591de4a27e79c0533092a3f200bd"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.01.json",
+          "role": "conformance-valid",
+          "sha256": "184d8f7ded97f64230831be5444de9876b37da760da27aea6c6b0abfa00ed12c"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.02.json",
+          "role": "conformance-valid",
+          "sha256": "0bab71dea8c210bba5245ca8c4317e66caa42f8772298dfe367e4c95226d991f"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.03.json",
+          "role": "conformance-valid",
+          "sha256": "ce50d943b42e9afb0da4a6dc75801178e2d6345f547b82b8e3037c6d2ef5b1ec"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.04.json",
+          "role": "conformance-valid",
+          "sha256": "35b7567a9df7e8c7d36955f55e974d6c926685b5f22ce019375f88a8e42db580"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.05.json",
+          "role": "conformance-valid",
+          "sha256": "e6670a511f6256b701af4f8033bc3012670eab9d927c94821bb31ee176aef4da"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.06.json",
+          "role": "conformance-valid",
+          "sha256": "ea28039cb76c857ac9da02ccee3d64c46718a911ab1fd0c1c82eeff98dede581"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.07.json",
+          "role": "conformance-valid",
+          "sha256": "1732d9e3fc545e0f607ef0f57d9d71b08508213df523af238f7cd43bba95e762"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.08.json",
+          "role": "conformance-valid",
+          "sha256": "0c3c45b84f7add0b440c28bdeede229524c994233d2ba43bffaa585fd87ce699"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.09.json",
+          "role": "conformance-valid",
+          "sha256": "19eca439fab0461abd273d91bb31b26f0bc722f758b3e21f40a10990aa2ad6d8"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.10.json",
+          "role": "conformance-valid",
+          "sha256": "a1b2399c18a1aa6baa8241c0dc995bac392262a08a96e8a18a6553f01f58c137"
+        },
+        {
+          "path": "capabilities/ai.provider-access/implementations.json",
+          "role": "implementations",
+          "sha256": "7c9c6c5cc880aacf66be8dece86ff0b6e8c5ce76c336171f5b54a1c72eca1e0a"
+        },
+        {
+          "path": "capabilities/ai.provider-access/schema.inference-request.json",
+          "role": "schema",
+          "sha256": "d4ac3fcbaf0d269a65f1df204cd7d5444149619acb0aa9ce8f51611674821db5"
+        },
+        {
+          "path": "capabilities/ai.provider-access/schema.inference-response.json",
+          "role": "schema",
+          "sha256": "374f093bca8ade6f9736a009e8f7eb2ba9e437f11f335418852b90175b287515"
+        },
+        {
+          "path": "capabilities/ai.provider-access/schema.provider-connection.json",
+          "role": "schema",
+          "sha256": "4a939833091c7eb64841966be0807224566343c74a4fb5a2f5f56410b8e3bf75"
+        },
+        {
+          "path": "capabilities/ai.provider-access/schema.provider-error.json",
+          "role": "schema",
+          "sha256": "dd2c1731ef6e3945a27f38ac2baaace71820b1abce89610d63c7e3780c0a1fb4"
+        }
+      ],
+      "implementations": [
+        {
+          "conformance": {
+            "evidence": "node/compat/provider-access-candidate.json",
+            "vectors_version": "0.1.0"
+          },
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.2.1-ai-provider.4",
+          "path": "node/src/ai-providers",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "node",
+          "status": "experimental"
+        },
+        {
+          "conformance": {
+            "evidence": "dotnet/compat/provider-access-candidate.json",
+            "vectors_version": "0.1.0"
+          },
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Ai.ProviderAccess",
+          "package_version": "0.1.0-rc.2",
+          "path": "dotnet/src/Hideakisolutions.Platform.Ai.ProviderAccess",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "@hideakisolutions/platform-node",
+          "@hideakisolutions/platform-node/ai-providers",
+          "@hideakisolutions/platform-node/ai-provider-bridge",
+          "Hideakisolutions.Platform.Ai.ProviderAccess"
+        ],
+        "symbols": [
+          "ProviderConnection",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceGateway",
+          "IInferenceProvider",
+          "AddProviderAccess",
+          "composePackagedSubscription"
+        ]
+      },
+      "name": "ai.provider-access",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "llm.generate"
+      ],
+      "stability": "experimental",
+      "summary": "Explicit provider access through native subscriptions, API credentials and local inference without implicit paid fallback.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
         "identity-provider",
         "oauth2",
         "google_oauth",
@@ -1875,7 +2234,7 @@
     }
   ],
   "generated_from": {
-    "contracts_version": "0.4.0",
+    "contracts_version": "0.5.2",
     "repository": "HideakiSolutions/enterprise-capability-platform"
   },
   "schema_version": "1"

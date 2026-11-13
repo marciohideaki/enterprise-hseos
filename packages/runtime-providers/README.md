@@ -6,6 +6,20 @@ an injected peer or the bounded `ProcessAcpPeer` JSON-RPC/stdio transport.
 Executable selection, arguments and the replacement environment are explicit;
 credential resolution and network access remain deployment responsibilities.
 
+Native compatibility corrections retain the same ports: Claude Code 2.1.323's passive
+`system/ui_invalidate` is accepted before mandatory init, and explicit TMPDIR survives the
+Claude child environment allowlist. Codex owns every connection from initialization onward,
+including account inspection and thread creation; close rejects pending requests and escalates
+to SIGKILL if a peer ignores SIGTERM. Concurrent close calls share a bounded exit barrier.
+On Linux each native process starts in its own verified process group; cleanup also kills
+descendants and waits until no executing group members remain before returning. An injected
+supervisor may own the group instead, retaining responsibility for its entire tree.
+Account/tool/effect checks are unchanged. Focused
+regressions cover these native-client compatibility and lifecycle cases without credentials.
+Claude account inspection also propagates AbortSignal through both captures under one deadline;
+abort kills the active capture and waits for process close before rejection, so cancellation
+cannot start a subsequent account-status command after the caller has completed cleanup.
+
 The reference bridge is deliberately L0 (`instructions`) only. It advertises no
 filesystem, terminal or MCP client capability and requires the peer to
 acknowledge the HSEOS `instructions_only` effect boundary during ACP
