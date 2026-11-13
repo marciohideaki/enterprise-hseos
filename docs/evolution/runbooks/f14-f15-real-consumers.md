@@ -15,6 +15,8 @@ Requisito F14-R1 (`docs/evolution/requirements.json`): contexto e memória mant�
 
 ### Como rodar com cliente real (executável: decisão (b) do owner, 2026-11-02)
 
+> **Nota (2026-11-13):** as campanhas reais da F14 já foram executadas (entre elas as versões v3 e v4, até 2026-11-09; a última em [w3/F14-V4-2026-11.md](../w3/F14-V4-2026-11.md), que parou por teto com a tarefa `pass` em 0 de 5 promovida, sem atender o critério pré-registrado). A F14 foi encerrada pelo owner sem nova campanha (OG-06, 2026-11-09) e `real_consumers` segue `not_verified`. O procedimento abaixo é o desenho original e continua valendo como descrição do caminho.
+
 A campanha real da F14 é executável. O cliente real grava, o owner promove e a tarefa recupera. O opt-in global `include_untrusted` (alternativa (a)) foi recusado pelo owner: nada na configuração de produção o expõe.
 
 1. **O cliente grava.** Servidor MCP do projeto sobre um `project.db` **ativado de teste** (nunca o de produção): `memory.write` no projeto da tarefa. A nota nasce `origin: agent` / `trust: untrusted` e **não entra** no contexto de nenhuma tarefa.
@@ -50,7 +52,7 @@ environment:
 - O banco é aberto com `readonly`; nada é gravado nele. Um contrato que declare `memory.write` ou `memory.delete` é recusado enquanto a chave existir (`ENGINEERING_ENVIRONMENT_CONFIG_INVALID`).
 - A chave vive no arquivo de configuração do operador. Não há opção de linha de comando, de contrato ou de ferramenta que a escolha.
 - Sem a chave, o comportamento anterior continua: a memória é a do ledger da própria tarefa.
-- Prova automatizada: `test/test-memory-context-journey.js` (`production host with a read-only source database…`). Não há campanha real deste caminho; a F14 `real_consumers` segue sem promoção.
+- Prova automatizada: `test/test-memory-context-journey.js` (`production host with a read-only source database…`). Não havia campanha real deste caminho quando o texto foi escrito; ver a nota de 2026-11-13 no início desta seção: as campanhas foram executadas e a F14 `real_consumers` segue sem promoção.
 
 ### Custo medido nas campanhas (guard compartilhado)
 
@@ -104,6 +106,8 @@ Consequências para a F15: (1) com pressão, **sem resultados antigos** e dentro
 A compactação está ligada ao runtime de **engenharia** (`AgentRuntime`, perfil `disposable-engineering-candidate`). Os perfis **delegated** (Claude Code e Codex) **não usam `AgentRuntime`**: o cliente real mantém o próprio contexto e o HSEOS não o compacta. Portanto F15 com cliente real tem este limite: a jornada abaixo só vale para um modelo real acessado por **binding** (`--binding`) no runtime de engenharia; não existe compactação HSEOS dentro de uma sessão delegated.
 
 ### 4. Ensaio com runtime real (autorização própria do owner)
+
+> **Nota (2026-11-13):** a campanha L2 da F15 foi executada em 2026-11-09 com a API real e o veredito do roteiro foi `fail` ([w3/F15-L2-2026-11.md](../w3/F15-L2-2026-11.md)); o owner a encerrou com o resultado registrado, sem nova execução por ora, e `real_consumers` da F15 segue `not_verified`. Os passos abaixo são o desenho original.
 
 Pré-requisitos, na ordem:
 

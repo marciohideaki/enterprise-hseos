@@ -1,6 +1,6 @@
 # Runbook F2 — ensaio da 4ª família real (Gemini API ou compatível)
 
-Status: **preparação, nada é executado por este documento.** O ADR-0050 (aceito pelo owner em 2026-10-31) fixou o teto padrão, a credencial e o critério de aceite desta família e a liberou **para planejamento**; a execução pede **autorização própria do owner por campanha** (ADR-0050, seção 3 e resposta 8). Este runbook existe para que a campanha comece com escopo, teto e critérios já definidos. Enquanto não for executada, FR07 dessa família permanece **pendente, nunca PASS**.
+Status: **preparação, nada é executado por este documento.** O ADR-0050 (aceito pelo owner em 2026-10-31) fixou o teto padrão, a credencial e o critério de aceite desta família e a liberou **para planejamento**; a execução pede **autorização própria do owner por campanha** (ADR-0050, seção 3 e resposta 8). Este runbook existe para que a campanha comece com escopo, teto e critérios já definidos. Enquanto não for executada, FR07 dessa família permanece **pendente, nunca PASS**. **Estado em 2026-11-11:** a C6 está BLOCKED por falta da chave `google/gemini-hseos`; a ação do owner é o OG-04 no `OWNER-GATES.md` da run `20261111-terminal-closeout` (criar a chave própria e autorizar a C6 com o teto do ADR-0050).
 
 ## 1. Estado atual (com fontes)
 
