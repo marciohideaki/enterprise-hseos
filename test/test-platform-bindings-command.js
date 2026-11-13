@@ -96,8 +96,9 @@ test('show text output lists mode, stacks, registry and problems', () => {
   const directory = temp();
   write(directory, BINDINGS_FILE, 'mode: off\n');
   const { text, result } = command.runShow({ directory }, { runtimeRoot: REPO_ROOT, env: userEnv() });
+  const lock = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, SNAPSHOT_LOCK_FILE), 'utf8'));
   assert.match(text, /Mode: platform \(source: invalid-file\)/);
-  assert.match(text, /Registry: source=snapshot ref=contracts-v0\.4\.0 sha256=[a-f0-9]{64}/);
+  assert.ok(text.split('\n').includes(`Registry: source=snapshot ref=${lock.ref} sha256=${lock.sha256}`));
   assert.match(text, /error: project file:/);
   assert.equal(result.errors.length, 1);
 });

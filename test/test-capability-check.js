@@ -77,12 +77,22 @@ function tests() {
     assertPass('no bindings file: platform / default-no-file', report.mode === 'platform' && report.mode_source === 'default-no-file');
     assertPass('Redis resolves cache.typed first', names(report)[0] === 'cache.typed', names(report).join(','));
     assertPass('stacks come from the .csproj marker', JSON.stringify(report.stacks) === '["dotnet"]');
-    assertPass('registry ref comes from the shipped snapshot', report.registry.source === 'snapshot' && report.registry.ref === 'contracts-v0.4.0');
+    assertPass(
+      'registry ref comes from the shipped snapshot',
+      report.registry.source === 'snapshot' && report.registry.ref === '23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd',
+    );
     const first = report.results[0];
-    assertPass('platform verdict is consume <package>', first.verdict === 'consume' && /^consume Hideakisolutions\.Platform\.Caching\.Redis \(experimental\)$/.test(first.verdict_text), first.verdict_text);
+    assertPass(
+      'platform verdict is consume <package>',
+      first.verdict === 'consume' && /^consume Hideakisolutions\.Platform\.Caching\.Redis \(experimental\)$/.test(first.verdict_text),
+      first.verdict_text,
+    );
     assertPass('exit code 0 for a completed query', exitCode === 0 && report.errors.length === 0);
     assertPass('auth query resolves security.authn', names(check('auth', dir).report).includes('security.authn'));
-    assertPass('event-envelope resolves messaging.event-envelope', names(check('event-envelope', dir).report)[0] === 'messaging.event-envelope');
+    assertPass(
+      'event-envelope resolves messaging.event-envelope',
+      names(check('event-envelope', dir).report)[0] === 'messaging.event-envelope',
+    );
   }
 
   console.log('\nExtend verdict when no implementation exists for the stacks');
@@ -91,9 +101,16 @@ function tests() {
     const { report } = check('cache', dir);
     const result = report.results.find((entry) => entry.capability === 'cache.typed');
     assertPass('stack filter drops non-matching implementations', result && result.implementations.length === 0);
-    assertPass('verdict is extend for the project stack', result.verdict === 'extend' && result.verdict_text === 'extend (implement the contract for go in the owning core)', result.verdict_text);
+    assertPass(
+      'verdict is extend for the project stack',
+      result.verdict === 'extend' && result.verdict_text === 'extend (implement the contract for go in the owning core)',
+      result.verdict_text,
+    );
     const node = check('event-envelope', project({ marker: 'package.json' })).report.results[0];
-    assertPass('node project sees only node implementations', node.implementations.every((entry) => entry.stack === 'node') && node.implementations.length > 0);
+    assertPass(
+      'node project sees only node implementations',
+      node.implementations.every((entry) => entry.stack === 'node') && node.implementations.length > 0,
+    );
   }
 
   console.log('\nStacks of a TypeScript/React project and multi-word queries');
@@ -106,26 +123,56 @@ function tests() {
       },
     });
     const { report } = check('login', dir);
-    assertPass('stacks are node,react,typescript', JSON.stringify(report.stacks) === '["node","react","typescript"]', report.stacks.join(','));
+    assertPass(
+      'stacks are node,react,typescript',
+      JSON.stringify(report.stacks) === '["node","react","typescript"]',
+      report.stacks.join(','),
+    );
     const login = report.results.find((entry) => entry.capability === 'design.login-pattern');
     assertPass('login finds its react implementation', login && login.implementations.some((entry) => entry.stack === 'react'));
     assertPass('login is consumed, not extended', login && login.verdict === 'consume', login && login.verdict_text);
 
     const go = check('login', project({ marker: 'go.mod' })).report.results.find((entry) => entry.capability === 'design.login-pattern');
-    assertPass('a project of another stack still extends and names the other stacks', go.verdict === 'extend' && go.other_stacks.includes('react'), JSON.stringify(go.other_stacks));
+    assertPass(
+      'a project of another stack still extends and names the other stacks',
+      go.verdict === 'extend' && go.other_stacks.includes('react'),
+      JSON.stringify(go.other_stacks),
+    );
 
     const multi = check('auth login', dir).report;
     assertPass('multi-word query matches when each word matches', names(multi).includes('design.login-pattern'), names(multi).join(','));
-    assertPass('multi-word match is labelled tokens', multi.results[0].matched_by === 'tokens', multi.results[0] && multi.results[0].matched_by);
-    assertPass('multi-word result is deterministic', JSON.stringify(names(check('auth login', dir).report)) === JSON.stringify(names(multi)));
+    assertPass(
+      'multi-word match is labelled tokens',
+      multi.results[0].matched_by === 'tokens',
+      multi.results[0] && multi.results[0].matched_by,
+    );
+    assertPass(
+      'multi-word result is deterministic',
+      JSON.stringify(names(check('auth login', dir).report)) === JSON.stringify(names(multi)),
+    );
     assertPass('multi-word query with one unknown word finds nothing', names(check('login zzzzqqq', dir).report).length === 0);
-    for (const generic of ['add new user', 'create new account', 'add a new product', 'get the client', 'create new client', 'criar novo usuario']) {
-      assertPass(`generic request '${generic}' finds nothing`, names(check(generic, dir).report).length === 0, names(check(generic, dir).report).join(','));
+    for (const generic of [
+      'add new user',
+      'create new account',
+      'add a new product',
+      'get the client',
+      'create new client',
+      'criar novo usuario',
+    ]) {
+      assertPass(
+        `generic request '${generic}' finds nothing`,
+        names(check(generic, dir).report).length === 0,
+        names(check(generic, dir).report).join(','),
+      );
     }
     assertPass('stopwords are ignored next to real words', names(check('add the auth login', dir).report).includes('design.login-pattern'));
     const mobile = project({ marker: null, files: { 'package.json': JSON.stringify({ dependencies: { 'react-native': '1' } }) } });
     const rn = check('login', mobile).report;
-    assertPass('react-native does not receive the react implementation', JSON.stringify(rn.stacks) === '["node","react-native"]' && rn.results[0].verdict === 'extend', JSON.stringify(rn.stacks));
+    assertPass(
+      'react-native does not receive the react implementation',
+      JSON.stringify(rn.stacks) === '["node","react-native"]' && rn.results[0].verdict === 'extend',
+      JSON.stringify(rn.stacks),
+    );
     assertPass('a whole-query match still wins over tokens', check('login', dir).report.results[0].matched_by === 'alias');
   }
 
@@ -137,8 +184,16 @@ function tests() {
     });
     gitCommit(hybridDir); // a recorded mode: committed bindings and decision record
     const hybrid = check('cache', hybridDir).report;
-    assertPass('hybrid mode is honoured with its mode_ref', hybrid.mode === 'hybrid' && hybrid.mode_source === 'project', `${hybrid.mode}/${hybrid.mode_source}`);
-    assertPass('hybrid shows consume with advisory when nothing is stable', hybrid.results[0].advisory === true && /\(advisory\)$/.test(hybrid.results[0].verdict_text), hybrid.results[0].verdict_text);
+    assertPass(
+      'hybrid mode is honoured with its mode_ref',
+      hybrid.mode === 'hybrid' && hybrid.mode_source === 'project',
+      `${hybrid.mode}/${hybrid.mode_source}`,
+    );
+    assertPass(
+      'hybrid shows consume with advisory when nothing is stable',
+      hybrid.results[0].advisory === true && /\(advisory\)$/.test(hybrid.results[0].verdict_text),
+      hybrid.results[0].verdict_text,
+    );
 
     const registry = fs.readJsonSync(SNAPSHOT);
     const cache = registry.capabilities.find((entry) => entry.name === 'cache.typed');
@@ -156,7 +211,11 @@ function tests() {
     gitCommit(stableDir);
     fs.writeJsonSync(path.join(stableDir, 'registry.json'), registry);
     const stable = check('cache', stableDir).report;
-    assertPass('a stable implementation removes the advisory', stable.mode === 'hybrid' && stable.results[0].advisory === false && !/advisory/.test(stable.results[0].verdict_text), stable.results[0].verdict_text);
+    assertPass(
+      'a stable implementation removes the advisory',
+      stable.mode === 'hybrid' && stable.results[0].advisory === false && !/advisory/.test(stable.results[0].verdict_text),
+      stable.results[0].verdict_text,
+    );
     assertPass('path registry source is reported', stable.registry.source === 'path');
 
     const localDir = project({
@@ -165,22 +224,37 @@ function tests() {
     });
     gitCommit(localDir);
     const local = check('cache', localDir).report;
-    assertPass('local mode is informational', local.mode === 'local' && local.results[0].verdict_text === 'informational (local mode: no intake required)');
+    assertPass(
+      'local mode is informational',
+      local.mode === 'local' && local.results[0].verdict_text === 'informational (local mode: no intake required)',
+    );
     const none = renderText(check('zzzqq', localDir).report);
-    assertPass('local mode with no result has no intake hint', /no platform capability matches 'zzzqq'/.test(none) && !/intake/i.test(none));
+    assertPass(
+      'local mode with no result has no intake hint',
+      /no platform capability matches 'zzzqq'/.test(none) && !/intake/i.test(none),
+    );
 
     const overrideDir = project({
       bindings: {
         schema_version: '1.0.0',
         mode: 'platform',
-        overrides: [{ capability: 'cache.typed', outcome: 'keep-local', intake_ref: 'INTAKE-2026-10-cache', reason: 'product boundary', expires: '2999-01-01' }],
+        overrides: [
+          {
+            capability: 'cache.typed',
+            outcome: 'keep-local',
+            intake_ref: 'INTAKE-2026-10-cache',
+            reason: 'product boundary',
+            expires: '2999-01-01',
+          },
+        ],
       },
       files: { 'docs/decisions/0002-intake.md': 'Decision INTAKE-2026-10-cache keep-local\n' },
     });
     const overridden = check('cache', overrideDir).report;
     assertPass(
       'a matching override is shown',
-      overridden.results[0].verdict === 'overridden' && overridden.results[0].verdict_text === 'overridden: keep-local (INTAKE-2026-10-cache, expires 2999-01-01)',
+      overridden.results[0].verdict === 'overridden' &&
+        overridden.results[0].verdict_text === 'overridden: keep-local (INTAKE-2026-10-cache, expires 2999-01-01)',
       overridden.results[0].verdict_text,
     );
     assertPass('an override only affects its capability', check('event-envelope', overrideDir).report.results[0].verdict === 'consume');
@@ -189,19 +263,40 @@ function tests() {
   console.log('\nRecorded mode (git baseline)');
   {
     const hybridFiles = { 'docs/decisions/0001-hybrid.md': '# hybrid\n' };
-    const committed = project({ bindings: { schema_version: '1.0.0', mode: 'hybrid', mode_ref: 'docs/decisions/0001-hybrid.md' }, files: hybridFiles });
+    const committed = project({
+      bindings: { schema_version: '1.0.0', mode: 'hybrid', mode_ref: 'docs/decisions/0001-hybrid.md' },
+      files: hybridFiles,
+    });
     gitCommit(committed);
-    assertPass('readRecordedMode reads the committed mode', JSON.stringify(readRecordedMode(committed)) === '{"mode":"hybrid","source":"committed"}');
+    assertPass(
+      'readRecordedMode reads the committed mode',
+      JSON.stringify(readRecordedMode(committed)) === '{"mode":"hybrid","source":"committed"}',
+    );
     const result = check('cache', committed);
-    assertPass('a committed hybrid is not a downgrade', result.report.mode === 'hybrid' && result.report.mode_source === 'project' && result.report.errors.length === 0 && result.exitCode === 0);
+    assertPass(
+      'a committed hybrid is not a downgrade',
+      result.report.mode === 'hybrid' &&
+        result.report.mode_source === 'project' &&
+        result.report.errors.length === 0 &&
+        result.exitCode === 0,
+    );
 
     const downgraded = project({ mode: 'platform' });
     gitCommit(downgraded);
-    fs.writeFileSync(path.join(downgraded, '.hseos', 'config', 'platform-bindings.yaml'), yaml.stringify({ schema_version: '1.0.0', mode: 'hybrid' }));
+    fs.writeFileSync(
+      path.join(downgraded, '.hseos', 'config', 'platform-bindings.yaml'),
+      yaml.stringify({ schema_version: '1.0.0', mode: 'hybrid' }),
+    );
     const rejected = check('cache', downgraded);
-    assertPass('an uncommitted downgrade is rejected', rejected.report.mode === 'platform' && rejected.report.mode_source === 'downgrade-rejected' && rejected.exitCode === 1);
+    assertPass(
+      'an uncommitted downgrade is rejected',
+      rejected.report.mode === 'platform' && rejected.report.mode_source === 'downgrade-rejected' && rejected.exitCode === 1,
+    );
 
-    assertPass('not a git repository means platform', JSON.stringify(readRecordedMode(project())) === '{"mode":"platform","source":"default"}');
+    assertPass(
+      'not a git repository means platform',
+      JSON.stringify(readRecordedMode(project())) === '{"mode":"platform","source":"default"}',
+    );
     const unborn = project({ mode: 'platform' });
     git(unborn, 'init', '-q');
     assertPass('a repository without commits means platform', readRecordedMode(unborn).mode === 'platform');
@@ -231,9 +326,16 @@ function tests() {
     };
     const onlyPlanned = withStatuses('planned', 'deprecated');
     assertPass('planned/deprecated only gives extend', onlyPlanned.verdict === 'extend', onlyPlanned.verdict_text);
-    assertPass('those implementations are still listed with status', onlyPlanned.implementations.map((entry) => entry.status).join(',') === 'planned,deprecated');
+    assertPass(
+      'those implementations are still listed with status',
+      onlyPlanned.implementations.map((entry) => entry.status).join(',') === 'planned,deprecated',
+    );
     const mixed = withStatuses('planned', 'experimental');
-    assertPass('an experimental one is chosen over planned', mixed.verdict === 'consume' && /Caching\.Redis \(experimental\)$/.test(mixed.verdict_text), mixed.verdict_text);
+    assertPass(
+      'an experimental one is chosen over planned',
+      mixed.verdict === 'consume' && /Caching\.Redis \(experimental\)$/.test(mixed.verdict_text),
+      mixed.verdict_text,
+    );
     const stable = withStatuses('experimental', 'stable');
     assertPass('stable is preferred and named in the verdict', /\(stable\)$/.test(stable.verdict_text), stable.verdict_text);
   }
@@ -245,7 +347,13 @@ function tests() {
       assertPass(`query ${JSON.stringify(bad)} is a usage error (exit 2)`, usageCode(() => check(bad, dir)) === 2);
     }
     const dot = check('.', dir);
-    assertPass('query "." completes with no results and no scan', dot.exitCode === 0 && dot.report.results.length === 0 && dot.report.filesystem_candidates.length === 0 && dot.report.warnings.some((entry) => /scan skipped/.test(entry)));
+    assertPass(
+      'query "." completes with no results and no scan',
+      dot.exitCode === 0 &&
+        dot.report.results.length === 0 &&
+        dot.report.filesystem_candidates.length === 0 &&
+        dot.report.warnings.some((entry) => /scan skipped/.test(entry)),
+    );
     const trimmed = check(' Redis ', dir).report;
     assertPass('the query is trimmed once', trimmed.query === 'Redis' && trimmed.results[0].capability === 'cache.typed');
     assertPass('a missing --directory is a usage error', usageCode(() => check('cache', path.join(temp, 'nope'))) === 2);
@@ -267,7 +375,10 @@ function tests() {
     const dir = project({ bindings: { schema_version: '1.0.0', mode: 'platform', registry: { source: 'path', path: 'broken.json' } } });
     fs.writeFileSync(path.join(dir, 'broken.json'), '{ not json');
     const { report, exitCode } = check('cache', dir);
-    assertPass('a corrupt registry fails with exit code 1 and an error', exitCode === 1 && report.errors.some((entry) => /capability registry/.test(entry)));
+    assertPass(
+      'a corrupt registry fails with exit code 1 and an error',
+      exitCode === 1 && report.errors.some((entry) => /capability registry/.test(entry)),
+    );
     const invalid = project({ bindings: { schema_version: '9', mode: 'platform' } });
     assertPass('invalid bindings exit 1 and stay strict', check('cache', invalid).exitCode === 1);
   }
@@ -281,10 +392,14 @@ function tests() {
     const report = JSON.parse(first);
     assertPass(
       'top-level keys',
-      JSON.stringify(Object.keys(report)) === JSON.stringify(['query', 'mode', 'mode_source', 'stacks', 'registry', 'results', 'filesystem_candidates', 'warnings', 'errors']),
+      JSON.stringify(Object.keys(report)) ===
+        JSON.stringify(['query', 'mode', 'mode_source', 'stacks', 'registry', 'results', 'filesystem_candidates', 'warnings', 'errors']),
       Object.keys(report).join(','),
     );
-    assertPass('registry keys', JSON.stringify(Object.keys(report.registry)) === '["source","ref","sha256"]' && /^[a-f0-9]{64}$/.test(report.registry.sha256));
+    assertPass(
+      'registry keys',
+      JSON.stringify(Object.keys(report.registry)) === '["source","ref","sha256"]' && /^[a-f0-9]{64}$/.test(report.registry.sha256),
+    );
     const cli = spawnSync(process.execPath, [CLI, 'capability-check', 'Redis', '--directory', dir, '--json'], {
       encoding: 'utf8',
       env: { ...process.env, ...isolatedEnv(), HSEOS_CAPABILITY_WORKSPACE: '' },
@@ -295,7 +410,11 @@ function tests() {
     } catch {
       parsed = null;
     }
-    assertPass('the CLI prints the same JSON with --json', cli.status === 0 && parsed && parsed.results[0].capability === 'cache.typed', cli.stderr);
+    assertPass(
+      'the CLI prints the same JSON with --json',
+      cli.status === 0 && parsed && parsed.results[0].capability === 'cache.typed',
+      cli.stderr,
+    );
   }
 
   console.log('\nFilesystem heuristic');
@@ -304,7 +423,10 @@ function tests() {
     fs.outputFileSync(path.join(flat, 'repo-a', 'src', 'RedisCache.ts'), 'export class RedisCache {}\n');
     const dir = project();
     const viaEnv = check('RedisCache', dir, isolatedEnv({ HSEOS_CAPABILITY_WORKSPACE: flat })).report;
-    assertPass('flat <ws>/<repo> layout is scanned', viaEnv.filesystem_candidates.some((entry) => entry.file === 'RedisCache.ts' && entry.source === 'heuristic'));
+    assertPass(
+      'flat <ws>/<repo> layout is scanned',
+      viaEnv.filesystem_candidates.some((entry) => entry.file === 'RedisCache.ts' && entry.source === 'heuristic'),
+    );
     assertPass('the signature is extracted', viaEnv.filesystem_candidates[0].signature === 'export class RedisCache {}');
 
     const nested = freshDir('nested-ws');
@@ -332,28 +454,48 @@ function tests() {
     const report = check('Redis', dir, isolatedEnv({ HSEOS_CAPABILITY_WORKSPACE: ws })).report;
     const workspace = report.filesystem_candidates.find((entry) => entry.file === 'RedisLabel.ts');
     const local = report.filesystem_candidates.find((entry) => entry.file === 'RedisProj.ts');
-    assertPass('workspace candidates are labelled relative to their root', workspace && workspace.path === '<workspace>/repo-a/src/RedisLabel.ts' && workspace.root === 'workspace', JSON.stringify(workspace));
+    assertPass(
+      'workspace candidates are labelled relative to their root',
+      workspace && workspace.path === '<workspace>/repo-a/src/RedisLabel.ts' && workspace.root === 'workspace',
+      JSON.stringify(workspace),
+    );
     assertPass('project candidates are labelled project', local && local.path === 'packages/RedisProj.ts' && local.root === 'project');
 
     const missing = check('Redis', dir, isolatedEnv({ HSEOS_CAPABILITY_WORKSPACE: path.join(temp, 'ghost') })).report;
-    assertPass('a missing HSEOS_CAPABILITY_WORKSPACE warns', missing.warnings.some((entry) => /HSEOS_CAPABILITY_WORKSPACE does not exist/.test(entry)));
+    assertPass(
+      'a missing HSEOS_CAPABILITY_WORKSPACE warns',
+      missing.warnings.some((entry) => /HSEOS_CAPABILITY_WORKSPACE does not exist/.test(entry)),
+    );
     const userFile = path.join(temp, 'ghost-user.yaml');
     fs.writeFileSync(userFile, yaml.stringify({ schema_version: '1.0.0', workspace: { cores_root: path.join(temp, 'ghost-cores') } }));
     const ghost = check('Redis', dir, isolatedEnv({ HSEOS_PLATFORM_BINDINGS: userFile })).report;
-    assertPass('a missing cores_root warns', ghost.warnings.some((entry) => /workspace\.cores_root does not exist/.test(entry)));
+    assertPass(
+      'a missing cores_root warns',
+      ghost.warnings.some((entry) => /workspace\.cores_root does not exist/.test(entry)),
+    );
 
     const many = {};
     for (let index = 10; index < 40; index++) many[`packages/RedisMany${index}.ts`] = `export const RedisMany${index} = 1;\n`;
     const capped = check('RedisMany', project({ files: many })).report;
-    assertPass('the 20-candidate cap warns', capped.filesystem_candidates.length === 20 && capped.warnings.some((entry) => /truncated to 20 of 30/.test(entry)), capped.warnings.join('|'));
+    assertPass(
+      'the 20-candidate cap warns',
+      capped.filesystem_candidates.length === 20 && capped.warnings.some((entry) => /truncated to 20 of 30/.test(entry)),
+      capped.warnings.join('|'),
+    );
 
     const deep = project({ files: { [`packages/${'d/'.repeat(9)}RedisDeep.ts`]: 'export const RedisDeep = 1;\n' } });
     const deepReport = check('RedisDeep', deep).report;
-    assertPass('the depth cap warns', deepReport.filesystem_candidates.length === 0 && deepReport.warnings.some((entry) => /depth/.test(entry)));
+    assertPass(
+      'the depth cap warns',
+      deepReport.filesystem_candidates.length === 0 && deepReport.warnings.some((entry) => /depth/.test(entry)),
+    );
 
     const big = project({ files: { 'packages/RedisBig.ts': `${'// padding\n'.repeat(30_000)}export const RedisBig = 1;\n` } });
     const bigReport = check('RedisBig', big).report;
-    assertPass('only the first 256 KiB are read for the signature', bigReport.filesystem_candidates[0].signature === 'name match; signature not found');
+    assertPass(
+      'only the first 256 KiB are read for the signature',
+      bigReport.filesystem_candidates[0].signature === 'name match; signature not found',
+    );
   }
 
   console.log('\nSymlink safety');
@@ -365,7 +507,11 @@ function tests() {
     const started = Date.now();
     const { report } = check('RedisLoop', project(), isolatedEnv({ HSEOS_CAPABILITY_WORKSPACE: ws }));
     assertPass('a symlink loop terminates', Date.now() - started < 5000);
-    assertPass('the file is reported once despite aliases', report.filesystem_candidates.length === 1, String(report.filesystem_candidates.length));
+    assertPass(
+      'the file is reported once despite aliases',
+      report.filesystem_candidates.length === 1,
+      String(report.filesystem_candidates.length),
+    );
 
     const outside = freshDir('outside');
     fs.outputFileSync(path.join(outside, 'RedisEscape.ts'), 'export const RedisEscape = 1;\n');
@@ -374,7 +520,11 @@ function tests() {
     fs.symlinkSync(outside, path.join(escapeWs, 'repo', 'link'), 'dir');
     fs.symlinkSync(path.join(outside, 'RedisEscape.ts'), path.join(escapeWs, 'repo', 'RedisEscapeFile.ts'));
     const escaped = check('RedisEscape', project(), isolatedEnv({ HSEOS_CAPABILITY_WORKSPACE: escapeWs })).report;
-    assertPass('symlinks resolving outside the root are ignored', escaped.filesystem_candidates.length === 0, JSON.stringify(escaped.filesystem_candidates));
+    assertPass(
+      'symlinks resolving outside the root are ignored',
+      escaped.filesystem_candidates.length === 0,
+      JSON.stringify(escaped.filesystem_candidates),
+    );
   }
 }
 

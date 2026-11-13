@@ -7,6 +7,10 @@ const statePath = process.argv[2];
 const mode = process.argv[3] || 'normal';
 let initialized = false;
 let activeTurn = null;
+if (mode.startsWith('hang-')) {
+  process.on('SIGTERM', () => {});
+  setInterval(() => {}, 1000);
+}
 
 function state() {
   if (!fs.existsSync(statePath)) {
@@ -40,6 +44,13 @@ function notification(method, params) {
 
 readline.createInterface({ input: process.stdin, crlfDelay: Infinity }).on('line', (line) => {
   const message = JSON.parse(line);
+  const blocked = { 'hang-initialize': 'initialize', 'hang-account': 'account/read', 'hang-create': 'thread/start' }[mode];
+  if (message.method === blocked) {
+    const { spawn } = require('node:child_process');
+    const grandchild = spawn(process.execPath, ['-e', 'process.on("SIGTERM",()=>{});setInterval(()=>{},1000)'], { stdio: 'ignore' });
+    fs.writeFileSync(`${statePath}.stage`, JSON.stringify({ method: message.method, grandchild: grandchild.pid }));
+    return;
+  }
   if (message.method === 'initialize') {
     initialized = true;
     return result(message.id, { userAgent: 'fake-codex', platformFamily: 'unix', platformOs: 'linux' });
