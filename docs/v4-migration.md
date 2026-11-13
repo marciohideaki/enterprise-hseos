@@ -130,6 +130,12 @@ decisions. Historical events and already admitted contracts stay readable.
   fixture the legacy path still runs, always through the gateway, and each denial
   is stored durably in `mcp_gateway_denials` in the legacy telemetry SQLite.
 
+### Legacy MCP compatibility has no end date (ADR-0048)
+
+On an activated database the legacy MCP compatibility does not expire: the fixed 2026-11-30 date no
+longer applies (ADR-0048, item 3). Only an owner-set `HSEOS_MCP_LEGACY_SUNSET` (ISO date or instant)
+ends it; unset or empty means it never expires.
+
 ### Environment and memory tools over the governed MCP server (W4-C7)
 
 - `environment.lsp.*`, `environment.dap.run`, `environment.browser.run`, `environment.computer.*` and
