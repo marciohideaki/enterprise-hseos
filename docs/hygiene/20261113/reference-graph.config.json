@@ -76,6 +76,38 @@
     ".enterprise",
     ".agents"
   ],
+  "nonCitingReferrers": [
+    "docs/evolution/baseline.json",
+    "docs/evolution/w2/evidence/baseline.json",
+    "docs/audits/2026-09-07-repository-consolidation/inventory.json",
+    "docs/evolution/evidence/examined-sources-final.json",
+    "docs/evolution/evidence/sequential/sources.json",
+    "docs/evolution/evidence/w0-closeout/sources.json",
+    "docs/evolution/w1/evidence/full-suite-sources.json",
+    "docs/evolution/w1/evidence/sources.json",
+    "docs/evolution/w2/evidence/sources.json",
+    "docs/evolution/w2/evidence/kernel24-sources.json",
+    "docs/evolution/w2/evidence/matrix-sources.json",
+    "docs/evolution/w2/evidence/review/matrix-sources.json",
+    ".gitignore",
+    ".prettierignore"
+  ],
+  "nonCitingReasons": {
+    "docs/evolution/baseline.json": "Snapshot inventory: maps every path to its hash at a fixed base_commit and index_tree.",
+    "docs/evolution/w2/evidence/baseline.json": "Snapshot inventory: maps every path to its hash at a fixed git_base.",
+    "docs/audits/2026-09-07-repository-consolidation/inventory.json": "Snapshot inventory of the 2026-09-07 consolidation: paths with sha256 and dispositions at a fixed canonical_baseline; cites no evidence.",
+    "docs/evolution/evidence/examined-sources-final.json": "Pure path-to-blob-hash map of examined source files; no other fields.",
+    "docs/evolution/evidence/sequential/sources.json": "Pure path-to-blob-hash map of source files; no other fields.",
+    "docs/evolution/evidence/w0-closeout/sources.json": "Pure path-to-blob-hash map of source files; no other fields.",
+    "docs/evolution/w1/evidence/full-suite-sources.json": "Pure path-to-blob-hash map of source files; no other fields.",
+    "docs/evolution/w1/evidence/sources.json": "Pure path-to-blob-hash map of source files; no other fields.",
+    "docs/evolution/w2/evidence/sources.json": "Pure path-to-blob-hash map of source files; no other fields.",
+    "docs/evolution/w2/evidence/kernel24-sources.json": "Pure path-to-blob-hash map of source files; no other fields.",
+    "docs/evolution/w2/evidence/matrix-sources.json": "Pure path-to-blob-hash map of source files; no other fields.",
+    "docs/evolution/w2/evidence/review/matrix-sources.json": "Pure path-to-blob-hash map of source files; no other fields.",
+    ".gitignore": "Exclusion pattern file: does not make a file necessary; it only keeps it out of version control.",
+    ".prettierignore": "Exclusion pattern file: does not make a file necessary; it only keeps it out of formatting."
+  },
   "genericBasenames": [
     "README.md",
     "STATUS.md",

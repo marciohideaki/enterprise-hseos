@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..', '..', '..');
 
-const KIND_RANK = { exact: 0, dir: 1, glob: 2, basename: 3 };
+const KIND_RANK = { exact: 0, dir: 1, glob: 2, basename: 3, 'non-citing': 4 };
 const STRONG_KINDS = new Set(['exact', 'dir', 'glob']);
 
 const TOKEN_RE = /[\p{L}\p{N}_.@+~%/*-]+/gu;
@@ -243,6 +243,7 @@ async function main() {
   const categoryOrder = config.categories.map((entry) => entry.name);
   const broadDirs = new Set(config.broadDirs);
   const generic = new Set(config.genericBasenames);
+  const nonCiting = new Set(config.nonCitingReferrers ?? []);
 
   const baseCommit = git(['rev-parse', 'HEAD']).trim();
   const allFiles = git(['ls-files', '-z'])
@@ -250,6 +251,12 @@ async function main() {
     .filter(Boolean)
     .filter((file) => !startsWithAny(file, config.excludeFromAnalysis))
     .sort();
+
+  const trackedSet = new Set(allFiles);
+  for (const file of nonCiting) {
+    if (!trackedSet.has(file)) throw new Error(`nonCitingReferrers entry is not a tracked file: ${file}`);
+    if (!config.nonCitingReasons?.[file]) throw new Error(`nonCitingReferrers entry has no reason in nonCitingReasons: ${file}`);
+  }
 
   const basenameCount = new Map();
   for (const file of allFiles) {
@@ -355,6 +362,9 @@ async function main() {
     for (const referent of baseHits.get(name) ?? []) {
       if (referent !== candidatePath) addRef(refs, referent, 'basename');
     }
+    for (const [referent, info] of refs) {
+      if (nonCiting.has(referent)) refs.set(referent, { kind: 'non-citing', matched: info.kind });
+    }
     return {
       path: candidatePath,
       bytes: candidateBytes.get(candidatePath),
@@ -407,7 +417,13 @@ async function main() {
     let hasStrong = false;
     for (const [file, info] of entry.refs) {
       const category = categoryOf(file);
-      const item = { file, kind: info.kind, ...(info.via ? { via: info.via } : {}), category };
+      const item = {
+        file,
+        kind: info.kind,
+        ...(info.via ? { via: info.via } : {}),
+        ...(info.matched ? { matched: info.matched } : {}),
+        category,
+      };
       if (STRONG_KINDS.has(info.kind)) hasStrong = true;
       if (STRONG_KINDS.has(info.kind) && !removable.has(file)) blocking.push(item);
       if (category === 'historic') historic.push(item);
