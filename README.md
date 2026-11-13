@@ -2,7 +2,7 @@
 [![CI](https://github.com/marciohideaki/hseos/actions/workflows/standalone-smoke.yaml/badge.svg)](https://github.com/marciohideaki/hseos/actions)
 [![Version](https://img.shields.io/badge/version-4.0.0--rc.0-blue.svg)](package.json)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](https://nodejs.org)
-[![Agents](https://img.shields.io/badge/agents-16-purple.svg)](.hseos/agents/)
+[![Agents](https://img.shields.io/badge/agents-15-purple.svg)](.hseos/agents/)
 [![Skills](https://img.shields.io/badge/skills-54-orange.svg)](.enterprise/governance/agent-skills/)
 
 <p align="center">
@@ -24,6 +24,12 @@
 > See [configuration and limits](docs/evolution/w3/ADAPTERS-CAMPAIGN.md) and the
 > [adversarial review](docs/evolution/w3/ADVERSARIAL-REVIEW.md); real-provider
 > campaign conformance is not certified.
+
+> Terminal W0–W5 is closed with the verdict TERMINAL READY WITH DECLARED GATES
+> (`TERMINAL_PRONTO_COM_GATES_DECLARADOS`); W6 (IDE) has not started. See the
+> [terminal guide](docs/terminal.md), the
+> [readiness gate](docs/evolution/terminal-closeout/terminal-readiness.json) and
+> [W6 entry](docs/evolution/terminal-closeout/W6-ENTRY.md).
 
 > Upgrading from v2.x? Review the
 > [v3 migration guide](docs/MIGRATION-GUIDE-v2-to-v3.md) before moving state,
@@ -455,6 +461,10 @@ hseos/
 
 ### What shipped in v2.0.0 (all waves complete)
 
+> These W0–W9 are the **release waves of v2.0.0**, distinct from the waves of the evolution plan
+> ([`docs/evolution/PLAN.md`](docs/evolution/PLAN.md)). Evolution-plan status: terminal W0–W5 closed; W6 (IDE) not
+> started (see [docs/terminal.md](docs/terminal.md)).
+
 | Wave | Description                                                             | Status                                   |
 | ---- | ----------------------------------------------------------------------- | ---------------------------------------- |
 | W0   | Foundation: decouple from global `~/.claude` — standalone install       | ✅                                       |
@@ -699,6 +709,12 @@ A candidata W4 `4.0.0-rc.0` é separada da release pública. Consulte o
 [guia W4](docs/evolution/w4/README.md) e o
 [guia de migração v4](docs/v4-migration.md) antes de usar as novas superfícies.
 
+O terminal W0–W5 está fechado com o veredito TERMINAL PRONTO COM GATES DECLARADOS
+(`TERMINAL_PRONTO_COM_GATES_DECLARADOS`); a W6 (IDE) não foi iniciada. Ver o
+[guia do terminal](docs/terminal.md), o
+[gate de prontidão](docs/evolution/terminal-closeout/terminal-readiness.json) e a
+[entrada da W6](docs/evolution/terminal-closeout/W6-ENTRY.md).
+
 O instalador cria, por padrão:
 
 - `.claude/commands/` + `.claude/hooks.json` (quando `claude-code` está nos adapters)
@@ -739,6 +755,10 @@ O instalador cria, por padrão:
 | `SWARM`  | Parallel Execution Commander | Batch heterogêneo paralelo (worktree-isolated) |
 
 ### Roadmap v2.0.0 (todas as waves concluídas)
+
+> Estas W0–W9 são as **ondas de release da v2.0.0**, distintas das ondas do plano de evolução
+> ([`docs/evolution/PLAN.md`](docs/evolution/PLAN.md)). Estado do plano de evolução: terminal W0–W5 fechado; W6 (IDE)
+> não iniciada (ver [docs/terminal.md](docs/terminal.md)).
 
 | Wave | Descrição                                               | Status |
 | ---- | ------------------------------------------------------- | ------ |
