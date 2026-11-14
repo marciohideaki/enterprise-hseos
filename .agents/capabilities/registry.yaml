@@ -27,7 +27,7 @@ fragments:
   - id: fragment.platform-core
     repository: repo.platform-core
     path: .platform/capability-graph.fragment.json
-    revision: 2f59faddabfadfac0201b8fdf239df18b89bd87a
+    revision: e8ee6902cf14e2d46a89f1dc0294f751decccc2a
     enforcement: enforced
     source:
       kind: git
@@ -39,7 +39,7 @@ fragments:
   - id: fragment.backend-core
     repository: repo.backend-core
     path: .platform/capability-graph.fragment.json
-    revision: 82cbf32da8f5a5087380345aeb0fdbc6f9453307
+    revision: 722870ae32e400cf4b1514085b4b0f98cc975eb5
     enforcement: enforced
     source:
       kind: git
