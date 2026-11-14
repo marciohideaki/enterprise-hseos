@@ -6,13 +6,13 @@ Esta pasta guarda a política do guard contra o reacúmulo de andaime (relatóri
 
 A política fica em `repo-hygiene-policy.json`. A lógica pura está em `test/helpers/repo-hygiene.js` e é exercida por `test/test-governance-scripts.js`. O guard lê a lista de arquivos versionados (`git ls-files`) e aplica cinco regras:
 
-| Regra | Violação                | O que exige                                                                                                              |
-| ----- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| R1    | `root-not-allowed`      | Todo arquivo versionado tem primeiro componente de caminho em `allowedRoots`.                                            |
-| R2    | `run-without-status`    | Toda run `.hseos/runs/<categoria>/<run>/` com arquivo versionado tem `STATUS.md` versionado.                             |
-| R3    | `loose-run-file`        | Nenhum arquivo versionado direto em `.hseos/runs/` nem em `.hseos/runs/<categoria>/`.                                    |
-| R4    | `docs-evolution-entry`  | Toda entrada de 1º nível de `docs/evolution/` está em `docsEvolutionEntries`.                                            |
-| R5    | `removed-path-returned` | Nenhum caminho listado em `removalManifests` volta a ser versionado. Manifest ausente também é violação (falha fechada). |
+| Regra | Violação                | O que exige                                                                                                                       |
+| ----- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| R1    | `root-not-allowed`      | Todo arquivo versionado tem primeiro componente de caminho em `allowedRoots`.                                                     |
+| R2    | `run-without-status`    | Toda run `.hseos/runs/<categoria>/<run>/` com arquivo versionado tem `STATUS.md` versionado.                                      |
+| R3    | `loose-run-file`        | Nenhum arquivo versionado direto em `.hseos/runs/` nem em `.hseos/runs/<categoria>/`.                                             |
+| R4    | `docs-evolution-entry`  | Toda entrada de 1º nível de `docs/evolution/` está em `docsEvolutionEntries`.                                                     |
+| R5    | `removed-path-returned` | Nenhum caminho listado em `removalManifests` volta a ser versionado. Manifest ausente ou vazio também é violação (falha fechada). |
 
 ## Mudar a política de propósito
 
