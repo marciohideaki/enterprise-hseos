@@ -383,7 +383,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "f6c265c2fc919c63959bad8bdaefecd960b49f1ca83a785c691def8d4b6dda26"
+      "source_sha256": "9e6269df7dfc372a5848562ae1442c0abc6de2d4bf754402adfde4ffb15b7d47"
     },
     {
       "filename": "compatibility-audit.js",

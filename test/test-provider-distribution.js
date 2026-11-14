@@ -8,13 +8,21 @@ const yaml = require('yaml');
 
 let release;
 const originalToken = process.env.GH_TOKEN;
+const originalTmpdir = process.env.TMPDIR;
+let fixtureTmpdir;
 before(async () => {
   release = await import('../.github/scripts/provider-distribution.mjs');
   process.env.GH_TOKEN = 'fixture-only-not-a-credential';
+  const scratchBase = process.env.RUNNER_TEMP || (fs.existsSync('/build/tmp') ? '/build/tmp' : os.tmpdir());
+  fixtureTmpdir = fs.mkdtempSync(path.join(scratchBase, 'provider-publisher-test-'));
+  process.env.TMPDIR = fixtureTmpdir;
 });
 after(() => {
   if (originalToken === undefined) delete process.env.GH_TOKEN;
   else process.env.GH_TOKEN = originalToken;
+  if (originalTmpdir === undefined) delete process.env.TMPDIR;
+  else process.env.TMPDIR = originalTmpdir;
+  if (fixtureTmpdir) fs.rmSync(fixtureTmpdir, { recursive: true, force: true });
 });
 
 const source = 'a'.repeat(40);
@@ -451,5 +459,19 @@ test('registry credentials require the exact separate owner reader and never acc
     else process.env.GITEA_PACKAGE_READER_USER = user;
     if (token === undefined) delete process.env.GITEA_PACKAGE_READER_TOKEN;
     else process.env.GITEA_PACKAGE_READER_TOKEN = token;
+  }
+});
+
+test('fixture scratch setup does not weaken the finalizer missing TMPDIR guard', async () => {
+  const fixture = assets();
+  const saved = process.env.TMPDIR;
+  const ports = finalizerPorts(fixture);
+  try {
+    delete process.env.TMPDIR;
+    await assert.rejects(release.finalize(source, fixture.manifestHash, false, ports), /explicit disk-backed TMPDIR/);
+    assert.deepEqual(ports.events, [], 'guard must fail before network or publication');
+  } finally {
+    process.env.TMPDIR = saved;
+    fixture.cleanup();
   }
 });
