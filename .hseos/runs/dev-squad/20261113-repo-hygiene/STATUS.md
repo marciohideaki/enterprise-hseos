@@ -2,7 +2,7 @@
 
 Base `master` `a4fabbd5`. Escopo, autorizações e divergências da linha de base: `INTAKE.md`. Plano e Execution Protocol: `PLAN.md`.
 
-## HA — Análise (onda em curso)
+## HA — Análise (concluída: PR #321, merge `56478fa4`, tag `hseos-hygiene-wa`)
 
 | Fase | Artefato | Resultado |
 |---|---|---|
@@ -30,3 +30,33 @@ Conclusão: a falha do passo 2 vem do teto de 4G do `heavy-run`, que é pequeno 
 | D3 | `.specs/` da raiz é NECESSÁRIO, não DUPLICADO | 0 de 42 blobs iguais em `.enterprise/.specs`; o `AGENTS.md` §12 a cita |
 | D4 | Áreas de evidência ancoradas (`docs/evolution/**`, `docs/v4`, `_graph`) ficam | Mesmo com registros de run e logs tratados como não citantes, a cadeia segue ancorada por citação viva |
 | D5 | A HC é um único lote | Os 145 itens são registros de run e uma auditoria pontual da mesma natureza |
+
+Nota: o `reference-graph.json` versionado registra `base_commit` `ddde51e9`, que era a ponta da task no momento da execução. A árvore analisada é a de `a4fabbd5`, mais `docs/hygiene/`, que fica excluído da análise.
+
+## HB — Git (concluída, sem PR)
+
+Recibo em `GIT-HYGIENE.md` e revisão em `REVIEW-HB.md` (APROVADO; 0 BLOCKER, 0 MAJOR).
+
+| Item | Antes | Depois |
+|---|---|---|
+| Worktrees | 9 (2 prunable) | 7 (todos de outras sessões, mais o principal) |
+| Branches locais | 36 | 8 |
+| Branches remotas | 17 | 9 |
+
+- `git worktree prune` removeu só os 2 registros `prunable`.
+- Branches apagadas: 28 locais e 8 remotas. Antes de cada remoção, a ponta foi conferida na hora: PR MERGED, `headRefOid` igual ao do `ls-remote` e `git cherry` sem `+`.
+- 14 bundles verificados em `/build/artifacts/hygiene-20261113/`, com `SHA256SUMS` (sha256 `079bf4a6…`). A classificação arquivo a arquivo deu 0 únicos; os não integrados foram superados por mudança posterior na `master`.
+- Intocados por regra: `backup/*`, `preservation/*`, `capability-graph-governance`, `solo-maintainer-protection`, as remotas `stab3-f14v4-spec` e `stab3-f15l2-fix`, e os worktrees e branches de outras sessões (OG-H02 a OG-H06).
+
+## HC — Remoção versionada (PR em curso)
+
+- Tag de arquivo `hseos-hygiene-archive-20261113` em `56478fa4`, publicada antes da remoção.
+- `HC1-remove` (`dc6a4e81`): `git rm` dos 145 arquivos de `REMOVAL-SET.txt`, mais `docs/hygiene/20261113/MANIFEST.md`, gerado do grafo, e uma nota no `MAPA.md`.
+- Reconferência na base nova (`56478fa4`): o grafo, excluindo a pasta desta run (cujo `REMOVAL-SET.txt` cita todos os removidos), deu exatamente os mesmos 145 arquivos (562188 B), sem nada novo. Os commits da #320, de outra sessão, não citam nenhum dos 145 (`git grep` nos 114 arquivos alterados).
+- Remoção simulada (seção 5.4), toda com exit 0:
+  - suíte completa `heavy-run --mem 8G -- ci-test-shards run`: 117 passos pass, 0 fail;
+  - `lint`, `check:cli`, `test-package-surface` e `test-documentation-neutrality` (3/0);
+  - `ci-test-shards verify --shards 4`: 117 itens, 253 arquivos de teste;
+  - `verify-doc-facts.sh`;
+  - links relativos de todos os `*.md`: 38 quebrados antes e 38 depois, nenhum novo.
+- Incidente operacional: a suíte ficou cerca de 1 h na fila do `heavy-run`, atrás de jobs de outras sessões, e a primeira tentativa saiu com exit 75 (`wait`, nada executado). A suíte foi relançada com `--wait-max 5400`.
