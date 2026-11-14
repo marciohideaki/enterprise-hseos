@@ -5,11 +5,30 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const yaml = require('yaml');
+const { checkRepoHygiene, trackedFiles } = require('./helpers/repo-hygiene');
 
 const REPO_ROOT = path.join(__dirname, '..');
 
 function read(relativePath) {
   return fs.readFileSync(path.join(REPO_ROOT, relativePath), 'utf8');
+}
+
+function hygieneFixture({ files = [], manifests }) {
+  const policy = {
+    allowedRoots: ['README.md', 'docs/', 'scripts/', '.hseos/'],
+    runsRoot: '.hseos/runs',
+    docsEvolutionEntries: ['PLAN.md', 'w0/'],
+    removalManifests: manifests || ['removed.txt'],
+  };
+  const base = ['README.md', 'docs/evolution/PLAN.md', 'docs/evolution/w0/a.md', '.hseos/runs/cat/run1/STATUS.md'];
+  return {
+    files: [...base, ...files],
+    policy,
+    readFile: (name) => {
+      if (name !== 'removed.txt') throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      return 'scripts/gone.sh\n\n';
+    },
+  };
 }
 
 const cases = [
@@ -39,7 +58,13 @@ gate_code
           fs.writeFileSync(list, first + '\n' + 'docs/unchanged.md\n'.repeat(20_000));
           const output = execFileSync('bash', ['-c', harness], {
             encoding: 'utf8',
-            env: { ...process.env, REPO_ROOT: directory, GATE_LIST: list, LOG_FILE: path.join(directory, 'gate.log') },
+            env: {
+              ...process.env,
+              GATE_CODE_MODE: 'full',
+              REPO_ROOT: directory,
+              GATE_LIST: list,
+              LOG_FILE: path.join(directory, 'gate.log'),
+            },
           });
           assert.match(output, /CHECK npm run lint/);
           assert.match(output, /CHECK npm test/);
@@ -162,6 +187,38 @@ gate_code
       assert.ok(publish?.run.includes('docs/releases/${GITHUB_REF_NAME}.md'), 'release notes are hard-coded');
     },
   },
+  {
+    name: 'repository hygiene: the real repository has no violations',
+    fn: () => {
+      const policy = JSON.parse(read('docs/hygiene/repo-hygiene-policy.json'));
+      const violations = checkRepoHygiene({ files: trackedFiles(REPO_ROOT), policy, readFile: read });
+      assert.deepStrictEqual(violations, []);
+    },
+  },
+  {
+    name: 'repository hygiene: synthetic clean listing has no violations',
+    fn: () => {
+      assert.deepStrictEqual(checkRepoHygiene(hygieneFixture({})), []);
+    },
+  },
+  ...[
+    ['R1', 'root-not-allowed', { files: ['zz-tmp/x.txt'] }],
+    ['R2', 'run-without-status', { files: ['.hseos/runs/cat/run2/PLAN.md'] }],
+    ['R3 (runs root)', 'loose-run-file', { files: ['.hseos/runs/loose.md'] }],
+    ['R3 (category)', 'loose-run-file', { files: ['.hseos/runs/cat/loose.md'] }],
+    ['R4', 'docs-evolution-entry', { files: ['docs/evolution/new-report.md'] }],
+    ['R5', 'removed-path-returned', { files: ['scripts/gone.sh'] }],
+    ['R5 missing manifest', 'removed-path-returned', { manifests: ['MISSING.txt'] }],
+  ].map(([label, rule, change]) => ({
+    name: `repository hygiene: ${label} violation is reported as ${rule}`,
+    fn: () => {
+      const violations = checkRepoHygiene(hygieneFixture(change));
+      assert.ok(
+        violations.some((violation) => violation.rule === rule),
+        `expected ${rule}, got ${JSON.stringify(violations)}`,
+      );
+    },
+  })),
 ];
 
 let passed = 0;
