@@ -170,6 +170,8 @@ function describeImplementation(implementation) {
     contract_version: implementation.contract_version,
     status: implementation.status,
     repository: implementation.repository || null,
+    ...(implementation.operations === undefined ? {} : { operations: implementation.operations }),
+    ...(implementation.guarantees === undefined ? {} : { guarantees: implementation.guarantees }),
   };
 }
 

@@ -79,7 +79,7 @@ function tests() {
     assertPass('stacks come from the .csproj marker', JSON.stringify(report.stacks) === '["dotnet"]');
     assertPass(
       'registry ref comes from the shipped snapshot',
-      report.registry.source === 'snapshot' && report.registry.ref === '23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd',
+      report.registry.source === 'snapshot' && report.registry.ref === 'ca8d8fa59168f1bf76f56b2559cab1720a911d86',
     );
     const first = report.results[0];
     assertPass(
