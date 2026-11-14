@@ -178,11 +178,23 @@ function runtimeWith({ stacks = true, mutateLock, mutateStacks } = {}) {
   return root;
 }
 
-test('the shipped snapshot has no vocabulary: stack rules stay at v1', () => {
+test('the shipped snapshot loads the pinned canonical vocabulary', () => {
   const loaded = loadCapabilityRegistry({ runtimeRoot: REPO_ROOT, bindings: { registry: { source: 'snapshot' } } });
+  assert.equal(loaded.vocabulary.normalize('.NET'), 'dotnet');
+  assert.deepEqual(loaded.stacks, {
+    source: 'snapshot',
+    version: '1.0.0',
+    sha256: '3493ab2b549d3b91fde521c8be6df4865819dbe5f27e12c358ccd072b81cfb03',
+  });
+  assert.equal(loaded.stacks.sha256, sha(fs.readFileSync(path.join(REPO_ROOT, STACKS_SNAPSHOT_FILE))));
+});
+
+test('a snapshot fixture without the vocabulary pair preserves v1 stack rules', () => {
+  const root = runtimeWith({ stacks: false });
+  const loaded = loadCapabilityRegistry({ runtimeRoot: root, bindings: { registry: { source: 'snapshot' } } });
   assert.equal(loaded.vocabulary, null);
   assert.equal(loaded.stacks, null);
-  assert.equal(fs.existsSync(path.join(REPO_ROOT, STACKS_SNAPSHOT_FILE)), false);
+  assert.equal(fs.existsSync(path.join(root, STACKS_SNAPSHOT_FILE)), false);
 });
 
 test('a verified stacks snapshot is loaded with its lock', () => {
@@ -421,7 +433,7 @@ function projectWith({ registry, withVocabulary, stacks }) {
 }
 
 const isolatedEnv = () => ({ HOME: temp('hseos-stacks-home-'), XDG_CONFIG_HOME: temp('hseos-stacks-xdg-') });
-const run = (query, dir) => runCapabilityCheck(query, { directory: dir, env: isolatedEnv(), runtimeRoot: REPO_ROOT }).report;
+const run = (query, dir, runtimeRoot = REPO_ROOT) => runCapabilityCheck(query, { directory: dir, env: isolatedEnv(), runtimeRoot }).report;
 
 function mutatedRegistry(mutation) {
   const registry = SHIPPED();
@@ -430,15 +442,17 @@ function mutatedRegistry(mutation) {
 }
 
 test('without a vocabulary stacks keep the v1 rule: lower-case equality, no alias, no accepts', () => {
+  const legacyRuntime = runtimeWith({ stacks: false });
+  const runLegacy = (query, dir) => run(query, dir, legacyRuntime);
   const dir = projectWith({ registry: SHIPPED(), withVocabulary: false, stacks: ['node'] });
-  const [result] = run('auth.authenticate', dir).results;
+  const [result] = runLegacy('auth.authenticate', dir).results;
   assert.equal(result.verdict, 'extend', 'node does not reach typescript');
   assert.deepEqual(result.other_stacks, ['python', 'typescript']);
-  assert.deepEqual(result.missing_targets, []);
+  assert.deepEqual(result.missing_targets, [{ stack: 'node', required: false }]);
   const aliased = projectWith({ registry: SHIPPED(), withVocabulary: false, stacks: ['ts'] });
-  assert.equal(run('auth.authenticate', aliased).results[0].verdict, 'extend', "'ts' is not an alias without a vocabulary");
+  assert.equal(runLegacy('auth.authenticate', aliased).results[0].verdict, 'extend', "'ts' is not an alias without a vocabulary");
   const upper = projectWith({ registry: SHIPPED(), withVocabulary: false, stacks: ['typescript'] });
-  assert.equal(run('auth.authenticate', upper).results[0].verdict, 'consume');
+  assert.equal(runLegacy('auth.authenticate', upper).results[0].verdict, 'consume');
   const filter = createStackFilter(['TypeScript'], null);
   assert.equal(filter.keeps({ stack: 'typescript' }), true);
   assert.equal(filter.keeps({ stack: 'node' }), false);

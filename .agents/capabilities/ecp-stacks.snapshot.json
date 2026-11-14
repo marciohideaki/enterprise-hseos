@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "stacks_version": "1.0.0",
+  "stacks": [
+    {
+      "id": "dotnet",
+      "family": "dotnet",
+      "summary": ".NET package.",
+      "aliases": [".net", "c#", "cs", "csharp"],
+      "accepts": []
+    },
+    {
+      "id": "flutter",
+      "family": "dart",
+      "summary": "Flutter/Dart package.",
+      "aliases": [],
+      "accepts": []
+    },
+    {
+      "id": "go",
+      "family": "go",
+      "summary": "Go module.",
+      "aliases": ["golang"],
+      "accepts": []
+    },
+    {
+      "id": "java",
+      "family": "jvm",
+      "summary": "JVM package. Named in implementations.schema.json; no implementation registered yet.",
+      "aliases": [],
+      "accepts": []
+    },
+    {
+      "id": "node",
+      "family": "js",
+      "summary": "Node.js server runtime package.",
+      "aliases": ["node.js", "nodejs"],
+      "accepts": ["typescript"]
+    },
+    {
+      "id": "python",
+      "family": "python",
+      "summary": "CPython server/library.",
+      "aliases": ["py", "python3"],
+      "accepts": []
+    },
+    {
+      "id": "react",
+      "family": "js",
+      "summary": "React web UI package (DOM).",
+      "aliases": ["reactjs"],
+      "accepts": ["typescript"]
+    },
+    {
+      "id": "react-native",
+      "family": "js",
+      "summary": "React Native mobile package.",
+      "aliases": ["reactnative", "rn"],
+      "accepts": ["typescript"]
+    },
+    {
+      "id": "rust",
+      "family": "rust",
+      "summary": "Rust crate. No capability implementation registered yet (audit conformance exists in backend-core).",
+      "aliases": ["rs"],
+      "accepts": []
+    },
+    {
+      "id": "typescript",
+      "family": "js",
+      "summary": "Runtime-agnostic TypeScript/JavaScript library (no Node-only or DOM-only API).",
+      "aliases": ["javascript", "js", "ts"],
+      "accepts": []
+    }
+  ]
+}

@@ -84,6 +84,29 @@ const cases = [
     },
   },
   {
+    name: 'official CI maps every Git fragment to an immutable full-history checkout',
+    fn: () => {
+      const registry = yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.enterprise/governance/capabilities/registry.yaml'), 'utf8'));
+      const workflow = yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.github/workflows/capability-graph-composition.yaml'), 'utf8'));
+      const steps = workflow.jobs.compose.steps;
+      const compose = steps.find((step) => step.name === 'Compose every immutable fragment (fail closed)').run;
+      assert.ok(compose.includes('--require-all-fragments'));
+      for (const fragment of registry.fragments.filter((entry) => entry.source.kind === 'git')) {
+        const uri = new URL(fragment.source.uri);
+        assert.strictEqual(uri.hostname, 'github.com');
+        const repository = uri.pathname.slice(1).replace(/\.git$/, '');
+        const checkout = steps.find((step) => step.uses === 'actions/checkout@v4' && step.with?.repository === repository);
+        assert.ok(checkout, `missing checkout for ${fragment.id}`);
+        assert.match(checkout.with.ref, /^[a-f0-9]{40}$/);
+        assert.strictEqual(checkout.with['fetch-depth'], 0);
+        assert.ok(
+          compose.includes('--repository-root ' + fragment.repository + '=${{ github.workspace }}/' + checkout.with.path),
+          `missing composition root for ${fragment.id}`,
+        );
+      }
+    },
+  },
+  {
     name: 'official composition fails closed when any registered fragment is deferred',
     fn: () => {
       expectFailure(

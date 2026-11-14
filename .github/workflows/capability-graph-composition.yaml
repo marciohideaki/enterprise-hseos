@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: HideakiSolutions/platform-core
-          ref: 86ffef7f118a925bb2993eadfb3ec05eea0ccff8
+          ref: 2f59faddabfadfac0201b8fdf239df18b89bd87a
           path: dependencies/platform-core
           fetch-depth: 0
           token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: HideakiSolutions/backend-core
-          ref: 26fb2bed386d7c14c0d70ac4fd5d3c965eed46e5
+          ref: 82cbf32da8f5a5087380345aeb0fdbc6f9453307
           path: dependencies/backend-core
           fetch-depth: 0
           token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
@@ -82,6 +82,15 @@ jobs:
           path: dependencies/talent-forge-web
           fetch-depth: 0
           token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
+      # The canonical ECP fragment is required by the registry and must participate
+      # in the same fail-closed composition as every other immutable dependency.
+      - uses: actions/checkout@v4
+        with:
+          repository: HideakiSolutions/enterprise-capability-platform
+          ref: 23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd
+          path: dependencies/enterprise-capability-platform
+          fetch-depth: 0
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -96,4 +105,5 @@ jobs:
           --repository-root repo.cambio-real-v2=${{ github.workspace }}/dependencies/cambio-real-v2
           --repository-root repo.talent-forge-platform=${{ github.workspace }}/dependencies/talent-forge-platform
           --repository-root repo.talent-forge-web=${{ github.workspace }}/dependencies/talent-forge-web
+          --repository-root repo.enterprise-capability-platform=${{ github.workspace }}/dependencies/enterprise-capability-platform
           --json

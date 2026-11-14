@@ -27,7 +27,7 @@ fragments:
   - id: fragment.platform-core
     repository: repo.platform-core
     path: .platform/capability-graph.fragment.json
-    revision: 86ffef7f118a925bb2993eadfb3ec05eea0ccff8
+    revision: 2f59faddabfadfac0201b8fdf239df18b89bd87a
     enforcement: enforced
     source:
       kind: git
@@ -39,14 +39,14 @@ fragments:
   - id: fragment.backend-core
     repository: repo.backend-core
     path: .platform/capability-graph.fragment.json
-    revision: 1394444be20fdaa8a9fcfa7229df2aa59768c992
+    revision: 82cbf32da8f5a5087380345aeb0fdbc6f9453307
     enforcement: enforced
     source:
       kind: git
       uri: https://github.com/HideakiSolutions/backend-core.git
     validation:
       mode: delegated
-      command: npm run validate:capability-graph
+      command: npm run validate:provider-capability-graph -- --hseos-root "$HSEOS_VALIDATOR_ROOT" --ecp-root "$ECP_ROOT" --ecp-ref 23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd
       workflow_path: .github/workflows/validate.yml
   - id: fragment.cambio-real-v2
     repository: repo.cambio-real-v2
@@ -84,3 +84,15 @@ fragments:
       mode: delegated
       command: python3 scripts/validate-fragment.py
       workflow_path: .github/workflows/validate.yml
+  - id: fragment.enterprise-capability-platform
+    repository: repo.enterprise-capability-platform
+    path: .platform/capability-graph.fragment.json
+    revision: 23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd
+    enforcement: enforced
+    source:
+      kind: git
+      uri: https://github.com/HideakiSolutions/enterprise-capability-platform.git
+    validation:
+      mode: delegated
+      command: bash scripts/governance/quality-gates.sh
+      workflow_path: .github/workflows/ci.yml
