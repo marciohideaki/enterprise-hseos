@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: HideakiSolutions/backend-core
-          ref: 722870ae32e400cf4b1514085b4b0f98cc975eb5
+          ref: 760399d8621f1a2d4724f63c6c485dedf621ce98
           path: dependencies/backend-core
           fetch-depth: 0
           token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: HideakiSolutions/enterprise-capability-platform
-          ref: 23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd
+          ref: ca8d8fa59168f1bf76f56b2559cab1720a911d86
           path: dependencies/enterprise-capability-platform
           fetch-depth: 0
           token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}

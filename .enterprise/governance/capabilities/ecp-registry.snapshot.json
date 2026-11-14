@@ -291,7 +291,7 @@
         {
           "path": "capabilities/ai.provider-access/implementations.json",
           "role": "implementations",
-          "sha256": "4480bd93a2084ccc5a1da022404bb9f95f9b2c18ef4e7d2b4d757628e428765a"
+          "sha256": "1b6cfddd0a40056d8b3f76c02571fecc75adadeadb2a661dc0fbae71c64b71ca"
         },
         {
           "path": "capabilities/ai.provider-access/schema.inference-request.json",
@@ -321,11 +321,22 @@
             "vectors_version": "0.1.0"
           },
           "contract_version": "0.1.0",
+          "guarantees": [
+            {
+              "billing_route": "connection_pinned",
+              "cancellation": "propagated",
+              "inference_retry": "never_automatic",
+              "operation": "generate"
+            }
+          ],
           "kind": "library",
+          "operations": [
+            "generate"
+          ],
           "package": "@hideakisolutions/platform-node",
-          "package_version": "0.2.1-ai-provider.4",
+          "package_version": "0.3.0-experimental.3",
           "path": "node/src/ai-providers",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "node",
           "status": "experimental"
         },
@@ -335,11 +346,22 @@
             "vectors_version": "0.1.0"
           },
           "contract_version": "0.1.0",
+          "guarantees": [
+            {
+              "billing_route": "connection_pinned",
+              "cancellation": "propagated",
+              "inference_retry": "never_automatic",
+              "operation": "generate"
+            }
+          ],
           "kind": "library",
+          "operations": [
+            "generate"
+          ],
           "package": "Hideakisolutions.Platform.Ai.ProviderAccess",
-          "package_version": "0.1.0-rc.2",
+          "package_version": "0.1.0-rc.3",
           "path": "dotnet/src/Hideakisolutions.Platform.Ai.ProviderAccess",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "dotnet",
           "status": "experimental"
         }
@@ -3691,7 +3713,7 @@
         {
           "path": "capabilities/notification.send/capability.yaml",
           "role": "contract",
-          "sha256": "e3bc17bc935fc4fc51018f7f73b4a29b2270df75451e86aff54dab731b649daa"
+          "sha256": "8608ec92b6175d052ff9a532827315c5d3a5be8b0377209e65c2984357d51d4c"
         },
         {
           "path": "capabilities/notification.send/conformance/invalid/input-missing-required.json",
@@ -3746,7 +3768,7 @@
         {
           "path": "capabilities/notification.send/providers.toml",
           "role": "policy",
-          "sha256": "52ec6a6200917fa9939dd5c51251912ae43a9d08aedf560188837be9c512e869"
+          "sha256": "56f49384b8a2d311e9497030455a6e0bde113886819203de377d393962bc6995"
         },
         {
           "path": "capabilities/notification.send/schema.input.json",
@@ -3796,7 +3818,8 @@
         "discord",
         "slack",
         "gmail",
-        "microsoft_mail"
+        "microsoft_mail",
+        "teams"
       ],
       "related_capabilities": [
         "audit.record",
@@ -4756,10 +4779,600 @@
         }
       ],
       "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "coverage": [
+        {
+          "required": true,
+          "status": "planned",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "planned",
+          "target": "node"
+        },
+        {
+          "required": true,
+          "status": "planned",
+          "target": "python"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/workitem.command/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "abf4a5a8ace2fe8c229ef5a85558acffbf58bb40f201b290482328e91015492f"
+        },
+        {
+          "path": "capabilities/workitem.command/capability.yaml",
+          "role": "contract",
+          "sha256": "f6c4bd5c957d1c019d081cdb02f157db512c3f5b645af15a3fbe8fa2151b3225"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/actual-work-needs-start.json",
+          "role": "conformance-invalid",
+          "sha256": "cdb025d06912e2d510816db4f53e56cc975681ada5537edad751107ad1933ba8"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/actual-work-success-needs-record-id.json",
+          "role": "conformance-invalid",
+          "sha256": "e759a76b61d3c701d38129a584263e0b5df6af4cdf1986205c0bd2b11818d5ef"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/adf-not-neutral.json",
+          "role": "conformance-invalid",
+          "sha256": "b93bc54a4bb38c0ebe03355c804f06d8456eb8993f31d2a9987d7e8a963c0423"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/dry-run-cannot-claim-journal.json",
+          "role": "conformance-invalid",
+          "sha256": "03d865651644e0c434ef26865a306083c17d9f34f0312acf610b81744de7b50b"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/dry-run-preview-operation-mismatch.json",
+          "role": "conformance-invalid",
+          "sha256": "fb0675c5659107ac0d95ebd48e38af0a385220f102652ead8e0d2436372048ff"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/empty-backlog.json",
+          "role": "conformance-invalid",
+          "sha256": "dab9c09829f10092aee76c1a6650ee201c9d47e9e286615c97ab0afe67640b4b"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/empty-edit.json",
+          "role": "conformance-invalid",
+          "sha256": "4a18005833a02c25585ed80f9412c2ad31bd0e8aa884bd690251a1bdb7692f7c"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/estimate-cannot-carry-worklog.json",
+          "role": "conformance-invalid",
+          "sha256": "cde6140a841252858add484c4d997975ac00b5f858d78df8724398f5e17aeb46"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/estimate-result-cannot-be-actual.json",
+          "role": "conformance-invalid",
+          "sha256": "acf64849447957ddaaf56b75083e53255e49712a9b2ac3c84f93899406ada565"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/malformed-work-timestamp.json",
+          "role": "conformance-invalid",
+          "sha256": "817f44c4ab14641c6cda28cd35b3912d24793c60dd84b2bc7370b0dff45fbd12"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/missing-actor_id.json",
+          "role": "conformance-invalid",
+          "sha256": "4415b46c2d165d15471ce483bb39c443abdba9db5eb2e02a2611c16b0ae042dc"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/missing-connection_id.json",
+          "role": "conformance-invalid",
+          "sha256": "18d966140fa0a4faedb68d8e4e8419fb0ef0a65827d0e5e0a5eda5efc41dda27"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/missing-correlation_id.json",
+          "role": "conformance-invalid",
+          "sha256": "4da778877f48adbc25260710c8528edee76c10fede9308bf622d1394b0aa6cb9"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/missing-dry_run.json",
+          "role": "conformance-invalid",
+          "sha256": "3d7611f21e1740155a8ab1533ae444d021aca6c7a6ffc7f374cc63a4baf6b413"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/missing-idempotency_key.json",
+          "role": "conformance-invalid",
+          "sha256": "138569be17dc190168a5ccac057170adc2d2a292ac0ec1b33d7a17fdeb5b4ae0"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/missing-tenant_id.json",
+          "role": "conformance-invalid",
+          "sha256": "107c1b0501ed3b323bbdc443750a048f8a907a9b9f9403f1a6474c3efe4af921"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/partial-never-implies-automatic-retry.json",
+          "role": "conformance-invalid",
+          "sha256": "c80dc10537234b062fca5928129279fc286c922b7bedcc90e71abbe84f4c3b9d"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/provider-parameters-forbidden.json",
+          "role": "conformance-invalid",
+          "sha256": "d7ac0115be815d7c32d76dd1e819500d7516fd18e7ec4f1f25f53068bfb4b12f"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/resume-without-fingerprint.json",
+          "role": "conformance-invalid",
+          "sha256": "1c50fa730f5382ef8443c051e4c1872bf62a2b863b290da015d24f366932006c"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/success-needs-resource.json",
+          "role": "conformance-invalid",
+          "sha256": "60a0167d409785e3523fe61cf8b8a1c6f3adc782ebdfac666b072cc909185506"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/uncertain-cannot-auto-retry.json",
+          "role": "conformance-invalid",
+          "sha256": "2d138b74f4d092f852c5224731e467cdd5e5f8f858ec4949e14cf91714fe5daf"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/uncertain-needs-journal.json",
+          "role": "conformance-invalid",
+          "sha256": "e85f58e5821c4d8c02bbcc3070fa5c4c803d84b2d5f8616916e7eb8ab309897a"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/uncertain-partial-cannot-hide-reconciliation.json",
+          "role": "conformance-invalid",
+          "sha256": "01495dd15e2c3c07e38a686d5800e3dca0a5ebace8c58ebb4eb67f16ec964fe2"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/zero-actual-work.json",
+          "role": "conformance-invalid",
+          "sha256": "aff6298fba9fae040b93bed312f4103b3d2b09f1c1e10790b2c2d73cd5bb008c"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/invalid/zero-estimate.json",
+          "role": "conformance-invalid",
+          "sha256": "84e4f7556f4c8d46395347c704d3e421487efb563c8c4a0684f9f47a104e246f"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/backlog-result-known-partial.json",
+          "role": "conformance-valid",
+          "sha256": "11d461abbb9167fe75de24bf8a82070821df5be3c7f7bedd2c75ff7344c1e1fc"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/backlog-result-uncertain-partial.json",
+          "role": "conformance-valid",
+          "sha256": "86eb427f3f34e8a20b3caf621220d5d6db5448a93fb34fbc6f8a5f6197a59935"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-actual_work.json",
+          "role": "conformance-valid",
+          "sha256": "eacffec234a3afa84c3c03d76af2ab70cd29918d72c354c8ed7a28b873e7b8bf"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-backlog-resume.json",
+          "role": "conformance-valid",
+          "sha256": "e8b93cea149f02a8b3739dc0771a3cfe9385e0c1f5a1e9f6dd69d3f62360cd14"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-backlog.json",
+          "role": "conformance-valid",
+          "sha256": "75d11a3c50136c9c4ada123ef8fe1b5165d35bf69fe978a2eb5c7377cb9886c6"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-create.json",
+          "role": "conformance-valid",
+          "sha256": "4a9d4f7160a0ed94820d117b7fb25956b4beeff9181a209afdbaa5893f073211"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-edit-clear-description.json",
+          "role": "conformance-valid",
+          "sha256": "50dde2620e2ab712a9bbc7b1ee8fb3e9263ee666042ad0267a038643e8a58471"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-edit.json",
+          "role": "conformance-valid",
+          "sha256": "b5398840e2aad44e1a06354d2aa3049221caeae850d27f9441dfcfcbed8c5d32"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-estimate.json",
+          "role": "conformance-valid",
+          "sha256": "642ff9d75d05b1793c8ce77d90f1dda7f95d64e48f1b3b5b49e3d71ee662b515"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-result-actual_work.json",
+          "role": "conformance-valid",
+          "sha256": "b0685aa11f540f13c13312e017db5232c7d9a20fd35655a92021d63b4e06a7cb"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-result-backlog.json",
+          "role": "conformance-valid",
+          "sha256": "358c8718741affaf00b26817b1f0ae865dfa36d2d141019b5b8d9282eb440cc9"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-result-create.json",
+          "role": "conformance-valid",
+          "sha256": "b0a35ae795bc87828319e9818df3367757f0bf26dd9168ef34f2dde97b6f0761"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-result-edit.json",
+          "role": "conformance-valid",
+          "sha256": "b68ac7f8d3effb0b08e5f9f463526d3585d2f26021fa7065af46e3ac374a6099"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-result-estimate.json",
+          "role": "conformance-valid",
+          "sha256": "b00f2b3c1b717f116fe7f07929f552d8ae477d3ab4c0b7045072580039ab06c5"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-result-known-failure.json",
+          "role": "conformance-valid",
+          "sha256": "b79527a5266e197248bf518069e77f7bcd2ad647a708e82fbcb553fb539e5985"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-result-transition.json",
+          "role": "conformance-valid",
+          "sha256": "4a76bafd64f8ee656d9663c06030d3117fd8039f68f2aed0301086ecc7cfb512"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-result-uncertain.json",
+          "role": "conformance-valid",
+          "sha256": "e0457d038c58acf1b4ab7d81b92729d736efb02d203da674bcf41ed19af856e0"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/command-transition.json",
+          "role": "conformance-valid",
+          "sha256": "2688c80d60dd71d1c8c23ba1d556c20cc68468a7de740c751fddde5a6a116796"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/dry-run-result-actual_work.json",
+          "role": "conformance-valid",
+          "sha256": "4c7f1c768c7298d14e7d0fc88bae5ff56c4f2d4378de167494deb03e32b75a3c"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/dry-run-result-backlog.json",
+          "role": "conformance-valid",
+          "sha256": "bc5912000e5a37fc8aea294555b51ca71e1fd2e14a4c163965afa7ad3245e8cb"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/dry-run-result-create.json",
+          "role": "conformance-valid",
+          "sha256": "7e0a78d1c0f4ebcc13530defd30a843dcc6a28d3efe62c614a6f92b4d782128f"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/dry-run-result-edit.json",
+          "role": "conformance-valid",
+          "sha256": "28ffaafaf8f60a233baaf6826ce4463890450f3fa26e2212586197a69d885db8"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/dry-run-result-estimate.json",
+          "role": "conformance-valid",
+          "sha256": "240957122f1087348c3c21a7d44d66bdb0676657061ce1591b48a984c1418851"
+        },
+        {
+          "path": "capabilities/workitem.command/conformance/valid/dry-run-result-transition.json",
+          "role": "conformance-valid",
+          "sha256": "e0d6239bc60502a6c4cb60cad9d8cbb1802dff00998435998764d520ba403f4e"
+        },
+        {
+          "path": "capabilities/workitem.command/examples/request.json",
+          "role": "example",
+          "sha256": "7437902d2ebaa0a5b186d6af7ee26cdd97add4386e3de71bac9ff576e8d4604f"
+        },
+        {
+          "path": "capabilities/workitem.command/implementations.json",
+          "role": "implementations",
+          "sha256": "e6b71ac0b93ac5a8714f87da795210c892ef7230b7bda9dd569729178010de5c"
+        },
+        {
+          "path": "capabilities/workitem.command/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "ccc9ec05badecfe13f89799b45be7313a503004c281ccecdcb773b31d05db1ad"
+        },
+        {
+          "path": "capabilities/workitem.command/openapi.yaml",
+          "role": "interface",
+          "sha256": "ea51772ae9f54f005ee1f8eb47e689bd73919ace1d0b7cecc4d67b90749faca6"
+        },
+        {
+          "path": "capabilities/workitem.command/policy.toml",
+          "role": "policy",
+          "sha256": "47c4623b92e181d666f131410c2095067684a7248ae88e89374881fa7c5de9b6"
+        },
+        {
+          "path": "capabilities/workitem.command/providers.toml",
+          "role": "policy",
+          "sha256": "02918a12a5043e2dee7431c051a867b72d285a4f4840847a3eac1b715279f9e7"
+        },
+        {
+          "path": "capabilities/workitem.command/schema.input.json",
+          "role": "schema",
+          "sha256": "3983bb8aba85d0006e9192d8f932e89c57a8371bd2a4037b71ac2d475d986bdf"
+        },
+        {
+          "path": "capabilities/workitem.command/schema.output.json",
+          "role": "schema",
+          "sha256": "c0ad38e1d23ef568324873d605483aa6e5b29660f50530a71065a858526900ae"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "package_version": "0.1.0",
+          "path": "runtimes/python/ecp_runtime/work_items.py",
+          "stack": "python",
+          "status": "planned"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "Hideakisolutions.Platform.WorkItems.Ecp",
+          "package_version": "0.1.0-experimental.2",
+          "path": "dotnet/src/Hideakisolutions.Platform.WorkItems.Ecp",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "planned"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.3.0-experimental.1",
+          "path": "node/src/work-items-ecp/index.ts",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "node",
+          "status": "planned"
+        }
+      ],
+      "kind": "service",
+      "name": "workitem.command",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "jira"
+      ],
+      "related_capabilities": [
+        "audit.record",
+        "telemetry.publish"
+      ],
+      "stability": "experimental",
+      "summary": "Execute explicit resumable work item mutations with durable uncertainty handling.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "coverage": [
+        {
+          "required": true,
+          "status": "planned",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "planned",
+          "target": "node"
+        },
+        {
+          "required": true,
+          "status": "planned",
+          "target": "python"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/workitem.query/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "26fc0560c0ffc508d6ec5d98aa49d4df1b07650603e10c616dcc4baa1721f3c3"
+        },
+        {
+          "path": "capabilities/workitem.query/capability.yaml",
+          "role": "contract",
+          "sha256": "83996cdf0e4f9a6fccaef6bcd6956d5086e36319bbb35967d9fd2ae0831dafb7"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/invalid/incomplete-page-needs-cursor.json",
+          "role": "conformance-invalid",
+          "sha256": "a233bcc15ea3cc9f38b182906fcee7dc77f9d7b85cf4a6ab8bb0972b804fd2c5"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/invalid/provider-field-selection-forbidden.json",
+          "role": "conformance-invalid",
+          "sha256": "0389c0bad86e10c4889f68d0f711dca1a492f6780fd45c9731aee9ba579d56bc"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/invalid/query-cannot-create.json",
+          "role": "conformance-invalid",
+          "sha256": "cab266043fd162d59bab6cbfbd2a174fa5f134a6a5c463f90e51d87ec3d05d28"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/invalid/query-missing-item.json",
+          "role": "conformance-invalid",
+          "sha256": "3619e9bb8f21ab40e18ecf75fd34df877b0c100f6d476c5cb4ee90dd67a1f67c"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/invalid/query-page-unbounded.json",
+          "role": "conformance-invalid",
+          "sha256": "995a40054a93688e1551deec9eda38df28f154195cb79fc52deda0b2a7854a86"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/invalid/query-uses-read-outcome.json",
+          "role": "conformance-invalid",
+          "sha256": "eaed768bf46d921f66a83c4faf866ad89eab833d1a233ce0dc17889ef3649ef2"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/invalid/raw-jql-forbidden.json",
+          "role": "conformance-invalid",
+          "sha256": "39921235a2660c968d022f60d09333d4c19f7683a984cc96c4d9b983e63c940c"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-get.json",
+          "role": "conformance-valid",
+          "sha256": "90aa11ad386775fa9d0c4a7cb927899e8d9e1ee1f47427aae82ebeba26c7b01b"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-result-failure.json",
+          "role": "conformance-valid",
+          "sha256": "80031eee35f7cfe890e351a2a7398163f7df2c920c78008d10ad1e1e2209af6e"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-result-get.json",
+          "role": "conformance-valid",
+          "sha256": "e92d52bc112d772f59bb98d6c940814900d3c321db59b856c0809550f54c360f"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-result-search-complete.json",
+          "role": "conformance-valid",
+          "sha256": "5a67264ec661219aa136ea182f27c9888edd601977f8500f4c94a1cda94de943"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-result-search-next-page.json",
+          "role": "conformance-valid",
+          "sha256": "094de1e62c2ea24d25f695c3714ca90d9acb2f7f9631c53634fd50069aea8d32"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-result-search-partial.json",
+          "role": "conformance-valid",
+          "sha256": "4426c96284f70b8fde1550dfcaa585345153fb71297aa0bd496ea1e7cd9e02c9"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-result-transitions.json",
+          "role": "conformance-valid",
+          "sha256": "e7b966002a7d7b3b9d73256466a2c8cefbf35c7446ef494bbb7aaed3c63cf1ee"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-search-next-page.json",
+          "role": "conformance-valid",
+          "sha256": "fdbebb7e341c9983e20da33be9b684e0ac8ad0a7c205389c1af74ed1f5dc9956"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-search.json",
+          "role": "conformance-valid",
+          "sha256": "867613960c55baf1262caaa1d4f4441f441841b344ebed6ccbafa468ce9db722"
+        },
+        {
+          "path": "capabilities/workitem.query/conformance/valid/query-transitions.json",
+          "role": "conformance-valid",
+          "sha256": "3e10f10a85c56d23db100e3737fc00f59acf3ce8be8500263b6ef04e349b375e"
+        },
+        {
+          "path": "capabilities/workitem.query/examples/request.json",
+          "role": "example",
+          "sha256": "c832306a73248709e1907490f52b790ac436266cebef8eb38f3076fead5ca4c6"
+        },
+        {
+          "path": "capabilities/workitem.query/implementations.json",
+          "role": "implementations",
+          "sha256": "a91c91d1f8693c46a49fcca07d48d787181069a0e2210779ed8446aeb022f48f"
+        },
+        {
+          "path": "capabilities/workitem.query/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "10abfd6dc12f2aec428b99413731a9fc95cd246c01f2f16af9e98ed57d5a9814"
+        },
+        {
+          "path": "capabilities/workitem.query/openapi.yaml",
+          "role": "interface",
+          "sha256": "3247c3e7e81dd26aa8b1c0b2a2310f03d07d4351d3f0f90ae418da645bf6bf5d"
+        },
+        {
+          "path": "capabilities/workitem.query/policy.toml",
+          "role": "policy",
+          "sha256": "47c4623b92e181d666f131410c2095067684a7248ae88e89374881fa7c5de9b6"
+        },
+        {
+          "path": "capabilities/workitem.query/providers.toml",
+          "role": "policy",
+          "sha256": "02918a12a5043e2dee7431c051a867b72d285a4f4840847a3eac1b715279f9e7"
+        },
+        {
+          "path": "capabilities/workitem.query/schema.input.json",
+          "role": "schema",
+          "sha256": "14f32d40cf08133faeafc9afec7bcfeb97d19aa7dafb6c402979a82c5719ed5e"
+        },
+        {
+          "path": "capabilities/workitem.query/schema.output.json",
+          "role": "schema",
+          "sha256": "032f68577ec499c9266d8baf287ff42a474b5d67be0b20f21f0db1c86a0bdb95"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "package_version": "0.1.0",
+          "path": "runtimes/python/ecp_runtime/work_items.py",
+          "stack": "python",
+          "status": "planned"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "Hideakisolutions.Platform.WorkItems.Ecp",
+          "package_version": "0.1.0-experimental.2",
+          "path": "dotnet/src/Hideakisolutions.Platform.WorkItems.Ecp",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "planned"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.3.0-experimental.1",
+          "path": "node/src/work-items-ecp/index.ts",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "node",
+          "status": "planned"
+        }
+      ],
+      "kind": "service",
+      "name": "workitem.query",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "jira"
+      ],
+      "related_capabilities": [
+        "audit.record",
+        "telemetry.publish"
+      ],
+      "stability": "experimental",
+      "summary": "Read bounded neutral work items and transitions.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        }
+      ],
+      "version": "0.1.0"
     }
   ],
   "generated_from": {
-    "contracts_version": "0.5.3",
+    "contracts_version": "0.6.2",
     "repository": "HideakiSolutions/enterprise-capability-platform"
   },
   "schema_version": "1"
