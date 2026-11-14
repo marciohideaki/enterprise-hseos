@@ -10,7 +10,7 @@ Base `master` `a4fabbd5`. Escopo, autorizações e divergências da linha de bas
 | 0 Linha de base | log em `$TMPDIR/hygiene-20261113/` (não versionado) | ver abaixo |
 | 1 Inventário | `INVENTORY.md` | 3 exploradores Sonnet em paralelo, somente leitura |
 | 2 Grafo | `docs/hygiene/20261113/reference-graph.{mjs,config.json,json}` | commits `ae717dc0`, `ddde51e9` (rodada 1), `256426b5` (rodada 2); determinístico (sha256 `f39e0c1c…` em 2 execuções) |
-| 3 Classificação | `CLASSIFICATION.md`, `REMOVAL-SET.txt`, `REVIEW-HA.md`, `OWNER-GATES.md` | 145 ANDAIME (562188 B), 0 DUPLICADO, 10 OWNER-GATES; revisão cega aprovada com ressalvas, ressalvas aplicadas |
+| 3 Classificação | `CLASSIFICATION.md`, `REMOVAL-SET.txt`, `REVIEW-HA.md`, `OWNER-GATES.md` | 145 ANDAIME (562188 B), 0 DUPLICADO, 10 OWNER-GATES (11 após a reauditoria final); revisão cega aprovada com ressalvas, ressalvas aplicadas |
 | 4 Plano | `PLAN.md` | ondas HA–HE |
 
 ### Linha de base da suíte completa (fatos de ferramenta)
@@ -48,7 +48,7 @@ Recibo em `GIT-HYGIENE.md` e revisão em `REVIEW-HB.md` (APROVADO; 0 BLOCKER, 0 
 - 14 bundles verificados em `/build/artifacts/hygiene-20261113/`, com `SHA256SUMS` (sha256 `079bf4a6…`). A classificação arquivo a arquivo deu 0 únicos; os não integrados foram superados por mudança posterior na `master`.
 - Intocados por regra: `backup/*`, `preservation/*`, `capability-graph-governance`, `solo-maintainer-protection`, as remotas `stab3-f14v4-spec` e `stab3-f15l2-fix`, e os worktrees e branches de outras sessões (OG-H02 a OG-H06).
 
-## HC — Remoção versionada (PR em curso)
+## HC — Remoção versionada (concluída: PR #322, merge `af343965`, tag `hseos-hygiene-wc`)
 
 - Tag de arquivo `hseos-hygiene-archive-20261113` em `56478fa4`, publicada antes da remoção.
 - `HC1-remove` (`dc6a4e81`): `git rm` dos 145 arquivos de `REMOVAL-SET.txt`, mais `docs/hygiene/20261113/MANIFEST.md`, gerado do grafo, e uma nota no `MAPA.md`.
@@ -60,3 +60,26 @@ Recibo em `GIT-HYGIENE.md` e revisão em `REVIEW-HB.md` (APROVADO; 0 BLOCKER, 0 
   - `verify-doc-facts.sh`;
   - links relativos de todos os `*.md`: 38 quebrados antes e 38 depois, nenhum novo.
 - Incidente operacional: a suíte ficou cerca de 1 h na fila do `heavy-run`, atrás de jobs de outras sessões, e a primeira tentativa saiu com exit 75 (`wait`, nada executado). A suíte foi relançada com `--wait-max 5400`.
+- Correções da revisão: HC2 (`46fc5aa4`, registros da HB) e HC3 (`a69bad75`, células `undefined` e limites no MANIFEST). Revisão: `REVIEW-HC-HD.md`.
+- CI da `master` pós-remoção (`af343965`): CI, Core journey e Standalone Smoke `success`.
+
+## HD — Guard contra reacúmulo (concluída: PR #323, merge `4e797b52`, tag `hseos-hygiene-wd`)
+
+- `HD1-guard` (`dda277f7`) entrega a política `docs/hygiene/repo-hygiene-policy.json`, o helper `test/helpers/repo-hygiene.js` (R1 a R5), 10 casos em `test/test-governance-scripts.js`, que roda em `test:governance`, e `docs/hygiene/README.md`.
+- `HD2-empty-manifest` (`c62f49a4`) corrige o MINOR 1 da revisão: manifest vazio agora falha fechado.
+- O `package.json` e os caminhos empacotados não mudaram.
+- Prova de mutação: a árvore real dá 0 violações, e cada regra dispara com 1 arquivo injetado.
+- CI da #323: 24 checks `success`. Revisão: `REVIEW-HC-HD.md` (APROVADO).
+
+## HE — Fechamento
+
+- **LIXO-LOCAL:** foram apagados 75 arquivos ignorados de `.logs/validation/` com mais de 7 dias (3674718 B; 1221 → 1146 arquivos em `.logs`). Nenhum era versionado (`git check-ignore --stdin`) e nenhum estava em uso (`fuser`). O `$TMPDIR` não tem scratch do repositório com mais de 7 dias, então nada foi removido ali (OG-H10).
+- **Reauditoria cega final:** `REAUDIT-FINAL.md`, veredito HIGIENIZADO COM GATES. O MAJOR-1 (suíte na árvore final) foi fechado pelo CI da `master` em `af343965` e da #323. O MINOR-1 virou OG-H11.
+- **Relatório:** `FINAL-REPORT.md`.
+
+## Decisões (continuação)
+
+| ID | Decisão | Motivo |
+|---|---|---|
+| D6 | A HD foi feita em branch empilhada sobre a HC (AGENTS §5.1) e atualizada com a `master` antes do merge | Paralelizar com o CI da #322 sem esperar o merge |
+| D7 | O `reference-graph.json` (3,7 MB) continua versionado | O prompt exige a saída versionada, e o blob já está no histórico desde a #321: reduzi-lo agora não diminui o clone. A higiene não reduz bytes; o ganho é de clareza |
