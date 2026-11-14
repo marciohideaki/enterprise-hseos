@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { VERSION, verifyAssetDirectory, validateSnapshot } from './provider-distribution.mjs';
+import { VERSION, verifyAssetDirectory, validateSnapshot, minimalInstallArguments } from './provider-distribution.mjs';
 
 assert.equal(process.versions.node.split('.')[0], '22');
 for (const name of [
@@ -34,22 +34,11 @@ validateSnapshot(manifest, runtime);
 
 const project = '/consumer/project';
 fs.mkdirSync(project, { recursive: true });
-const install = JSON.parse(
-  run(process.execPath, [
-    cli,
-    'install',
-    '--directory',
-    project,
-    '--profile',
-    'minimal',
-    '--tools',
-    'none',
-    '--no-git-hooks',
-    '--yes',
-    '--json',
-  ]),
-);
-assert.ok(install, 'the installed CLI must produce its minimal-install receipt');
+const install = JSON.parse(run(process.execPath, [cli, ...minimalInstallArguments(project)]));
+assert.equal(install.profile, 'minimal');
+assert.equal(install.hooks, 0);
+assert.equal(install.skills, 0);
+assert.equal(install.mcp_servers, 0);
 const lookups = [];
 for (const [query, stack] of [
   ['ai.provider-access', 'node'],

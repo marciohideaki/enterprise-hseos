@@ -1,6 +1,7 @@
 // Publication-boundary regressions. No registry access, releases or model calls.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const { execFileSync } = require('node:child_process');
 const os = require('node:os');
 const path = require('node:path');
 const { test, before, after } = require('node:test');
@@ -474,4 +475,45 @@ test('fixture scratch setup does not weaken the finalizer missing TMPDIR guard',
     process.env.TMPDIR = saved;
     fixture.cleanup();
   }
+});
+
+test('the clean probe uses the real guarded minimal installer contract with zero hooks', () => {
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'provider-minimal-contract-'));
+  try {
+    const cli = path.join(__dirname, '../tools/hseos-npx-wrapper.js');
+    const receipt = JSON.parse(execFileSync(process.execPath, [cli, ...release.minimalInstallArguments(project)], { encoding: 'utf8' }));
+    assert.equal(receipt.profile, 'minimal');
+    for (const key of ['skills', 'hooks', 'mcp_servers']) assert.equal(receipt[key], 0);
+    assert.equal(fs.existsSync(path.join(project, '.git/hooks')), false);
+    const smoke = fs.readFileSync(path.join(__dirname, '../.github/scripts/provider-distribution-smoke.mjs'), 'utf8');
+    assert.match(smoke, /minimalInstallArguments\(project\)/);
+    assert.doesNotMatch(smoke, /--no-git-hooks|--tools/);
+  } finally {
+    fs.rmSync(project, { recursive: true, force: true });
+  }
+});
+
+test('sealed assets are escrowed after consumer failure but never before successful sealing', () => {
+  const workflow = yaml.parse(fs.readFileSync(path.join(__dirname, '../.github/workflows/provider-distribution.yaml'), 'utf8'));
+  const uploads = workflow.jobs.bundle.steps.filter((step) => step.uses === 'actions/upload-artifact@v4');
+  assert.deepEqual(
+    uploads.map((step) => step.with.name),
+    ['hseos-provider-sealed', 'hseos-provider-validation'],
+  );
+  for (const upload of uploads) {
+    assert.equal(upload.if, "always() && steps.seal.outcome == 'success'");
+    assert.equal(upload.with['if-no-files-found'], 'error');
+  }
+});
+
+test('draft staging uses the workflow controller while preserving the sealed release source', () => {
+  const workflow = yaml.parse(fs.readFileSync(path.join(__dirname, '../.github/workflows/provider-distribution.yaml'), 'utf8'));
+  const draft = workflow.jobs.draft;
+  const checkout = draft.steps.find((step) => step.uses === 'actions/checkout@v4');
+  assert.equal(checkout.with.ref, '${{ github.sha }}');
+  const stage = draft.steps.find((step) => step.name === 'Verify the sealed assets before a create-only tag and draft');
+  assert.equal(stage.env.SOURCE_SHA, '${{ needs.bundle.outputs.source_sha }}');
+  assert.equal(stage.env.MANIFEST_SHA256, '${{ needs.bundle.outputs.manifest_sha256 }}');
+  const probe = draft.steps.find((step) => step.name === 'Verify and install the downloaded draft, preserving the original bytes');
+  assert.match(probe.run, /GITHUB_WORKSPACE\/\.github\/scripts:\/probe:ro/);
 });

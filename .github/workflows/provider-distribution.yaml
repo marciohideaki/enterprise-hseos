@@ -81,11 +81,13 @@ jobs:
             -e TMPDIR=/build/tmp -e HOME=/build/home \
             node:22.22.1-bookworm node /probe/provider-distribution-smoke.mjs > "$RUNNER_TEMP/hseos-clean-consumer.json"
       - uses: actions/upload-artifact@v4
+        if: always() && steps.seal.outcome == 'success'
         with:
           name: hseos-provider-sealed
           path: ${{ runner.temp }}/hseos-provider-assets
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
+        if: always() && steps.seal.outcome == 'success'
         with:
           name: hseos-provider-validation
           path: |
@@ -105,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.bundle.outputs.source_sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
