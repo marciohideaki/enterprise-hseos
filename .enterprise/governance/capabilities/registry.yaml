@@ -39,7 +39,7 @@ fragments:
   - id: fragment.backend-core
     repository: repo.backend-core
     path: .platform/capability-graph.fragment.json
-    revision: 760399d8621f1a2d4724f63c6c485dedf621ce98
+    revision: b886d8ba7ef98ee371ebe4e8f76dce8727e9413c
     enforcement: enforced
     source:
       kind: git
@@ -95,4 +95,16 @@ fragments:
     validation:
       mode: delegated
       command: bash scripts/governance/quality-gates.sh
+      workflow_path: .github/workflows/ci.yml
+  - id: fragment.reference-banking-web
+    repository: repo.reference-banking-web
+    path: .platform/capability-graph.fragment.json
+    revision: d9f35562006e8baf259afff33990497c2c7428ec
+    enforcement: enforced
+    source:
+      kind: git
+      uri: https://github.com/Hideaki-Solutions-Core/reference-banking-web.git
+    validation:
+      mode: delegated
+      command: node ops/reference-environment/validate-published-consumption.mjs
       workflow_path: .github/workflows/ci.yml

@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const REPOSITORY = 'marciohideaki/enterprise-hseos';
-export const VERSION = '4.0.0-ai-provider.5';
+export const VERSION = '4.0.0-ai-provider.6';
 export const TAG = `v${VERSION}`;
 export const MANIFEST_PATH = `docs/releases/${TAG}.compatibility.json`;
 const REQUIRED = ['test (22.x)', 'test (24.x)', 'governance', 'Standalone clean-env smoke (node:22)', 'compose'];

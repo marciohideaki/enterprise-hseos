@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "state": "frozen",
+  "hseos": {
+    "repository": "marciohideaki/enterprise-hseos",
+    "package": "hseos",
+    "version": "4.0.0-ai-provider.6",
+    "tag": "v4.0.0-ai-provider.6"
+  },
+  "ecp": {
+    "version": "0.6.2",
+    "source_sha": "ca8d8fa59168f1bf76f56b2559cab1720a911d86",
+    "capabilities": 26,
+    "artifact_url": "https://github.com/HideakiSolutions/enterprise-capability-platform/releases/download/contracts-v0.6.2/ecp-contracts-0.6.2.tar.gz",
+    "sha256": "7f8e35c870bd2523a1439c65a6ed95ea9f38e0d0024cfa508ea446853c1b6ee2",
+    "registry_sha256": "e88cacb8c0daed28a4d18e4e7f204a18cc931f25244ab88e8d607ced38ab5255",
+    "stacks_sha256": "3493ab2b549d3b91fde521c8be6df4865819dbe5f27e12c358ccd072b81cfb03"
+  },
+  "sdks": {
+    "node": {
+      "package": "@hideakisolutions/platform-node",
+      "version": "0.3.0-experimental.3",
+      "artifact_url": "https://gitea.hideakiservicos.net/api/packages/HideakiSolutions/npm/@hideakisolutions/platform-node/-/platform-node-0.3.0-experimental.3.tgz",
+      "sha256": "81ec9150891988ba8baebfe1208aa770a15a2d5f27c293f530985b4fd57fb0c9",
+      "source_sha": "1a127d4a8a29dde58e37c3a7ba6ddc6c70b781c2"
+    },
+    "dotnet": {
+      "package": "Hideakisolutions.Platform.Ai.ProviderAccess",
+      "version": "0.1.0-rc.3",
+      "artifact_url": "https://gitea.hideakiservicos.net/api/packages/HideakiSolutions/nuget/package/hideakisolutions.platform.ai.provideraccess/0.1.0-rc.3/hideakisolutions.platform.ai.provideraccess.0.1.0-rc.3.nupkg",
+      "sha256": "800ff84beca9c6e05a29466e9187c63933e02be3b87487e159f6fee9ba47cc42",
+      "dependencies": [
+        {
+          "package": "Hideakisolutions.Platform.Ai.Guardrails",
+          "version": "0.3.0",
+          "artifact_url": "https://gitea.hideakiservicos.net/api/packages/HideakiSolutions/nuget/package/hideakisolutions.platform.ai.guardrails/0.3.0/hideakisolutions.platform.ai.guardrails.0.3.0.nupkg",
+          "sha256": "46ebcae996362540b8ebfe7585f18737c74648f9c8984141e7f5513ca83ec262",
+          "source_sha": "5ae206152797e1a109bd8ea23d5cf853aac48b6b"
+        },
+        {
+          "package": "Hideakisolutions.Platform.Ai.TokenMetering",
+          "version": "0.3.0",
+          "artifact_url": "https://gitea.hideakiservicos.net/api/packages/HideakiSolutions/nuget/package/hideakisolutions.platform.ai.tokenmetering/0.3.0/hideakisolutions.platform.ai.tokenmetering.0.3.0.nupkg",
+          "sha256": "087c427c3ec13bbeafa1cc8aefeaf1dcc3df6e38fb8d33965af28cbf11289dae",
+          "source_sha": "5ae206152797e1a109bd8ea23d5cf853aac48b6b"
+        }
+      ],
+      "source_sha": "1a127d4a8a29dde58e37c3a7ba6ddc6c70b781c2"
+    }
+  }
+}
