@@ -387,6 +387,13 @@ export async function verifyDependencies(manifest, scratch) {
   }
 }
 
+export function minimalInstallArguments(directory) {
+  assert.ok(path.isAbsolute(directory), 'isolated project directory must be absolute');
+  // Minimal materialization already has zero hooks/skills/MCP servers. Its
+  // guarded CLI contract deliberately rejects full-installer-only switches.
+  return ['install', '--directory', directory, '--profile', 'minimal', '--yes', '--json'];
+}
+
 export function assetNames() {
   return [`hseos-${VERSION}.tgz`, `hseos-${VERSION}.cdx.json`, `hseos-${VERSION}.compatibility.json`];
 }
