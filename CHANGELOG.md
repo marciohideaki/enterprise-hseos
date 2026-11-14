@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0-ai-provider.5] — 2026-11-14
+
+### Breaking Changes
+
+- This is an isolated version 4 prerelease, not a stable promotion of v3.4.2. Review the v4 migration guide before adoption; no global runtime is activated by publication.
+
+### Added
+
+- A gated immutable GitHub distribution candidate for the provider work integrated by [PR #320](https://github.com/marciohideaki/enterprise-hseos/pull/320): sealed tarball, CycloneDX SBOM, compatibility manifest and checksums; isolated Node 22 installation and seven discovery surfaces; external finalization without an administration token in CI.
+
+### Changed
+
+- Consume the ECP 0.6.2 catalog with all 26 capabilities after its artifact freeze, retaining its canonical per-operation declarations. The structural reader and CLI JSON preserve `operations` and `guarantees`; malformed pairs and unrelated unknown implementation fields still fail closed.
+- Bind the candidate to published Node and .NET package versions and their verified artifact digests after dependency freeze. Previous candidate archives, the stable release and global human bindings remain intact.
+
 ## [Unreleased]
 
 ### Added

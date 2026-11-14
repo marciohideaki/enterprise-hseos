@@ -45,8 +45,8 @@
     ]
   },
   "tool_outcomes": [
-    "-351c7c6d6534\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://1bda6cc6868c39203252e69d6230a5c4debe8c19def5fa4d704738975f6fcd6a\"],\"warnings\":[],\"replayed\":false}",
-    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://1bda6cc6868c39203252e69d6230a5c4debe8c19def5fa4d704738975f6fcd6a\"],\"warnings\":[],\"replayed\":false}"
+    "-cd7c0a2cdcbe\",\"result\":{\"path\":\"pass.js\",\"sha256\":\"7dfbcc8926099f5305ebe9567117e0a55d3514aebbcad0be88d4e39024dbbe0d\"},\"error\":null,\"evidence_refs\":[\"isolation://09dcf4789a60a208b80682d8891b26f848032834c02ce9273b61d747fdd0a2ac\"],\"warnings\":[],\"replayed\":false}",
+    "ce\":\"controller-executable-readonly\",\"runtime_version\":\"v24.15.0\",\"status\":\"succeeded\",\"workspace_access\":\"read_only\"},\"error\":null,\"evidence_refs\":[\"isolation://09dcf4789a60a208b80682d8891b26f848032834c02ce9273b61d747fdd0a2ac\"],\"warnings\":[],\"replayed\":false}"
   ],
   "drain": {
     "started": 2,
@@ -81,7 +81,7 @@
     "ok": true,
     "failures": []
   },
-  "state_sha256": "d83dfb36f22040da8ccbc69d47a23a1ba0d70b044e41932fe760be91a6a3888d",
+  "state_sha256": "4ba7a9796e1f868d3039fcc110048ac4f3610e7193c68b6edf3dc08d37ec6cb9",
   "protected": {
     "pass": false,
     "passed": 0,

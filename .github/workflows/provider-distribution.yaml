@@ -1,0 +1,144 @@
+name: Provider candidate distribution
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact merged release-preparation commit
+        required: true
+        type: string
+      pull_request:
+        description: Merged preparation PR with passing required checks and the same source tree
+        required: true
+        type: string
+      publish:
+        description: Stage a verified draft only; owner-authorized external finalization is separate
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+  checks: read
+  pull-requests: read
+
+concurrency:
+  group: hseos-provider-distribution-4.0.0-ai-provider.5
+  cancel-in-progress: false
+
+jobs:
+  bundle:
+    if: github.ref == 'refs/heads/master' && github.repository == 'marciohideaki/enterprise-hseos'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      source_sha: ${{ steps.seal.outputs.source_sha }}
+      manifest_sha256: ${{ steps.seal.outputs.manifest_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+          cache-dependency-path: source/package-lock.json
+      - name: Verify the exact reviewed and merged tree and authoritative PR checks
+        working-directory: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          PREPARATION_PR: ${{ inputs.pull_request }}
+        run: node ../control/.github/scripts/provider-distribution.mjs verify-source "$SOURCE_SHA" "$PREPARATION_PR" > "$RUNNER_TEMP/hseos-source-evidence.json"
+      - run: npm ci
+        working-directory: source
+      - name: Preserve the package-surface budgets
+        working-directory: source
+        run: npm run test:package-surface
+      - name: Verify frozen snapshot bindings and pack the exact source once
+        id: seal
+        working-directory: source
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          node ../control/.github/scripts/provider-distribution.mjs seal "$RUNNER_TEMP/hseos-provider-assets" "$RUNNER_TEMP/hseos-source-evidence.json" > "$RUNNER_TEMP/hseos-seal-receipt.json"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "manifest_sha256=$(sha256sum "$RUNNER_TEMP/hseos-provider-assets/hseos-4.0.0-ai-provider.5.compatibility.json" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+      - name: Install and discover from the sealed artifact without a checkout or global fallback
+        run: |
+          docker run --rm --network bridge \
+            -v "$RUNNER_TEMP/hseos-provider-assets:/artifacts:ro" \
+            -v "$GITHUB_WORKSPACE/control/.github/scripts:/probe:ro" \
+            -e TMPDIR=/build/tmp -e HOME=/build/home \
+            node:22.22.1-bookworm node /probe/provider-distribution-smoke.mjs > "$RUNNER_TEMP/hseos-clean-consumer.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hseos-provider-sealed
+          path: ${{ runner.temp }}/hseos-provider-assets
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hseos-provider-validation
+          path: |
+            ${{ runner.temp }}/hseos-source-evidence.json
+            ${{ runner.temp }}/hseos-seal-receipt.json
+            ${{ runner.temp }}/hseos-clean-consumer.json
+          if-no-files-found: error
+
+  draft:
+    if: github.ref == 'refs/heads/master' && github.repository == 'marciohideaki/enterprise-hseos' && inputs.publish
+    needs: bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bundle.outputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+      - uses: actions/download-artifact@v4
+        with:
+          name: hseos-provider-sealed
+          path: ${{ runner.temp }}/hseos-provider-assets
+      - name: Verify the sealed assets before a create-only tag and draft
+        env:
+          SOURCE_SHA: ${{ needs.bundle.outputs.source_sha }}
+          MANIFEST_SHA256: ${{ needs.bundle.outputs.manifest_sha256 }}
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/provider-distribution.mjs stage "$RUNNER_TEMP/hseos-provider-assets" "$SOURCE_SHA" "$MANIFEST_SHA256" > "$RUNNER_TEMP/hseos-draft-receipt.json"
+      - name: Download the actual draft assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download v4.0.0-ai-provider.5 --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/hseos-draft-download"
+      - name: Verify and install the downloaded draft, preserving the original bytes
+        env:
+          MANIFEST_SHA256: ${{ needs.bundle.outputs.manifest_sha256 }}
+        run: |
+          node .github/scripts/provider-distribution.mjs verify-assets "$RUNNER_TEMP/hseos-draft-download" "$MANIFEST_SHA256" > "$RUNNER_TEMP/hseos-draft-assets.json"
+          docker run --rm --network bridge \
+            -v "$RUNNER_TEMP/hseos-draft-download:/artifacts:ro" \
+            -v "$GITHUB_WORKSPACE/.github/scripts:/probe:ro" \
+            -e TMPDIR=/build/tmp -e HOME=/build/home \
+            node:22.22.1-bookworm node /probe/provider-distribution-smoke.mjs > "$RUNNER_TEMP/hseos-downloaded-draft-consumer.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hseos-provider-draft-evidence
+          path: |
+            ${{ runner.temp }}/hseos-draft-receipt.json
+            ${{ runner.temp }}/hseos-draft-assets.json
+            ${{ runner.temp }}/hseos-downloaded-draft-consumer.json
+          if-no-files-found: error

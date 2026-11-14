@@ -67,6 +67,8 @@ const IMPLEMENTATION_KEYS = new Set([
   'repository',
   'path',
   'conformance',
+  'operations',
+  'guarantees',
 ]);
 const IMPLEMENTATION_REQUIRED = ['stack', 'kind', 'package', 'contract_version', 'status'];
 const IMPLEMENTATION_KINDS = new Set(['runtime', 'sdk', 'library']);
@@ -280,6 +282,49 @@ function implementationProblems(implementation, label, { fail, shape }) {
     if (vectors !== undefined && !(typeof vectors === 'string' && SEMVER.test(vectors)))
       fail(`${label}.conformance.vectors_version must be a semantic version`);
     if (evidence !== undefined && !isNonEmptyString(evidence)) fail(`${label}.conformance.evidence must be a non-empty string`);
+  }
+  // ECP contracts 0.6.1 carries its canonical per-operation declaration in the
+  // catalog. This reader checks the published structural shape and pairing;
+  // ECP's producer owns family-profile semantics and behavioral conformance.
+  // Older snapshots with neither optional field retain their original behavior.
+  if (implementation.operations !== undefined || implementation.guarantees !== undefined) {
+    const operation = /^[a-z][a-z0-9_-]*$/;
+    const value = /^[a-z][a-z0-9_]*$/;
+    const operations = implementation.operations;
+    const guarantees = implementation.guarantees;
+    const operationsValid =
+      Array.isArray(operations) &&
+      operations.length > 0 &&
+      operations.every((item) => typeof item === 'string' && operation.test(item)) &&
+      new Set(operations).size === operations.length;
+    if (!operationsValid) fail(`${label}.operations must be a non-empty unique list of operation ids`);
+    if (!Array.isArray(guarantees) || guarantees.length === 0) {
+      fail(`${label}.guarantees must be a non-empty list`);
+    } else {
+      const declared = new Set();
+      for (const [index, guarantee] of guarantees.entries()) {
+        const itemLabel = `${label}.guarantees[${index}]`;
+        if (!isPlainObject(guarantee)) {
+          fail(`${itemLabel} must be an object`);
+          continue;
+        }
+        if (typeof guarantee.operation !== 'string' || !operation.test(guarantee.operation)) {
+          fail(`${itemLabel}.operation must be an operation id`);
+        } else {
+          if (declared.has(guarantee.operation)) fail(`${itemLabel}.operation is duplicated`);
+          declared.add(guarantee.operation);
+          if (operationsValid && !operations.includes(guarantee.operation)) fail(`${itemLabel}.operation is not declared`);
+        }
+        for (const [dimension, guaranteeValue] of Object.entries(guarantee)) {
+          if (dimension !== 'operation' && !(typeof guaranteeValue === 'string' && value.test(guaranteeValue))) {
+            fail(`${itemLabel}.${dimension} must be a guarantee value id`);
+          }
+        }
+      }
+      if (operationsValid && (declared.size !== operations.length || operations.some((item) => !declared.has(item)))) {
+        fail(`${label}.guarantees must cover every declared operation exactly once`);
+      }
+    }
   }
 }
 

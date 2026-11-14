@@ -39,14 +39,14 @@ fragments:
   - id: fragment.backend-core
     repository: repo.backend-core
     path: .platform/capability-graph.fragment.json
-    revision: 722870ae32e400cf4b1514085b4b0f98cc975eb5
+    revision: 760399d8621f1a2d4724f63c6c485dedf621ce98
     enforcement: enforced
     source:
       kind: git
       uri: https://github.com/HideakiSolutions/backend-core.git
     validation:
       mode: delegated
-      command: npm run validate:provider-capability-graph -- --hseos-root "$HSEOS_VALIDATOR_ROOT" --ecp-root "$ECP_ROOT" --ecp-ref 23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd
+      command: npm run validate:provider-capability-graph -- --hseos-root "$HSEOS_VALIDATOR_ROOT" --ecp-root "$ECP_ROOT" --ecp-ref ca8d8fa59168f1bf76f56b2559cab1720a911d86
       workflow_path: .github/workflows/validate.yml
   - id: fragment.cambio-real-v2
     repository: repo.cambio-real-v2
@@ -87,7 +87,7 @@ fragments:
   - id: fragment.enterprise-capability-platform
     repository: repo.enterprise-capability-platform
     path: .platform/capability-graph.fragment.json
-    revision: 23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd
+    revision: ca8d8fa59168f1bf76f56b2559cab1720a911d86
     enforcement: enforced
     source:
       kind: git
