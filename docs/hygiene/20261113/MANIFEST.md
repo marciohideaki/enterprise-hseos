@@ -4,14 +4,20 @@ Registro dos arquivos de andaime removidos do repositório pela run `20261113-re
 (`.hseos/runs/dev-squad/20261113-repo-hygiene/`). Nenhum arquivo foi perdido: todos continuam no histórico git
 e na tag de arquivo.
 
-- **Tag de arquivo:** `hseos-hygiene-archive-20261113`
+- **Tag de arquivo:** `hseos-hygiene-archive-20261113` (anotada, aponta para `56478fa4`, publicada no remoto antes da remoção: `git ls-remote --tags origin 'hseos-hygiene*'`)
 - **Base da remoção:** `56478fa4` (master)
 - **Critério:** cadeia fechada pelo grafo de referências (`docs/hygiene/20261113/reference-graph.mjs`): o arquivo
   não é citado por nenhum arquivo versionado fora do próprio conjunto removido, e os citantes que sobram são
   não citantes por regra declarada. A revisão cética está em `REVIEW-HA.md`, na pasta da run.
 - **Prova:** `removable_by_graph: true` na evidência versionada (`docs/hygiene/20261113/reference-graph.json`, base
-  `ddde51e9`) e reexecutado em `56478fa4` sem contar os registros da própria run
+  `ddde51e9`, ponta da task no momento da execução; a árvore analisada é a de `a4fabbd5` mais `docs/hygiene/`, que fica fora da análise) e reexecutado em `56478fa4` sem contar os registros da própria run
   (145 arquivos, 562188 bytes, conjunto idêntico ao da evidência: true).
+
+## Limites
+
+- Uma citação pelo nome da run, sem caminho (ex.: `MAPA.md` e `w5/STATUS.md` citam runs pelo id), não protege arquivo: todas as encontradas citam a run como conceito ou arquivos que ficam (`STATUS.md` e relatórios citados). Ver `CLASSIFICATION.md` e `REVIEW-HA.md` da run.
+- Caminho montado dinamicamente não aparece no grafo; a remoção simulada com a suíte completa (registrada no `STATUS.md` da run) cobre esse caso.
+- Citantes `0` significa que o grafo não encontrou nenhum citante, nem histórico.
 
 ## Como recuperar
 
@@ -111,24 +117,24 @@ Classe `ANDAIME`: registro de run ou auditoria pontual sem citante fora do conju
 | `.hseos/runs/dev-squad/20260606-prod-ready-waves/WAVE-4-REPORT.md`                         | ANDAIME | sim / sim                                           |         6 |
 | `.hseos/runs/dev-squad/20260606-prod-ready-waves/WAVE-5-READINESS.md`                      | ANDAIME | sim / sim                                           |         5 |
 | `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/handoffs/W0-to-W1.md`          | ANDAIME | sim / sim                                           |         1 |
-| `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/INTAKE.md`                     | ANDAIME | sim / sim                                           | undefined |
+| `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/INTAKE.md`                     | ANDAIME | sim / sim                                           |         0 |
 | `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/PLAN.md`                       | ANDAIME | sim / sim                                           |         1 |
-| `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/prompts/W1-T0.md`              | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/prompts/W1-T4a.md`             | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/WAVE-0-REPORT.md`              | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261006-2040-pendencies-closeout/INTAKE.md`                        | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261006-2040-pendencies-closeout/PLAN.md`                          | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261007-2130-guard-tokenizer/GOAL-GRAPH.md`                        | ANDAIME | sim / sim                                           | undefined |
+| `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/prompts/W1-T0.md`              | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/prompts/W1-T4a.md`             | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261001-0040-ecp-contract-authority/WAVE-0-REPORT.md`              | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261006-2040-pendencies-closeout/INTAKE.md`                        | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261006-2040-pendencies-closeout/PLAN.md`                          | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261007-2130-guard-tokenizer/GOAL-GRAPH.md`                        | ANDAIME | sim / sim                                           |         0 |
 | `.hseos/runs/dev-squad/20261007-2130-guard-tokenizer/workflow.js`                          | ANDAIME | sim / sim                                           |        33 |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/INTAKE.md`                                | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T1.md`                             | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T2.md`                             | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T3.md`                             | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T4.md`                             | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T5.md`                             | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T6a.md`                            | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T6b.md`                            | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T7.md`                             | ANDAIME | sim / sim                                           | undefined |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/INTAKE.md`                                | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T1.md`                             | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T2.md`                             | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T3.md`                             | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T4.md`                             | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T5.md`                             | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T6a.md`                            | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T6b.md`                            | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261027-1900-audit-fixes/logs/R-T7.md`                             | ANDAIME | sim / sim                                           |         0 |
 | `.hseos/runs/dev-squad/20261030-1810-owner-decisions/logs/CLOSE.md`                        | ANDAIME | sim / sim                                           |         2 |
 | `.hseos/runs/dev-squad/20261030-1810-owner-decisions/logs/E10.md`                          | ANDAIME | sim / sim                                           |         4 |
 | `.hseos/runs/dev-squad/20261030-1810-owner-decisions/logs/E11.md`                          | ANDAIME | sim / sim                                           |         4 |
@@ -190,18 +196,18 @@ Classe `ANDAIME`: registro de run ou auditoria pontual sem citante fora do conju
 | `.hseos/runs/dev-squad/20261030-1810-owner-decisions/prompts/G1.md`                        | ANDAIME | sim / sim                                           |         3 |
 | `.hseos/runs/dev-squad/20261030-1810-owner-decisions/prompts/G2.md`                        | ANDAIME | sim / sim                                           |         3 |
 | `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/handoffs/T2-to-T4.md`                    | ANDAIME | sim / sim                                           |         2 |
-| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/INTAKE.md`                               | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/PLAN.md`                                 | ANDAIME | sim / sim                                           | undefined |
+| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/INTAKE.md`                               | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/PLAN.md`                                 | ANDAIME | sim / sim                                           |         0 |
 | `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T1a.md`                          | ANDAIME | sim / sim                                           |         1 |
 | `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T1b.md`                          | ANDAIME | sim / sim                                           |         1 |
 | `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T1c.md`                          | ANDAIME | sim / sim                                           |         1 |
 | `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T1d.md`                          | ANDAIME | sim / sim                                           |         1 |
-| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T2.md`                           | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T3.md`                           | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T4.md`                           | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T5.md`                           | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261113-docs-reconcile/prompts/audit-common.md`                    | ANDAIME | sim / sim                                           | undefined |
-| `.hseos/runs/dev-squad/20261113-docs-reconcile/prompts/fix-common.md`                      | ANDAIME | sim / sim                                           | undefined |
+| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T2.md`                           | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T3.md`                           | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T4.md`                           | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261106-1721-stab2-wave-a/prompts/T5.md`                           | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261113-docs-reconcile/prompts/audit-common.md`                    | ANDAIME | sim / sim                                           |         0 |
+| `.hseos/runs/dev-squad/20261113-docs-reconcile/prompts/fix-common.md`                      | ANDAIME | sim / sim                                           |         0 |
 | `.hseos/runs/standalone-migration/handoffs/.gitkeep`                                       | ANDAIME | sim / sim                                           |         6 |
 | `.hseos/runs/standalone-migration/README.md`                                               | ANDAIME | sim / sim                                           |         5 |
 | `.hseos/runs/standalone-migration/STATUS.md`                                               | ANDAIME | sim / sim                                           |         6 |
