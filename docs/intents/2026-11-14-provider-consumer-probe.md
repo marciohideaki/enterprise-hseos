@@ -19,3 +19,8 @@ then validate one reviewable candidate from the original source135d9c8. The
 controller scripts/workflow are excluded from the npm runtime payload. Preserve
 that release source and all four original SDK archives; no SDK rebuild/repack,
 provider inference, package publication or global activation belongs to this fix.
+
+The draft job also checks out the exact workflow controller revision, rather than
+the frozen runtime source, so its downloaded-draft probe uses the same corrected
+caller. Staging still receives the sealed source and manifest outputs unchanged;
+a focused workflow regression binds both independent revisions explicitly.
