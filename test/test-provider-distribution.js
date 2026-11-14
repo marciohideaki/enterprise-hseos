@@ -505,3 +505,15 @@ test('sealed assets are escrowed after consumer failure but never before success
     assert.equal(upload.with['if-no-files-found'], 'error');
   }
 });
+
+test('draft staging uses the workflow controller while preserving the sealed release source', () => {
+  const workflow = yaml.parse(fs.readFileSync(path.join(__dirname, '../.github/workflows/provider-distribution.yaml'), 'utf8'));
+  const draft = workflow.jobs.draft;
+  const checkout = draft.steps.find((step) => step.uses === 'actions/checkout@v4');
+  assert.equal(checkout.with.ref, '${{ github.sha }}');
+  const stage = draft.steps.find((step) => step.name === 'Verify the sealed assets before a create-only tag and draft');
+  assert.equal(stage.env.SOURCE_SHA, '${{ needs.bundle.outputs.source_sha }}');
+  assert.equal(stage.env.MANIFEST_SHA256, '${{ needs.bundle.outputs.manifest_sha256 }}');
+  const probe = draft.steps.find((step) => step.name === 'Verify and install the downloaded draft, preserving the original bytes');
+  assert.match(probe.run, /GITHUB_WORKSPACE\/\.github\/scripts:\/probe:ro/);
+});
