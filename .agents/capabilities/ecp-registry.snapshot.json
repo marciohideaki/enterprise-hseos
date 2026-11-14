@@ -2,10 +2,712 @@
   "capabilities": [
     {
       "aliases": [
+        "capability.ai.provider-access",
+        "platform-core/ai/provider-connection",
+        "platform-core/ai/inference-request",
+        "platform-core/ai/inference-response",
+        "platform-core/ai/provider-error",
+        "ai-providers",
+        "provider-access"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "node"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/ai.provider-access/README.md",
+          "role": "specification",
+          "sha256": "8f620d71e78987eb9d088557c8f9d8603e8727e7f8e750a65d64c77964f4364b"
+        },
+        {
+          "path": "capabilities/ai.provider-access/capability.yaml",
+          "role": "contract",
+          "sha256": "3d4c7b05a665ef93bbd17f96c54f9c0bd5313a1c491257aae4a9a9faf1f3f70a"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.01.json",
+          "role": "conformance-invalid",
+          "sha256": "cd5933624743f3e6880a03e3d6ce7e024de4978a1c348db7e19c5556db67ac86"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.02.json",
+          "role": "conformance-invalid",
+          "sha256": "860936a30653f6153eb619401b0ca3eca065222a0c5f52d4f3a647db4e11016c"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.03.json",
+          "role": "conformance-invalid",
+          "sha256": "91732e0163f37cb47e9a00485d37288aa471a05b83b7c7140594273d67ece502"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.04.json",
+          "role": "conformance-invalid",
+          "sha256": "f3679e75a363fb8a117d09862ed9ab07a0c4afee429aea58d10a63978f6a06ad"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.05.json",
+          "role": "conformance-invalid",
+          "sha256": "6c1a151da7a016dd6fee4ce75791df0784104037013e0b333fe78b5f4edbc7ed"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.06.json",
+          "role": "conformance-invalid",
+          "sha256": "30243c6526a32938621b0b4821557532bbc1fe4b47c54fe26a3ce3a74c4146f7"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.07.json",
+          "role": "conformance-invalid",
+          "sha256": "4197c885ab87cc8cf6456e0dfce9a380a96dab020c1ef479df312068e8c154d7"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-request.08.json",
+          "role": "conformance-invalid",
+          "sha256": "8fd3bea83a3142ab07d72007592f7cab39000d39011ee3fa2f7169349c8aa084"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-response.01.json",
+          "role": "conformance-invalid",
+          "sha256": "36944465d6170882e2a20a1aeb1311f586be6c4b8187d390eff330c0a1c5387d"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-response.02.json",
+          "role": "conformance-invalid",
+          "sha256": "20e943bb843daf8d65c8ac341008c3c0771622b751663a819c79352336dbd04b"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-response.03.json",
+          "role": "conformance-invalid",
+          "sha256": "4e0e753bc12f0e9d888ef2b468e497ae183f0ba12bbca2f3b815898fe6a2e8f7"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/inference-response.04.json",
+          "role": "conformance-invalid",
+          "sha256": "e45214ef1cbe9662321ace22b88893a3ee9a3298f29a9f88227bd3d926535307"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.01.json",
+          "role": "conformance-invalid",
+          "sha256": "1b9293c4c93a1a979fb49c265c31065fc870342dba1cfc84255a886c78e5f6b1"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.02.json",
+          "role": "conformance-invalid",
+          "sha256": "a6ff602984bb4ce89009f673a595e498959d98815dcb0c30c9680f70bf017cdd"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.03.json",
+          "role": "conformance-invalid",
+          "sha256": "d56ef0c179bc118fbe568cb8c7c35b34c2f69da7b15403bf127f667f29caea67"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.04.json",
+          "role": "conformance-invalid",
+          "sha256": "d7af349dd74094356f06e6ee0fd920bf7ba8205ee9ab01e42799d2b960d003d8"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.05.json",
+          "role": "conformance-invalid",
+          "sha256": "803b005115b6f6b1a864f3c93d5e769b3b33d645f9921b2618df5fdeeb0177aa"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.06.json",
+          "role": "conformance-invalid",
+          "sha256": "e9af2eb530862635f749c73abc88091518dfff0fcf196d3d1588fa29af3627f9"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.07.json",
+          "role": "conformance-invalid",
+          "sha256": "37866486a05e170f714d1afc1ee7ce0fb9e86c21da92fccba18615445cc04834"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.08.json",
+          "role": "conformance-invalid",
+          "sha256": "ab9caa3ab17c62c83320c51e0ab22c8bed2cefb1dc0ce9f34eb28e4125bd82c2"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.09.json",
+          "role": "conformance-invalid",
+          "sha256": "e3e69e0f2923165674809c5e1ca30b33d04a99c95b35245d633a22d775190364"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.10.json",
+          "role": "conformance-invalid",
+          "sha256": "1e39b4ea4c3f5aefe8ff4ea9c1a5ff0fbd44f35a6ab89efd68082c4983f849ea"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.11.json",
+          "role": "conformance-invalid",
+          "sha256": "1e5e2934f25c7b8de27e5bb6ae9bc279803646914e88e7623cfba65bd383b8bb"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.12.json",
+          "role": "conformance-invalid",
+          "sha256": "32b9e9f5ab3e969446eacd1c66340631adeb0c7a4b8662aa6f2dcabd775fe6ec"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.13.json",
+          "role": "conformance-invalid",
+          "sha256": "3264497d5656aa1d5f16eb0a7038b8784a2d876557e4ab46349de5ee2a51a4ad"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-connection.14.json",
+          "role": "conformance-invalid",
+          "sha256": "d9a6237db287ed3e70a586302e2c76b1dad544f457d5f467d79c322ecec2b006"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-error.01.json",
+          "role": "conformance-invalid",
+          "sha256": "408517aa225babfd15fbc89f75a5dd32cc96ed2b4085caf4c09cb782e70053fd"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-error.02.json",
+          "role": "conformance-invalid",
+          "sha256": "e1a8fa4479e5c6551db8896f4b9f64fb89a8ba1f500bb401d764539a4bc0c1ef"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/invalid/provider-error.03.json",
+          "role": "conformance-invalid",
+          "sha256": "04cc4b3bc182bdfde2306518af5a538f3d5cdb2aebb5867716a702018cd0eeb1"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/inference-request.01.json",
+          "role": "conformance-valid",
+          "sha256": "584d32918dfcf5afc08ba5895eb242e6ef6e386ba7b808d12d18e52f0ea42e34"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/inference-response.01.json",
+          "role": "conformance-valid",
+          "sha256": "3d968fe0c80c8034d62cc02eb2909cffcd0dd14b31960c61e9a2c18b3f9b7def"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/inference-response.02.json",
+          "role": "conformance-valid",
+          "sha256": "85f7b63508c2ccc1b15011088d95f780cb83be37250170c68ebce9af4045a97d"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.01.json",
+          "role": "conformance-valid",
+          "sha256": "fbce72b54a3d9ec1b1231094ae7df4872b44dde30857e63ab4393880738f6ad4"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.02.json",
+          "role": "conformance-valid",
+          "sha256": "6853edb9827448a5ad7ac3bd2dd841a1cfef5ae8da3dfd0e37f49466574ebf0c"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.03.json",
+          "role": "conformance-valid",
+          "sha256": "f5a53dc68e1ea84567ca5af74b634e78a029d903376f5a767a7e73673cb9742d"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.04.json",
+          "role": "conformance-valid",
+          "sha256": "e175f79e7526f0fd0299f6feb07631730e453e7655db157e1f11041bcbddb981"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.05.json",
+          "role": "conformance-valid",
+          "sha256": "bb992154d4fc722105f53bbc4d0bb1785271f670ce6536251d1f659e31dbf376"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.06.json",
+          "role": "conformance-valid",
+          "sha256": "ae182b0078487b5673baa819f4bcdc25dfa72ba54b664d4c395e886d944f3684"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.07.json",
+          "role": "conformance-valid",
+          "sha256": "5e33a8f2ad0c01310b944a428509e562bb3834d5c68e776afada82c93b4f06f7"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.08.json",
+          "role": "conformance-valid",
+          "sha256": "1e818c1302a8f24c7be143c90b23f01beee2fa63ed4807ad88e1762648b91334"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-connection.09.json",
+          "role": "conformance-valid",
+          "sha256": "db39ceb2b3cbb53ea4a5da15f378fafd1af8591de4a27e79c0533092a3f200bd"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.01.json",
+          "role": "conformance-valid",
+          "sha256": "184d8f7ded97f64230831be5444de9876b37da760da27aea6c6b0abfa00ed12c"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.02.json",
+          "role": "conformance-valid",
+          "sha256": "0bab71dea8c210bba5245ca8c4317e66caa42f8772298dfe367e4c95226d991f"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.03.json",
+          "role": "conformance-valid",
+          "sha256": "ce50d943b42e9afb0da4a6dc75801178e2d6345f547b82b8e3037c6d2ef5b1ec"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.04.json",
+          "role": "conformance-valid",
+          "sha256": "35b7567a9df7e8c7d36955f55e974d6c926685b5f22ce019375f88a8e42db580"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.05.json",
+          "role": "conformance-valid",
+          "sha256": "e6670a511f6256b701af4f8033bc3012670eab9d927c94821bb31ee176aef4da"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.06.json",
+          "role": "conformance-valid",
+          "sha256": "ea28039cb76c857ac9da02ccee3d64c46718a911ab1fd0c1c82eeff98dede581"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.07.json",
+          "role": "conformance-valid",
+          "sha256": "1732d9e3fc545e0f607ef0f57d9d71b08508213df523af238f7cd43bba95e762"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.08.json",
+          "role": "conformance-valid",
+          "sha256": "0c3c45b84f7add0b440c28bdeede229524c994233d2ba43bffaa585fd87ce699"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.09.json",
+          "role": "conformance-valid",
+          "sha256": "19eca439fab0461abd273d91bb31b26f0bc722f758b3e21f40a10990aa2ad6d8"
+        },
+        {
+          "path": "capabilities/ai.provider-access/conformance/valid/provider-error.10.json",
+          "role": "conformance-valid",
+          "sha256": "a1b2399c18a1aa6baa8241c0dc995bac392262a08a96e8a18a6553f01f58c137"
+        },
+        {
+          "path": "capabilities/ai.provider-access/implementations.json",
+          "role": "implementations",
+          "sha256": "4480bd93a2084ccc5a1da022404bb9f95f9b2c18ef4e7d2b4d757628e428765a"
+        },
+        {
+          "path": "capabilities/ai.provider-access/schema.inference-request.json",
+          "role": "schema",
+          "sha256": "d4ac3fcbaf0d269a65f1df204cd7d5444149619acb0aa9ce8f51611674821db5"
+        },
+        {
+          "path": "capabilities/ai.provider-access/schema.inference-response.json",
+          "role": "schema",
+          "sha256": "374f093bca8ade6f9736a009e8f7eb2ba9e437f11f335418852b90175b287515"
+        },
+        {
+          "path": "capabilities/ai.provider-access/schema.provider-connection.json",
+          "role": "schema",
+          "sha256": "4a939833091c7eb64841966be0807224566343c74a4fb5a2f5f56410b8e3bf75"
+        },
+        {
+          "path": "capabilities/ai.provider-access/schema.provider-error.json",
+          "role": "schema",
+          "sha256": "dd2c1731ef6e3945a27f38ac2baaace71820b1abce89610d63c7e3780c0a1fb4"
+        }
+      ],
+      "implementations": [
+        {
+          "conformance": {
+            "evidence": "https://github.com/HideakiSolutions/backend-core/blob/34a671449d97de8f8653d7abe09df023005448ad/node/compat/provider-access-candidate.json",
+            "vectors_version": "0.1.0"
+          },
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.2.1-ai-provider.4",
+          "path": "node/src/ai-providers",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "node",
+          "status": "experimental"
+        },
+        {
+          "conformance": {
+            "evidence": "https://github.com/HideakiSolutions/backend-core/blob/34a671449d97de8f8653d7abe09df023005448ad/dotnet/compat/provider-access-candidate.json",
+            "vectors_version": "0.1.0"
+          },
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Ai.ProviderAccess",
+          "package_version": "0.1.0-rc.2",
+          "path": "dotnet/src/Hideakisolutions.Platform.Ai.ProviderAccess",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "@hideakisolutions/platform-node",
+          "@hideakisolutions/platform-node/ai-providers",
+          "@hideakisolutions/platform-node/ai-provider-bridge",
+          "Hideakisolutions.Platform.Ai.ProviderAccess"
+        ],
+        "symbols": [
+          "ProviderConnection",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceGateway",
+          "IInferenceProvider",
+          "AddProviderAccess",
+          "composePackagedSubscription"
+        ]
+      },
+      "name": "ai.provider-access",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "llm.generate"
+      ],
+      "stability": "experimental",
+      "summary": "Explicit provider access through native subscriptions, API credentials and local inference without implicit paid fallback.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "platform-core/audit/audit-event",
+        "platform-core/audit/audit-chain-jcs/v1",
+        "audit",
+        "audit-event",
+        "audit-jcs-sha256/v1"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "go"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "node"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/audit.record/README.md",
+          "role": "specification",
+          "sha256": "e862f66eda2f03458340988d14b9bd3ecbbd531ac438396227abd89cb64e1935"
+        },
+        {
+          "path": "capabilities/audit.record/capability.yaml",
+          "role": "contract",
+          "sha256": "43e6b977cdd3cc5a6236724598d2e9ab1a7029cb7a4df1a9202d5fd1c0beb885"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.01.json",
+          "role": "conformance-invalid",
+          "sha256": "7f53adb14e03e2563aa30aefc6e6b684908ed460e4ad6c8c5a78b8580fc44e3b"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.02.json",
+          "role": "conformance-invalid",
+          "sha256": "e83f8d9040283213f9657cef866e4e46ac12baa3313f38e60c00cadd35bb446e"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.03.json",
+          "role": "conformance-invalid",
+          "sha256": "6123d9c216b263eb5dba745207f38de999e33fc915cdb4b36c4aa400a0e5c40a"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.04.json",
+          "role": "conformance-invalid",
+          "sha256": "2f432ce33c2b9119b1ca010480ee6ec9f179257f7c1785d8e16e9ca2ff41bc76"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.05.json",
+          "role": "conformance-invalid",
+          "sha256": "cd8e5acf290e4a4f41cc18f2d930010d9e976830a3a6d93d6b3fe5793a99b3b9"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.06.json",
+          "role": "conformance-invalid",
+          "sha256": "4981178bb9106d9fe553b4504c309d69fdaf8a5c0d30d9e49b2ec2e57397fafd"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.07.json",
+          "role": "conformance-invalid",
+          "sha256": "0c1356aa7b40cd084e0660d1b657043fb457b0d3e56ebcaf6bb896a5cd62f99f"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.08.json",
+          "role": "conformance-invalid",
+          "sha256": "fda39a11b6359291dd60ec129db391eedc255cbdd71d065ef7bfe6d497e248c8"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.09.json",
+          "role": "conformance-invalid",
+          "sha256": "7f7412a0a46c323dc8279698db0ad1cf6c9868b66af9c2055f4357e6754cdd7d"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-chain-jcs-v1.10.json",
+          "role": "conformance-invalid",
+          "sha256": "627fb36c80c42e8a347507310cd1984caa92429d89b16f6130595e98d644686f"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.01.json",
+          "role": "conformance-invalid",
+          "sha256": "452943cd69bf1d7ca7e4e2d48cdd58b4a1c27b8755695175892ee38e2ff7e093"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.02.json",
+          "role": "conformance-invalid",
+          "sha256": "242c72cf56244fa74799f0a43738dfc36b3e73a9f602287181267af1583ae3ff"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.03.json",
+          "role": "conformance-invalid",
+          "sha256": "55f09406a28d798c5b877e68a6f1257426202b8de76d89c3ff4612a30d6fecdf"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.04.json",
+          "role": "conformance-invalid",
+          "sha256": "50b214de8240a490b40422879b3cbf36bb1aad5e4e42735f632466143f30134c"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.05.json",
+          "role": "conformance-invalid",
+          "sha256": "e1327055a6da41bcb87d9144fa745800b7181c4e7705f01d0b4f6a5c01f30aad"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.06.json",
+          "role": "conformance-invalid",
+          "sha256": "cedd1126d45fdbb44b0a2cdf8fa345cfe224cb414cc3ac824afe6798b533e701"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.07.json",
+          "role": "conformance-invalid",
+          "sha256": "f69654e79e90adf6f4c8ae43582fcc2e6a06d288e5f2d6a09817ad1b805b7287"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.08.json",
+          "role": "conformance-invalid",
+          "sha256": "f908f15db87ad9b8f07d16bf99b3ed19e6bbfa9579119bcdda871d3bf2f3d46b"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.09.json",
+          "role": "conformance-invalid",
+          "sha256": "61424192c325d2349905f8bbe50c4d94c7da266e3ffdf9dcf2d36d3a2d025ff0"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/invalid/audit-event.10.json",
+          "role": "conformance-invalid",
+          "sha256": "4cce85ed4b7d2b8cd7ca041f47e055f870d126db4f7c684579edfb59297810bb"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/valid/audit-chain-jcs-v1.01.json",
+          "role": "conformance-valid",
+          "sha256": "e82aea8ffc67d3404a26596112b1e34ae25567bd589215ac79ffe498e9a1cb14"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/valid/audit-chain-jcs-v1.02.json",
+          "role": "conformance-valid",
+          "sha256": "a441000ea4c55c1b5c63faf5dfc408889dbfc0eb4cc36c0fd195360ccb738dce"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/valid/audit-chain-jcs-v1.03.json",
+          "role": "conformance-valid",
+          "sha256": "dad10deaaa7d8d8f188c85bdd250e37dd69c5bdb5713372661c01f14fbcc7574"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/valid/audit-chain-jcs-v1.04.json",
+          "role": "conformance-valid",
+          "sha256": "6064fdb40f09c453e31ba36a9058b46cd2282c5a51663b95d1742bd986cf3d14"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/valid/audit-event.01.json",
+          "role": "conformance-valid",
+          "sha256": "c6c4544d68d7073e4aa2cb43771d6c0661a82cc974e2d20f2e9d7892dba9d1a6"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/valid/audit-event.02.json",
+          "role": "conformance-valid",
+          "sha256": "78d14278845cb145f00f1d6dfea98b4e072238b4726de9b3f68c7466730c8f29"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/valid/audit-event.03.json",
+          "role": "conformance-valid",
+          "sha256": "a42ae200a2f86689d73931817efd87dad14b721e5df5836361b56aa33387a6e6"
+        },
+        {
+          "path": "capabilities/audit.record/conformance/valid/audit-event.04.json",
+          "role": "conformance-valid",
+          "sha256": "c8e9e9ba0c590cb22b21f5902eeba3c3ebb5a1919bbb99cc3c0f26d91484eb02"
+        },
+        {
+          "path": "capabilities/audit.record/examples/jcs-v1/corpus.lock.json",
+          "role": "example",
+          "sha256": "7c89404471023ab1423aaa8406dd25d3555ddf47d85346c20ae46afe7ac9a6a4"
+        },
+        {
+          "path": "capabilities/audit.record/examples/jcs-v1/vectors.json",
+          "role": "example",
+          "sha256": "3d4b5cd7680fa0db0639aec8961938771c715d642fdaffabcfeb853f6ee84da8"
+        },
+        {
+          "path": "capabilities/audit.record/implementations.json",
+          "role": "implementations",
+          "sha256": "c28217aca903913b1a4055d6f0f89f59577a2efc1f1380a62f30cd8e5ae342a7"
+        },
+        {
+          "path": "capabilities/audit.record/schema.audit-chain-jcs-v1.json",
+          "role": "schema",
+          "sha256": "4afa03940af711e42e732d9533319778e45faf2a7c0f3fb139fa5a02ce357d58"
+        },
+        {
+          "path": "capabilities/audit.record/schema.audit-event.json",
+          "role": "schema",
+          "sha256": "eb7ea75f6a441e0656c98df8ae56a86e4e46cb61e4067e3cfdac0002202e5f20"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Auditing",
+          "package_version": "0.4.0-draft.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Auditing",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/hideakisolutions/backend-core/golang/audit",
+          "path": "golang/audit",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.2.0",
+          "path": "node/src/audit-jcs-v1",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "node",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "hideakisolutions-platform",
+          "package_version": "0.2.0",
+          "path": "python/hideakisolutions_platform/audit",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "python",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Auditing",
+          "github.com/hideakisolutions/backend-core/golang/audit",
+          "github.com/hideakisolutions/backend-core/golang/audit/jcsv1",
+          "hideakisolutions_platform.audit",
+          "@hideakisolutions/platform-node"
+        ],
+        "path_globs": [
+          "**/audit-event.schema.json",
+          "**/audit-chain-jcs-v1.schema.json"
+        ],
+        "symbols": [
+          "AuditEvent",
+          "AuditActor",
+          "AuditHashChain",
+          "AuditEventFactory",
+          "IAuditTrail",
+          "AuditJcsV1",
+          "SignedAuditJcsV1",
+          "ComputeHash",
+          "compute_hash",
+          "VerifyChain",
+          "verify_chain"
+        ]
+      },
+      "name": "audit.record",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "telemetry.publish",
+        "logging.entry"
+      ],
+      "stability": "experimental",
+      "summary": "Canonical tamper-evident audit trail entry (who, what, outcome, source) with its legacy hash chain, plus the accepted-not-admitted audit-jcs-sha256/v1 persisted-entry profile.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
         "identity-provider",
         "oauth2",
         "google_oauth",
         "microsoft_oauth"
+      ],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
       ],
       "files": [
         {
@@ -16,7 +718,7 @@
         {
           "path": "capabilities/auth.authenticate/capability.yaml",
           "role": "contract",
-          "sha256": "372fc92e8b890b8207cb1684b3b4ca27e35c5e4bbdd5ad45855f947ef3de9ff3"
+          "sha256": "f24829b9dead0bfe2815cff7d7a0c391a708616a29903b12504d790e8ab64182"
         },
         {
           "path": "capabilities/auth.authenticate/conformance/invalid/input-missing-required.json",
@@ -140,6 +842,20 @@
       ],
       "stability": "experimental",
       "summary": "Authenticate an actor for a tenant through an approved identity provider.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
       "version": "0.1.0"
     },
     {
@@ -148,6 +864,13 @@
         "redis",
         "distributed-cache",
         "typed-cache"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        }
       ],
       "files": [
         {
@@ -158,7 +881,7 @@
         {
           "path": "capabilities/cache.typed/capability.yaml",
           "role": "contract",
-          "sha256": "df50829a834597e61bf9e701a95b5a93153f1c80af3fae55013f2d438cb19fb5"
+          "sha256": "8e5155c535f2059da4879391187bd3c065bdbb0a930be2ce14b2523f6b379be2"
         },
         {
           "path": "capabilities/cache.typed/conformance/invalid/cache-entry-options.01.json",
@@ -278,7 +1001,7 @@
         {
           "path": "capabilities/cache.typed/implementations.json",
           "role": "implementations",
-          "sha256": "205c6c0e620a9005a48c290a1c74a5c085d790ca04ee2c5283b8a2a2676775e7"
+          "sha256": "1d4a1737c10055b6145f37122b776e9d02c37ef0c50a0906456740cd409ba229"
         },
         {
           "path": "capabilities/cache.typed/schema.cache-entry-options.json",
@@ -308,7 +1031,7 @@
           "package": "Hideakisolutions.Platform.Caching.Abstractions",
           "package_version": "0.1.0",
           "path": "dotnet/src/Hideakisolutions.Platform.Caching.Abstractions",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "dotnet",
           "status": "experimental"
         },
@@ -318,7 +1041,7 @@
           "package": "Hideakisolutions.Platform.Caching.Redis",
           "package_version": "0.2.1",
           "path": "dotnet/src/Hideakisolutions.Platform.Caching.Redis",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "dotnet",
           "status": "experimental"
         }
@@ -348,10 +1071,34 @@
       "owner": "platform-architecture@hideakisolutions.local",
       "stability": "experimental",
       "summary": "Provider-neutral typed cache with governed key namespaces, mandatory TTL and explicit availability outcomes.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/calendar.event.create/asyncapi.yaml",
@@ -361,7 +1108,7 @@
         {
           "path": "capabilities/calendar.event.create/capability.yaml",
           "role": "contract",
-          "sha256": "e9b76dbf5fd2aa735c7c01a6e79b90c687e3d4266736f951449a736624ae74f8"
+          "sha256": "29e2140ee3f4f0de6a46b9dd06a5355518b21c4b3c4b3dfe37fab1f79725cfdf"
         },
         {
           "path": "capabilities/calendar.event.create/conformance/invalid/input-missing-required.json",
@@ -470,10 +1217,42 @@
       ],
       "stability": "experimental",
       "summary": "Create a governed calendar event through an approved provider adapter.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/data.query/asyncapi.yaml",
@@ -483,7 +1262,7 @@
         {
           "path": "capabilities/data.query/capability.yaml",
           "role": "contract",
-          "sha256": "1ba6d903d696da8712768c6759d442176d2b7b2085694f49bf3c1667d9e29010"
+          "sha256": "e48e503874802594e6b6626f04447b50861b3d7c6a5f9bc1fc1681410fe4094d"
         },
         {
           "path": "capabilities/data.query/conformance/invalid/input-missing-required.json",
@@ -592,6 +1371,20 @@
       ],
       "stability": "experimental",
       "summary": "Execute governed read-only data queries through approved data provider adapters.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
       "version": "0.1.0"
     },
     {
@@ -602,6 +1395,13 @@
         "login-screen",
         "sso-login"
       ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "react"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/design.login-pattern/README.md",
@@ -611,7 +1411,7 @@
         {
           "path": "capabilities/design.login-pattern/capability.yaml",
           "role": "contract",
-          "sha256": "3e84f0a83bc6cff6697150fd1839d5396b83dc866b64129e5d2132c379926fa0"
+          "sha256": "1ab4d06cc3db36bff825e27e176014b8473ec9ba7b64c443f07efe490ff95195"
         },
         {
           "path": "capabilities/design.login-pattern/conformance/invalid/login-pattern.01.json",
@@ -656,7 +1456,7 @@
         {
           "path": "capabilities/design.login-pattern/implementations.json",
           "role": "implementations",
-          "sha256": "1ccbb353382f5effdab0c2b504da52384ccff61f689193b7d4cb3a7126b94768"
+          "sha256": "cd44328c6116602fbec09ac57f9fe0d93281f97719d59988714d0d07f7e1768b"
         },
         {
           "path": "capabilities/design.login-pattern/schema.login-pattern.json",
@@ -671,7 +1471,7 @@
           "package": "@hideakisolutions/ui-react-auth",
           "package_version": "0.0.1",
           "path": "packages/ui-react-auth",
-          "repository": "Hideaki-Solutions-Core/frontend-core",
+          "repository": "HideakiSolutions/frontend-core",
           "stack": "react",
           "status": "experimental"
         }
@@ -699,6 +1499,12 @@
       ],
       "stability": "experimental",
       "summary": "Ready-to-use SSO login screen pattern (layout, state mapping and accessibility) where the consumer owns authentication through callbacks.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "react"
+        }
+      ],
       "version": "0.1.0"
     },
     {
@@ -709,6 +1515,18 @@
         "design-tokens",
         "mobile-theme"
       ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "planned",
+          "target": "flutter"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "react-native"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/design.mobile-tokens/README.md",
@@ -718,7 +1536,7 @@
         {
           "path": "capabilities/design.mobile-tokens/capability.yaml",
           "role": "contract",
-          "sha256": "d80a7494b6def4559a5c1d0317903fa05a0bbaebcc11ec60e74ab3b348d70168"
+          "sha256": "efcc899c34a583d82081ca8440c56916014aea7db1a50b30e89826da72ef0cca"
         },
         {
           "path": "capabilities/design.mobile-tokens/conformance/invalid/mobile-theme.01.json",
@@ -758,7 +1576,7 @@
         {
           "path": "capabilities/design.mobile-tokens/implementations.json",
           "role": "implementations",
-          "sha256": "ff1bea286cef1e552a7e78ce073b51d28b92ad7be672caa54f6169e9d0339ab9"
+          "sha256": "4244abb06648aa0cd8c13354bfcf71fea5052c208028c661acacc86cca24841d"
         },
         {
           "path": "capabilities/design.mobile-tokens/schema.mobile-theme.json",
@@ -773,7 +1591,7 @@
           "package": "@hideakisolutions/mobile-tokens",
           "package_version": "0.1.0",
           "path": "packages/mobile-tokens",
-          "repository": "Hideaki-Solutions-Core/mobile-core",
+          "repository": "HideakiSolutions/mobile-core",
           "stack": "react-native",
           "status": "experimental"
         },
@@ -783,7 +1601,7 @@
           "package": "mobile_tokens_flutter",
           "package_version": "0.1.0",
           "path": "packages/mobile_tokens_flutter",
-          "repository": "Hideaki-Solutions-Core/mobile-core",
+          "repository": "HideakiSolutions/mobile-core",
           "stack": "flutter",
           "status": "planned"
         }
@@ -811,10 +1629,38 @@
       "owner": "platform-architecture@hideakisolutions.local",
       "stability": "experimental",
       "summary": "Mobile design tokens (colors, spacing, radius, typography) as plain-value themes for React Native and Flutter, projected from the Helix design system.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "flutter"
+        },
+        {
+          "required": true,
+          "stack": "react-native"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/drive.file.upload/asyncapi.yaml",
@@ -824,7 +1670,7 @@
         {
           "path": "capabilities/drive.file.upload/capability.yaml",
           "role": "contract",
-          "sha256": "c301901c44944fb4749d3426eb6b38b278224aa07e8d82a865064a580ee61f26"
+          "sha256": "ac43f57a712d075097daf1e1cefa395c48c15ffc50f4eda1321fc3d7ce8281dc"
         },
         {
           "path": "capabilities/drive.file.upload/conformance/invalid/input-missing-required.json",
@@ -933,10 +1779,249 @@
       ],
       "stability": "experimental",
       "summary": "Upload a governed file through an approved drive provider adapter.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "correlation-id",
+        "correlationid",
+        "x-correlation-id"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "go"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "node"
+        },
+        {
+          "required": false,
+          "status": "missing",
+          "target": "python"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/http.correlation-id/README.md",
+          "role": "specification",
+          "sha256": "a82aca23e08209c58f173c79cafd614352cbb8a493211d4dc96f0de2670baea5"
+        },
+        {
+          "path": "capabilities/http.correlation-id/capability.yaml",
+          "role": "contract",
+          "sha256": "1d3f9771e3834818613292ddc13ad8f9844d7460ac59996138bcbd888c24b0be"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.01.json",
+          "role": "conformance-invalid",
+          "sha256": "8b955f153e13ff1f9f0afcd6b9bff3486ccb5ee77ad8b3ecd5fdda02152a2b31"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.02.json",
+          "role": "conformance-invalid",
+          "sha256": "cca504f8a6611fff4f3677a7a2edf3cb4820ad614706b2f215120196624fefd8"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.03.json",
+          "role": "conformance-invalid",
+          "sha256": "703d19dfe1d049f73739222862dfee6360866e1a95e945785380ce0803c3ea44"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.04.json",
+          "role": "conformance-invalid",
+          "sha256": "473325b1a3fe910012a21177694d0f1e69d49fb468eb42d324642bf49493b4b6"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.05.json",
+          "role": "conformance-invalid",
+          "sha256": "084469b6a43e7705b3d8375b98f295a7e11656b14420ccbfc2602176f1ae0ea0"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.06.json",
+          "role": "conformance-invalid",
+          "sha256": "cdff6be0a05d9c20a23e5939089fd850764b3b31a01e55137b2fca6e109181bf"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.07.json",
+          "role": "conformance-invalid",
+          "sha256": "7f4fe413ef39c95c99eb0d85b45139d8b43159bc1d184247d3d69a1f7f44b1b1"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.08.json",
+          "role": "conformance-invalid",
+          "sha256": "5a2523d57abea5224b8b1b19f9bdee8b73151ea3c25b1862ee0ffa173802eabb"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.09.json",
+          "role": "conformance-invalid",
+          "sha256": "35419989922b297ee6a989247bedfb6c48ca4e6d9ccbf8f8655fa468399ccf13"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/invalid/correlation-id.10.json",
+          "role": "conformance-invalid",
+          "sha256": "7d3c500f807addceaf7328dea0538b776661ef1b6ec0198b9a1e8a58eaba5de9"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/valid/correlation-id.01.json",
+          "role": "conformance-valid",
+          "sha256": "5f4b26d7e8ae8145f4c950febc6d876406cf9159f11fbaaf205419deb32b6bc5"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/valid/correlation-id.02.json",
+          "role": "conformance-valid",
+          "sha256": "9287935a68e8525007f1f4d781f09b6d122e4a67e907c3b91275b2580408b766"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/valid/correlation-id.03.json",
+          "role": "conformance-valid",
+          "sha256": "ccd1191c3a90e748cc78c4567b08e40400638fe6379c276e2c7ca680ddb171c5"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/valid/correlation-id.04.json",
+          "role": "conformance-valid",
+          "sha256": "2535c557694838e278f35a3376cf682c30fbde085c757c7bff953a3b70fcdfcc"
+        },
+        {
+          "path": "capabilities/http.correlation-id/conformance/valid/correlation-id.05.json",
+          "role": "conformance-valid",
+          "sha256": "8bb7c222fc71e598d141500b5cc6a240f259e20c63a801f196232cba15c9c875"
+        },
+        {
+          "path": "capabilities/http.correlation-id/implementations.json",
+          "role": "implementations",
+          "sha256": "e456655e41a400e8019edb9b90aed0e4aa097ad05ea35be962d2de2d2f9a2b3f"
+        },
+        {
+          "path": "capabilities/http.correlation-id/schema.correlation-id.json",
+          "role": "schema",
+          "sha256": "d274208ebd2d070411007e65a2fd62639d89a3a2b4a142d5c4692ec82386a0bd"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Http.CorrelationId",
+          "package_version": "0.3.0",
+          "path": "dotnet/src/Hideakisolutions.Platform.Http.CorrelationId",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/hideakisolutions/backend-core/golang/correlationid",
+          "path": "golang/correlationid",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.2.0",
+          "path": "node/src/correlation-id",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "node",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Http.CorrelationId",
+          "github.com/hideakisolutions/backend-core/golang/correlationid",
+          "@hideakisolutions/platform-node"
+        ],
+        "path_globs": [
+          "**/correlation-id.schema.json"
+        ],
+        "symbols": [
+          "correlationIdMiddleware",
+          "getCorrelationId",
+          "CorrelationIdMiddleware",
+          "CorrelationIdOptions",
+          "ICorrelationIdAccessor",
+          "AddPlatformCorrelationId",
+          "UsePlatformCorrelationId",
+          "WithGenerateIfMissing",
+          "WithIncludeInResponse"
+        ]
+      },
+      "name": "http.correlation-id",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "logging.entry",
+        "api.contracts",
+        "messaging.event-envelope"
+      ],
+      "stability": "experimental",
+      "summary": "HTTP middleware contract that reads or generates one correlation id per request, exposes it to downstream code and echoes it on the response (X-Correlation-ID by default).",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        },
+        {
+          "required": false,
+          "stack": "python"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/llm.generate/asyncapi.yaml",
@@ -946,7 +2031,7 @@
         {
           "path": "capabilities/llm.generate/capability.yaml",
           "role": "contract",
-          "sha256": "953f08167f8de4c3fc5ec8c06fe0c2fb8ecbea8fba64472455d3ee4bd0eebc76"
+          "sha256": "206dd7e56049618ef849ccaa2577cefad290ce36bf6a8f47c72182b5e87639c5"
         },
         {
           "path": "capabilities/llm.generate/conformance/invalid/input-missing-required.json",
@@ -1056,10 +2141,244 @@
       ],
       "stability": "experimental",
       "summary": "Generate model output through governed LLM provider adapters.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "platform-core/logging/log-entry",
+        "logging",
+        "log-entry"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "go"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "node"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/logging.entry/README.md",
+          "role": "specification",
+          "sha256": "3e114b1c52136b2f4e9bf32d0fd1e79987d85759824357e92837d93a68b5190b"
+        },
+        {
+          "path": "capabilities/logging.entry/capability.yaml",
+          "role": "contract",
+          "sha256": "459390271654438f268ff69098ea4ee2e266a7a0cf2095c6e17774a7970fcbf9"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/invalid/log-entry.01.json",
+          "role": "conformance-invalid",
+          "sha256": "74defff38890a666aeb8e320d210e41fd7663a317e02ee85888595de31dd4b90"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/invalid/log-entry.02.json",
+          "role": "conformance-invalid",
+          "sha256": "e86a1bf8de08e83bded145492798e5ff16d20a4179aaf87436aafe09fe7f05b3"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/invalid/log-entry.03.json",
+          "role": "conformance-invalid",
+          "sha256": "e3ab55423f5dd79a6d487bd149b0af168e19774ea29611232a3dff9baf5857d7"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/invalid/log-entry.04.json",
+          "role": "conformance-invalid",
+          "sha256": "3af3b1b8d944efa78369485f335e2190848dfa5728b5c3715c291697b7d2d82a"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/invalid/log-entry.05.json",
+          "role": "conformance-invalid",
+          "sha256": "e56dcd90874aad8768501538400124c33a1122292938d262c009d456bfd345b3"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/invalid/log-entry.06.json",
+          "role": "conformance-invalid",
+          "sha256": "9fecf9da4cfed6edca485f45fa10d40c362f3c584bcfdd0ea15064529ec2e8cc"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/invalid/log-entry.07.json",
+          "role": "conformance-invalid",
+          "sha256": "3165ef6e2582c26ba64963b82634f9a9664ef0b28cf05d27187cdd9328b1cbd7"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/invalid/log-entry.08.json",
+          "role": "conformance-invalid",
+          "sha256": "67cad115b9d580b64c2bf4592635a1d47f8012adf1a657191b2b49a17b0b6385"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/valid/log-entry.01.json",
+          "role": "conformance-valid",
+          "sha256": "a57d181a35322590ce6e52cd646ecd0b6eba5f3abf39270a58f2d64fd0b40f20"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/valid/log-entry.02.json",
+          "role": "conformance-valid",
+          "sha256": "d20529e01fd2a0d491a6163e30779ef7b53c5c689fdca8a686d293d03c5c69a1"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/valid/log-entry.03.json",
+          "role": "conformance-valid",
+          "sha256": "6d8ca75c001832e0de5e3a3f1d893d32686b065e2746aed4082c751da0dda750"
+        },
+        {
+          "path": "capabilities/logging.entry/conformance/valid/log-entry.04.json",
+          "role": "conformance-valid",
+          "sha256": "1b9f2aa1e9b6c7e051305731e9e6045c94c2501e914ed94db9c581c74806834c"
+        },
+        {
+          "path": "capabilities/logging.entry/implementations.json",
+          "role": "implementations",
+          "sha256": "6c3b1a11f3007cf7545ebe23d0c16a2687126660e95a3a623e4eea7298cbf44b"
+        },
+        {
+          "path": "capabilities/logging.entry/schema.log-entry.json",
+          "role": "schema",
+          "sha256": "a31243dcbc7be43435a9f5c8fd13432868366aa40f2b1a8d53eca69fffba53c2"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Logging",
+          "package_version": "0.3.0",
+          "path": "dotnet/src/Hideakisolutions.Platform.Logging",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/hideakisolutions/backend-core/golang/logging",
+          "path": "golang/logging",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.2.0",
+          "path": "node/src/logging",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "node",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "hideakisolutions-platform",
+          "package_version": "0.2.0",
+          "path": "python/hideakisolutions_platform/logging",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "python",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Logging",
+          "github.com/hideakisolutions/backend-core/golang/logging",
+          "@hideakisolutions/platform-node",
+          "hideakisolutions_platform.logging"
+        ],
+        "path_globs": [
+          "**/log-entry.schema.json"
+        ],
+        "symbols": [
+          "LogEntry",
+          "LogError",
+          "PlatformLogLevel",
+          "createLogEntry",
+          "logEntryFromError",
+          "FromError",
+          "from_exception",
+          "PlatformJsonFormatter",
+          "PlatformLogEnricher"
+        ]
+      },
+      "name": "logging.entry",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "telemetry.publish",
+        "http.correlation-id"
+      ],
+      "stability": "experimental",
+      "summary": "Canonical structured log entry shared by every stack (timestamp, level, service, message, optional trace_id, span_id, context and error).",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/mcp.invoke/asyncapi.yaml",
@@ -1069,7 +2388,7 @@
         {
           "path": "capabilities/mcp.invoke/capability.yaml",
           "role": "contract",
-          "sha256": "a4669149e8bf8ba47b31ab59e6e2d2bdd47f7c9ecd15397f70b40a1ab5f66560"
+          "sha256": "49db26ea49b8e9feb91959a281c4071cad27262f7b4f9f24967f5f2fab000ca6"
         },
         {
           "path": "capabilities/mcp.invoke/conformance/invalid/input-missing-required.json",
@@ -1178,12 +2497,243 @@
       ],
       "stability": "experimental",
       "summary": "Invoke an MCP tool through the governed Capability Gateway without duplicating tool logic.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "messaging.outbox",
+        "backend-core/messaging/consumer"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "go"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "node"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/messaging.consumer/README.md",
+          "role": "specification",
+          "sha256": "aa9798da826a622e6970c3621aea50db422aad083d37b984133fbde304e9f8f9"
+        },
+        {
+          "path": "capabilities/messaging.consumer/capability.yaml",
+          "role": "contract",
+          "sha256": "59874b947d854462b55dd0b49ac49491b50d50c8e156acac66acc3bf2d241d6b"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/invalid/consumer-config.01.json",
+          "role": "conformance-invalid",
+          "sha256": "79bc880882f38fe799675d7baca1fa9fd1f91e0aa3046355f4875f06ade3cf6f"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/invalid/consumer-config.02.json",
+          "role": "conformance-invalid",
+          "sha256": "a3168b0526dd7b85dd488d0af88c1f7219f0985f90633553c51dd0b58c9e2a0a"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/invalid/consumer-config.03.json",
+          "role": "conformance-invalid",
+          "sha256": "8c6d665ef45fc69d75dbb835cd03c08ba572e562bd56c729be8897b1a35c0cb7"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/invalid/consumer-config.04.json",
+          "role": "conformance-invalid",
+          "sha256": "d15a895ca2219dddf0888ca183f01bffed5801b969eb7a72e912ef36cd447506"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/invalid/consumer-config.05.json",
+          "role": "conformance-invalid",
+          "sha256": "27983456f2d1ee52e64dfaaa39eb37a5676f11df5e028c11c0a960212c3a5eae"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/invalid/consumer-config.06.json",
+          "role": "conformance-invalid",
+          "sha256": "06e51bcff945c9505f1e086dc04a7ee4a3a878cc7272df2effa1dbc300685097"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/invalid/consumer-config.07.json",
+          "role": "conformance-invalid",
+          "sha256": "c5b6d36b35cae29bf172b86c6bf3fa0103ab8a85a2b7c1693c09bba381382423"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/invalid/consumer-config.08.json",
+          "role": "conformance-invalid",
+          "sha256": "509c4d82c6a18c59b9c48aed2bf70d0a3867fcddf0f5909a582063debd85f502"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/valid/consumer-config.01.json",
+          "role": "conformance-valid",
+          "sha256": "fd156b67357faa756dc228c765fe6e44822ca98f18fbffe48b92400357a664ea"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/valid/consumer-config.02.json",
+          "role": "conformance-valid",
+          "sha256": "fbde1891880a46f7375b6dcdb40e0d9f42e856f19906519ac94993037f85f67f"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/valid/consumer-config.03.json",
+          "role": "conformance-valid",
+          "sha256": "3231bf85383d6c767c59ed49dd6810e93e60b1f0d6985dea89705406225423c7"
+        },
+        {
+          "path": "capabilities/messaging.consumer/conformance/valid/consumer-config.04.json",
+          "role": "conformance-valid",
+          "sha256": "a99b59ec2fdfc9b9c784da2f9f4e9279112d3bc810e670b9688733f7333080dd"
+        },
+        {
+          "path": "capabilities/messaging.consumer/implementations.json",
+          "role": "implementations",
+          "sha256": "29846f8b8fd5dac4855bfa1f4e9da348320afb95a036a54ab0c5f1ceab424767"
+        },
+        {
+          "path": "capabilities/messaging.consumer/schema.consumer-config.json",
+          "role": "schema",
+          "sha256": "8f922d58a74d5b358d4560df746f82772611cf9963bb1a06834455e58a7dab65"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Outbox",
+          "package_version": "0.4.0-draft.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Outbox",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/hideakisolutions/backend-core/golang/outbox",
+          "path": "golang/outbox",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.2.0",
+          "path": "node/src/messaging-outbox",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "node",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "hideakisolutions-platform",
+          "package_version": "0.2.0",
+          "path": "python/hideakisolutions_platform/messaging_outbox",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "python",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "github.com/hideakisolutions/backend-core/golang/outbox",
+          "hideakisolutions_platform.messaging_outbox"
+        ],
+        "symbols": [
+          "ConsumerConfig",
+          "IIdempotencyStore",
+          "InMemoryIdempotencyStore",
+          "InMemoryIdempotency",
+          "NewInMemoryIdempotency",
+          "InMemoryOutboxStore",
+          "defaultConsumerConfig"
+        ]
+      },
+      "name": "messaging.consumer",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "messaging.outbox-lease",
+        "messaging.inbox-lease",
+        "resilience.http"
+      ],
+      "stability": "experimental",
+      "summary": "Message consumer group configuration shared by the backend-core stacks (subscriptions, retry with total-attempt semantics, dead letter, idempotency gate). Configuration shape only; lease requests belong to messaging.outbox-lease and messaging.inbox-lease.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [
         "platform-core/messaging/event-envelope",
         "event-envelope"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "go"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "node"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        }
       ],
       "files": [
         {
@@ -1194,7 +2744,7 @@
         {
           "path": "capabilities/messaging.event-envelope/capability.yaml",
           "role": "contract",
-          "sha256": "f27dcdc7fdd7c42f23de9ccf275eae0e87cfcdace3835115f09816d8358f006f"
+          "sha256": "2aa613ab2ef01499b783db11dd1cf26e952d305bb63dcb6a465e2e5a29494126"
         },
         {
           "path": "capabilities/messaging.event-envelope/conformance/invalid/event-envelope.01.json",
@@ -1239,7 +2789,7 @@
         {
           "path": "capabilities/messaging.event-envelope/implementations.json",
           "role": "implementations",
-          "sha256": "f9d840c75c66048ab6d803b7b44706674eeacb62c2f0b0781bab7928ec6fed21"
+          "sha256": "5585bf322c20cf41fb8fa3133688b1fb01bf21df1331162bf8d72cebe7a3f4b7"
         },
         {
           "path": "capabilities/messaging.event-envelope/schema.event-envelope.json",
@@ -1254,7 +2804,7 @@
           "package": "Hideakisolutions.Platform.Messaging.Contracts",
           "package_version": "0.2.1",
           "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Contracts",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "dotnet",
           "status": "experimental"
         },
@@ -1263,7 +2813,7 @@
           "kind": "library",
           "package": "github.com/hideakisolutions/backend-core/golang/messaging",
           "path": "golang/messaging",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "go",
           "status": "experimental"
         },
@@ -1273,7 +2823,7 @@
           "package": "@hideakisolutions/platform-node",
           "package_version": "0.1.0",
           "path": "node/src/messaging",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "node",
           "status": "experimental"
         },
@@ -1283,7 +2833,7 @@
           "package": "hideakisolutions-platform",
           "package_version": "0.1.0",
           "path": "python/hideakisolutions_platform/messaging",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "python",
           "status": "experimental"
         }
@@ -1312,10 +2862,826 @@
       "owner": "platform-architecture@hideakisolutions.local",
       "stability": "experimental",
       "summary": "Canonical envelope shared by every platform event and message.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "inbox",
+        "idempotent-consumer"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/messaging.inbox-lease/README.md",
+          "role": "specification",
+          "sha256": "28044c9a5910d54e54c00598b7374e7671fa81d7f64267577f92cf7f1a81c3be"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/capability.yaml",
+          "role": "contract",
+          "sha256": "fb18bb7a9d87f9d83fe1e07db3335e43ec79fbf45cb4e39e9b55e879d1580f1d"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.01.json",
+          "role": "conformance-invalid",
+          "sha256": "f093e0a03802faabc445946891e21df6f68fc1dc3db0d4d76738b84b7b85ebcb"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.02.json",
+          "role": "conformance-invalid",
+          "sha256": "3a14b50591578053f2684c11dc01961d14f87eba602b409899f1548089f4ed1c"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.03.json",
+          "role": "conformance-invalid",
+          "sha256": "1a243ec2413a12ef62b6e19c968ce21a148659d155802180e8eefb8f4a83a459"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.04.json",
+          "role": "conformance-invalid",
+          "sha256": "8e6a6acabebfb796b70d8512001e3392cb7e2d76a6b7bfdef5a6d759244f67be"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.05.json",
+          "role": "conformance-invalid",
+          "sha256": "d5960675fdd73b7de4fa9edc5b70143bfe4e53fbf4e43a7f7a5d1125a586bdf2"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.06.json",
+          "role": "conformance-invalid",
+          "sha256": "c7742a1ea27680eaf9bff45a274a4c0c2551e57cb2b385f285f7504c3ffe288f"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.07.json",
+          "role": "conformance-invalid",
+          "sha256": "8048cc1b89b13bb94fc8116a0ad94e4f591fd7ed3ed485b3392e64beeca42c71"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.08.json",
+          "role": "conformance-invalid",
+          "sha256": "106e73a89adea11996b289eff6c47aa742d1daa79fa6b9504f162e56e8657d77"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.09.json",
+          "role": "conformance-invalid",
+          "sha256": "f6b83bcfedb4ea95f793ee368b41282eff3ef488875eda5b60d3e842679428f7"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.10.json",
+          "role": "conformance-invalid",
+          "sha256": "6b80ab3152e12b489fbaab6650bcdf42f6af932fb2fb1b71a782babf5d75017a"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.11.json",
+          "role": "conformance-invalid",
+          "sha256": "bbf9f976076d85c47d58f3d2464791bf8df8e492f601a82e5ab40bf8f1f80dec"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.12.json",
+          "role": "conformance-invalid",
+          "sha256": "7b825fb198d4f857998dab2404de17a673d99e56feff1a9a6902b3494c2db075"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.13.json",
+          "role": "conformance-invalid",
+          "sha256": "cbdf88b414aa97cc805deb218d335c9d415b383da98adddb72b81ea5c2cb1de2"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.14.json",
+          "role": "conformance-invalid",
+          "sha256": "96246730e2707ee03bb03753c9a0ffe49900540ada5b3cab500279d2bb89d6cc"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.15.json",
+          "role": "conformance-invalid",
+          "sha256": "7c9a1245eee61f8c539919dd93202e82f799fed547aa9a22a15b3bdafc707bf1"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.16.json",
+          "role": "conformance-invalid",
+          "sha256": "375d9a56c5ff083ad14ee919409158c9a707aea1f9fcd715a732f8d70758c81a"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.17.json",
+          "role": "conformance-invalid",
+          "sha256": "0409332a4e3083ce28178608fd384824fd9f377b31ee5b263a59d6da65cd1f46"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.18.json",
+          "role": "conformance-invalid",
+          "sha256": "2070aa3cc11cd6cc1a32ea9112f30415c96624bca250494d8d4f754ac21b2df9"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.19.json",
+          "role": "conformance-invalid",
+          "sha256": "60179e8ff90213db8fd2a720a6ec3fd0ea3a392daf62db900ac8507ea1111e54"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/invalid/inbox-lease-request.20.json",
+          "role": "conformance-invalid",
+          "sha256": "083224630d7aad5b6d0eb584d238eccb3096718a5d0091338ee61830f8177b6b"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/valid/inbox-lease-request.01.json",
+          "role": "conformance-valid",
+          "sha256": "5fb11350bacbb80fc559c1dd2928d4ada152e71958aba61f7af4d7f8f29ad41a"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/valid/inbox-lease-request.02.json",
+          "role": "conformance-valid",
+          "sha256": "64ab2b882df774ae5b0a22b3993431924db463d78ac4f702ba0ad53e82a9e5d3"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/valid/inbox-lease-request.03.json",
+          "role": "conformance-valid",
+          "sha256": "32ec979e1cc32787e4b2904d2625b74c00e4767fb609d7a66d55059a93e51ed6"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/valid/inbox-lease-request.04.json",
+          "role": "conformance-valid",
+          "sha256": "812000fcd0c7f1a06571177740cff0a67244779bd6959fd42c0112d43de59ab7"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/valid/inbox-lease-request.05.json",
+          "role": "conformance-valid",
+          "sha256": "5862903072ebf3a19f1033217125e7fd945e1d7a49a12d8b99608346136da2c3"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/valid/inbox-lease-request.06.json",
+          "role": "conformance-valid",
+          "sha256": "a207bfd440151ca94cfa38fdf6af02d6be2236b6db9122b8441457f8033f696d"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/conformance/valid/inbox-lease-request.07.json",
+          "role": "conformance-valid",
+          "sha256": "8fb89dc67b043843020587355b1a7c853707726bae50abdefccf1c9630d697b1"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/implementations.json",
+          "role": "implementations",
+          "sha256": "3ee0e23a5c3f392304f12d09bca38089c93358f1d797964dd50da9f2a111bcbd"
+        },
+        {
+          "path": "capabilities/messaging.inbox-lease/schema.inbox-lease-request.json",
+          "role": "schema",
+          "sha256": "436fa86689b0f56ea67efecf604129fb919a77541f5985584f604b62ac5caa78"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Inbox",
+          "package_version": "0.3.0",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Inbox",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Inbox.PostgreSql",
+          "package_version": "0.1.0-draft.3",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Inbox.PostgreSql",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Messaging.Inbox",
+          "Hideakisolutions.Platform.Messaging.Inbox.PostgreSql"
+        ],
+        "symbols": [
+          "IInboxStore",
+          "IInboxLeaseStoreV2",
+          "ITransactionalInboxLeaseStoreV2",
+          "InboxIdentity",
+          "InboxLeaseResultV2",
+          "InboxPayloadMismatchException",
+          "PostgreSqlInboxLeaseStore"
+        ]
+      },
+      "name": "messaging.inbox-lease",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "messaging.consumer",
+        "messaging.event-envelope",
+        "messaging.outbox-lease"
+      ],
+      "stability": "experimental",
+      "summary": "Transport-neutral fenced lease request over the Inbox delivery identity (tenant, consumer, message_id), used for idempotent consumption; same request shape as messaging.outbox-lease.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "platform-core/messaging/delivery-lease/v1",
+        "delivery-lease",
+        "outbox",
+        "transactional-outbox"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/messaging.outbox-lease/README.md",
+          "role": "specification",
+          "sha256": "dccc2b520c6571817eb9a7376ded637d6b5f2a645ecc9ed5d87080c4f99574ba"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/capability.yaml",
+          "role": "contract",
+          "sha256": "bbd6332a9927ed79f826a60e752472f8f703e4917c49709b75348fcac296b2f6"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.01.json",
+          "role": "conformance-invalid",
+          "sha256": "b4c9b41b58d7dfe9322f2cd0afb759bc2beaedee9ba3a9191028555e5b5c353a"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.02.json",
+          "role": "conformance-invalid",
+          "sha256": "232734092c6cade01245b370f8fcc0b93c854670bc8af61449fabc91d36b491f"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.03.json",
+          "role": "conformance-invalid",
+          "sha256": "87edd5786b29c157af8fc9389d541c2d56295a1157c756d981e9c0f68a2b724b"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.04.json",
+          "role": "conformance-invalid",
+          "sha256": "ffeeae2d484db678b55fac126163d11485304c909a4ef2d025ef09b7dd4f5f2a"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.05.json",
+          "role": "conformance-invalid",
+          "sha256": "fad219e4974d9b94550b4320db4f831d8cdab0e674ba17138348ffea7baadcdb"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.06.json",
+          "role": "conformance-invalid",
+          "sha256": "a52549e352eb30d4be095fa665629f1dea86111f441b94887a99524754cdcbb7"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.07.json",
+          "role": "conformance-invalid",
+          "sha256": "116768a39c46beaaa9e02e92dac5d24584e0c09f518dbe71b5e2932795eb718c"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.08.json",
+          "role": "conformance-invalid",
+          "sha256": "137bb6d1e36e4cb42aae2c1ae16446c9fa8641dea5d4ec5036d013588ef57550"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.09.json",
+          "role": "conformance-invalid",
+          "sha256": "2db644426998ccd8977990078a899892591fceb972869adaca0e1d839f320463"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.10.json",
+          "role": "conformance-invalid",
+          "sha256": "0bb1e96c4d05b7de037435d76079e88521ae329f953fa4383f134b2ccac4a634"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.11.json",
+          "role": "conformance-invalid",
+          "sha256": "c2008422ed5fca650e98d3673ebd5f69ac15c2b145997072c308df8ca4dfcac1"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.12.json",
+          "role": "conformance-invalid",
+          "sha256": "0ca7197034c9e724b1a301257c1af6db68771ea8e91843b5e07ecce087a9e46d"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.13.json",
+          "role": "conformance-invalid",
+          "sha256": "bba941e8205a1fb0d9da1a8c1442417fe7b19c63764ebca2314e814aa815e694"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.14.json",
+          "role": "conformance-invalid",
+          "sha256": "683ef91420c4893e494816d21f72ae19ec01fbc6b8527223af48304dbfdc76c6"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.15.json",
+          "role": "conformance-invalid",
+          "sha256": "7238fafdc4479c1a0d0b77faf19047be98293a9c483fad0a4a900011d6374478"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.16.json",
+          "role": "conformance-invalid",
+          "sha256": "c9a0650d32a872ebf3e4f6e73e33dc265d3ccca2c9e276603a315c2d5b909899"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.17.json",
+          "role": "conformance-invalid",
+          "sha256": "1277cc36614a0250f6e26fd8babafe0cdadbb39e2a9e28a45433e250b77c2087"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.18.json",
+          "role": "conformance-invalid",
+          "sha256": "bfa0e235c531971d076ef4b9bb1c1e37bf8375bd37a1510a2d52c5bcd5cb7ce2"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.19.json",
+          "role": "conformance-invalid",
+          "sha256": "4818c69aeae2ec56901bc12695cc699b27a0a5fb177df45336b695f141f8a93d"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/invalid/outbox-lease-request.20.json",
+          "role": "conformance-invalid",
+          "sha256": "dfcd958dc066e8ec7db66e0c247655730c95e515ff7b373fc4a068a382a1cb03"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/valid/outbox-lease-request.01.json",
+          "role": "conformance-valid",
+          "sha256": "234bd98c59000ee46ebf36ca3cb14aa20b2c72f186de7da25c42343fde33bab5"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/valid/outbox-lease-request.02.json",
+          "role": "conformance-valid",
+          "sha256": "5869f971516a34a41f468396154c09bcf126daf544ed02bef2c871d2c9dde2fe"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/valid/outbox-lease-request.03.json",
+          "role": "conformance-valid",
+          "sha256": "1111bd5a713ec07045809ce2556c8dabc67b830c42a719743062652e8908f3eb"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/valid/outbox-lease-request.04.json",
+          "role": "conformance-valid",
+          "sha256": "04832750bf755958e6ac0933ccfb74891d3a348352e944060c3f7a06a72bf61f"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/valid/outbox-lease-request.05.json",
+          "role": "conformance-valid",
+          "sha256": "a306862a07b3d2aac8e456185494cb5786dc7d8cd3392becbab569bae4c30bf9"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/valid/outbox-lease-request.06.json",
+          "role": "conformance-valid",
+          "sha256": "7ae3af4c6235f35fc01047e89c6376dd35cbf93483370c085aee538d6cb2c1d6"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/conformance/valid/outbox-lease-request.07.json",
+          "role": "conformance-valid",
+          "sha256": "2ed9a59fbbde31bf641b9b782b7950440874d2ea94fe2143124a7f80ffd2db51"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/implementations.json",
+          "role": "implementations",
+          "sha256": "fe9386dece748015d6a81a04273392cb3bc087824dae9b02825ed1a4307413ce"
+        },
+        {
+          "path": "capabilities/messaging.outbox-lease/schema.outbox-lease-request.json",
+          "role": "schema",
+          "sha256": "05f7557e603556f68ee916a731e61443b82dc9521323ef89c764a6755d2b31b6"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Outbox",
+          "package_version": "0.4.0-draft.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Outbox",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Outbox.PostgreSql",
+          "package_version": "0.1.0-draft.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Outbox.PostgreSql",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Messaging.Outbox",
+          "Hideakisolutions.Platform.Messaging.Outbox.PostgreSql"
+        ],
+        "path_globs": [
+          "**/delivery-lease-v1.schema.json"
+        ],
+        "symbols": [
+          "IOutboxStore",
+          "IOutboxLeaseStoreV2",
+          "ITransactionalOutboxStoreV2",
+          "OutboxIdentityV2",
+          "OutboxLeaseRequestV2",
+          "OutboxLeaseResultV2",
+          "OutboxPayloadMismatchException",
+          "PostgreSqlOutboxLeaseStore"
+        ]
+      },
+      "name": "messaging.outbox-lease",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "messaging.consumer",
+        "messaging.event-envelope",
+        "messaging.inbox-lease"
+      ],
+      "stability": "experimental",
+      "summary": "Transport-neutral fenced lease request over the Outbox delivery identity (tenant, consumer, message_id); no broker confirmation and no global exactly-once guarantee. Base of the lease request shape also used by messaging.inbox-lease.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "event-publisher",
+        "publish-event",
+        "kafka-publisher",
+        "rabbitmq-publisher",
+        "wolverine-publisher"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/messaging.publish/README.md",
+          "role": "specification",
+          "sha256": "7b3add65cd1e7a73e2e8c52b2075580f3aafd2825630815d1482fe02ee5abe6d"
+        },
+        {
+          "path": "capabilities/messaging.publish/capability.yaml",
+          "role": "contract",
+          "sha256": "618063a62c2f4dadafa17454411b0b18c032a74740f076aee10f8f5844f59270"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.01.json",
+          "role": "conformance-invalid",
+          "sha256": "fcc1807667e5da2fe9d2947e49575b54beaea166881fff7f690d9f3688165e3a"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.02.json",
+          "role": "conformance-invalid",
+          "sha256": "db7e28a5315532c3ba8ff9a71e2ca7f790e43411010bec4aa30a4286d77cc540"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.03.json",
+          "role": "conformance-invalid",
+          "sha256": "21d3834f9c9224848f7826f677f5c4ea26bc6f5cc16ecb8f34da0e6abda68ac2"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.04.json",
+          "role": "conformance-invalid",
+          "sha256": "83e0de4c8c43d84ced7fc7347c3d785012d68fd4c7af81b957e4fd607555c3c4"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.05.json",
+          "role": "conformance-invalid",
+          "sha256": "7b6b3fd854a1673028f8365575c2450904669f9ca994fbdf37536182b21b70b3"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.06.json",
+          "role": "conformance-invalid",
+          "sha256": "8b5af554aafca628510af08a30bf34f4a39fc66609d2eb90dd79df7732b1b02e"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.07.json",
+          "role": "conformance-invalid",
+          "sha256": "ccde2b841bb00c95f40314515aae400d636cd266c34675e38e5416e04872a523"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.08.json",
+          "role": "conformance-invalid",
+          "sha256": "ea461a3bad9a9b1b700d11c79b5873fd061b79f34faf20c93b475e92cd2ea637"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.09.json",
+          "role": "conformance-invalid",
+          "sha256": "f1c3de428bf5f13bd5cd75535fd456ab0e45a4f45e26de580854653409815822"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.10.json",
+          "role": "conformance-invalid",
+          "sha256": "dafb9d66365af05298075f087b6a3fad4a8a7b52c5864e09a94a25ddd49a3159"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.11.json",
+          "role": "conformance-invalid",
+          "sha256": "57f123c908b8d972c42ab024fe3dd0e5af91d0188bd03efbf19a5590263de3bd"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.12.json",
+          "role": "conformance-invalid",
+          "sha256": "8d8be08e4ee26398f6fe49785160c6be50f70118853b65867bf9ac4fcfb1d949"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.13.json",
+          "role": "conformance-invalid",
+          "sha256": "d59837a3c0b6f7ef968bd37936059ab98f7eeee8cd3ef1513fa536163b72a400"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.14.json",
+          "role": "conformance-invalid",
+          "sha256": "890392fa12679baee1a4fcdcb8b52b7f5c8b3f94afd3efbbcc2dc0b9dd25bea4"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.15.json",
+          "role": "conformance-invalid",
+          "sha256": "da82a298b344443a5d58c6b3dd494ff7e6a31a50fbf37f64b0dcd403eb42ccc5"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.16.json",
+          "role": "conformance-invalid",
+          "sha256": "0824511b58da9d5f940e617d988f2f2be2adcb62b9bab9ac0ac0356ff35127d4"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/message-destination.17.json",
+          "role": "conformance-invalid",
+          "sha256": "9c2bf50e3cbeb091f650a43c94600cc806efcd9af84272139ee6e1ee73a49179"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.01.json",
+          "role": "conformance-invalid",
+          "sha256": "94f1ef11ebc0640ab9fc00775d62e20280b25509e98d932d423a05f89b1867c1"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.02.json",
+          "role": "conformance-invalid",
+          "sha256": "7a30cbe6eb9e6c6cd0cc1989b64813914be6f379f9928a0a0c698a97ef509869"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.03.json",
+          "role": "conformance-invalid",
+          "sha256": "964a43a306cf883de189da05051c573a95b95648fda9e9705e3078c042497f45"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.04.json",
+          "role": "conformance-invalid",
+          "sha256": "c506797bd68e83599ef4da0ce6f3464948eb3856bc1fef4b4c53ccb4f4ca240a"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.05.json",
+          "role": "conformance-invalid",
+          "sha256": "f9d4806a54ddc0d705f161b41a053e1e493f1bd564a23b9f2c58c459f6bbc7bb"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.06.json",
+          "role": "conformance-invalid",
+          "sha256": "8869f6573015a789c9386837e0bb80c1ff938a61d51e59fefd73e34d0e3f2c30"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.07.json",
+          "role": "conformance-invalid",
+          "sha256": "9efc384ed946c960633116ab8fd59c56b6fc3f3378fe39f48e32832dd3e03595"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.08.json",
+          "role": "conformance-invalid",
+          "sha256": "0a31e15ca91d020162ce45867c955d17df7f6a939499bba7f33d8ef9f28201ad"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.09.json",
+          "role": "conformance-invalid",
+          "sha256": "489459bb38488ecd5fde13903fc3b4fd6d26f0060aa323fb2fe9fea3286873ba"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.10.json",
+          "role": "conformance-invalid",
+          "sha256": "3d4ad5adf9f5c251967378ef390a72e95a67b6a56a2fa4c9f0c57aa15364410b"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.11.json",
+          "role": "conformance-invalid",
+          "sha256": "eb49c3354cb46f9c63afa56ff05dc2ad4f045d28a4dd1a5622be4de788c9d7a9"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/invalid/publish-receipt.12.json",
+          "role": "conformance-invalid",
+          "sha256": "7535f90a61bd6675946ac7f102b13b4e2ac69c5db53d1aa0ff639fad7fc7aded"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/message-destination.01.json",
+          "role": "conformance-valid",
+          "sha256": "440cc48f5f63291daf7e04b3bb5a21f0aa773818a40f7747d218f23ff31e6ba3"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/message-destination.02.json",
+          "role": "conformance-valid",
+          "sha256": "4f292a644fde61e7bb1b1f7e5861dfbb8b94da3981f424cf32c25439229b90b2"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/message-destination.03.json",
+          "role": "conformance-valid",
+          "sha256": "fef58d23b4f7345f5aef9eada1ad3e9074aa3e63a7080b203052b7b1aab75de5"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/message-destination.04.json",
+          "role": "conformance-valid",
+          "sha256": "e46dfad4c26966287ee09eccfc7c93d53423cef0c000bac917b2adc432bacd9f"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/message-destination.05.json",
+          "role": "conformance-valid",
+          "sha256": "1d5162b7991ec820436ced5618003e0d53387b43a98ff1e8192235ad556fc84a"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/message-destination.06.json",
+          "role": "conformance-valid",
+          "sha256": "6616fd5f2a8d9bbe461fc623585bfbde41bb525623942eae77d54b2adbd2331c"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/message-destination.07.json",
+          "role": "conformance-valid",
+          "sha256": "bfaa5a138fe630059c994e3d807bbd36483506f75acce2ab183f2af6aa2975c3"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/publish-receipt.01.json",
+          "role": "conformance-valid",
+          "sha256": "3fa3c073e3f66950f367e741af1039294020b07fb3ab77bbd14645581a72e37a"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/publish-receipt.02.json",
+          "role": "conformance-valid",
+          "sha256": "3b7263ea7f91636d5892c7c398cf28fe7c7892094e3706da467f47f81a79cc85"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/publish-receipt.03.json",
+          "role": "conformance-valid",
+          "sha256": "6c13aa142d5f2db8aa5825d4af06172f0f636bec18d3d5dd23dafeb70dcc5452"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/publish-receipt.04.json",
+          "role": "conformance-valid",
+          "sha256": "2bcb1495b73c91606fb7e8b4f4eea952edda0f45dbd0573f707808858138e053"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/publish-receipt.05.json",
+          "role": "conformance-valid",
+          "sha256": "081ea84630e250a3e9a2cbcf4f5bde3ca763e81d1f93e60edc12f07897c8d9a5"
+        },
+        {
+          "path": "capabilities/messaging.publish/conformance/valid/publish-receipt.06.json",
+          "role": "conformance-valid",
+          "sha256": "2ccb509c3cf91c2ec3db01686cf51688c703cdad872ee4f0264279524d2e517a"
+        },
+        {
+          "path": "capabilities/messaging.publish/implementations.json",
+          "role": "implementations",
+          "sha256": "666e2fe3de7f24afeeeee3557f2cfbffe1d27dff343160f76ad0d20f5cf403ad"
+        },
+        {
+          "path": "capabilities/messaging.publish/schema.message-destination.json",
+          "role": "schema",
+          "sha256": "121414a6f01ce25eeae1a07c742846097c462e5fafc4ac38fbc21fef72c35a5c"
+        },
+        {
+          "path": "capabilities/messaging.publish/schema.publish-receipt.json",
+          "role": "schema",
+          "sha256": "1fa0ef53f98bf5f497447db5e556e51e0fc28a3bfb67b3ee712b728ced047f3c"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Abstractions",
+          "package_version": "0.3.0",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Abstractions",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Kafka",
+          "package_version": "0.2.0-draft.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Kafka",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.RabbitMq",
+          "package_version": "0.1.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.RabbitMq",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Wolverine",
+          "package_version": "0.1.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Wolverine",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Messaging.Abstractions",
+          "Hideakisolutions.Platform.Messaging.Kafka",
+          "Hideakisolutions.Platform.Messaging.RabbitMq",
+          "Hideakisolutions.Platform.Messaging.Wolverine"
+        ],
+        "symbols": [
+          "IEventPublisher",
+          "MessageDestination",
+          "PublishReceipt",
+          "KafkaEventPublisher",
+          "RabbitMqEventPublisher",
+          "WolverineEventPublisher"
+        ]
+      },
+      "name": "messaging.publish",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "messaging.event-envelope"
+      ],
+      "stability": "experimental",
+      "summary": "Provider-neutral event publish port (destination, receipt, PublishAsync) over the canonical event envelope; no broker confirmation, durability or exactly-once guarantee.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/notification.send/asyncapi.yaml",
@@ -1325,7 +3691,7 @@
         {
           "path": "capabilities/notification.send/capability.yaml",
           "role": "contract",
-          "sha256": "b72d061ca435931de0151e6e374d822c3c3cb476f1bd9029829a0f3d4615c3cc"
+          "sha256": "e3bc17bc935fc4fc51018f7f73b4a29b2270df75451e86aff54dab731b649daa"
         },
         {
           "path": "capabilities/notification.send/conformance/invalid/input-missing-required.json",
@@ -1439,6 +3805,420 @@
       ],
       "stability": "experimental",
       "summary": "Send a governed notification through an approved provider adapter.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "platform-core/observability/health-check",
+        "observability",
+        "health-check"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "go"
+        },
+        {
+          "required": false,
+          "status": "missing",
+          "target": "node"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/observability.health/README.md",
+          "role": "specification",
+          "sha256": "4a9276c7e2a4ad0e4f08594cbb035605e697af5b8f50ca5dcd188eb5989c7d87"
+        },
+        {
+          "path": "capabilities/observability.health/capability.yaml",
+          "role": "contract",
+          "sha256": "b6686b4270ef29495df1cedfd8c7fcb5aa264d3196fec8d4658d36b431766b60"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/invalid/health-check.01.json",
+          "role": "conformance-invalid",
+          "sha256": "a59544f34fd9ffe0c4238f464668f24ba3b332bafa1a0bc6572bf951b181faa5"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/invalid/health-check.02.json",
+          "role": "conformance-invalid",
+          "sha256": "79de062bdc1a36baf9ddd62538c26688d9fdea2214613f5bff584ce25b7a0b96"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/invalid/health-check.03.json",
+          "role": "conformance-invalid",
+          "sha256": "a8829ff6352b69bdc12097d2460298004bbd1ee84b97594602201f28ea6674a6"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/invalid/health-check.04.json",
+          "role": "conformance-invalid",
+          "sha256": "728996ee4dd895fe2ce1e5ee5f1c781385355631eed5b0f794adb83251dfd143"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/invalid/health-check.05.json",
+          "role": "conformance-invalid",
+          "sha256": "e2383b2052a6c23426211d9d2a625fc0492bf5873ee7b78469415c6c687591c7"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/invalid/health-check.06.json",
+          "role": "conformance-invalid",
+          "sha256": "98e04b091abbd0bcad7c2e069c196c46a9c12f675048d02df8624657c9d7618b"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/invalid/health-check.07.json",
+          "role": "conformance-invalid",
+          "sha256": "92da4abd7683c926b6f9ce09cc51ce1c3e052a9155b068f8d6728f3829c8c4bd"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/invalid/health-check.08.json",
+          "role": "conformance-invalid",
+          "sha256": "419a72e49faa9f9def530b8f94b1e81dcade82bda483d11323466d82e2b759bc"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/valid/health-check.01.json",
+          "role": "conformance-valid",
+          "sha256": "8905b1c130d8e60626ec80f5e5c49e58cb66cb7d7544b955b08bb4102b1d97ef"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/valid/health-check.02.json",
+          "role": "conformance-valid",
+          "sha256": "813c2149f0b85f41ccd46e675b400754cc2241d9bcc02766c62caa172a52518b"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/valid/health-check.03.json",
+          "role": "conformance-valid",
+          "sha256": "77f1a1496695758a748bdd133eeaa07b715f7a6b55546aa6ef82a2b894dfab74"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/valid/health-check.04.json",
+          "role": "conformance-valid",
+          "sha256": "5ef567793c94f5919c31ac3cc20270d21a17ae1486cacb830ded9106690caef5"
+        },
+        {
+          "path": "capabilities/observability.health/conformance/valid/health-check.05.json",
+          "role": "conformance-valid",
+          "sha256": "5bfee029922085ee08bf179fa8a6a724bce7f2584615027dfad7a919b37c0035"
+        },
+        {
+          "path": "capabilities/observability.health/implementations.json",
+          "role": "implementations",
+          "sha256": "fd24d9b06ebded22af310eb27a44e43198a444e7a6277bac146003f007b59cd8"
+        },
+        {
+          "path": "capabilities/observability.health/schema.health-check.json",
+          "role": "schema",
+          "sha256": "433bc2b3af06cc8cc68d70e775321f2be06da7e808a4a525477a2de11cd5a5e4"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Observability",
+          "package_version": "0.3.0",
+          "path": "dotnet/src/Hideakisolutions.Platform.Observability",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/hideakisolutions/backend-core/golang/observability",
+          "path": "golang/observability",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "hideakisolutions-platform",
+          "package_version": "0.2.0",
+          "path": "python/hideakisolutions_platform/observability",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "python",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Observability",
+          "github.com/hideakisolutions/backend-core/golang/observability",
+          "hideakisolutions_platform.observability"
+        ],
+        "path_globs": [
+          "**/health-check.schema.json"
+        ],
+        "symbols": [
+          "HealthCheckResponse",
+          "HealthCheckItem",
+          "HealthStatus",
+          "CrossCuttingKeys",
+          "cross_cutting_keys",
+          "AddPlatformOpenTelemetry",
+          "PlatformObservabilityOptions"
+        ]
+      },
+      "name": "observability.health",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "telemetry.publish"
+      ],
+      "stability": "experimental",
+      "summary": "Standard health check response (status, service, version, uptime, per-dependency checks) and the rule that aggregates checks into an overall status.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        },
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "resilience",
+        "http-resilience",
+        "http-retry",
+        "retry-policy",
+        "exponential-backoff"
+      ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "go"
+        },
+        {
+          "required": false,
+          "status": "missing",
+          "target": "node"
+        },
+        {
+          "required": false,
+          "status": "missing",
+          "target": "python"
+        }
+      ],
+      "files": [
+        {
+          "path": "capabilities/resilience.http/README.md",
+          "role": "specification",
+          "sha256": "4e03650e65275be979a387562fdf45d35f0096a0320afbe3123c2d9ddd527759"
+        },
+        {
+          "path": "capabilities/resilience.http/capability.yaml",
+          "role": "contract",
+          "sha256": "f3f6871dde4c4126dcff898822ca5aedcc98621b20a3aadf8f63a128d0097fa9"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.01.json",
+          "role": "conformance-invalid",
+          "sha256": "4916f3b4f1072136d0e4fb90403050d444bb106b8d4e2a522186147be186a871"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.02.json",
+          "role": "conformance-invalid",
+          "sha256": "3541b0cc57912e6e29db5fe74435859a63c5c69aef93238d793ce1431d6ad7bb"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.03.json",
+          "role": "conformance-invalid",
+          "sha256": "4c42a06f36dd16f777736612107d9da5ce13d2c3dac5997b722f7210a5d7a5b8"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.04.json",
+          "role": "conformance-invalid",
+          "sha256": "942e22f96ba00f95c491dce60b4d627ab221738dbd1882e3b9a0a78430af2848"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.05.json",
+          "role": "conformance-invalid",
+          "sha256": "27a26ab3ea3b0868148114a0f3b164bde8367d4c6ad6daa289e20003799a6b8b"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.06.json",
+          "role": "conformance-invalid",
+          "sha256": "0a94a8175e423a66f7ed5a4fe86abf8c8e0e5257ce4b8f6fbd3bb9157da1c9cf"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.07.json",
+          "role": "conformance-invalid",
+          "sha256": "7df0d87132879e1d6fd617ea37fe64f3cf1cb9e76c4cbfb886edf38d2e571f99"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.08.json",
+          "role": "conformance-invalid",
+          "sha256": "f3fc7766829db85a49b28a29aa6e3802c1a184b4f46adf66e01a2ca5f1595069"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.09.json",
+          "role": "conformance-invalid",
+          "sha256": "c174fa399713c19d1ace5c8d1529dd70714ab9ab4a73444dd5218a172505a836"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.10.json",
+          "role": "conformance-invalid",
+          "sha256": "16e0bd042e472de0053fb04da416fe10f4e9137478cb1fa667f8544f232a95d7"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.11.json",
+          "role": "conformance-invalid",
+          "sha256": "6f393e19ca5d7e6d05fa1a1aa60df09faa2590d373206d7d85037f943ba0afe7"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/invalid/retry-policy.12.json",
+          "role": "conformance-invalid",
+          "sha256": "e24d1d7b219d799494699000e03a37d78f6e8ac5a828268a3839c67b093c3cf3"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/valid/retry-policy.01.json",
+          "role": "conformance-valid",
+          "sha256": "eb681646bd5ec98128006ee262cb703b0c844d2b28be5f27730fe1885a74ef48"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/valid/retry-policy.02.json",
+          "role": "conformance-valid",
+          "sha256": "8f9dae8239971d10881cabc801300d74d4da6727502fc64385ea51764b1efa42"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/valid/retry-policy.03.json",
+          "role": "conformance-valid",
+          "sha256": "886b76e2986f34368996e402caea8258ddcb66fd9cb1cb2f3218a29c2b36d282"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/valid/retry-policy.04.json",
+          "role": "conformance-valid",
+          "sha256": "f35080013153140925101ad09362f54fcf973ffb45f9614e57c24462be8b83db"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/valid/retry-policy.05.json",
+          "role": "conformance-valid",
+          "sha256": "baa8163a5731879f9508933e6937d81648d5599c561acbd4cfc3343f07760f30"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/valid/retry-policy.06.json",
+          "role": "conformance-valid",
+          "sha256": "746c4b7774dd1868848c58f9e4e04bebad0c02d143a09cb17e73324f375d86bd"
+        },
+        {
+          "path": "capabilities/resilience.http/conformance/valid/retry-policy.07.json",
+          "role": "conformance-valid",
+          "sha256": "f68840a84fe85b23956d6015638e05cedb93be87e2bfcff232e9bfe0172db5ce"
+        },
+        {
+          "path": "capabilities/resilience.http/implementations.json",
+          "role": "implementations",
+          "sha256": "0c21d8a45fdff950e0cd85e05b46ba7ec265b43c2c3656a788b972423e7b7ed6"
+        },
+        {
+          "path": "capabilities/resilience.http/schema.retry-policy.json",
+          "role": "schema",
+          "sha256": "5d9ee6a6cd2756e6bed31bc3832e5eb7dedf29debfbb43126f0bda0603089747"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Resilience",
+          "package_version": "0.3.0",
+          "path": "dotnet/src/Hideakisolutions.Platform.Resilience",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/hideakisolutions/backend-core/golang/resilience",
+          "path": "golang/resilience",
+          "repository": "HideakiSolutions/backend-core",
+          "stack": "go",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Resilience",
+          "github.com/hideakisolutions/backend-core/golang/resilience"
+        ],
+        "symbols": [
+          "AddPlatformResilienceHandler",
+          "PlatformResilienceExtensions",
+          "PlatformResilienceOptions"
+        ]
+      },
+      "name": "resilience.http",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "messaging.consumer"
+      ],
+      "stability": "experimental",
+      "summary": "Common HTTP retry policy (retries after the first call, exponential backoff, delay bounds, per-attempt timeout) shared by the .NET and Go backend-core stacks; circuit breaker and total timeout are .NET-specific and excluded.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        },
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": false,
+          "stack": "python"
+        }
+      ],
       "version": "0.1.0"
     },
     {
@@ -1452,6 +4232,28 @@
         "keycloak",
         "oidc"
       ],
+      "coverage": [
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "dotnet"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "go"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "node"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/security.authn/README.md",
@@ -1461,7 +4263,7 @@
         {
           "path": "capabilities/security.authn/capability.yaml",
           "role": "contract",
-          "sha256": "07b933f72f733955fd6f9193cb0db7db64a3ad9bdecfbb98846694b99b46789a"
+          "sha256": "14afcd1cbe1ce079327cccf5f69c80096079bbb611aa60061cdb92eb228877f4"
         },
         {
           "path": "capabilities/security.authn/conformance/invalid/auth-middleware.01.json",
@@ -1536,7 +4338,7 @@
         {
           "path": "capabilities/security.authn/implementations.json",
           "role": "implementations",
-          "sha256": "41d0fe0f8da9f48ab7a82f2601afc0b1cb8c2644a17c79ad561a971667b7f648"
+          "sha256": "ee493981dbbf3e2e0aeb623c5f7388cf60929b9a9de7de42ed2455353c70e7fd"
         },
         {
           "path": "capabilities/security.authn/schema.auth-middleware.json",
@@ -1556,7 +4358,7 @@
           "package": "Hideakisolutions.Platform.Security.Authn",
           "package_version": "0.2.1",
           "path": "dotnet/src/Hideakisolutions.Platform.Security.Authn",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "dotnet",
           "status": "experimental"
         },
@@ -1565,7 +4367,7 @@
           "kind": "library",
           "package": "github.com/hideakisolutions/backend-core/golang/auth",
           "path": "golang/auth",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "go",
           "status": "experimental"
         },
@@ -1575,7 +4377,7 @@
           "package": "@hideakisolutions/platform-node",
           "package_version": "0.1.0",
           "path": "node/src/auth",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "node",
           "status": "experimental"
         },
@@ -1585,7 +4387,7 @@
           "package": "hideakisolutions-platform",
           "package_version": "0.1.0",
           "path": "python/hideakisolutions_platform/auth",
-          "repository": "Hideaki-Solutions-Core/backend-core",
+          "repository": "HideakiSolutions/backend-core",
           "stack": "python",
           "status": "experimental"
         }
@@ -1627,10 +4429,46 @@
       ],
       "stability": "experimental",
       "summary": "Authentication provider interface and bearer-token middleware configuration shared by every stack.",
+      "targets": [
+        {
+          "required": true,
+          "stack": "dotnet"
+        },
+        {
+          "required": true,
+          "stack": "go"
+        },
+        {
+          "required": true,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/telemetry.publish/asyncapi.yaml",
@@ -1640,7 +4478,7 @@
         {
           "path": "capabilities/telemetry.publish/capability.yaml",
           "role": "contract",
-          "sha256": "2fe49fe25fa629d8b3c32593d4e1533eb95767f350d52e5a4e8cbcd9f2114f44"
+          "sha256": "6ceb2c8f9ca751e44f935767bb7696093a323a09383ebb70a496136d7513471a"
         },
         {
           "path": "capabilities/telemetry.publish/conformance/invalid/input-missing-required.json",
@@ -1748,10 +4586,42 @@
       ],
       "stability": "experimental",
       "summary": "Publish governed telemetry events, metrics, traces, and audit-compatible operational signals.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
       "version": "0.1.0"
     },
     {
       "aliases": [],
+      "coverage": [
+        {
+          "required": false,
+          "status": "experimental",
+          "target": "node",
+          "via": "typescript"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "python"
+        },
+        {
+          "required": true,
+          "status": "experimental",
+          "target": "typescript"
+        }
+      ],
       "files": [
         {
           "path": "capabilities/workflow.execute/asyncapi.yaml",
@@ -1761,7 +4631,7 @@
         {
           "path": "capabilities/workflow.execute/capability.yaml",
           "role": "contract",
-          "sha256": "6a6db95c4a087bdd817827407c725623ede9f503bfe001514c424f033de0db74"
+          "sha256": "761e3dda42f53520a63a5075d627ab4c815a95dcc4d6b4ccc29f800a416426c4"
         },
         {
           "path": "capabilities/workflow.execute/conformance/invalid/input-missing-required.json",
@@ -1871,11 +4741,25 @@
       ],
       "stability": "experimental",
       "summary": "Execute a governed workflow with tenant, audit, telemetry, and retry policy.",
+      "targets": [
+        {
+          "required": false,
+          "stack": "node"
+        },
+        {
+          "required": true,
+          "stack": "python"
+        },
+        {
+          "required": true,
+          "stack": "typescript"
+        }
+      ],
       "version": "0.1.0"
     }
   ],
   "generated_from": {
-    "contracts_version": "0.4.0",
+    "contracts_version": "0.5.3",
     "repository": "HideakiSolutions/enterprise-capability-platform"
   },
   "schema_version": "1"

@@ -25,3 +25,6 @@ _graph/**/evidence/
 docs/evidence/
 docs/v4/evidence/
 tools/cli/command-manifest.json
+
+# ECP generated registry snapshot preserves upstream bytes verified by its SHA-256 lock.
+.enterprise/governance/capabilities/ecp-registry.snapshot.json
