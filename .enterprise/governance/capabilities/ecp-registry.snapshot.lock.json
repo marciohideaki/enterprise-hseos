@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "repository": "HideakiSolutions/enterprise-capability-platform",
-  "ref": "contracts-v0.4.0",
-  "contracts_version": "0.4.0",
-  "sha256": "c71dd1eabb0ae12db0ea75475e7ae196a83cc02ea2edef64cc7be875a1f032fb"
+  "ref": "23a4ffb1f4b7708ef03b38f6c2e91e3fd5fecbfd",
+  "contracts_version": "0.5.3",
+  "sha256": "fcd8a5aa3c5f2fead6231a47dbcf4e3202be74c831d2d5eece33c6cd43dd65df"
 }

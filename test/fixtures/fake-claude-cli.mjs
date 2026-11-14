@@ -19,6 +19,16 @@ fs.appendFileSync(
   `${JSON.stringify({ argv, env: Object.keys(process.env).sort(), cwd: process.cwd(), pid: process.pid })}\n`,
 );
 
+const captureStage = argv[0] === '--version' ? 'version' : argv[0] === 'auth' ? 'auth' : null;
+if (mode.capture === 'slow-version' && captureStage === 'version') {
+  await new Promise((resolve) => setTimeout(resolve, 350));
+}
+if (mode.capture === `${captureStage}-stubborn`) {
+  process.on('SIGTERM', () => {});
+  setInterval(() => {}, 1000);
+  await new Promise(() => {});
+}
+
 if (argv[0] === '--version') {
   process.stdout.write(`${mode.version ?? '2.1.296'} (Claude Code)\n`);
 } else if (argv[0] === 'auth' && argv[1] === 'status') {
@@ -30,6 +40,8 @@ if (argv[0] === '--version') {
   for await (const chunk of process.stdin) prompt += chunk;
   const session = flag('--session-id') ?? flag('--resume') ?? randomUUID();
   const base = { session_id: session, uuid: randomUUID() };
+  if (mode.run === 'ui_before_init') emit({ ...base, type: 'system', subtype: 'ui_invalidate' });
+  if (mode.run === 'unknown_before_init') emit({ ...base, type: 'system', subtype: 'future_effect' });
   if (mode.run === 'stubborn' || mode.run === 'immortal') {
     process.on('SIGINT', () => {});
     process.on('SIGTERM', () => {});

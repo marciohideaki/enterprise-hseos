@@ -7,7 +7,7 @@ const { StringDecoder } = require('node:string_decoder');
 
 const { RuntimeProviderError } = require('./acp-runtime-provider');
 
-const ENVIRONMENT_NAMES = new Set(['HOME', 'PATH', 'CLAUDE_CONFIG_DIR', 'CLAUDE_CODE_MAX_OUTPUT_TOKENS']);
+const ENVIRONMENT_NAMES = new Set(['HOME', 'PATH', 'TMPDIR', 'CLAUDE_CONFIG_DIR', 'CLAUDE_CODE_MAX_OUTPUT_TOKENS']);
 // oauth_token (CLAUDE_CODE_OAUTH_TOKEN) is deliberately unsupported: the token cannot be resolved without exposing it.
 const ACCOUNT_AUTH_METHODS = new Set(['claude.ai']);
 const NON_EFFECT_CONTENT_TYPES = new Set(['text', 'thinking', 'redacted_thinking']);
@@ -59,7 +59,10 @@ class ClaudeCliDriver {
   }
 
   /** Bounded capture for non-prompt commands (`--version`, `auth status`). */
-  async #capture(args, timeoutMs) {
+  async #capture(args, signal) {
+    const aborted = () =>
+      new RuntimeProviderError('Claude account inspection aborted', signal.reason?.name === 'TimeoutError' ? 'timeout' : 'cancelled');
+    if (signal.aborted) throw aborted();
     const child = spawn(this.executable, args, { cwd: this.cwd, env: { ...this.env }, stdio: ['ignore', 'pipe', 'ignore'], shell: false });
     let output = '';
     let overflow = false;
@@ -70,22 +73,34 @@ class ClaudeCliDriver {
         child.kill('SIGKILL');
       }
     });
-    const timer = setTimeout(() => child.kill('SIGKILL'), timeoutMs);
-    const code = await new Promise((resolve) => {
-      child.once('error', () => resolve(-1));
+    const closed = new Promise((resolve) => {
+      // A failed spawn also emits close; wait for it so rejection implies completed cleanup.
+      child.once('error', () => {});
       child.once('close', (value) => resolve(value ?? -1));
     });
-    clearTimeout(timer);
-    if (code !== 0 || overflow) throw new RuntimeProviderError('Claude command failed', 'provider_unavailable');
-    return output;
+    const onAbort = () => child.kill('SIGKILL');
+    signal.addEventListener('abort', onAbort, { once: true });
+    if (signal.aborted) onAbort();
+    try {
+      const code = await closed;
+      if (signal.aborted) throw aborted();
+      if (code !== 0 || overflow) throw new RuntimeProviderError('Claude command failed', 'provider_unavailable');
+      return output;
+    } finally {
+      signal.removeEventListener('abort', onAbort);
+    }
   }
 
   /** Reports version and the identity tuple; never reads or returns credentials. */
-  async inspectAccount({ timeout_ms = 10_000 } = {}) {
-    const version = (await this.#capture(['--version'], timeout_ms)).trim();
+  async inspectAccount({ timeout_ms = 10_000, signal } = {}) {
+    if (!Number.isSafeInteger(timeout_ms) || timeout_ms < 1)
+      throw new RuntimeProviderError('Claude inspection timeout is invalid', 'invalid_request');
+    const timeout = AbortSignal.timeout(timeout_ms);
+    const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
+    const version = (await this.#capture(['--version'], combined)).trim();
     let status;
     try {
-      status = JSON.parse(await this.#capture(['auth', 'status', '--json'], timeout_ms));
+      status = JSON.parse(await this.#capture(['auth', 'status', '--json'], combined));
     } catch (error) {
       if (error instanceof RuntimeProviderError) throw error;
       throw new RuntimeProviderError('Claude auth status is malformed', 'protocol_error');
@@ -191,6 +206,9 @@ class ClaudeCliDriver {
         if (message.session_id !== observedSession || (expected && message.session_id !== expected))
           throw new RuntimeProviderError('Claude session identity drifted', 'protocol_error');
       }
+      // Claude Code 2.1.323 can invalidate its native UI before init in headless mode.
+      // This passive notification neither supplies model output nor replaces mandatory init.
+      if (message.type === 'system' && message.subtype === 'ui_invalidate') return;
       if (message.type === 'system' && message.subtype === 'init') {
         if (seenInit) throw new RuntimeProviderError('Claude emitted a second init', 'protocol_error');
         seenInit = true;
