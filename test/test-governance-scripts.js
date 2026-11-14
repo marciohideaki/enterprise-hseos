@@ -25,6 +25,7 @@ function hygieneFixture({ files = [], manifests }) {
     files: [...base, ...files],
     policy,
     readFile: (name) => {
+      if (name === 'empty.txt') return '\n  \n';
       if (name !== 'removed.txt') throw Object.assign(new Error('missing'), { code: 'ENOENT' });
       return 'scripts/gone.sh\n\n';
     },
@@ -209,6 +210,7 @@ gate_code
     ['R4', 'docs-evolution-entry', { files: ['docs/evolution/new-report.md'] }],
     ['R5', 'removed-path-returned', { files: ['scripts/gone.sh'] }],
     ['R5 missing manifest', 'removed-path-returned', { manifests: ['MISSING.txt'] }],
+    ['R5 empty manifest', 'removed-path-returned', { manifests: ['empty.txt'] }],
   ].map(([label, rule, change]) => ({
     name: `repository hygiene: ${label} violation is reported as ${rule}`,
     fn: () => {

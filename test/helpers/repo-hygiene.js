@@ -88,8 +88,18 @@ function checkRepoHygiene({ files, policy, readFile }) {
       );
       continue;
     }
-    for (const line of content.split('\n')) {
-      const removed = line.trim();
+    const lines = content
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (lines.length === 0) {
+      add(
+        'removed-path-returned',
+        manifest,
+        `manifest de remocao vazio; o guard falha fechado: restaure a lista ou retire o manifest de removalManifests em \`${POLICY_PATH}\` (${HOW_TO_CHANGE})`,
+      );
+    }
+    for (const removed of lines) {
       if (removed && tracked.has(removed)) {
         add(
           'removed-path-returned',
