@@ -36,7 +36,7 @@ function manifest() {
   return {
     schema_version: '1.0.0',
     state: 'frozen',
-    hseos: { repository: 'marciohideaki/enterprise-hseos', package: 'hseos', version: '4.0.0-ai-provider.5', tag: 'v4.0.0-ai-provider.5' },
+    hseos: { repository: 'marciohideaki/enterprise-hseos', package: 'hseos', version: '4.0.0-ai-provider.6', tag: 'v4.0.0-ai-provider.6' },
     ecp: {
       version: '0.6.2',
       source_sha: 'e'.repeat(40),
